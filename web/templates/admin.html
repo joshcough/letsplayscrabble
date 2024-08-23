@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Select Players</title>
+</head>
+<body>
+<h1>Admin: Select Players for the Game</h1>
+
+<form action="/admin" method="POST">
+    <!-- First Dropdown -->
+    <label for="player1">Player 1:</label>
+    <select name="player1" id="player1">
+        {% for player in players %}
+        <option value="{{ player.id }}"
+                {% if current_player1 and player.id == current_player1.id %} selected {% endif %}>
+            {{ player.first_name }} {{ player.last_name }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <!-- Second Dropdown -->
+    <label for="player2">Player 2:</label>
+    <select name="player2" id="player2">
+        {% for player in players %}
+        <option value="{{ player.id }}"
+                {% if current_player2 and player.id == current_player2.id %} selected {% endif %}>
+            {{ player.first_name }} {{ player.last_name }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Submit</button>
+</form>
+
+<hr>
+
+<!-- Display Current Game Players -->
+<h2>Current Game:</h2>
+{% if current_player1 and current_player2 %}
+<p>Player 1: {{ current_player1.first_name }} {{ current_player1.last_name }}</p>
+<p>Player 2: {{ current_player2.first_name }} {{ current_player2.last_name }}</p>
+{% else %}
+<p>No players currently selected for the game.</p>
+{% endif %}
+</body>
+</html>
