@@ -25,3 +25,10 @@ def admin():
     current_player2 = g.db_api.players.get_by_id(current_game.player2_id) if current_game and current_game.player2_id else None
 
     return render_template('admin.html', players=players, current_player1=current_player1, current_player2=current_player2)
+
+@app.route('/current_game')
+def current_game():
+    game = g.db_api.current_game.get()
+    player1 = g.db_api.players.get_by_id(game.player1_id) if game and game.player1_id else None
+    player2 = g.db_api.players.get_by_id(game.player2_id) if game and game.player2_id else None
+    return render_template('current_game.html', player1=player1, player2=player2)
