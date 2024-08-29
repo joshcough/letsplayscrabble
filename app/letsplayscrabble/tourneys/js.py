@@ -1,6 +1,31 @@
 import json
 import requests
 
+class Division:
+
+    def __init__(self, division_json):
+        self.name = division_json['name']
+        players = [Player(name="Bye", pairings=[], scores=[])]
+        for player_data in division_json['players']:
+            if player_data is not None:
+                players.append(Player(
+                    name=player_data['name'],
+                    pairings=player_data['pairings'],
+                    scores=player_data['scores']
+                ))
+        for player in players:
+            player.calculate_statistics(players)
+        self.players = players
+
+    def display(self):
+        print("===============================")
+        print(f"Division {self.name}")
+        print("===============================")
+        players = [player for player in self.players if player.name != "Bye"]
+        players.sort(key=lambda p: (-p.wins, -p.ties, p.losses, -p.spread))
+        for player in players:
+            player.display_statistics()
+
 class Player:
     def __init__(self, name, pairings, scores):
         self.name = name
@@ -53,7 +78,6 @@ class Player:
                 games_played += 1
                 games += (opponent.name, (player_score, opponent_score), spread)
 
-    # Calculate average score based on non-bye games (25 games in Joey's case)
         self.average_score = round(total_score / games_played, 2) if games_played > 0 else 0
         self.wins = wins
         self.losses = losses
@@ -108,36 +132,12 @@ def analyze_js(js_url):
         json_object_str = json_object_str.replace('undefined', 'null')
         python_dict = json.loads(json_object_str)
         if 'divisions' in python_dict and isinstance(python_dict['divisions'], list):
-            for division in python_dict['divisions']:
-
-                print("===============================")
-                print(f"Division {division['name']}")
-                print("===============================")
-                players_data = division['players']
-
-                players = [Player(name="Bye", pairings=[], scores=[])]
-                for player_data in players_data:
-                    # print(player_data)
-                    if player_data is not None:
-                        player = Player(
-                            name=player_data['name'],
-                            pairings=player_data['pairings'],
-                            scores=player_data['scores']
-                        )
-                        players.append(player)
-                for player in players:
-                    player.calculate_statistics(players)
-
-                players = [player for player in players if player.name != "Bye"]
-                players.sort(key=lambda p: (-p.wins, -p.ties, p.losses, -p.spread))
-
-                for player in players:
-                    player.display_statistics()
-
+            for division_json in python_dict['divisions']:
+                division = Division(division_json)
+                division.display()
                 print("\n")
     except ValueError as e:
         print(f"Error: {e}")
-
 
 if __name__ == '__main__':
     analyze_js("https://scrabbleplayers.org/directors/AA003954/2024-07-04-Albany-NWL-ME/html/tourney.js")
