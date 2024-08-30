@@ -17,14 +17,17 @@ class Division:
             player.calculate_statistics(players)
         self.players = players
 
+    def players_sorted_by_standing(self):
+        players = [player for player in self.players if player.name != "Bye"]
+        players.sort(key=lambda p: (-p.wins, -p.ties, p.losses, -p.spread))
+        return players
+
     def display(self):
         print("===============================")
         print(f"Division {self.name}")
         print("===============================")
-        players = [player for player in self.players if player.name != "Bye"]
-        players.sort(key=lambda p: (-p.wins, -p.ties, p.losses, -p.spread))
-        for player in players:
-            player.display_statistics()
+        for ix, player in enumerate(self.players_sorted_by_standing()):
+            player.display_statistics(ix+1)
 
 class Player:
     def __init__(self, name, pairings, scores):
@@ -50,8 +53,8 @@ class Player:
         games = []
 
         for game_idx, opponent_idx in enumerate(self.pairings):
+            player_score = self.scores[game_idx]
             if opponent_idx == 0:
-                player_score = self.scores[game_idx]
                 total_spread += player_score
                 if player_score > 0:
                     wins += 1
@@ -61,7 +64,6 @@ class Player:
                     games += ("Forfeit", 50)
             else:
                 opponent = players[opponent_idx]
-                player_score = self.scores[game_idx]
                 opponent_score = opponent.scores[game_idx]
                 spread = player_score - opponent_score
                 total_spread += spread
@@ -86,12 +88,11 @@ class Player:
         self.high_score = high_score
         self.games = games
 
-    def display_statistics(self):
-        print(f"Player: {self.name}")
+    def display_statistics(self, standing):
+        print(f"{standing}: {self.name}")
         print(f"  Wins: {self.wins}, Losses: {self.losses}, Ties: {self.ties}")
         print(f"  Spread: {self.spread}, Average Score: {self.average_score}, High Score: {self.high_score}")
         # print(f"Games: {self.games}\n")
-
 
 def extract_first_object(js_content):
     # Find where the object starts (after "newt=")
@@ -124,20 +125,30 @@ def extract_first_object(js_content):
 
     return json_object_str, remaining_content
 
-def analyze_js(js_url):
-    response = requests.get(js_url)
-    js_content = response.text
-    try:
-        json_object_str, remaining_content = extract_first_object(js_content)
-        json_object_str = json_object_str.replace('undefined', 'null')
-        python_dict = json.loads(json_object_str)
-        if 'divisions' in python_dict and isinstance(python_dict['divisions'], list):
-            for division_json in python_dict['divisions']:
-                division = Division(division_json)
-                division.display()
-                print("\n")
-    except ValueError as e:
-        print(f"Error: {e}")
+def analyze_js_from_url(js_url):
+    print_divisions_in_js(requests.get(js_url).text)
+
+def analyze_js_from_file(file):
+    with open(file, 'r') as file:
+        print_divisions_in_js(file.read())
+
+def get_divisions(js_content):
+    json_object_str, remaining_content = extract_first_object(js_content)
+    json_object_str = json_object_str.replace('undefined', 'null')
+    python_dict = json.loads(json_object_str)
+    divisions = []
+    if 'divisions' in python_dict and isinstance(python_dict['divisions'], list):
+        for division_json in python_dict['divisions']:
+            division = Division(division_json)
+            divisions.append(division)
+    return divisions
+
+def print_divisions_in_js(js_content):
+    divisions = get_divisions(js_content)
+    for division in divisions:
+        division.display()
 
 if __name__ == '__main__':
-    analyze_js("https://scrabbleplayers.org/directors/AA003954/2024-07-04-Albany-NWL-ME/html/tourney.js")
+    # analyze_js_from_url("https://scrabbleplayers.org/directors/AA003954/2024-07-04-Albany-NWL-ME/html/tourney.js")
+    analyze_js_from_file("tourney.js")
+
