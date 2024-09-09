@@ -2,47 +2,49 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Select Players</title>
+    <title>Admin Page</title>
 </head>
 <body>
-<h1>Admin: Select Players for the Game</h1>
+<h1>Tournament Stats</h1>
 
-<form action="/admin" method="POST">
-    <!-- First Dropdown -->
-    <label for="player1">Player 1:</label>
-    <select name="player1" id="player1">
-        {% for player in players %}
-        <option value="{{ player.id }}"
-                {% if current_player1 and player.id == current_player1.id %} selected {% endif %}>
-            {{ player.first_name }} {{ player.last_name }}
-        </option>
-        {% endfor %}
-    </select>
-
-    <!-- Second Dropdown -->
-    <label for="player2">Player 2:</label>
-    <select name="player2" id="player2">
-        {% for player in players %}
-        <option value="{{ player.id }}"
-                {% if current_player2 and player.id == current_player2.id %} selected {% endif %}>
-            {{ player.first_name }} {{ player.last_name }}
-        </option>
-        {% endfor %}
-    </select>
-
-    <button type="submit">Submit</button>
+<!-- Form to input the URL -->
+<form action="/admin" method="post">
+    <label for="js_url">Tournament JS URL:</label>
+    <input type="text" id="js_url" name="js_url" value="{{ js_url }}">
+    <button type="submit">Load Tournament</button>
 </form>
 
-<hr>
+<!-- Division dropdown, populated after URL is submitted -->
+{% if divisions %}
+<form action="/select_division" method="post">
+    <label for="division">Select Division:</label>
+    <select id="division" name="division">
+        {% for division in divisions %}
+        <option value="{{ division }}">{{ division }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Load Division</button>
+</form>
+{% endif %}
 
-<!-- Display Current Game Players -->
-<h2>Current Game:</h2>
-{% if current_player1 and current_player2 %}
-<p>Player 1: {{ current_player1.first_name }} {{ current_player1.last_name }}</p>
-<p>Player 2: {{ current_player2.first_name }} {{ current_player2.last_name }}</p>
-{% else %}
-<p>No players currently selected for the game.</p>
+<!-- Player dropdowns, populated after a division is selected -->
+{% if players %}
+<form action="/show_player_stats" method="post">
+    <label for="player1">Player 1:</label>
+    <select id="player1" name="player1">
+        {% for player in players %}
+        <option value="{{ player }}">{{ player }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="player2">Player 2:</label>
+    <select id="player2" name="player2">
+        {% for player in players %}
+        <option value="{{ player }}">{{ player }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Show Stats</button>
+</form>
 {% endif %}
 </body>
 </html>

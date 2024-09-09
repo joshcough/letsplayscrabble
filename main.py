@@ -8,7 +8,7 @@ from app.letsplayscrabble.database.base import Base
 from app.letsplayscrabble.loggo import get_logger
 from testcontainers.postgres import PostgresContainer
 
-from web.app import run_webapp
+from web.app import run_webapp, run_webapp_no_db
 
 logger = get_logger(__name__)
 
@@ -31,13 +31,17 @@ def run_via_test_container() -> None:
 def run_via_external_db() -> None:
     run_with_pg_connection_string(os.getenv('DATABASE_URL'), lambda engine: None)
 
+def run_with_no_db() -> None:
+    run_webapp_no_db()
+
 def main():
     if os.getenv("ENV") == "prod":
         logger.warn("Running against the prod database!")
         run_via_external_db()
     else:
         logger.debug("Running letsplayscrabble with a test container")
-        run_via_test_container()
+        # run_via_test_container()
+        run_with_no_db()
 
 if __name__ == '__main__':
     logger.info("Welcome to letsplayscrabble 2.0")

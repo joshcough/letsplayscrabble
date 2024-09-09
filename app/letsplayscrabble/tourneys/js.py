@@ -1,5 +1,5 @@
 import json
-import requests
+import urllib.request
 
 class RawPlayerData:
     def __init__(self, name, pairings, scores):
@@ -88,24 +88,24 @@ class DivisionStats:
             player.display_statistics(ix+1)
 
 def analyze_js_from_url(js_url):
-    print_standings_for_all_divisions_in_js(requests.get(js_url).text)
+    with urllib.request.urlopen(js_url) as response:
+        js_content = response.read().decode('utf-8')
+        return print_standings_for_all_divisions_in_js(js_content)
 
 def analyze_js_from_file(file):
     with open(file, 'r') as file:
         print_standings_for_all_divisions_in_js(file.read())
 
-def print_standings_for_all_divisions_in_js(js_content):
+def get_all_division_stats_from_js(js_url):
+    with urllib.request.urlopen(js_url) as response:
+        js_content = response.read().decode('utf-8')
+        return get_all_division_stats_from_json(js_content)
 
-    def get_all_division_stats_from_json():
-        json_object_str, remaining_content = extract_first_object(js_content)
-        json_object_str = json_object_str.replace('undefined', 'null')
-        python_dict = json.loads(json_object_str)
-        all_divisions_stats = []
-        if 'divisions' in python_dict and isinstance(python_dict['divisions'], list):
-            for division_json in python_dict['divisions']:
-                division_stats = division_stats_from_division_json(division_json)
-                all_divisions_stats.append(division_stats)
-        return all_divisions_stats
+def get_all_division_stats_from_json(js_content):
+    json_object_str, remaining_content = extract_first_object(js_content)
+    json_object_str = json_object_str.replace('undefined', 'null')
+    python_dict = json.loads(json_object_str)
+    all_divisions_stats = []
 
     def division_stats_from_division_json(division_json):
         all_players = [RawPlayerData(name="Bye", pairings=[], scores=[])]
@@ -119,10 +119,17 @@ def print_standings_for_all_divisions_in_js(js_content):
                 ))
         for player in all_players:
             all_stats.append(PlayerStats.calculate_player_stats(player, all_players))
-
         return DivisionStats(RawDivisionData(division_json['name'], all_players), all_stats)
 
-    for division_stats in get_all_division_stats_from_json():
+    if 'divisions' in python_dict and isinstance(python_dict['divisions'], list):
+        for division_json in python_dict['divisions']:
+            division_stats = division_stats_from_division_json(division_json)
+            all_divisions_stats.append(division_stats)
+    print(f"DIVISIONS {all_divisions_stats}")
+    return all_divisions_stats
+
+def print_standings_for_all_divisions_in_js(js_content):
+    for division_stats in get_all_division_stats_from_json(js_content):
         division_stats.display_standings()
 
 def extract_first_object(js_content):

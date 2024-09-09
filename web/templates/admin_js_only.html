@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Results</title>
+</head>
+<body>
+    <h1>Tournament Standings</h1>
+
+    <label for="jsUrl">Enter JS File URL:</label>
+    <input type="text" id="jsUrl" value="http://localhost:5001/static/tourney.js" placeholder="Enter the URL of the JS file">
+    <button onclick="loadJsFile()">Load Tournament Data</button>
+
+    <!-- Division dropdown (initially hidden) -->
+    <div id="divisionSection" style="display:none;">
+        <label for="divisionSelect">Select Division:</label>
+        <select id="divisionSelect" onchange="populatePlayerDropdowns()">
+            <option value="">Select a division</option>
+            <!-- Division options will be dynamically added here -->
+        </select>
+    </div>
+
+    <!-- Player dropdowns (initially hidden) -->
+    <div id="playerSection" style="display:none;">
+        <label for="player1Select">Player 1:</label>
+        <select id="player1Select" onchange="displayPlayerStats('player1Select', 'leftStats')">
+            <option value="">Select Player 1</option>
+            <!-- Player options will be dynamically added here -->
+        </select>
+
+        <label for="player2Select">Player 2:</label>
+        <select id="player2Select" onchange="displayPlayerStats('player2Select', 'rightStats')">
+            <option value="">Select Player 2</option>
+            <!-- Player options will be dynamically added here -->
+        </select>
+    </div>
+
+    <!-- Display Stats -->
+    <div id="statsContainer">
+        <!-- Player stats will be displayed here -->
+    </div>
+
+    <!-- Player stats display -->
+    <div id="leftStats"></div>
+    <div id="rightStats"></div>
+
+    <div id="standings"></div>
+
+    <script src="{{ url_for('static', filename='admin.js') }}"></script>
+</body>
+</html>
