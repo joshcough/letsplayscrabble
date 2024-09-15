@@ -4,21 +4,24 @@
   let divisions = [];
   let selectedDivision = null;
   let playersInDivision = [];
+  let playersInDropdown = []; // For the alphabetically sorted dropdowns
   let player1 = null;
   let player2 = null;
   let player1Stats = null;
   let player2Stats = null;
+  let standings = [];
 
   async function handleSubmit() {
     const tourneyData = await loadTournamentFile(jsUrl);
 
     if (tourneyData && tourneyData.divisions) {
       divisions = tourneyData.divisions;
-      selectedDivision = null; // Clear selection when new file is loaded
+      selectedDivision = null; // Clear selection when a new file is loaded
       player1 = null;
       player2 = null;
       player1Stats = null;
       player2Stats = null;
+      divisionStandings = []; // Clear standings when a new file is loaded
     }
   }
 
@@ -27,6 +30,22 @@
       const divisionData = divisions.find(division => division.name === selectedDivision);
       if (divisionData) {
         playersInDivision = processDivisionData(divisionData);
+        playersInDropdown = [...playersInDivision].sort((a, b) => a.name.localeCompare(b.name));
+        standings = playersInDivision.sort((a, b) => {
+          if (a.wins === b.wins) {
+            return b.spread - a.spread; // Use spread as tiebreaker
+          }
+          return b.wins - a.wins; // Sort by wins
+        });
+
+        // Clear the previously selected players and their stats
+        player1 = null;
+        player2 = null;
+        player1Stats = null;
+        player2Stats = null;
+
+        // Clear the standings for the previous division
+        divisionStandings = [];
       }
     }
   }
@@ -66,7 +85,7 @@
         <h3>Player 1</h3>
         <select bind:value={player1} on:change={handlePlayer1Change}>
           <option value="" disabled selected>Select Player 1</option>
-          {#each playersInDivision as player}
+          {#each playersInDropdown as player}
             <option value={player.name}>{player.name}</option>
           {/each}
         </select>
@@ -87,7 +106,7 @@
         <h3>Player 2</h3>
         <select bind:value={player2} on:change={handlePlayer2Change}>
           <option value="" disabled selected>Select Player 2</option>
-          {#each playersInDivision as player}
+          {#each playersInDropdown as player}
             <option value={player.name}>{player.name}</option>
           {/each}
         </select>
@@ -103,6 +122,39 @@
           </div>
         {/if}
       </div>
+    </div>
+
+    <!-- Division Standings as a Table -->
+    <div class="standings-container">
+      <h2>Division Standings</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Player</th>
+            <th>Wins</th>
+            <th>Losses</th>
+            <th>Ties</th>
+            <th>Spread</th>
+            <th>Average Score</th>
+            <th>High Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each standings as player, index}
+            <tr>
+              <td>{index + 1}</td>
+              <td>{player.name}</td>
+              <td>{player.wins}</td>
+              <td>{player.losses}</td>
+              <td>{player.ties}</td>
+              <td>{player.spread}</td>
+              <td>{player.averageScore}</td>
+              <td>{player.highScore}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
     </div>
   {/if}
 </div>
