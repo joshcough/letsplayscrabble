@@ -92,12 +92,32 @@
         {#if player1Stats}
           <div>
             <h4>Player 1 Stats</h4>
-            <p>Wins: {player1Stats.wins}</p>
-            <p>Losses: {player1Stats.losses}</p>
-            <p>Ties: {player1Stats.ties}</p>
-            <p>Spread: {player1Stats.spread}</p>
-            <p>Average Score: {player1Stats.averageScore}</p>
-            <p>High Score: {player1Stats.highScore}</p>
+            <table>
+              <tr>
+                <td>Wins:</td>
+                <td>{player1Stats.wins}</td>
+              </tr>
+              <tr>
+                <td>Losses:</td>
+                <td>{player1Stats.losses}</td>
+              </tr>
+              <tr>
+                <td>Ties:</td>
+                <td>{player1Stats.ties}</td>
+              </tr>
+              <tr>
+                <td>Spread:</td>
+                <td>{player1Stats.spread}</td>
+              </tr>
+              <tr>
+                <td>Average Score:</td>
+                <td>{player1Stats.averageScore}</td>
+              </tr>
+              <tr>
+                <td>High Score:</td>
+                <td>{player1Stats.highScore}</td>
+              </tr>
+            </table>
           </div>
         {/if}
       </div>
@@ -113,12 +133,32 @@
         {#if player2Stats}
           <div>
             <h4>Player 2 Stats</h4>
-            <p>Wins: {player2Stats.wins}</p>
-            <p>Losses: {player2Stats.losses}</p>
-            <p>Ties: {player2Stats.ties}</p>
-            <p>Spread: {player2Stats.spread}</p>
-            <p>Average Score: {player2Stats.averageScore}</p>
-            <p>High Score: {player2Stats.highScore}</p>
+            <table>
+              <tr>
+                <td>Wins:</td>
+                <td>{player2Stats.wins}</td>
+              </tr>
+              <tr>
+                <td>Losses:</td>
+                <td>{player2Stats.losses}</td>
+              </tr>
+              <tr>
+                <td>Ties:</td>
+                <td>{player2Stats.ties}</td>
+              </tr>
+              <tr>
+                <td>Spread:</td>
+                <td>{player2Stats.spread}</td>
+              </tr>
+              <tr>
+                <td>Average Score:</td>
+                <td>{player2Stats.averageScore}</td>
+              </tr>
+              <tr>
+                <td>High Score:</td>
+                <td>{player2Stats.highScore}</td>
+              </tr>
+            </table>
           </div>
         {/if}
       </div>
@@ -166,5 +206,45 @@
   }
   .dropdown-left, .dropdown-right {
     width: 45%;
+  }
+
+  /* Style the table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 18px;
+    text-align: left;
+  }
+
+  /* Style the table headers */
+  th {
+    background-color: #f2f2f2;
+    color: #333;
+    padding: 10px;
+  }
+
+  /* Style the table cells */
+  td {
+    padding: 10px;
+    border: 1px solid #ddd;
+  }
+
+  /* Add alternating background colors for rows */
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  /* Hover effect for rows */
+  tr:hover {
+    background-color: #f1f1f1;
+  }
+
+  /* Style for table captions (optional) */
+  caption {
+    caption-side: top;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
   }
 </style>
