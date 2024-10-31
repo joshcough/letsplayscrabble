@@ -1,1 +1,1 @@
-web: node claude-app/backend/server.js
+web: node backend/src/server.js
