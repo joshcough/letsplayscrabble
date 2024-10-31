@@ -20,7 +20,13 @@ const io = new Server(server, {
 });
 
 // Database setup
-const pool = new Pool({
+const pool = new Pool(process.env.DATABASE_URL ? {
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false // Required for Heroku
+  }
+} : {
+  // Local configuration
   user: 'scrabble_user',
   password: 'scrabble_pass',
   host: 'localhost',
