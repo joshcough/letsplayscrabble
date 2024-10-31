@@ -1,8 +1,7 @@
 // src/components/tournaments/TournamentList.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const API_URL = 'http://localhost:3001';
+import { API_BASE } from '../../config/api';
 
 const TournamentList = () => {
   const navigate = useNavigate();
@@ -11,7 +10,7 @@ const TournamentList = () => {
   React.useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/tournaments`);
+        const response = await fetch(`${API_BASE}/api/tournaments`);
         if (response.ok) {
           const data = await response.json();
           setTournaments(data);
