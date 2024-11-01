@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:3001';
+const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:3001";
 
 const AdminInterface = () => {
   const [divisions, setDivisions] = useState([]);
   const [players, setPlayers] = useState([]);
-  const [selectedDivision, setSelectedDivision] = useState('');
-  const [selectedPlayers, setSelectedPlayers] = useState({ player1: '', player2: '' });
+  const [selectedDivision, setSelectedDivision] = useState("");
+  const [selectedPlayers, setSelectedPlayers] = useState({
+    player1: "",
+    player2: "",
+  });
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,19 +29,19 @@ const AdminInterface = () => {
   const fetchDivisions = async () => {
     setIsLoading(true);
     try {
-      console.log('Fetching divisions...');
+      console.log("Fetching divisions...");
       const response = await fetch(`${API_BASE}/api/divisions`);
       const data = await response.json();
-      console.log('Divisions received:', data);
+      console.log("Divisions received:", data);
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch divisions');
+        throw new Error(data.error || "Failed to fetch divisions");
       }
 
       setDivisions(data);
     } catch (err) {
-      console.error('Error fetching divisions:', err);
-      setError('Failed to fetch divisions. Please try again later.');
+      console.error("Error fetching divisions:", err);
+      setError("Failed to fetch divisions. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -47,19 +50,19 @@ const AdminInterface = () => {
   const fetchPlayers = async (divisionId) => {
     setIsLoading(true);
     try {
-      console.log('Fetching players for division:', divisionId);
+      console.log("Fetching players for division:", divisionId);
       const response = await fetch(`${API_BASE}/api/players/${divisionId}`);
       const data = await response.json();
-      console.log('Players received:', data);
+      console.log("Players received:", data);
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch players');
+        throw new Error(data.error || "Failed to fetch players");
       }
 
       setPlayers(data);
     } catch (err) {
-      console.error('Error fetching players:', err);
-      setError('Failed to fetch players. Please try again later.');
+      console.error("Error fetching players:", err);
+      setError("Failed to fetch players. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -67,41 +70,41 @@ const AdminInterface = () => {
 
   const updateCurrentMatch = async () => {
     if (!selectedPlayers.player1 || !selectedPlayers.player2) {
-      setError('Please select both players');
+      setError("Please select both players");
       return;
     }
 
     setIsLoading(true);
     try {
-      console.log('Sending match update:', {
+      console.log("Sending match update:", {
         player1Id: selectedPlayers.player1,
         player2Id: selectedPlayers.player2,
-        divisionId: selectedDivision
+        divisionId: selectedDivision,
       });
 
       const response = await fetch(`${API_BASE}/api/match/current`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           player1Id: selectedPlayers.player1,
           player2Id: selectedPlayers.player2,
-          divisionId: selectedDivision
-        })
+          divisionId: selectedDivision,
+        }),
       });
 
       const data = await response.json();
-      console.log('Match update response:', data);
+      console.log("Match update response:", data);
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to update match');
+        throw new Error(data.error || "Failed to update match");
       }
 
       setError(null);
-      setSuccess('Match updated successfully!');
+      setSuccess("Match updated successfully!");
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      console.error('Error updating match:', err);
-      setError(err.message || 'Failed to update match');
+      console.error("Error updating match:", err);
+      setError(err.message || "Failed to update match");
     } finally {
       setIsLoading(false);
     }
@@ -134,8 +137,10 @@ const AdminInterface = () => {
               disabled={isLoading}
             >
               <option value="">Select Division</option>
-              {divisions.map(div => (
-                <option key={div.id} value={div.id}>{div.name}</option>
+              {divisions.map((div) => (
+                <option key={div.id} value={div.id}>
+                  {div.name}
+                </option>
               ))}
             </select>
           </div>
@@ -145,13 +150,20 @@ const AdminInterface = () => {
               <label className="block text-sm font-medium mb-2">Player 1</label>
               <select
                 value={selectedPlayers.player1}
-                onChange={(e) => setSelectedPlayers(prev => ({ ...prev, player1: e.target.value }))}
+                onChange={(e) =>
+                  setSelectedPlayers((prev) => ({
+                    ...prev,
+                    player1: e.target.value,
+                  }))
+                }
                 className="w-full border rounded-md p-2"
                 disabled={!selectedDivision || isLoading}
               >
                 <option value="">Select Player</option>
-                {players.map(player => (
-                  <option key={player.id} value={player.id}>{player.name}</option>
+                {players.map((player) => (
+                  <option key={player.id} value={player.id}>
+                    {player.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -160,13 +172,20 @@ const AdminInterface = () => {
               <label className="block text-sm font-medium mb-2">Player 2</label>
               <select
                 value={selectedPlayers.player2}
-                onChange={(e) => setSelectedPlayers(prev => ({ ...prev, player2: e.target.value }))}
+                onChange={(e) =>
+                  setSelectedPlayers((prev) => ({
+                    ...prev,
+                    player2: e.target.value,
+                  }))
+                }
                 className="w-full border rounded-md p-2"
                 disabled={!selectedDivision || isLoading}
               >
                 <option value="">Select Player</option>
-                {players.map(player => (
-                  <option key={player.id} value={player.id}>{player.name}</option>
+                {players.map((player) => (
+                  <option key={player.id} value={player.id}>
+                    {player.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -174,14 +193,16 @@ const AdminInterface = () => {
 
           <button
             onClick={updateCurrentMatch}
-            disabled={isLoading || !selectedPlayers.player1 || !selectedPlayers.player2}
+            disabled={
+              isLoading || !selectedPlayers.player1 || !selectedPlayers.player2
+            }
             className={`w-full py-2 px-4 rounded-md transition-colors ${
               isLoading || !selectedPlayers.player1 || !selectedPlayers.player2
-                ? 'bg-blue-300 cursor-not-allowed'
-                : 'bg-blue-500 hover:bg-blue-600 text-white'
+                ? "bg-blue-300 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600 text-white"
             }`}
           >
-            {isLoading ? 'Updating...' : 'Update Match'}
+            {isLoading ? "Updating..." : "Update Match"}
           </button>
         </div>
       </div>

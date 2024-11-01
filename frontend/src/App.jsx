@@ -1,8 +1,12 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import AdminPage from './pages/AdminPage';
-import OverlayPage from './pages/OverlayPage';
-import { TournamentList, AddTournament, TournamentDetails } from './components/tournaments';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import AdminPage from "./pages/AdminPage";
+import OverlayPage from "./pages/OverlayPage";
+import {
+  TournamentList,
+  AddTournament,
+  TournamentDetails,
+} from "./components/tournaments";
 
 function App() {
   return (

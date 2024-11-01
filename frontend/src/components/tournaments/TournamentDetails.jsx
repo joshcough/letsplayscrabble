@@ -1,7 +1,7 @@
 // src/components/tournaments/TournamentDetails.jsx
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { API_BASE } from '../../config/api';
+import React, { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { API_BASE } from "../../config/api";
 
 const TournamentDetails = () => {
   const { id } = useParams();
@@ -12,19 +12,23 @@ const TournamentDetails = () => {
   React.useEffect(() => {
     const fetchTournamentData = async () => {
       try {
-        const tournamentResponse = await fetch(`${API_BASE}/api/tournaments/${id}`);
+        const tournamentResponse = await fetch(
+          `${API_BASE}/api/tournaments/${id}`,
+        );
         if (tournamentResponse.ok) {
           const tournamentData = await tournamentResponse.json();
           setTournament(tournamentData);
         }
 
-        const roundsResponse = await fetch(`${API_BASE}/api/tournaments/${id}/rounds`);
+        const roundsResponse = await fetch(
+          `${API_BASE}/api/tournaments/${id}/rounds`,
+        );
         if (roundsResponse.ok) {
           const roundsData = await roundsResponse.json();
           setRounds(roundsData);
         }
       } catch (error) {
-        console.error('Error fetching tournament details:', error);
+        console.error("Error fetching tournament details:", error);
       }
     };
     fetchTournamentData();
@@ -39,7 +43,7 @@ const TournamentDetails = () => {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">{tournament.name}</h2>
         <button
-          onClick={() => navigate('/tournaments')}
+          onClick={() => navigate("/tournaments")}
           className="px-4 py-2 border rounded hover:bg-gray-50"
         >
           Back to List

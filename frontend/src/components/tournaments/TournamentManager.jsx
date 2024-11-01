@@ -1,25 +1,25 @@
 // frontend/src/components/tournaments/TournamentManager.jsx
-import React, { useState } from 'react';
-import AddTournament from './AddTournament';
-import TournamentList from './TournamentList';
-import TournamentDetails from './TournamentDetails';
+import React, { useState } from "react";
+import AddTournament from "./AddTournament";
+import TournamentList from "./TournamentList";
+import TournamentDetails from "./TournamentDetails";
 
 const TournamentManager = () => {
-  const [currentView, setCurrentView] = useState('list');
+  const [currentView, setCurrentView] = useState("list");
   const [selectedTournamentId, setSelectedTournamentId] = useState(null);
 
   const navigateToList = () => {
-    setCurrentView('list');
+    setCurrentView("list");
     setSelectedTournamentId(null);
   };
 
   const navigateToAdd = () => {
-    setCurrentView('add');
+    setCurrentView("add");
     setSelectedTournamentId(null);
   };
 
   const navigateToDetails = (id) => {
-    setCurrentView('details');
+    setCurrentView("details");
     setSelectedTournamentId(id);
   };
 
@@ -40,13 +40,11 @@ const TournamentManager = () => {
         </button>
       </div>
 
-      {currentView === 'list' && (
+      {currentView === "list" && (
         <TournamentList onTournamentClick={navigateToDetails} />
       )}
-      {currentView === 'add' && (
-        <AddTournament onSuccess={navigateToList} />
-      )}
-      {currentView === 'details' && (
+      {currentView === "add" && <AddTournament onSuccess={navigateToList} />}
+      {currentView === "details" && (
         <TournamentDetails
           tournamentId={selectedTournamentId}
           onBack={navigateToList}

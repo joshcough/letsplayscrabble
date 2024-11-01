@@ -1,7 +1,7 @@
 // src/components/tournaments/TournamentList.jsx
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { API_BASE } from '../../config/api';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { API_BASE } from "../../config/api";
 
 const TournamentList = () => {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ const TournamentList = () => {
           setTournaments(data);
         }
       } catch (error) {
-        console.error('Error fetching tournaments:', error);
+        console.error("Error fetching tournaments:", error);
       }
     };
     fetchTournaments();
@@ -27,7 +27,7 @@ const TournamentList = () => {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Tournaments</h2>
         <button
-          onClick={() => navigate('/tournaments/add')}
+          onClick={() => navigate("/tournaments/add")}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           Add New Tournament
