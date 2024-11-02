@@ -8,14 +8,6 @@ function createAdminRoutes(tournamentRepository, currentMatchRepository, io) {
   router.post("/match/current", async (req, res) => {
     const { player1Id, player2Id, divisionId, tournamentId } = req.body;
 
-    console.log(
-      "in /match/current",
-      player1Id,
-      player2Id,
-      divisionId,
-      tournamentId,
-    );
-
     try {
       const matchResult = await currentMatchRepository.create(
         player1Id,
@@ -34,14 +26,9 @@ function createAdminRoutes(tournamentRepository, currentMatchRepository, io) {
         player2Id,
       );
 
-      const matchData = {
-        ...matchResult.rows[0],
-        players: [player1Stats, player2Stats],
-      };
-
-      console.log("Emitting matchUpdate with data:", matchData);
-      io.emit("matchUpdate", matchData);
-      res.json(matchData);
+      console.log("Emitting matchUpdate with data:", [player1Stats, player2Stats]);
+      io.emit("matchUpdate", [player1Stats, player2Stats]);
+      res.json([player1Stats, player2Stats]);
     } catch (err) {
       console.error("Error updating match:", err);
       res.status(500).json({ error: err.message });
@@ -51,13 +38,26 @@ function createAdminRoutes(tournamentRepository, currentMatchRepository, io) {
   router.get("/match/current", async (req, res) => {
     try {
       const match = await currentMatchRepository.getCurrentMatch();
-      console.log("match", match);
-      res.json(match);
+
+      const player1Stats = await tournamentRepository.findPlayerStats(
+        match.tournament_id,
+        match.division_id,
+        match.player1_id,
+      );
+      const player2Stats = await tournamentRepository.findPlayerStats(
+        match.tournament_id,
+        match.division_id,
+        match.player2_id,
+      );
+
+      res.json([player1Stats, player2Stats]);
     } catch (err) {
       console.error("Error finding current match:", err);
       res.status(500).json({ error: err.message });
     }
   });
+
+  // TODO: we need to fetch the players for the current match. its not good enough to get the current match data.
 
   return router;
 }

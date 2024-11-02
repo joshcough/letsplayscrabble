@@ -121,7 +121,7 @@ const StatsOverlay = () => {
 
         socketRef.current.on("matchUpdate", (data) => {
           console.log("Received match update:", data);
-          setMatchData({ players: data.players });
+          setMatchData(data);
           setLastUpdate(new Date().toISOString());
         });
 
@@ -150,7 +150,7 @@ const StatsOverlay = () => {
     };
   }, []); // Empty dependency array
 
-  if (!matchData || !matchData.players) {
+  if (!matchData) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black/30 text-white">
         <div className="p-4 rounded-lg bg-black/50">
@@ -165,8 +165,7 @@ const StatsOverlay = () => {
     );
   }
 
-  const { players } = matchData;
-  const [player1, player2] = players;
+  const [player1, player2] = matchData;
 
   return (
     <div className="fixed inset-0 flex items-center justify-between p-8 pointer-events-none">
