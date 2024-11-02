@@ -217,11 +217,15 @@ const AdminInterface = () => {
                   disabled={!selectedDivision || isLoading}
                 >
                   <option value="">Select Player</option>
-                  {players.map((player) => (
-                    <option key={player.id} value={player.id}>
-                      {player.name}
-                    </option>
-                  ))}
+                  {[...players]
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((player, index) => {
+                      return (
+                        <option key={player.id} value={player.id}>
+                          {player.name}
+                        </option>
+                      );
+                    })}
                 </select>
               </div>
             </div>
