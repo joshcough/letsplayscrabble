@@ -16,7 +16,7 @@ const server = http.createServer(app);
 const allowedOrigins = [
   "http://localhost:3000",
   "https://localhost:3000",
-  "https://letsplayscrabble-dev-test-d51cd69c9755.herokuapp.com"
+  "https://letsplayscrabble-dev-test-d51cd69c9755.herokuapp.com",
 ];
 
 const io = new Server(server, {
