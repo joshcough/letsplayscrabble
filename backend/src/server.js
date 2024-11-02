@@ -2,12 +2,17 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
-const tournamentRoutes = require("./routes/tournaments");
 const path = require("path");
 const db = require("./config/database");
+const data = require("./services/dataProcessing");
+const TournamentRepository = require('./repositories/tournaments');
+const createTournamentRoutes = require("./routes/tournaments");
 
 const app = express();
 const server = http.createServer(app);
+
+const tournamentRepository = new TournamentRepository(db.pool);
+const tournamentRouter = createTournamentRoutes(tournamentRepository);
 
 // Configure CORS for both REST and WebSocket
 const io = new Server(server, {
@@ -17,63 +22,53 @@ const io = new Server(server, {
     credentials: true,
   },
   transports: ["websocket", "polling"],
+  pingTimeout: 60000,
+  pingInterval: 25000,
 });
 
-// Middleware
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:3000",
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 app.use(express.json());
 
-// WebSocket connection handling
+// Add error handling for the server
+io.engine.on("connection_error", (err) => {
+  console.log("Connection error:", err);
+});
+
 io.on("connection", (socket) => {
   console.log("Client connected", socket.id);
 
-  socket.on("disconnect", () => {
-    console.log("Client disconnected", socket.id);
+  // Add error handling for individual sockets
+  socket.on("error", (error) => {
+    console.error("Socket error:", error);
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log("Client disconnected", socket.id, "Reason:", reason);
   });
 });
 
-// Routes
-app.get("/api/divisions", async (req, res) => {
-  try {
-    const result = await db.query("SELECT * FROM divisions ORDER BY name");
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error fetching divisions:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.get("/api/players/:divisionId", async (req, res) => {
-  try {
-    const result = await db.query(
-      "SELECT * FROM players WHERE division_id = $1 ORDER BY name",
-      [req.params.divisionId],
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error fetching players:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
 app.post("/api/match/current", async (req, res) => {
-  const { player1Id, player2Id, divisionId } = req.body;
+  const { player1Id, player2Id, divisionId, tournamentId } = req.body;
+
   try {
-    // First get the players
-    const playersResult = await db.query(
-      "SELECT * FROM players WHERE id IN ($1, $2)",
-      [player1Id, player2Id],
+    const matchResult = await db.query(
+      `INSERT INTO current_matches (player1_id, player2_id, division_id, tournament_id) VALUES ($1, $2, $3, $4)
+       ON CONFLICT (id) DO UPDATE SET player1_id = $1, player2_id = $2, division_id = $3, tournament_id = $4
+       RETURNING *`,
+      [player1Id, player2Id, divisionId, tournamentId],
     );
 
-    // Then update the current match
-    const matchResult = await db.query(
-      "INSERT INTO current_matches (player1_id, player2_id, division_id) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET player1_id = $1, player2_id = $2, division_id = $3 RETURNING *",
-      [player1Id, player2Id, divisionId],
-    );
+    const player1Stats = await tournamentRepository.findPlayerStats(tournamentId, divisionId, player1Id)
+    const player2Stats = await tournamentRepository.findPlayerStats(tournamentId, divisionId, player2Id)
 
     const matchData = {
       ...matchResult.rows[0],
-      players: playersResult.rows,
+      players: [player1Stats, player2Stats],
     };
 
     console.log("Emitting matchUpdate with data:", matchData);
@@ -85,7 +80,7 @@ app.post("/api/match/current", async (req, res) => {
   }
 });
 
-app.use("/api/tournaments", tournamentRoutes);
+app.use("/api/tournaments", tournamentRouter);
 
 // Serve static files from the React frontend app
 app.use(express.static(path.join(__dirname, "../../frontend/build")));

@@ -6,6 +6,7 @@ import {
   TournamentList,
   AddTournament,
   TournamentDetails,
+  TournamentManager,
 } from "./components/tournaments";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Route path="/tournaments/add" element={<AddTournament />} />
         <Route path="/tournaments/:id" element={<TournamentDetails />} />
         <Route path="/tournaments/name/:name" element={<TournamentDetails />} />
+        <Route path="/tournaments/manager" element={<TournamentManager />} />
       </Routes>
     </Router>
   );

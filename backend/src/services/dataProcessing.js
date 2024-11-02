@@ -80,7 +80,26 @@ function calculateStandings(division) {
   return processedPlayers;
 }
 
+// Shared function to process tournament data
+const processTournament = async (tournamentRecord) => {
+  if (!tournamentRecord) {
+    return null;
+  }
+
+  const tourneyData = await loadTournamentFile(tournamentRecord.data_url);
+  const standings = tourneyData.divisions.map((division) => {
+    return calculateStandings(division);
+  });
+
+  return {
+    ...tournamentRecord,
+    divisions: tourneyData.divisions,
+    standings: standings
+  };
+};
+
 module.exports = {
   loadTournamentFile,
   calculateStandings,
+  processTournament,
 };

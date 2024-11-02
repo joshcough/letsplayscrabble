@@ -4,7 +4,9 @@ const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:3001";
 
 const AdminInterface = () => {
   const [divisions, setDivisions] = useState([]);
+  const [tournaments, setTournaments] = useState([]);
   const [players, setPlayers] = useState([]);
+  const [selectedTournament, setSelectedTournament] = useState("");
   const [selectedDivision, setSelectedDivision] = useState("");
   const [selectedPlayers, setSelectedPlayers] = useState({
     player1: "",
@@ -15,54 +17,49 @@ const AdminInterface = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    fetchDivisions();
+    fetchTournaments();
   }, []);
 
   useEffect(() => {
+    if (selectedTournament) {
+      // Find the tournament object from tournaments array
+      const selectedTourneyObj = tournaments.find(t => t.id.toString() === selectedTournament);
+      // Set its divisions (if the tournament is found)
+      setDivisions(selectedTourneyObj?.divisions || []);
+    } else {
+      setDivisions([]);
+    }
+  }, [selectedTournament]);
+
+  useEffect(() => {
     if (selectedDivision) {
-      fetchPlayers(selectedDivision);
+      // Find the tournament object from tournaments array
+      const selectedTourneyObj = tournaments.find(t => t.id.toString() === selectedTournament);
+      const selectedDivisionObj =  selectedTourneyObj.divisions[selectedDivision]
+      setPlayers(selectedDivisionObj.players.slice(1))
     } else {
       setPlayers([]);
     }
   }, [selectedDivision]);
 
-  const fetchDivisions = async () => {
+  useEffect(() => {
+    console.log("players updated:", players);
+  }, [players]);
+
+  const fetchTournaments = async () => {
     setIsLoading(true);
     try {
-      console.log("Fetching divisions...");
-      const response = await fetch(`${API_BASE}/api/divisions`);
+      const response = await fetch(`${API_BASE}/api/tournaments`);
       const data = await response.json();
-      console.log("Divisions received:", data);
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch divisions");
+        throw new Error(data.error || "Failed to fetch tournaments");
       }
 
-      setDivisions(data);
+      setTournaments(data);
     } catch (err) {
-      console.error("Error fetching divisions:", err);
-      setError("Failed to fetch divisions. Please try again later.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchPlayers = async (divisionId) => {
-    setIsLoading(true);
-    try {
-      console.log("Fetching players for division:", divisionId);
-      const response = await fetch(`${API_BASE}/api/players/${divisionId}`);
-      const data = await response.json();
-      console.log("Players received:", data);
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch players");
-      }
-
-      setPlayers(data);
-    } catch (err) {
-      console.error("Error fetching players:", err);
-      setError("Failed to fetch players. Please try again later.");
+      console.error("Error fetching tournaments:", err);
+      setError("Failed to fetch Tournaments. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -80,6 +77,7 @@ const AdminInterface = () => {
         player1Id: selectedPlayers.player1,
         player2Id: selectedPlayers.player2,
         divisionId: selectedDivision,
+        tournamentId: selectedTournament,
       });
 
       const response = await fetch(`${API_BASE}/api/match/current`, {
@@ -89,6 +87,7 @@ const AdminInterface = () => {
           player1Id: selectedPlayers.player1,
           player2Id: selectedPlayers.player2,
           divisionId: selectedDivision,
+          tournamentId: selectedTournament,
         }),
       });
 
@@ -131,19 +130,39 @@ const AdminInterface = () => {
           <div>
             <label className="block text-sm font-medium mb-2">Division</label>
             <select
-              value={selectedDivision}
-              onChange={(e) => setSelectedDivision(e.target.value)}
+              value={selectedTournament}
+              onChange={(e) => {
+                setSelectedTournament(e.target.value)
+              }}
               className="w-full border rounded-md p-2"
               disabled={isLoading}
             >
-              <option value="">Select Division</option>
-              {divisions.map((div) => (
-                <option key={div.id} value={div.id}>
-                  {div.name}
+              <option value="">Select Tournament</option>
+              {tournaments.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
                 </option>
               ))}
             </select>
           </div>
+
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium mb-2">Division</label>
+              <select
+                value={selectedDivision}
+                onChange={(e) => setSelectedDivision(e.target.value)}
+                className="w-full border rounded-md p-2"
+                disabled={!selectedTournament || isLoading}
+              >
+                <option value="">Select Division</option>
+                {divisions.map((div, index) => (
+                  <option key={index} value={index}>
+                    {div.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -160,13 +179,16 @@ const AdminInterface = () => {
                 disabled={!selectedDivision || isLoading}
               >
                 <option value="">Select Player</option>
-                {players.map((player) => (
-                  <option key={player.id} value={player.id}>
-                    {player.name}
-                  </option>
-                ))}
+                {players.map((player, index) => {
+                  return (
+                    <option key={player.id} value={player.id}>
+                      {player.name}
+                    </option>
+                  );
+                })}
               </select>
             </div>
+
 
             <div>
               <label className="block text-sm font-medium mb-2">Player 2</label>
@@ -205,6 +227,7 @@ const AdminInterface = () => {
             {isLoading ? "Updating..." : "Update Match"}
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

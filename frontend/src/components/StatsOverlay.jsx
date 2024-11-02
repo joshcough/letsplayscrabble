@@ -1,51 +1,77 @@
-import React, { useState, useEffect } from "react";
-import { io } from "socket.io-client";
+import React, { useState, useEffect, useRef } from "react";
+import io from 'socket.io-client';
 
 const StatsOverlay = () => {
   const [matchData, setMatchData] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState("Initializing...");
   const [lastUpdate, setLastUpdate] = useState(null);
 
+  const socketRef = useRef(null);
+  const reconnectAttempts = useRef(0);
+  const maxReconnectAttempts = 5;
+
   useEffect(() => {
-    console.log("Initializing socket connection...");
-    const socket = io("http://localhost:3001", {
-      transports: ["websocket", "polling"],
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnectionAttempts: 5,
-    });
+    const connectSocket = () => {
+      console.log("Initializing socket connection...");
 
-    socket.on("connect", () => {
-      console.log("Socket connected");
-      setConnectionStatus("Connected to server");
-    });
+      // Clean up existing socket if it exists
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
 
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected");
-      setConnectionStatus("Disconnected from server");
-    });
+      socketRef.current = io("http://localhost:3001", {
+        transports: ["websocket", "polling"],
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: maxReconnectAttempts,
+        timeout: 10000, // Connection timeout
+      });
 
-    socket.on("connect_error", (error) => {
-      console.log("Socket connection error:", error);
-      setConnectionStatus(`Connection error: ${error.message}`);
-    });
+      socketRef.current.on("connect", () => {
+        console.log("Socket connected with ID:", socketRef.current.id);
+        setConnectionStatus("Connected to server");
+        reconnectAttempts.current = 0;
+      });
 
-    socket.on("matchUpdate", (data) => {
-      console.log("Received match update:", data);
-      // Use player1_id and player2_id to enforce player ordering
-      const [firstPlayer, secondPlayer] = data.players;
-      const orderedPlayers =
-        firstPlayer.id === data.player1_id
-          ? [firstPlayer, secondPlayer]
-          : [secondPlayer, firstPlayer];
+      socketRef.current.on("disconnect", (reason) => {
+        console.log("Socket disconnected. Reason:", reason);
+        setConnectionStatus(`Disconnected from server: ${reason}`);
 
-      setMatchData({ players: orderedPlayers });
-      setLastUpdate(new Date().toISOString());
-    });
+        // Handle specific disconnect reasons
+        if (reason === "io server disconnect") {
+          // Server initiated disconnect, try reconnecting
+          socketRef.current.connect();
+        }
+      });
 
+      socketRef.current.on("connect_error", (error) => {
+        console.log("Socket connection error:", error.message);
+        setConnectionStatus(`Connection error: ${error.message}`);
+
+        reconnectAttempts.current += 1;
+        if (reconnectAttempts.current >= maxReconnectAttempts) {
+          console.log("Max reconnection attempts reached");
+          socketRef.current.close();
+        }
+      });
+
+      socketRef.current.on("matchUpdate", (data) => {
+        console.log("Received match update:", data);
+        setMatchData({ players: data.players });
+        setLastUpdate(new Date().toISOString());
+      });
+    };
+
+    // Initial connection
+    connectSocket();
+
+    // Cleanup function
     return () => {
       console.log("Cleaning up socket connection");
-      socket.close();
+      if (socketRef.current) {
+        socketRef.current.close();
+        socketRef.current = null;
+      }
     };
   }, []);
 
@@ -75,9 +101,10 @@ const StatsOverlay = () => {
           {player1?.name || "Player 1"}
         </h2>
         <div className="space-y-1">
-          <div>Rating: {player1?.stats?.rating || "N/A"}</div>
-          <div>Wins: {player1?.stats?.wins || 0}</div>
-          <div>Average Score: {player1?.stats?.avgScore || "N/A"}</div>
+          <div>Record: {player1?.wins || 0}-{player1?.losses || 0}-{player1?.ties || 0}</div>
+          <div>Average Score: {player1?.averageScore || "N/A"}</div>
+          <div>High Score: {player1?.highScore || "N/A"}</div>
+          <div>Spread: {player1?.spread || "N/A"}</div>
         </div>
       </div>
 
@@ -87,9 +114,10 @@ const StatsOverlay = () => {
           {player2?.name || "Player 2"}
         </h2>
         <div className="space-y-1">
-          <div>Rating: {player2?.stats?.rating || "N/A"}</div>
-          <div>Wins: {player2?.stats?.wins || 0}</div>
-          <div>Average Score: {player2?.stats?.avgScore || "N/A"}</div>
+          <div>Record: {player2?.wins || 0}-{player2?.losses || 0}-{player2?.ties || 0}</div>
+          <div>Average Score: {player2?.averageScore || "N/A"}</div>
+          <div>High Score: {player2?.highScore || "N/A"}</div>
+          <div>Spread: {player2?.spread || "N/A"}</div>
         </div>
       </div>
     </div>
