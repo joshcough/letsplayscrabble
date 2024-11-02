@@ -20,50 +20,82 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Get single tournament
+// Get all tournament names
+router.get("/names", async (req, res) => {
+  try {
+    const result = await db.query(
+      "SELECT name FROM tournaments ORDER BY year DESC, name ASC"
+    );
+    res.json(result.rows.map(row => row.name));
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Shared function to process tournament data
+const processTournament = async (tournamentRecord) => {
+  if (!tournamentRecord) {
+    return null;
+  }
+
+  const tourneyData = await loadTournamentFile(tournamentRecord.data_url);
+  const processedDivisions = tourneyData.divisions.map((division) => {
+    console.log("division", division);
+    const standings = calculateStandings(division);
+    console.log("standings", standings);
+    return standings;
+  });
+
+  return {
+    ...tournamentRecord,
+    divisions: tourneyData.divisions,
+    standings: processedDivisions
+  };
+};
+
+// Get tournament by ID
 router.get("/:id", async (req, res) => {
   try {
-    const result = await db.query("SELECT * FROM tournaments WHERE id = $1", [
-      req.params.id,
-    ]);
+    const result = await db.query(
+      "SELECT * FROM tournaments WHERE id = $1",
+      [req.params.id]
+    );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Tournament not found" });
     }
 
-    const tourney = result.rows[0]
-    const tourneyData = await loadTournamentFile(tourney.data_url);
-
-    const processedDivisions = tourneyData.divisions.map((division) => {
-      console.log("division", division)
-      const standings = calculateStandings(division);
-      console.log("standings", standings)
-      return standings;
-    });
-
-    tourney.divisions = tourneyData.divisions
-    tourney.standings = processedDivisions;
-    console.log("tourney", tourney)
-    res.json(tourney);
+    const processedTourney = await processTournament(result.rows[0]);
+    console.log("tourney", processedTourney);
+    res.json(processedTourney);
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ message: error.message });
   }
 });
 
-// Get tournament rounds
-router.get("/:id/rounds", async (req, res) => {
+// Get tournament by name
+router.get("/by-name/:name", async (req, res) => {
   try {
     const result = await db.query(
-      "SELECT * FROM rounds WHERE tournament_id = $1 ORDER BY round_id ASC",
-      [req.params.id],
+      "SELECT * FROM tournaments WHERE name = $1",
+      [req.params.name]
     );
-    res.json(result.rows);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+
+    const processedTourney = await processTournament(result.rows[0]);
+    console.log("tourney", processedTourney);
+    res.json(processedTourney);
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ message: error.message });
   }
 });
+
 
 // Create tournament
 router.post("/", async (req, res) => {

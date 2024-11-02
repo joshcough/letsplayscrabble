@@ -2,9 +2,9 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
-const { Pool } = require("pg");
 const tournamentRoutes = require("./routes/tournaments");
 const path = require("path");
+const db = require("./config/database");
 
 const app = express();
 const server = http.createServer(app);
@@ -18,25 +18,6 @@ const io = new Server(server, {
   },
   transports: ["websocket", "polling"],
 });
-
-// Database setup
-const pool = new Pool(
-  process.env.DATABASE_URL
-    ? {
-        connectionString: process.env.DATABASE_URL,
-        ssl: {
-          rejectUnauthorized: false, // Required for Heroku
-        },
-      }
-    : {
-        // Local configuration
-        user: "scrabble_user",
-        password: "scrabble_pass",
-        host: "localhost",
-        database: "scrabble_stats",
-        port: 5432,
-      },
-);
 
 // Middleware
 app.use(cors());
@@ -54,7 +35,7 @@ io.on("connection", (socket) => {
 // Routes
 app.get("/api/divisions", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM divisions ORDER BY name");
+    const result = await db.query("SELECT * FROM divisions ORDER BY name");
     res.json(result.rows);
   } catch (err) {
     console.error("Error fetching divisions:", err);
@@ -64,7 +45,7 @@ app.get("/api/divisions", async (req, res) => {
 
 app.get("/api/players/:divisionId", async (req, res) => {
   try {
-    const result = await pool.query(
+    const result = await db.query(
       "SELECT * FROM players WHERE division_id = $1 ORDER BY name",
       [req.params.divisionId],
     );
@@ -79,13 +60,13 @@ app.post("/api/match/current", async (req, res) => {
   const { player1Id, player2Id, divisionId } = req.body;
   try {
     // First get the players
-    const playersResult = await pool.query(
+    const playersResult = await db.query(
       "SELECT * FROM players WHERE id IN ($1, $2)",
       [player1Id, player2Id],
     );
 
     // Then update the current match
-    const matchResult = await pool.query(
+    const matchResult = await db.query(
       "INSERT INTO current_matches (player1_id, player2_id, division_id) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET player1_id = $1, player2_id = $2, division_id = $3 RETURNING *",
       [player1Id, player2Id, divisionId],
     );

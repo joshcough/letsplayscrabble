@@ -4,16 +4,19 @@ import { useParams, useNavigate } from "react-router-dom";
 import { API_BASE } from "../../config/api";
 
 const TournamentDetails = () => {
-  const { id } = useParams();
+  const params = useParams();  // Will get either id or name depending on route
   const navigate = useNavigate();
   const [tournament, setTournament] = useState(null);
 
   React.useEffect(() => {
     const fetchTournamentData = async () => {
       try {
-        const tournamentResponse = await fetch(
-          `${API_BASE}/api/tournaments/${id}`,
-        );
+        // Determine which parameter we have and use appropriate endpoint
+        const endpoint = params.id
+          ? `${API_BASE}/api/tournaments/${params.id}`
+          : `${API_BASE}/api/tournaments/by-name/${params.name}`;
+
+        const tournamentResponse = await fetch(endpoint);
         if (tournamentResponse.ok) {
           const tournamentData = await tournamentResponse.json();
           setTournament(tournamentData);
@@ -23,7 +26,7 @@ const TournamentDetails = () => {
       }
     };
     fetchTournamentData();
-  }, [id]);
+  }, [params.id, params.name]);
 
   if (!tournament) {
     return <div>Loading...</div>;

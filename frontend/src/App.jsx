@@ -18,6 +18,7 @@ function App() {
         <Route path="/tournaments" element={<TournamentList />} />
         <Route path="/tournaments/add" element={<AddTournament />} />
         <Route path="/tournaments/:id" element={<TournamentDetails />} />
+        <Route path="/tournaments/name/:name" element={<TournamentDetails />} />
       </Routes>
     </Router>
   );
