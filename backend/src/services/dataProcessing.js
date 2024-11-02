@@ -19,7 +19,7 @@ async function loadTournamentFile(jsUrl) {
   }
 }
 
-function processDivisionData(division) {
+function calculateStandings(division) {
   const processedPlayers = division.players
     .filter((playerData) => playerData !== null && playerData !== undefined) // Remove any null players (e.g., byes)
     .map((playerData) => {
@@ -74,7 +74,6 @@ function processDivisionData(division) {
         averageScore,
         highScore,
       };
-      console.log("returning", res);
       return res;
     });
 
@@ -83,5 +82,5 @@ function processDivisionData(division) {
 
 module.exports = {
   loadTournamentFile,
-  processDivisionData,
+  calculateStandings,
 };

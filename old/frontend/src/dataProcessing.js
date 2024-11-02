@@ -18,7 +18,7 @@ export async function loadTournamentFile(jsUrl) {
     }
 }
 
-export function processDivisionData(division) {
+export function calculateStandings(division) {
     const processedPlayers = division.players
         .filter(playerData => playerData !== null && playerData !== undefined) // Remove any null players (e.g., byes)
         .map(playerData => {

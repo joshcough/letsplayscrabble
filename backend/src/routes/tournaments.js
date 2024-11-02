@@ -4,7 +4,7 @@ const router = express.Router();
 const db = require("../config/database");
 const {
   loadTournamentFile,
-  processDivisionData,
+  calculateStandings,
 } = require("../services/dataProcessing");
 
 // Get all tournaments
@@ -31,7 +31,20 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ message: "Tournament not found" });
     }
 
-    res.json(result.rows[0]);
+    const tourney = result.rows[0]
+    const tourneyData = await loadTournamentFile(tourney.data_url);
+
+    const processedDivisions = tourneyData.divisions.map((division) => {
+      console.log("division", division)
+      const standings = calculateStandings(division);
+      console.log("standings", standings)
+      return standings;
+    });
+
+    tourney.divisions = tourneyData.divisions
+    tourney.standings = processedDivisions;
+    console.log("tourney", tourney)
+    res.json(tourney);
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ message: error.message });
@@ -62,7 +75,7 @@ router.post("/", async (req, res) => {
 
     const processedDivisions = tourneyData.divisions.map((division) => {
       console.log("division", division);
-      return processDivisionData(division);
+      return calculateStandings(division);
     });
 
     // To print the results:
