@@ -178,7 +178,9 @@ const AdminInterface = () => {
                 disabled={!selectedDivision || isLoading}
               >
                 <option value="">Select Player</option>
-                {players.map((player, index) => {
+              {[...players]
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((player, index) => {
                   return (
                     <option key={player.id} value={player.id}>
                       {player.name}
