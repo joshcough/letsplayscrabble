@@ -69,9 +69,8 @@ const TournamentDetails = () => {
           </div>
         </div>
         <div>
-          <h3 className="font-semibold mt-6">Rounds</h3>
+          <h3 className="font-semibold mt-6">Standings</h3>
           <div>
-            <h3 className="font-semibold mt-6">Standings</h3>
             { tournament.divisions.map((division, divIndex) => (
               <div key={division.name} className="mt-6">
                 <h4 className="text-xl font-semibold mb-2">{division.name}</h4>
