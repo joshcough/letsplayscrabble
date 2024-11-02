@@ -1,6 +1,5 @@
 import React from "react";
 import AdminInterface from "../components/AdminInterface";
-import { TournamentManager } from "../components/tournaments";
 
 const AdminPage = () => {
   return (

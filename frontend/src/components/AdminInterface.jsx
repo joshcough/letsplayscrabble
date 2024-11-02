@@ -79,16 +79,16 @@ const AdminInterface = () => {
         tournamentId: selectedTournament,
       });
 
-      const response = await fetch(`${API_BASE}/api/match/current`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          player1Id: selectedPlayers.player1,
-          player2Id: selectedPlayers.player2,
-          divisionId: selectedDivision,
-          tournamentId: selectedTournament,
-        }),
-      });
+      const response = await fetch(`${API_BASE}/api/admin/match/current`, {
+                                                                                  method: "POST",
+                                                                                  headers: { "Content-Type": "application/json" },
+                                                                                  body: JSON.stringify({
+                                                                                    player1Id: selectedPlayers.player1,
+                                                                                    player2Id: selectedPlayers.player2,
+                                                                                    divisionId: selectedDivision,
+                                                                                    tournamentId: selectedTournament,
+                                                                                  })
+                                                                                });
 
       const data = await response.json();
       console.log("Match update response:", data);

@@ -6,75 +6,141 @@ const StatsOverlay = () => {
   const [matchData, setMatchData] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState("Initializing...");
   const [lastUpdate, setLastUpdate] = useState(null);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const socketRef = useRef(null);
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
 
   useEffect(() => {
-    const connectSocket = () => {
-      console.log("Initializing socket connection...");
+    const fetchCurrentMatch = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${API_BASE}/api/admin/match/current`);
+        const data = await response.json();
 
-      // Clean up existing socket if it exists
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to fetch match data");
+        }
+
+        setMatchData(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching current match:", err);
+        setError("Failed to fetch current match. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const connectSocket = () => {
+      console.log("Debug info:", {
+        API_BASE,
+        currentEnvironment: process.env.NODE_ENV,
+        existingSocket: socketRef.current ? 'exists' : 'none'
+      });
+
       if (socketRef.current) {
-        socketRef.current.close();
+        console.log("Cleaning up existing socket connection");
+        socketRef.current.disconnect();
       }
 
-      socketRef.current = io(API_BASE, {
-        transports: ["websocket", "polling"],
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        reconnectionAttempts: maxReconnectAttempts,
-        timeout: 10000, // Connection timeout
-      });
+      try {
+        console.log("Attempting to connect to:", API_BASE);
 
-      socketRef.current.on("connect", () => {
-        console.log("Socket connected with ID:", socketRef.current.id);
-        setConnectionStatus("Connected to server");
-        reconnectAttempts.current = 0;
-      });
+        socketRef.current = io(API_BASE, {
+          transports: ["polling", "websocket"],  // Try polling first
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          reconnectionAttempts: maxReconnectAttempts,
+          timeout: 20000,  // Increase timeout
+          forceNew: true,  // Force a new connection
+          withCredentials: true,
+        });
 
-      socketRef.current.on("disconnect", (reason) => {
-        console.log("Socket disconnected. Reason:", reason);
-        setConnectionStatus(`Disconnected from server: ${reason}`);
+        // Add this to see the transport method being used
+        socketRef.current.on("connect", () => {
+          console.log("Connected with transport:", socketRef.current.io.engine.transport.name);
+          console.log("Socket connected with ID:", socketRef.current.id);
+          setConnectionStatus("Connected to server");
+          reconnectAttempts.current = 0;
+        });
 
-        // Handle specific disconnect reasons
-        if (reason === "io server disconnect") {
-          // Server initiated disconnect, try reconnecting
-          socketRef.current.connect();
-        }
-      });
+        // Log transport upgrades
+        socketRef.current.io.engine.on("upgrade", () => {
+          console.log("Transport upgraded to:", socketRef.current.io.engine.transport.name);
+        });
 
-      socketRef.current.on("connect_error", (error) => {
-        console.log("Socket connection error:", error.message);
-        setConnectionStatus(`Connection error: ${error.message}`);
+        socketRef.current.on("connect_error", (error) => {
+          console.error("Socket connect error:", error);
+          console.error("Error details:", {
+            message: error.message,
+            description: error.description,
+            type: error.type
+          });
+          setConnectionStatus(`Connection error: ${error.message}`);
 
-        reconnectAttempts.current += 1;
-        if (reconnectAttempts.current >= maxReconnectAttempts) {
-          console.log("Max reconnection attempts reached");
-          socketRef.current.close();
-        }
-      });
+          reconnectAttempts.current += 1;
+          if (reconnectAttempts.current >= maxReconnectAttempts) {
+            console.log("Max reconnection attempts reached");
+            socketRef.current.disconnect();
+          }
+        });
 
-      socketRef.current.on("matchUpdate", (data) => {
-        console.log("Received match update:", data);
-        setMatchData({ players: data.players });
-        setLastUpdate(new Date().toISOString());
-      });
+        socketRef.current.on("connect", () => {
+          console.log("Socket connected successfully with ID:", socketRef.current.id);
+          setConnectionStatus("Connected to server");
+          setError(null);
+          reconnectAttempts.current = 0;
+
+          // Fetch initial data after successful connection
+          fetchCurrentMatch();
+        });
+
+        socketRef.current.on("disconnect", (reason) => {
+          console.log("Socket disconnected. Reason:", reason);
+          setConnectionStatus(`Disconnected from server: ${reason}`);
+
+          if (reason === "io server disconnect") {
+            // Server initiated disconnect, try reconnecting
+            console.log("Attempting to reconnect after server disconnect...");
+            socketRef.current.connect();
+          }
+        });
+
+        socketRef.current.on("matchUpdate", (data) => {
+          console.log("Received match update:", data);
+          setMatchData({ players: data.players });
+          setLastUpdate(new Date().toISOString());
+        });
+
+        socketRef.current.on("error", (error) => {
+          console.error("Socket error:", error);
+          setError(`Socket error: ${error.message}`);
+        });
+
+      } catch (error) {
+        console.error("Socket initialization error:", error);
+        setError(`Socket initialization failed: ${error.message}`);
+        setConnectionStatus(`Failed to initialize socket connection`);
+      }
     };
 
     // Initial connection
+    console.log("Component mounted, initiating socket connection...");
     connectSocket();
 
     // Cleanup function
     return () => {
-      console.log("Cleaning up socket connection");
+      console.log("Component unmounting, cleaning up socket connection");
       if (socketRef.current) {
-        socketRef.current.close();
+        socketRef.current.disconnect();
         socketRef.current = null;
       }
     };
-  }, []);
+  }, []); // Empty dependency array
 
   if (!matchData || !matchData.players) {
     return (
