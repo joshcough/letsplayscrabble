@@ -14,9 +14,9 @@ const app = express();
 const server = http.createServer(app);
 
 const allowedOrigins = [
-  "http://localhost:3000", // Local development
-//  "https://letsplayscrabble-dev-test-d51cd69c9755.herokuapp.com/", // Your Heroku frontend URL
-//  "http://letsplayscrabble-dev-test-d51cd69c9755.herokuapp.com/", // Your Heroku frontend URL
+  "http://localhost:3000",
+  "https://localhost:3000",
+  "https://letsplayscrabble-dev-test-d51cd69c9755.herokuapp.com"
 ];
 
 const io = new Server(server, {
@@ -25,7 +25,10 @@ const io = new Server(server, {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
+      // Log the incoming origin for debugging
+      console.log("Incoming origin:", origin);
+
+      if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
         console.log("Origin blocked:", origin);
@@ -35,11 +38,10 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
     credentials: true,
   },
-  transports: ["polling", "websocket"],
+  transports: ["websocket", "polling"], // Put websocket first as it's preferred
   pingTimeout: 60000,
   pingInterval: 25000,
 });
-
 const tournamentRepository = new TournamentRepository(db.pool);
 const currentMatchRepository = new CurrentMatchRepository(db.pool);
 
