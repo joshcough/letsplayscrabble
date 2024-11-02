@@ -137,11 +137,15 @@ const AdminInterface = () => {
               disabled={isLoading}
             >
               <option value="">Select Tournament</option>
-              {tournaments.map((t) => (
+              {[...tournaments]
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((t, index) => {
+                  return (
                 <option key={t.id} value={t.id}>
                   {t.name}
                 </option>
-              ))}
+                );
+              })}
             </select>
           </div>
 
