@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:3001";
+import { API_BASE } from "../config/api";
 
 const AdminInterface = () => {
   const [divisions, setDivisions] = useState([]);

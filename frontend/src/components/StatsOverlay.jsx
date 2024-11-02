@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import io from 'socket.io-client';
+import { API_BASE } from "../config/api";
 
 const StatsOverlay = () => {
   const [matchData, setMatchData] = useState(null);
@@ -19,7 +20,7 @@ const StatsOverlay = () => {
         socketRef.current.close();
       }
 
-      socketRef.current = io("http://localhost:3001", {
+      socketRef.current = io(API_BASE, {
         transports: ["websocket", "polling"],
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
