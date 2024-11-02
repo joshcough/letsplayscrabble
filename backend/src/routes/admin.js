@@ -26,7 +26,10 @@ function createAdminRoutes(tournamentRepository, currentMatchRepository, io) {
         player2Id,
       );
 
-      console.log("Emitting matchUpdate with data:", [player1Stats, player2Stats]);
+      console.log("Emitting matchUpdate with data:", [
+        player1Stats,
+        player2Stats,
+      ]);
       io.emit("matchUpdate", [player1Stats, player2Stats]);
       res.json([player1Stats, player2Stats]);
     } catch (err) {
