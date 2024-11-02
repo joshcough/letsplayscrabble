@@ -15,8 +15,8 @@ const server = http.createServer(app);
 
 const allowedOrigins = [
   "http://localhost:3000", // Local development
-  "https://letsplayscrabble-dev-test-d51cd69c9755.herokuapp.com/", // Your Heroku frontend URL
-  "http://letsplayscrabble-dev-test-d51cd69c9755.herokuapp.com/", // Your Heroku frontend URL
+//  "https://letsplayscrabble-dev-test-d51cd69c9755.herokuapp.com/", // Your Heroku frontend URL
+//  "http://letsplayscrabble-dev-test-d51cd69c9755.herokuapp.com/", // Your Heroku frontend URL
 ];
 
 const io = new Server(server, {
