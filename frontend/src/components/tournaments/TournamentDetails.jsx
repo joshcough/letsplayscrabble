@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { API_BASE } from "../../config/api";
 
 const TournamentDetails = () => {
-  const params = useParams();  // Will get either id or name depending on route
+  const params = useParams(); // Will get either id or name depending on route
   const navigate = useNavigate();
   const [tournament, setTournament] = useState(null);
 
@@ -32,7 +32,7 @@ const TournamentDetails = () => {
     return <div>Loading...</div>;
   }
 
-  console.log(tournament)
+  console.log(tournament);
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
@@ -51,30 +51,32 @@ const TournamentDetails = () => {
           <div className="mt-2 p-4 bg-gray-50 rounded-lg space-y-2">
             <div className="flex">
               <span className="text-gray-600 font-medium w-32">City:</span>
-              <span>{tournament.city || 'N/A'}</span>
+              <span>{tournament.city || "N/A"}</span>
             </div>
             <div className="flex">
               <span className="text-gray-600 font-medium w-32">Year:</span>
-              <span>{tournament.year || 'N/A'}</span>
+              <span>{tournament.year || "N/A"}</span>
             </div>
             <div className="flex">
               <span className="text-gray-600 font-medium w-32">Lexicon:</span>
-              <span>{tournament.lexicon || 'N/A'}</span>
+              <span>{tournament.lexicon || "N/A"}</span>
             </div>
             <div className="flex">
-              <span className="text-gray-600 font-medium w-32">Long Form Name:</span>
-              <span>{tournament.long_form_name || 'N/A'}</span>
+              <span className="text-gray-600 font-medium w-32">
+                Long Form Name:
+              </span>
+              <span>{tournament.long_form_name || "N/A"}</span>
             </div>
             <div className="flex">
               <span className="text-gray-600 font-medium w-32">Data URL:</span>
-              <span>{tournament.data_url || 'N/A'}</span>
+              <span>{tournament.data_url || "N/A"}</span>
             </div>
           </div>
         </div>
         <div>
           <h3 className="font-semibold mt-6">Standings</h3>
           <div>
-            { tournament.divisions.map((division, divIndex) => (
+            {tournament.divisions.map((division, divIndex) => (
               <div key={division.name} className="mt-6">
                 <h4 className="text-xl font-semibold mb-2">{division.name}</h4>
                 <div className="overflow-x-auto">
@@ -94,15 +96,29 @@ const TournamentDetails = () => {
                       {tournament.standings[divIndex].map((player, index) => (
                         <tr
                           key={player.name}
-                          className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+                          className={
+                            index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          }
                         >
                           <td className="px-4 py-2 border">{player.name}</td>
-                          <td className="px-4 py-2 text-center border">{player.wins}</td>
-                          <td className="px-4 py-2 text-center border">{player.losses}</td>
-                          <td className="px-4 py-2 text-center border">{player.ties}</td>
-                          <td className="px-4 py-2 text-right border">{player.spread}</td>
-                          <td className="px-4 py-2 text-right border">{player.averageScore}</td>
-                          <td className="px-4 py-2 text-right border">{player.highScore}</td>
+                          <td className="px-4 py-2 text-center border">
+                            {player.wins}
+                          </td>
+                          <td className="px-4 py-2 text-center border">
+                            {player.losses}
+                          </td>
+                          <td className="px-4 py-2 text-center border">
+                            {player.ties}
+                          </td>
+                          <td className="px-4 py-2 text-right border">
+                            {player.spread}
+                          </td>
+                          <td className="px-4 py-2 text-right border">
+                            {player.averageScore}
+                          </td>
+                          <td className="px-4 py-2 text-right border">
+                            {player.highScore}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

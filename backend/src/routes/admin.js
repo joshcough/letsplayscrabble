@@ -8,12 +8,31 @@ function createAdminRoutes(tournamentRepository, currentMatchRepository, io) {
   router.post("/match/current", async (req, res) => {
     const { player1Id, player2Id, divisionId, tournamentId } = req.body;
 
-    console.log("in /match/current", player1Id, player2Id, divisionId, tournamentId)
+    console.log(
+      "in /match/current",
+      player1Id,
+      player2Id,
+      divisionId,
+      tournamentId,
+    );
 
     try {
-      const matchResult = await currentMatchRepository.create(player1Id, player2Id, divisionId, tournamentId);
-      const player1Stats = await tournamentRepository.findPlayerStats(tournamentId, divisionId, player1Id)
-      const player2Stats = await tournamentRepository.findPlayerStats(tournamentId, divisionId, player2Id)
+      const matchResult = await currentMatchRepository.create(
+        player1Id,
+        player2Id,
+        divisionId,
+        tournamentId,
+      );
+      const player1Stats = await tournamentRepository.findPlayerStats(
+        tournamentId,
+        divisionId,
+        player1Id,
+      );
+      const player2Stats = await tournamentRepository.findPlayerStats(
+        tournamentId,
+        divisionId,
+        player2Id,
+      );
 
       const matchData = {
         ...matchResult.rows[0],
@@ -32,7 +51,7 @@ function createAdminRoutes(tournamentRepository, currentMatchRepository, io) {
   router.get("/match/current", async (req, res) => {
     try {
       const match = await currentMatchRepository.getCurrentMatch();
-      console.log("match", match)
+      console.log("match", match);
       res.json(match);
     } catch (err) {
       console.error("Error finding current match:", err);

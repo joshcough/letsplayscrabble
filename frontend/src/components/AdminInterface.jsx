@@ -22,7 +22,9 @@ const AdminInterface = () => {
   useEffect(() => {
     if (selectedTournament) {
       // Find the tournament object from tournaments array
-      const selectedTourneyObj = tournaments.find(t => t.id.toString() === selectedTournament);
+      const selectedTourneyObj = tournaments.find(
+        (t) => t.id.toString() === selectedTournament,
+      );
       // Set its divisions (if the tournament is found)
       setDivisions(selectedTourneyObj?.divisions || []);
     } else {
@@ -33,9 +35,12 @@ const AdminInterface = () => {
   useEffect(() => {
     if (selectedDivision) {
       // Find the tournament object from tournaments array
-      const selectedTourneyObj = tournaments.find(t => t.id.toString() === selectedTournament);
-      const selectedDivisionObj =  selectedTourneyObj.divisions[selectedDivision]
-      setPlayers(selectedDivisionObj.players.slice(1))
+      const selectedTourneyObj = tournaments.find(
+        (t) => t.id.toString() === selectedTournament,
+      );
+      const selectedDivisionObj =
+        selectedTourneyObj.divisions[selectedDivision];
+      setPlayers(selectedDivisionObj.players.slice(1));
     } else {
       setPlayers([]);
     }
@@ -80,15 +85,15 @@ const AdminInterface = () => {
       });
 
       const response = await fetch(`${API_BASE}/api/admin/match/current`, {
-                                                                                  method: "POST",
-                                                                                  headers: { "Content-Type": "application/json" },
-                                                                                  body: JSON.stringify({
-                                                                                    player1Id: selectedPlayers.player1,
-                                                                                    player2Id: selectedPlayers.player2,
-                                                                                    divisionId: selectedDivision,
-                                                                                    tournamentId: selectedTournament,
-                                                                                  })
-                                                                                });
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          player1Id: selectedPlayers.player1,
+          player2Id: selectedPlayers.player2,
+          divisionId: selectedDivision,
+          tournamentId: selectedTournament,
+        }),
+      });
 
       const data = await response.json();
       console.log("Match update response:", data);
@@ -131,7 +136,7 @@ const AdminInterface = () => {
             <select
               value={selectedTournament}
               onChange={(e) => {
-                setSelectedTournament(e.target.value)
+                setSelectedTournament(e.target.value);
               }}
               className="w-full border rounded-md p-2"
               disabled={isLoading}
@@ -141,11 +146,11 @@ const AdminInterface = () => {
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .map((t, index) => {
                   return (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-                );
-              })}
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  );
+                })}
             </select>
           </div>
 
@@ -167,72 +172,79 @@ const AdminInterface = () => {
               </select>
             </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Player 1</label>
-              <select
-                value={selectedPlayers.player1}
-                onChange={(e) =>
-                  setSelectedPlayers((prev) => ({
-                    ...prev,
-                    player1: e.target.value,
-                  }))
-                }
-                className="w-full border rounded-md p-2"
-                disabled={!selectedDivision || isLoading}
-              >
-                <option value="">Select Player</option>
-              {[...players]
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((player, index) => {
-                  return (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Player 1
+                </label>
+                <select
+                  value={selectedPlayers.player1}
+                  onChange={(e) =>
+                    setSelectedPlayers((prev) => ({
+                      ...prev,
+                      player1: e.target.value,
+                    }))
+                  }
+                  className="w-full border rounded-md p-2"
+                  disabled={!selectedDivision || isLoading}
+                >
+                  <option value="">Select Player</option>
+                  {[...players]
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((player, index) => {
+                      return (
+                        <option key={player.id} value={player.id}>
+                          {player.name}
+                        </option>
+                      );
+                    })}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Player 2
+                </label>
+                <select
+                  value={selectedPlayers.player2}
+                  onChange={(e) =>
+                    setSelectedPlayers((prev) => ({
+                      ...prev,
+                      player2: e.target.value,
+                    }))
+                  }
+                  className="w-full border rounded-md p-2"
+                  disabled={!selectedDivision || isLoading}
+                >
+                  <option value="">Select Player</option>
+                  {players.map((player) => (
                     <option key={player.id} value={player.id}>
                       {player.name}
                     </option>
-                  );
-                })}
-              </select>
+                  ))}
+                </select>
+              </div>
             </div>
 
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Player 2</label>
-              <select
-                value={selectedPlayers.player2}
-                onChange={(e) =>
-                  setSelectedPlayers((prev) => ({
-                    ...prev,
-                    player2: e.target.value,
-                  }))
-                }
-                className="w-full border rounded-md p-2"
-                disabled={!selectedDivision || isLoading}
-              >
-                <option value="">Select Player</option>
-                {players.map((player) => (
-                  <option key={player.id} value={player.id}>
-                    {player.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <button
+              onClick={updateCurrentMatch}
+              disabled={
+                isLoading ||
+                !selectedPlayers.player1 ||
+                !selectedPlayers.player2
+              }
+              className={`w-full py-2 px-4 rounded-md transition-colors ${
+                isLoading ||
+                !selectedPlayers.player1 ||
+                !selectedPlayers.player2
+                  ? "bg-blue-300 cursor-not-allowed"
+                  : "bg-blue-500 hover:bg-blue-600 text-white"
+              }`}
+            >
+              {isLoading ? "Updating..." : "Update Match"}
+            </button>
           </div>
-
-          <button
-            onClick={updateCurrentMatch}
-            disabled={
-              isLoading || !selectedPlayers.player1 || !selectedPlayers.player2
-            }
-            className={`w-full py-2 px-4 rounded-md transition-colors ${
-              isLoading || !selectedPlayers.player1 || !selectedPlayers.player2
-                ? "bg-blue-300 cursor-not-allowed"
-                : "bg-blue-500 hover:bg-blue-600 text-white"
-            }`}
-          >
-            {isLoading ? "Updating..." : "Update Match"}
-          </button>
         </div>
-      </div>
       </div>
     </div>
   );

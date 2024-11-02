@@ -5,8 +5,8 @@ const cors = require("cors");
 const path = require("path");
 const db = require("./config/database");
 const data = require("./services/dataProcessing");
-const TournamentRepository = require('./repositories/tournaments');
-const CurrentMatchRepository = require('./repositories/currentMatch');
+const TournamentRepository = require("./repositories/tournaments");
+const CurrentMatchRepository = require("./repositories/currentMatch");
 const createTournamentRoutes = require("./routes/tournaments");
 const createAdminRoutes = require("./routes/admin");
 
@@ -14,9 +14,9 @@ const app = express();
 const server = http.createServer(app);
 
 const allowedOrigins = [
-  'http://localhost:3000',              // Local development
-  'https://letsplayscrabble-dev-test-d51cd69c9755.herokuapp.com/', // Your Heroku frontend URL
-  'http://letsplayscrabble-dev-test-d51cd69c9755.herokuapp.com/', // Your Heroku frontend URL
+  "http://localhost:3000", // Local development
+  "https://letsplayscrabble-dev-test-d51cd69c9755.herokuapp.com/", // Your Heroku frontend URL
+  "http://letsplayscrabble-dev-test-d51cd69c9755.herokuapp.com/", // Your Heroku frontend URL
 ];
 
 const io = new Server(server, {
@@ -28,8 +28,8 @@ const io = new Server(server, {
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.log('Origin blocked:', origin);
-        callback(new Error('Origin not allowed'));
+        console.log("Origin blocked:", origin);
+        callback(new Error("Origin not allowed"));
       }
     },
     methods: ["GET", "POST"],
@@ -43,12 +43,14 @@ const io = new Server(server, {
 const tournamentRepository = new TournamentRepository(db.pool);
 const currentMatchRepository = new CurrentMatchRepository(db.pool);
 
-app.use(cors({
-  origin: "http://localhost:3000",
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 // Add error handling for the server
@@ -70,7 +72,10 @@ io.on("connection", (socket) => {
 });
 
 app.use("/api/tournaments", createTournamentRoutes(tournamentRepository));
-app.use("/api/admin", createAdminRoutes(tournamentRepository, currentMatchRepository, io));
+app.use(
+  "/api/admin",
+  createAdminRoutes(tournamentRepository, currentMatchRepository, io),
+);
 
 // Serve static files from the React frontend app
 app.use(express.static(path.join(__dirname, "../../frontend/build")));

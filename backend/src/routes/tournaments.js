@@ -25,7 +25,7 @@ function createTournamentRoutes(tournamentRepository) {
   router.get("/names", async (req, res) => {
     try {
       const result = await tournamentRepository.findAllNames(req.params.id);
-      console.log("names", result)
+      console.log("names", result);
       res.json(result);
     } catch (error) {
       console.error("Database error:", error);
@@ -64,7 +64,7 @@ function createTournamentRoutes(tournamentRepository) {
   // Create tournament
   router.post("/", async (req, res) => {
     const { name, city, year, lexicon, longFormName, dataUrl } = req.body;
-    const rawData = await loadTournamentFile(dataUrl)
+    const rawData = await loadTournamentFile(dataUrl);
 
     try {
       const tournament = await tournamentRepository.create({
@@ -74,7 +74,7 @@ function createTournamentRoutes(tournamentRepository) {
         lexicon,
         longFormName,
         dataUrl,
-        rawData
+        rawData,
       });
 
       res.status(201).json(tournament);

@@ -94,7 +94,7 @@ const processTournament = async (tournamentRecord) => {
   return {
     ...tournamentRecord,
     divisions: tourneyData.divisions,
-    standings: standings
+    standings: standings,
   };
 };
 

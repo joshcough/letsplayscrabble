@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import io from 'socket.io-client';
+import io from "socket.io-client";
 import { API_BASE } from "../config/api";
 
 const StatsOverlay = () => {
@@ -39,7 +39,7 @@ const StatsOverlay = () => {
       console.log("Debug info:", {
         API_BASE,
         currentEnvironment: process.env.NODE_ENV,
-        existingSocket: socketRef.current ? 'exists' : 'none'
+        existingSocket: socketRef.current ? "exists" : "none",
       });
 
       if (socketRef.current) {
@@ -51,18 +51,21 @@ const StatsOverlay = () => {
         console.log("Attempting to connect to:", API_BASE);
 
         socketRef.current = io(API_BASE, {
-          transports: ["polling", "websocket"],  // Try polling first
+          transports: ["polling", "websocket"], // Try polling first
           reconnectionDelay: 1000,
           reconnectionDelayMax: 5000,
           reconnectionAttempts: maxReconnectAttempts,
-          timeout: 20000,  // Increase timeout
-          forceNew: true,  // Force a new connection
+          timeout: 20000, // Increase timeout
+          forceNew: true, // Force a new connection
           withCredentials: true,
         });
 
         // Add this to see the transport method being used
         socketRef.current.on("connect", () => {
-          console.log("Connected with transport:", socketRef.current.io.engine.transport.name);
+          console.log(
+            "Connected with transport:",
+            socketRef.current.io.engine.transport.name,
+          );
           console.log("Socket connected with ID:", socketRef.current.id);
           setConnectionStatus("Connected to server");
           reconnectAttempts.current = 0;
@@ -70,7 +73,10 @@ const StatsOverlay = () => {
 
         // Log transport upgrades
         socketRef.current.io.engine.on("upgrade", () => {
-          console.log("Transport upgraded to:", socketRef.current.io.engine.transport.name);
+          console.log(
+            "Transport upgraded to:",
+            socketRef.current.io.engine.transport.name,
+          );
         });
 
         socketRef.current.on("connect_error", (error) => {
@@ -78,7 +84,7 @@ const StatsOverlay = () => {
           console.error("Error details:", {
             message: error.message,
             description: error.description,
-            type: error.type
+            type: error.type,
           });
           setConnectionStatus(`Connection error: ${error.message}`);
 
@@ -90,7 +96,10 @@ const StatsOverlay = () => {
         });
 
         socketRef.current.on("connect", () => {
-          console.log("Socket connected successfully with ID:", socketRef.current.id);
+          console.log(
+            "Socket connected successfully with ID:",
+            socketRef.current.id,
+          );
           setConnectionStatus("Connected to server");
           setError(null);
           reconnectAttempts.current = 0;
@@ -120,7 +129,6 @@ const StatsOverlay = () => {
           console.error("Socket error:", error);
           setError(`Socket error: ${error.message}`);
         });
-
       } catch (error) {
         console.error("Socket initialization error:", error);
         setError(`Socket initialization failed: ${error.message}`);
@@ -168,7 +176,10 @@ const StatsOverlay = () => {
           {player1?.name || "Player 1"}
         </h2>
         <div className="space-y-1">
-          <div>Record: {player1?.wins || 0}-{player1?.losses || 0}-{player1?.ties || 0}</div>
+          <div>
+            Record: {player1?.wins || 0}-{player1?.losses || 0}-
+            {player1?.ties || 0}
+          </div>
           <div>Average Score: {player1?.averageScore || "N/A"}</div>
           <div>High Score: {player1?.highScore || "N/A"}</div>
           <div>Spread: {player1?.spread || "N/A"}</div>
@@ -181,7 +192,10 @@ const StatsOverlay = () => {
           {player2?.name || "Player 2"}
         </h2>
         <div className="space-y-1">
-          <div>Record: {player2?.wins || 0}-{player2?.losses || 0}-{player2?.ties || 0}</div>
+          <div>
+            Record: {player2?.wins || 0}-{player2?.losses || 0}-
+            {player2?.ties || 0}
+          </div>
           <div>Average Score: {player2?.averageScore || "N/A"}</div>
           <div>High Score: {player2?.highScore || "N/A"}</div>
           <div>Spread: {player2?.spread || "N/A"}</div>
