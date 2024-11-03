@@ -1,17 +1,15 @@
-// src/components/tournaments/TournamentDetails.jsx
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { API_BASE } from "../../config/api";
 
 const TournamentDetails = () => {
-  const params = useParams(); // Will get either id or name depending on route
+  const params = useParams();
   const navigate = useNavigate();
   const [tournament, setTournament] = useState(null);
 
   React.useEffect(() => {
     const fetchTournamentData = async () => {
       try {
-        // Determine which parameter we have and use appropriate endpoint
         const endpoint = params.id
           ? `${API_BASE}/api/tournaments/${params.id}`
           : `${API_BASE}/api/tournaments/by-name/${params.name}`;
@@ -19,7 +17,29 @@ const TournamentDetails = () => {
         const tournamentResponse = await fetch(endpoint);
         if (tournamentResponse.ok) {
           const tournamentData = await tournamentResponse.json();
-          setTournament(tournamentData);
+          
+          // Sort the standings for each division
+          const sortedStandings = tournamentData.standings.map(divisionStandings => {
+            return [...divisionStandings].sort((a, b) => {
+              // First compare by wins
+              if (a.wins !== b.wins) {
+                return b.wins - a.wins;
+              }
+              
+              // If wins are equal, compare by losses (fewer losses ranks higher)
+              if (a.losses !== b.losses) {
+                return a.losses - b.losses;
+              }
+              
+              // If wins and losses are equal, use spread as tiebreaker
+              return b.spread - a.spread;
+            });
+          });
+
+          setTournament({
+            ...tournamentData,
+            standings: sortedStandings
+          });
         }
       } catch (error) {
         console.error("Error fetching tournament details:", error);
@@ -31,8 +51,6 @@ const TournamentDetails = () => {
   if (!tournament) {
     return <div>Loading...</div>;
   }
-
-  console.log(tournament);
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
@@ -62,9 +80,7 @@ const TournamentDetails = () => {
               <span>{tournament.lexicon || "N/A"}</span>
             </div>
             <div className="flex">
-              <span className="text-gray-600 font-medium w-32">
-                Long Form Name:
-              </span>
+              <span className="text-gray-600 font-medium w-32">Long Form Name:</span>
               <span>{tournament.long_form_name || "N/A"}</span>
             </div>
             <div className="flex">
@@ -83,6 +99,7 @@ const TournamentDetails = () => {
                   <table className="min-w-full border-collapse">
                     <thead>
                       <tr className="bg-gray-50">
+                        <th className="px-4 py-2 text-left border">Position</th>
                         <th className="px-4 py-2 text-left border">Name</th>
                         <th className="px-4 py-2 text-center border">W</th>
                         <th className="px-4 py-2 text-center border">L</th>
@@ -96,29 +113,16 @@ const TournamentDetails = () => {
                       {tournament.standings[divIndex].map((player, index) => (
                         <tr
                           key={player.name}
-                          className={
-                            index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                          }
+                          className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                         >
+                          <td className="px-4 py-2 border">{index + 1}</td>
                           <td className="px-4 py-2 border">{player.name}</td>
-                          <td className="px-4 py-2 text-center border">
-                            {player.wins}
-                          </td>
-                          <td className="px-4 py-2 text-center border">
-                            {player.losses}
-                          </td>
-                          <td className="px-4 py-2 text-center border">
-                            {player.ties}
-                          </td>
-                          <td className="px-4 py-2 text-right border">
-                            {player.spread}
-                          </td>
-                          <td className="px-4 py-2 text-right border">
-                            {player.averageScore}
-                          </td>
-                          <td className="px-4 py-2 text-right border">
-                            {player.highScore}
-                          </td>
+                          <td className="px-4 py-2 text-center border">{player.wins}</td>
+                          <td className="px-4 py-2 text-center border">{player.losses}</td>
+                          <td className="px-4 py-2 text-center border">{player.ties}</td>
+                          <td className="px-4 py-2 text-right border">{player.spread}</td>
+                          <td className="px-4 py-2 text-right border">{player.averageScore}</td>
+                          <td className="px-4 py-2 text-right border">{player.highScore}</td>
                         </tr>
                       ))}
                     </tbody>
