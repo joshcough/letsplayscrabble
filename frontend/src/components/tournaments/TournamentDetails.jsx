@@ -17,28 +17,30 @@ const TournamentDetails = () => {
         const tournamentResponse = await fetch(endpoint);
         if (tournamentResponse.ok) {
           const tournamentData = await tournamentResponse.json();
-          
+
           // Sort the standings for each division
-          const sortedStandings = tournamentData.standings.map(divisionStandings => {
-            return [...divisionStandings].sort((a, b) => {
-              // First compare by wins
-              if (a.wins !== b.wins) {
-                return b.wins - a.wins;
-              }
-              
-              // If wins are equal, compare by losses (fewer losses ranks higher)
-              if (a.losses !== b.losses) {
-                return a.losses - b.losses;
-              }
-              
-              // If wins and losses are equal, use spread as tiebreaker
-              return b.spread - a.spread;
-            });
-          });
+          const sortedStandings = tournamentData.standings.map(
+            (divisionStandings) => {
+              return [...divisionStandings].sort((a, b) => {
+                // First compare by wins
+                if (a.wins !== b.wins) {
+                  return b.wins - a.wins;
+                }
+
+                // If wins are equal, compare by losses (fewer losses ranks higher)
+                if (a.losses !== b.losses) {
+                  return a.losses - b.losses;
+                }
+
+                // If wins and losses are equal, use spread as tiebreaker
+                return b.spread - a.spread;
+              });
+            },
+          );
 
           setTournament({
             ...tournamentData,
-            standings: sortedStandings
+            standings: sortedStandings,
           });
         }
       } catch (error) {
@@ -80,7 +82,9 @@ const TournamentDetails = () => {
               <span>{tournament.lexicon || "N/A"}</span>
             </div>
             <div className="flex">
-              <span className="text-gray-600 font-medium w-32">Long Form Name:</span>
+              <span className="text-gray-600 font-medium w-32">
+                Long Form Name:
+              </span>
               <span>{tournament.long_form_name || "N/A"}</span>
             </div>
             <div className="flex">
@@ -113,16 +117,30 @@ const TournamentDetails = () => {
                       {tournament.standings[divIndex].map((player, index) => (
                         <tr
                           key={player.name}
-                          className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                          className={
+                            index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          }
                         >
                           <td className="px-4 py-2 border">{index + 1}</td>
                           <td className="px-4 py-2 border">{player.name}</td>
-                          <td className="px-4 py-2 text-center border">{player.wins}</td>
-                          <td className="px-4 py-2 text-center border">{player.losses}</td>
-                          <td className="px-4 py-2 text-center border">{player.ties}</td>
-                          <td className="px-4 py-2 text-right border">{player.spread}</td>
-                          <td className="px-4 py-2 text-right border">{player.averageScore}</td>
-                          <td className="px-4 py-2 text-right border">{player.highScore}</td>
+                          <td className="px-4 py-2 text-center border">
+                            {player.wins}
+                          </td>
+                          <td className="px-4 py-2 text-center border">
+                            {player.losses}
+                          </td>
+                          <td className="px-4 py-2 text-center border">
+                            {player.ties}
+                          </td>
+                          <td className="px-4 py-2 text-right border">
+                            {player.spread}
+                          </td>
+                          <td className="px-4 py-2 text-right border">
+                            {player.averageScore}
+                          </td>
+                          <td className="px-4 py-2 text-right border">
+                            {player.highScore}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
