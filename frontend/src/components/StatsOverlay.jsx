@@ -121,7 +121,7 @@ const StatsOverlay = () => {
 
         // Log all incoming events for debugging
         socketRef.current.onAny((eventName, ...args) => {
-          console.log('Received event:', eventName, 'with data:', args);
+          console.log("Received event:", eventName, "with data:", args);
         });
 
         socketRef.current.on("matchUpdate", (data) => {

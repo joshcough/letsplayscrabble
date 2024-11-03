@@ -31,19 +31,24 @@ const AdminInterface = () => {
         setTournaments(tournamentsData);
 
         // Fetch current match
-        const matchResponse = await fetch(`${API_BASE}/api/admin/match/current`);
+        const matchResponse = await fetch(
+          `${API_BASE}/api/admin/match/current`,
+        );
         const currentMatch = await matchResponse.json();
 
         // Only proceed if we have match data
         if (currentMatch.matchData) {
           const tourneyObj = tournamentsData.find(
-            (t) => t.id === currentMatch.matchData.tournament_id
+            (t) => t.id === currentMatch.matchData.tournament_id,
           );
 
           if (tourneyObj) {
-            const divisionObj = tourneyObj.divisions[currentMatch.matchData.division_id];
+            const divisionObj =
+              tourneyObj.divisions[currentMatch.matchData.division_id];
 
-            setSelectedTournament(currentMatch.matchData.tournament_id.toString());
+            setSelectedTournament(
+              currentMatch.matchData.tournament_id.toString(),
+            );
             setSelectedDivision(currentMatch.matchData.division_id.toString());
             setDivisions(tourneyObj.divisions);
             setPlayers(divisionObj.players.slice(1));
@@ -78,7 +83,7 @@ const AdminInterface = () => {
       setPlayers([]);
     } else {
       const tourneyObj = tournaments.find(
-        (t) => t.id.toString() === newTournamentId
+        (t) => t.id.toString() === newTournamentId,
       );
       if (tourneyObj) {
         setDivisions(tourneyObj.divisions || []);
@@ -98,7 +103,7 @@ const AdminInterface = () => {
       setPlayers([]);
     } else {
       const tourneyObj = tournaments.find(
-        (t) => t.id.toString() === selectedTournament
+        (t) => t.id.toString() === selectedTournament,
       );
       if (tourneyObj && tourneyObj.divisions[newDivisionId]) {
         setPlayers(tourneyObj.divisions[newDivisionId].players.slice(1));
@@ -250,14 +255,10 @@ const AdminInterface = () => {
           <button
             onClick={updateCurrentMatch}
             disabled={
-              isLoading ||
-              !selectedPlayers.player1 ||
-              !selectedPlayers.player2
+              isLoading || !selectedPlayers.player1 || !selectedPlayers.player2
             }
             className={`w-full py-2 px-4 rounded-md transition-colors ${
-              isLoading ||
-              !selectedPlayers.player1 ||
-              !selectedPlayers.player2
+              isLoading || !selectedPlayers.player1 || !selectedPlayers.player2
                 ? "bg-blue-300 cursor-not-allowed"
                 : "bg-blue-500 hover:bg-blue-600 text-white"
             }`}
