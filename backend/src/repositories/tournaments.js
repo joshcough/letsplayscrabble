@@ -45,6 +45,7 @@ class TournamentRepository {
   }
 
   async findPlayerStats(tournamentId, divisionId, playerId) {
+    console.log("findPlayerStats", tournamentId, divisionId, playerId);
     const tourney = await this.findById(tournamentId);
     const standings = tourney.standings[divisionId];
     return standings[playerId - 1];

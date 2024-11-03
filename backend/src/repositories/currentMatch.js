@@ -7,12 +7,13 @@ class CurrentMatchRepository {
 
   async create(player1Id, player2Id, divisionId, tournamentId) {
     console.log("in create", player1Id, player2Id, divisionId, tournamentId);
-    return await this.db.query(
+    const res = await this.db.query(
       `INSERT INTO current_matches (player1_id, player2_id, division_id, tournament_id) VALUES ($1, $2, $3, $4)
-       ON CONFLICT (id) DO UPDATE SET player1_id = $1, player2_id = $2, division_id = $3, tournament_id = $4
-       RETURNING *`,
+      ON CONFLICT (id) DO UPDATE SET player1_id = $1, player2_id = $2, division_id = $3, tournament_id = $4
+      RETURNING *`,
       [player1Id, player2Id, divisionId, tournamentId],
     );
+    return res.rows[0];
   }
 
   async getCurrentMatch() {

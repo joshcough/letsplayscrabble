@@ -119,6 +119,11 @@ const StatsOverlay = () => {
           }
         });
 
+        // Log all incoming events for debugging
+        socketRef.current.onAny((eventName, ...args) => {
+          console.log('Received event:', eventName, 'with data:', args);
+        });
+
         socketRef.current.on("matchUpdate", (data) => {
           console.log("Received match update:", data);
           setMatchData(data);
@@ -165,7 +170,7 @@ const StatsOverlay = () => {
     );
   }
 
-  const [player1, player2] = matchData;
+  const [player1, player2] = matchData.players;
 
   return (
     <div className="fixed inset-0 flex items-center justify-between p-8 pointer-events-none">
