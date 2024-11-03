@@ -7,8 +7,8 @@ const TournamentDetails = () => {
   const navigate = useNavigate();
   const [tournament, setTournament] = useState(null);
   const [sortConfig, setSortConfig] = useState({
-    key: "wins",
-    direction: "desc",
+    key: "rank",
+    direction: "asc",
   });
 
   // Column definitions with sort configurations
@@ -161,11 +161,23 @@ const TournamentDetails = () => {
                             onClick={() =>
                               column.sortable && handleSort(column.key)
                             }
+                            style={{
+                              minWidth:
+                                column.key === "name"
+                                  ? "200px" // name needs more space
+                                  : ["wins", "losses", "ties"].includes(
+                                        column.key,
+                                      )
+                                    ? "80px" // W/L/T columns
+                                    : ["rank"].includes(column.key)
+                                      ? "80px" // rank column
+                                      : "100px", // other columns
+                            }}
                           >
                             <div className="flex items-center justify-between">
                               <span>{column.label}</span>
                               {column.sortable && (
-                                <span className="ml-1">
+                                <span className="ml-1 w-4 inline-block">
                                   {getSortDirection(column.key)}
                                 </span>
                               )}
