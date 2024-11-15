@@ -25,7 +25,6 @@ function createTournamentRoutes(tournamentRepository) {
   router.get("/names", async (req, res) => {
     try {
       const result = await tournamentRepository.findAllNames(req.params.id);
-      console.log("names", result);
       res.json(result);
     } catch (error) {
       console.error("Database error:", error);
@@ -81,6 +80,37 @@ function createTournamentRoutes(tournamentRepository) {
     } catch (error) {
       console.error("Database error:", error);
       res.status(400).json({ message: error.message });
+    }
+  });
+
+  router.post("/:id/polling", async (req, res) => {
+    const { id } = req.params;
+    const { days } = req.body;
+    try {
+      // Calculate poll_until date
+      const pollUntil = new Date();
+      pollUntil.setDate(pollUntil.getDate() + days);
+      tournamentRepository.updatePollUntil(id, pollUntil);
+      res.json({ message: "Polling enabled", pollUntil });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  router.delete("/:id/polling", async (req, res) => {
+    const { id } = req.params;
+    try {
+      await db.query(
+        `
+        UPDATE tournaments
+        SET poll_until = NULL
+        WHERE id = $2
+      `,
+        [id],
+      );
+      res.json({ message: "Polling disabled" });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
   });
 

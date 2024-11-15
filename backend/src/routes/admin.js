@@ -6,7 +6,6 @@ function createAdminRoutes(tournamentRepository, currentMatchRepository, io) {
   const router = express.Router();
 
   const addPlayers = async (match) => {
-    console.log("adding players to match", match);
     const player1Stats = await tournamentRepository.findPlayerStats(
       match.tournament_id,
       match.division_id,
@@ -31,9 +30,7 @@ function createAdminRoutes(tournamentRepository, currentMatchRepository, io) {
         divisionId,
         tournamentId,
       );
-      console.log("match in /match/current", match);
       const update = await addPlayers(match);
-      console.log("Emitting matchUpdate with data:", update);
       io.emit("matchUpdate", update);
       res.json(update);
     } catch (err) {

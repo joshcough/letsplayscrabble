@@ -45,10 +45,54 @@ class TournamentRepository {
   }
 
   async findPlayerStats(tournamentId, divisionId, playerId) {
-    console.log("findPlayerStats", tournamentId, divisionId, playerId);
     const tourney = await this.findById(tournamentId);
     const standings = tourney.standings[divisionId];
     return standings[playerId - 1];
+  }
+
+  async updatePollUntil(id, pollUntil) {
+    const result = await this.db.query(
+      "UPDATE tournaments SET poll_until = $1 WHERE id = $2 RETURNING *",
+      [pollUntil, id],
+    );
+    return result.rows[0];
+  }
+
+  async findActivePollable() {
+    const result = await this.db.query(`
+      SELECT *
+      FROM tournaments
+      WHERE poll_until IS NOT NULL
+      AND poll_until > NOW()
+    `);
+    return result.rows;
+  }
+
+  async endInactivePollable() {
+    await this.db.query(`
+      UPDATE tournaments
+      SET poll_until = NULL
+      WHERE poll_until IS NOT NULL
+      AND poll_until <= NOW()
+    `);
+  }
+
+  async updateData(id, newData) {
+    const result = await this.db.query(
+      `UPDATE tournaments
+       SET data = $1
+       WHERE id = $2
+       RETURNING *`,
+      [newData, id],
+    );
+    return await processTournament(result.rows[0]);
+  }
+
+  async stopPolling(id) {
+    await this.db.query(
+      `UPDATE tournaments SET poll_until = NULL WHERE id = $1`,
+      [id],
+    );
   }
 }
 

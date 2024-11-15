@@ -1,21 +1,27 @@
-// backend/src/services/dataProcessing.js
+const axios = require("axios");
+
 async function loadTournamentFile(jsUrl) {
   try {
-    const response = await fetch(jsUrl);
-    const jsContent = await response.text();
+    const response = await axios.get(jsUrl, {
+      timeout: 25000,
+      transformResponse: [(data) => data], // Prevent axios from trying to parse response
+    });
 
-    // Dynamically evaluate the content of the JS file to extract the `newt` variable
-    let newt;
-    eval(jsContent); // This will execute the file and assign the `newt` variable
+    const jsContent = response.data;
 
-    if (!newt) {
-      throw new Error("Could not find the 'newt' variable in the JS file.");
+    // Create a new Function that returns the object portion
+    const objectText = jsContent.substring(jsContent.indexOf("{"));
+    const evaluator = new Function("return " + objectText);
+    const data = evaluator();
+
+    if (!data) {
+      throw new Error("Could not parse tournament data from the JS file.");
     }
 
-    return newt;
+    return data;
   } catch (error) {
     console.error("Error loading tournament file:", error);
-    return null;
+    throw error;
   }
 }
 

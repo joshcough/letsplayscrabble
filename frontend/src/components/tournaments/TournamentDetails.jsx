@@ -10,6 +10,9 @@ const TournamentDetails = () => {
     key: "rank",
     direction: "asc",
   });
+  const [pollingDays, setPollingDays] = useState(1);
+  const [isPolling, setIsPolling] = useState(false);
+  const [pollUntil, setPollUntil] = useState(null);
 
   // Column definitions with sort configurations
   const columns = [
@@ -71,6 +74,41 @@ const TournamentDetails = () => {
     return "";
   };
 
+  const handleEnablePolling = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/api/tournaments/${params.id}/polling`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ days: pollingDays }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsPolling(true);
+        setPollUntil(new Date(data.pollUntil));
+      }
+    } catch (error) {
+      console.error("Error enabling polling:", error);
+    }
+  };
+
+  const handleDisablePolling = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/api/tournaments/${params.id}/polling`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setIsPolling(false);
+        setPollUntil(null);
+      }
+    } catch (error) {
+      console.error("Error disabling polling:", error);
+    }
+  };
+
   React.useEffect(() => {
     const fetchTournamentData = async () => {
       try {
@@ -93,6 +131,16 @@ const TournamentDetails = () => {
             ...tournamentData,
             standings: standingsWithRanks,
           });
+
+          // Set polling status if poll_until exists
+          if (tournamentData.poll_until) {
+            const pollUntilDate = new Date(tournamentData.poll_until);
+            setIsPolling(pollUntilDate > new Date());
+            setPollUntil(pollUntilDate);
+          } else {
+            setIsPolling(false);
+            setPollUntil(null);
+          }
         }
       } catch (error) {
         console.error("Error fetching tournament details:", error);
@@ -141,6 +189,42 @@ const TournamentDetails = () => {
             <div className="flex">
               <span className="text-gray-600 font-medium w-32">Data URL:</span>
               <span>{tournament.data_url || "N/A"}</span>
+            </div>
+            <div className="flex">
+              <span className="text-gray-600 font-medium w-32">Auto-Update:</span>
+              <div className="flex items-center space-x-4">
+                {isPolling ? (
+                  <div className="flex items-center space-x-4">
+                    <span className="text-green-600">
+                      Active until {pollUntil?.toLocaleDateString()} {pollUntil?.toLocaleTimeString()}
+                    </span>
+                    <button
+                      onClick={handleDisablePolling}
+                      className="px-3 py-1 text-sm bg-red-50 text-red-600 rounded-md hover:bg-red-100"
+                    >
+                      Stop
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-4">
+                    <input
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={pollingDays}
+                      onChange={(e) => setPollingDays(parseInt(e.target.value))}
+                      className="w-16 px-2 py-1 border rounded"
+                    />
+                    <span className="text-gray-600">days</span>
+                    <button
+                      onClick={handleEnablePolling}
+                      className="px-3 py-1 text-sm bg-green-50 text-green-600 rounded-md hover:bg-green-100"
+                    >
+                      Start
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

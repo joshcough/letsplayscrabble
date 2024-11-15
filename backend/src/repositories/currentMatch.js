@@ -27,7 +27,6 @@ class CurrentMatchRepository {
         return null; // Or throw new Error('No current match found')
       }
 
-      console.log(res.rows[0]);
       return res.rows[0];
     } catch (error) {
       // Log the error or handle it appropriately

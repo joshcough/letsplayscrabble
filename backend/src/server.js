@@ -9,6 +9,11 @@ const TournamentRepository = require("./repositories/tournaments");
 const CurrentMatchRepository = require("./repositories/currentMatch");
 const createTournamentRoutes = require("./routes/tournaments");
 const createAdminRoutes = require("./routes/admin");
+const TournamentPollingService = require("./services/polling-service");
+
+const tournamentRepository = new TournamentRepository(db.pool);
+const currentMatchRepository = new CurrentMatchRepository(db.pool);
+const pollingService = new TournamentPollingService(tournamentRepository);
 
 const app = express();
 const server = http.createServer(app);
@@ -42,8 +47,6 @@ const io = new Server(server, {
   pingTimeout: 60000,
   pingInterval: 25000,
 });
-const tournamentRepository = new TournamentRepository(db.pool);
-const currentMatchRepository = new CurrentMatchRepository(db.pool);
 
 app.use(
   cors({
@@ -87,6 +90,10 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../../frontend/build/index.html"));
 });
 
+// start the polling service
+pollingService.start();
+
+// then start the server
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
