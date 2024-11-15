@@ -83,6 +83,7 @@ function createTournamentRoutes(tournamentRepository) {
     }
   });
 
+  // start or update polling for a tournament
   router.post("/:id/polling", async (req, res) => {
     const { id } = req.params;
     const { days } = req.body;
@@ -97,17 +98,11 @@ function createTournamentRoutes(tournamentRepository) {
     }
   });
 
+  // stop polling for a tournament
   router.delete("/:id/polling", async (req, res) => {
     const { id } = req.params;
     try {
-      await db.query(
-        `
-        UPDATE tournaments
-        SET poll_until = NULL
-        WHERE id = $2
-      `,
-        [id],
-      );
+      tournamentRepository.stopPolling(id);
       res.json({ message: "Polling disabled" });
     } catch (error) {
       res.status(500).json({ error: error.message });
