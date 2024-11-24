@@ -31,7 +31,7 @@ class TournamentPollingService {
   }
 
   async pollActiveTournaments() {
-    console.log("Tournament polling service is polling...")
+    console.log("Tournament polling service is polling...");
     await this.clearExpiredPolls();
     const activeTournaments = await this.tournamentRepo.findActivePollable();
     for (const tournament of activeTournaments) {

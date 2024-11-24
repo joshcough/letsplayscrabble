@@ -72,7 +72,10 @@ function calculateStandings(division) {
         gamesPlayed > 0 ? (totalScore / gamesPlayed).toFixed(2) : 0;
 
       const res = {
+        id: playerData.id,
         name: playerData.name,
+        rating: playerData.etc.newr.at(-1),
+        firstLast: formatName(playerData.name),
         wins,
         losses,
         ties,
@@ -83,8 +86,62 @@ function calculateStandings(division) {
       return res;
     });
 
-  return processedPlayers;
+  return calculateRanks(processedPlayers);
 }
+
+const getOrdinal = (n) => {
+  const lastDigit = n % 10;
+  const lastTwoDigits = n % 100;
+
+  // Special case for 11, 12, 13
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
+    return n + "th";
+  }
+
+  switch (lastDigit) {
+    case 1:
+      return n + "st";
+    case 2:
+      return n + "nd";
+    case 3:
+      return n + "rd";
+    default:
+      return n + "th";
+  }
+};
+
+const formatName = (name) => {
+  const [last, first] = name.split(", ");
+  return `${first.charAt(0).toUpperCase() + first.slice(1)} ${last.charAt(0).toUpperCase() + last.slice(1)}`;
+};
+
+const calculateRanks = (players) => {
+  // Create a sorted array just to determine ranks
+  const sortedPlayers = [...players].sort((a, b) => {
+    if (a.wins !== b.wins) return b.wins - a.wins;
+    if (a.losses !== b.losses) return a.losses - b.losses;
+    return b.spread - a.spread;
+  });
+
+  // Create a map of player to rank based on their position in sorted array
+  const rankMap = new Map();
+  sortedPlayers.forEach((player, index) => {
+    // Create a unique key for each player (assuming no ID field)
+    const playerKey = `${player.wins}-${player.losses}-${player.spread}-${player.name}`;
+    rankMap.set(playerKey, index + 1);
+  });
+
+  // Map over original array to preserve order, adding ranks from our map
+  return players.map((player) => {
+    const playerKey = `${player.wins}-${player.losses}-${player.spread}-${player.name}`;
+    const rank = rankMap.get(playerKey);
+    return {
+      ...player,
+      rank,
+      rankOrdinal: getOrdinal(rank),
+    };
+  });
+};
 
 // Shared function to process tournament data
 const processTournament = async (tournamentRecord) => {

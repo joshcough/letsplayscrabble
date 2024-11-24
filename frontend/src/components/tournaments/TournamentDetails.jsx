@@ -76,13 +76,16 @@ const TournamentDetails = () => {
 
   const handleEnablePolling = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/tournaments/${params.id}/polling`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${API_BASE}/api/tournaments/${params.id}/polling`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ days: pollingDays }),
         },
-        body: JSON.stringify({ days: pollingDays }),
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -96,9 +99,12 @@ const TournamentDetails = () => {
 
   const handleDisablePolling = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/tournaments/${params.id}/polling`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `${API_BASE}/api/tournaments/${params.id}/polling`,
+        {
+          method: "DELETE",
+        },
+      );
 
       if (response.ok) {
         setIsPolling(false);
@@ -191,12 +197,15 @@ const TournamentDetails = () => {
               <span>{tournament.data_url || "N/A"}</span>
             </div>
             <div className="flex">
-              <span className="text-gray-600 font-medium w-32">Auto-Update:</span>
+              <span className="text-gray-600 font-medium w-32">
+                Auto-Update:
+              </span>
               <div className="flex items-center space-x-4">
                 {isPolling ? (
                   <div className="flex items-center space-x-4">
                     <span className="text-green-600">
-                      Active until {pollUntil?.toLocaleDateString()} {pollUntil?.toLocaleTimeString()}
+                      Active until {pollUntil?.toLocaleDateString()}{" "}
+                      {pollUntil?.toLocaleTimeString()}
                     </span>
                     <button
                       onClick={handleDisablePolling}

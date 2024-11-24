@@ -44,10 +44,13 @@ class TournamentRepository {
     return await Promise.all(result.rows.map((t) => processTournament(t)));
   }
 
-  async findPlayerStats(tournamentId, divisionId, playerId) {
+  async findTwoPlayerStats(tournamentId, divisionId, player1Id, player2Id) {
     const tourney = await this.findById(tournamentId);
     const standings = tourney.standings[divisionId];
-    return standings[playerId - 1];
+    return {
+      player1: standings[player1Id - 1],
+      player2: standings[player2Id - 1],
+    };
   }
 
   async updatePollUntil(id, pollUntil) {

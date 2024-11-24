@@ -6,21 +6,18 @@ function createAdminRoutes(tournamentRepository, currentMatchRepository, io) {
   const router = express.Router();
 
   const addPlayers = async (match) => {
-    const player1Stats = await tournamentRepository.findPlayerStats(
+    const playerStats = await tournamentRepository.findTwoPlayerStats(
       match.tournament_id,
       match.division_id,
       match.player1_id,
-    );
-    const player2Stats = await tournamentRepository.findPlayerStats(
-      match.tournament_id,
-      match.division_id,
       match.player2_id,
     );
     return {
       matchData: match,
-      players: [player1Stats, player2Stats],
+      players: [playerStats.player1, playerStats.player2],
     };
   };
+
   router.post("/match/current", async (req, res) => {
     const { player1Id, player2Id, divisionId, tournamentId } = req.body;
     try {
