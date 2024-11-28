@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from 'react-router-dom';
 import io from "socket.io-client";
-import { API_BASE } from "../config/api";
+import { API_BASE } from "../../config/api";
 
 const StatsOverlay = () => {
   const [searchParams] = useSearchParams();
@@ -10,15 +10,12 @@ const StatsOverlay = () => {
   const [connectionStatus, setConnectionStatus] = useState("Initializing...");
   const [lastUpdate, setLastUpdate] = useState(null);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
   const socketRef = useRef(null);
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
 
   useEffect(() => {
     const fetchCurrentMatch = async () => {
-      setIsLoading(true);
       try {
         const response = await fetch(`${API_BASE}/api/admin/match/current`);
         const data = await response.json();
@@ -28,8 +25,6 @@ const StatsOverlay = () => {
       } catch (err) {
         console.error("Error fetching current match:", err);
         setError("Failed to fetch current match. Please try again later.");
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -123,6 +118,18 @@ const StatsOverlay = () => {
     };
   }, []);
 
+  // Early return with error display for any error state
+  if (error) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center text-black">
+        <div className="p-4 bg-red-50 rounded-lg">
+          <p className="text-red-600">{error}</p>
+          <p className="text-sm mt-2">Status: {connectionStatus}</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!matchData) {
     if (source) {
       return <div className="text-black p-2">Loading...</div>;
@@ -171,17 +178,18 @@ const StatsOverlay = () => {
           return <div className="text-black">Rating: {player?.rating || "N/A"}</div>;
         case 'player1-under-cam':
         case 'player2-under-cam':
-          return <div data-obs="player2-under-cam">Rating: {player?.rating || "N/A"} {" | "}
-                   {player?.wins || 0}-{player?.losses || 0}-{player?.ties || 0} {player?.spread || "N/A"}
-                   {" | "}
-                   {player?.rankOrdinal || "N/A"}
-                 </div>
+          return <div className="text-black">
+            Rating: {player?.rating || "N/A"} {" | "}
+            {player?.wins || 0}-{player?.losses || 0}-{player?.ties || 0} {player?.spread || "N/A"}
+            {" | "}
+            {player?.rankOrdinal || "N/A"}
+          </div>;
         case 'tournament-data':
           return <div className="text-black">
-                  {matchData?.tournament.name || "N/A"}
-                  {" | "}
-                  {matchData?.tournament.lexicon || "N/A"}
-                  </div>;
+            {matchData?.tournament.name || "N/A"}
+            {" | "}
+            {matchData?.tournament.lexicon || "N/A"}
+          </div>;
         default:
           return null;
       }
@@ -198,7 +206,7 @@ const StatsOverlay = () => {
     <div className="fixed inset-0 flex items-center justify-between p-8 pointer-events-none">
       <div className="text-black p-4 w-64" data-obs="player1-container">
         <div data-obs="player1-name">
-          <h2 className="text-xl font-bold mb-2" data-obs="player1-name">
+          <h2 className="text-xl font-bold mb-2">
             {player1?.firstLast || "Player 1"}
           </h2>
         </div>
@@ -212,7 +220,8 @@ const StatsOverlay = () => {
           <div data-obs="player1-rank">Rank: {player1?.rank || "N/A"}</div>
           <div data-obs="player1-rank-ordinal">Rank Ordinal: {player1?.rankOrdinal || "N/A"}</div>
           <div data-obs="player1-rating">Rating: {player1?.rating || "N/A"}</div>
-          <div data-obs="player1-under-cam">Rating: {player1?.rating || "N/A"} {" | "}
+          <div data-obs="player1-under-cam">
+            Rating: {player1?.rating || "N/A"} {" | "}
             {player1?.wins || 0}-{player1?.losses || 0}-{player1?.ties || 0} {player1?.spread || "N/A"}
             {" | "}
             {player1?.rankOrdinal || "N/A"}
@@ -234,7 +243,8 @@ const StatsOverlay = () => {
           <div data-obs="player2-rank">Rank: {player2?.rank || "N/A"}</div>
           <div data-obs="player2-rank-ordinal">Rank Ordinal: {player2?.rankOrdinal || "N/A"}</div>
           <div data-obs="player2-rating">Rating: {player2?.rating || "N/A"}</div>
-          <div data-obs="player2-under-cam">Rating: {player2?.rating || "N/A"} {" | "}
+          <div data-obs="player2-under-cam">
+            Rating: {player2?.rating || "N/A"} {" | "}
             {player2?.wins || 0}-{player2?.losses || 0}-{player2?.ties || 0} {player2?.spread || "N/A"}
             {" | "}
             {player2?.rankOrdinal || "N/A"}

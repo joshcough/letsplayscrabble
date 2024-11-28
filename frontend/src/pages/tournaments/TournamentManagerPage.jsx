@@ -1,10 +1,10 @@
 // frontend/src/components/tournaments/TournamentManager.jsx
 import React, { useState } from "react";
-import AddTournament from "./AddTournament";
-import TournamentList from "./TournamentList";
-import TournamentDetails from "./TournamentDetails";
+import AddTournament from "../../components/tournaments/AddTournament";
+import TournamentList from "../../components/tournaments/TournamentList";
+import TournamentDetails from "../../components/tournaments/TournamentDetails";
 
-const TournamentManager = () => {
+const TournamentManagerPage = () => {
   const [currentView, setCurrentView] = useState("list");
   const [selectedTournamentId, setSelectedTournamentId] = useState(null);
 
@@ -54,4 +54,4 @@ const TournamentManager = () => {
   );
 };
 
-export default TournamentManager;
+export default TournamentManagerPage;

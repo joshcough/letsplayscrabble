@@ -1,14 +1,11 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import AdminPage from "./pages/AdminPage";
-import OverlayPage from "./pages/OverlayPage";
-import {
-  TournamentList,
-  AddTournament,
-  TournamentDetails,
-  TournamentManager,
-  StandingsPage,
-} from "./components/tournaments";
+import AdminPage from "./pages/admin/AdminPage";
+import OverlayPage from "./pages/overlay/OverlayPage";
+import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
+import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
+import StandingsPage from "./pages/tournaments/StandingsPage";
+import AddTournament from "./components/tournaments/AddTournament";
 
 function App() {
   return (
@@ -17,12 +14,11 @@ function App() {
         <Route path="/" element={<AdminPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/overlay" element={<OverlayPage />} />
-        <Route path="/tournaments" element={<TournamentList />} />
+        <Route path="/tournaments" element={<TournamentManagerPage />} />
         <Route path="/tournaments/add" element={<AddTournament />} />
-        <Route path="/tournaments/:id" element={<TournamentDetails />} />
+        <Route path="/tournaments/:id" element={<TournamentDetailsPage />} />
         <Route path="/tournaments/:tournamentId/standings/:divisionName" element={<StandingsPage />} />
-        <Route path="/tournaments/name/:name" element={<TournamentDetails />} />
-        <Route path="/tournaments/manager" element={<TournamentManager />} />
+        <Route path="/tournaments/name/:name" element={<TournamentDetailsPage />} />
       </Routes>
     </Router>
   );

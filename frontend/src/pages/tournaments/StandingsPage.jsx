@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import TournamentStandings from './TournamentStandings';
+import TournamentStandings from '../../components/tournaments/TournamentStandings';
 
 const StandingsPage = () => {
   const { tournamentId, divisionName } = useParams();

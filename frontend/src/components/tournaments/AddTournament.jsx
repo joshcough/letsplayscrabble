@@ -37,12 +37,6 @@ const AddTournament = () => {
     <div className="bg-white p-6 rounded-lg shadow-md">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Add New Tournament</h2>
-        <button
-          onClick={() => navigate("/tournaments")}
-          className="px-4 py-2 border rounded hover:bg-gray-50"
-        >
-          Back to List
-        </button>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

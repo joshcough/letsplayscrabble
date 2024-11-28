@@ -1,5 +1,5 @@
 import React from "react";
-import AdminInterface from "../components/AdminInterface";
+import AdminInterface from "../../components/admin/AdminInterface";
 
 const AdminPage = () => {
   return (
