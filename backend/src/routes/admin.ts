@@ -1,9 +1,28 @@
-import express, { Router, Request, Response } from 'express';
+import express, { Router, Response } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
+import { RequestHandler } from 'express-serve-static-core';
 import { TournamentRepository } from '../repositories/tournamentRepository';
 import { CurrentMatchRepository } from '../repositories/currentMatchRepository';
-import { CreateMatchRequest, MatchWithPlayers } from '../types/admin';
 import { CurrentMatch } from '../types/currentMatch';
+import { ProcessedPlayer } from '../types/tournament'; // Added this import
+
+// Request body type for creating a match
+interface CreateMatchBody {
+  player1Id: number;
+  player2Id: number;
+  divisionId: number;
+  tournamentId: number;
+}
+
+// Response type for match with players
+interface MatchWithPlayers {
+  matchData: CurrentMatch;
+  tournament: {
+    name: string;
+    lexicon: string;
+  };
+  players: [ProcessedPlayer | undefined, ProcessedPlayer | undefined];
+}
 
 export default function createAdminRoutes(
   tournamentRepository: TournamentRepository,
@@ -29,7 +48,24 @@ export default function createAdminRoutes(
     };
   };
 
-  router.post('/match/current', async (req: Request<{}, {}, CreateMatchRequest>, res: Response) => {
+  const getCurrentMatch: RequestHandler = async (_req, res) => {
+    try {
+      const match = await currentMatchRepository.getCurrentMatch();
+      const matchWithPlayers = await addPlayers(match);
+
+      if (!matchWithPlayers) {
+        res.status(404).json({ error: 'No current match found' });
+        return;
+      }
+
+      res.json(matchWithPlayers);
+    } catch (error) {
+      console.error('Error finding current match:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  };
+
+  const createMatch: RequestHandler<{}, any, CreateMatchBody> = async (req, res) => {
     const { player1Id, player2Id, divisionId, tournamentId } = req.body;
 
     try {
@@ -43,7 +79,8 @@ export default function createAdminRoutes(
       const update = await addPlayers(match);
 
       if (!update) {
-        throw new Error('Failed to process match data');
+        res.status(500).json({ error: 'Failed to process match data' });
+        return;
       }
 
       io.emit('matchUpdate', update);
@@ -52,23 +89,10 @@ export default function createAdminRoutes(
       console.error('Error updating match:', error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
-  });
+  };
 
-  router.get('/match/current', async (_req: Request, res: Response) => {
-    try {
-      const match = await currentMatchRepository.getCurrentMatch();
-      const matchWithPlayers = await addPlayers(match);
-
-      if (!matchWithPlayers) {
-        return res.status(404).json({ error: 'No current match found' });
-      }
-
-      res.json(matchWithPlayers);
-    } catch (error) {
-      console.error('Error finding current match:', error);
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
-    }
-  });
+  router.get('/match/current', getCurrentMatch);
+  router.post('/match/current', createMatch);
 
   return router;
 }
