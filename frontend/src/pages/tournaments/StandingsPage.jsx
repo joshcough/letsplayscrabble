@@ -1,6 +1,6 @@
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import TournamentStandings from '../../components/tournaments/TournamentStandings';
+import React from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import TournamentStandings from "../../components/tournaments/TournamentStandings";
 
 const StandingsPage = () => {
   const { tournamentId, divisionName } = useParams();
@@ -11,14 +11,16 @@ const StandingsPage = () => {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Division Standings</h2>
         <button
-          onClick={() => navigate('/tournaments')}
+          onClick={() => navigate("/tournaments")}
           className="px-4 py-2 border rounded hover:bg-gray-50"
         >
           Back to List
         </button>
       </div>
       <div className="mb-4">
-        <h3 className="text-xl font-semibold">{decodeURIComponent(divisionName)}</h3>
+        <h3 className="text-xl font-semibold">
+          {decodeURIComponent(divisionName)}
+        </h3>
       </div>
       <TournamentStandings
         tournamentId={tournamentId}

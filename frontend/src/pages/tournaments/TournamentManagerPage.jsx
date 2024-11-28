@@ -1,4 +1,4 @@
-// frontend/src/components/tournaments/TournamentManager.jsx
+// src/components/tournaments/TournamentManager.jsx
 import React, { useState } from "react";
 import AddTournament from "../../components/tournaments/AddTournament";
 import TournamentList from "../../components/tournaments/TournamentList";
@@ -25,16 +25,20 @@ const TournamentManagerPage = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <div className="mb-4 space-x-2">
+      <div className="mb-6 flex gap-4">
         <button
           onClick={navigateToList}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 mr-2"
+          className="px-6 py-2 bg-[#4A3728] text-[#FAF1DB] rounded-md
+                   hover:bg-[#6B5744] transition-colors shadow-md
+                   border-2 border-[#4A3728]"
         >
           View All Tournaments
         </button>
         <button
           onClick={navigateToAdd}
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          className="px-6 py-2 bg-[#FAF1DB] text-[#4A3728] rounded-md
+                   hover:bg-[#FFF8E7] transition-colors shadow-md
+                   border-2 border-[#4A3728]"
         >
           Add New Tournament
         </button>

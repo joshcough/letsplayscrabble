@@ -1,10 +1,8 @@
 // src/components/tournaments/TournamentList.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../../config/api";
 
-const TournamentList = () => {
-  const navigate = useNavigate();
+const TournamentList = ({ onTournamentClick }) => {
   const [tournaments, setTournaments] = useState([]);
 
   React.useEffect(() => {
@@ -23,19 +21,22 @@ const TournamentList = () => {
   }, []);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Tournaments</h2>
-      </div>
+    <div className="bg-[#FAF1DB] rounded-lg shadow-md p-6">
+      {" "}
+      {/* Softer ivory color */}
+      <h2 className="text-2xl font-bold mb-6 text-[#4A3728]">Tournaments</h2>
       <div className="space-y-4">
         {tournaments.map((tournament) => (
           <div
             key={tournament.id}
-            className="p-4 border rounded hover:bg-gray-50 cursor-pointer"
-            onClick={() => navigate(`/tournaments/${tournament.id}`)}
+            className="p-4 bg-[#FFF8E7] border border-[#4A3728]/20 rounded
+                     hover:bg-[#4A3728]/5 cursor-pointer transition-colors"
+            onClick={() => onTournamentClick(tournament.id)}
           >
-            <h3 className="font-semibold">{tournament.name}</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="font-semibold text-lg text-[#4A3728]">
+              {tournament.name}
+            </h3>
+            <p className="text-[#6B5744]">
               {tournament.city}, {tournament.year} - {tournament.lexicon}
             </p>
           </div>

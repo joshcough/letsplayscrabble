@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from "react-router-dom";
 import io from "socket.io-client";
 import { API_BASE } from "../../config/api";
 
 const StatsOverlay = () => {
   const [searchParams] = useSearchParams();
-  const source = searchParams.get('source');
+  const source = searchParams.get("source");
   const [matchData, setMatchData] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState("Initializing...");
   const [lastUpdate, setLastUpdate] = useState(null);
@@ -19,7 +19,8 @@ const StatsOverlay = () => {
       try {
         const response = await fetch(`${API_BASE}/api/admin/match/current`);
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Failed to fetch match data");
+        if (!response.ok)
+          throw new Error(data.error || "Failed to fetch match data");
         setMatchData(data);
         setError(null);
       } catch (err) {
@@ -29,7 +30,11 @@ const StatsOverlay = () => {
     };
 
     const connectSocket = () => {
-      console.log("Debug info:", { API_BASE, currentEnvironment: process.env.NODE_ENV, existingSocket: socketRef.current ? "exists" : "none" });
+      console.log("Debug info:", {
+        API_BASE,
+        currentEnvironment: process.env.NODE_ENV,
+        existingSocket: socketRef.current ? "exists" : "none",
+      });
       if (socketRef.current) {
         console.log("Cleaning up existing socket connection");
         socketRef.current.disconnect();
@@ -47,19 +52,29 @@ const StatsOverlay = () => {
         });
 
         socketRef.current.on("connect", () => {
-          console.log("Connected with transport:", socketRef.current.io.engine.transport.name);
+          console.log(
+            "Connected with transport:",
+            socketRef.current.io.engine.transport.name,
+          );
           console.log("Socket connected with ID:", socketRef.current.id);
           setConnectionStatus("Connected to server");
           reconnectAttempts.current = 0;
         });
 
         socketRef.current.io.engine.on("upgrade", () => {
-          console.log("Transport upgraded to:", socketRef.current.io.engine.transport.name);
+          console.log(
+            "Transport upgraded to:",
+            socketRef.current.io.engine.transport.name,
+          );
         });
 
         socketRef.current.on("connect_error", (error) => {
           console.error("Socket connect error:", error);
-          console.error("Error details:", { message: error.message, description: error.description, type: error.type });
+          console.error("Error details:", {
+            message: error.message,
+            description: error.description,
+            type: error.type,
+          });
           setConnectionStatus(`Connection error: ${error.message}`);
           reconnectAttempts.current += 1;
           if (reconnectAttempts.current >= maxReconnectAttempts) {
@@ -69,7 +84,10 @@ const StatsOverlay = () => {
         });
 
         socketRef.current.on("connect", () => {
-          console.log("Socket connected successfully with ID:", socketRef.current.id);
+          console.log(
+            "Socket connected successfully with ID:",
+            socketRef.current.id,
+          );
           setConnectionStatus("Connected to server");
           setError(null);
           reconnectAttempts.current = 0;
@@ -140,7 +158,9 @@ const StatsOverlay = () => {
           <h2 className="text-xl mb-4">Scrabble Stats Overlay</h2>
           <p>Status: {connectionStatus}</p>
           <p className="text-sm mt-2">Waiting for player selection...</p>
-          {lastUpdate && <p className="text-sm mt-2">Last update: {lastUpdate}</p>}
+          {lastUpdate && (
+            <p className="text-sm mt-2">Last update: {lastUpdate}</p>
+          )}
         </div>
       </div>
     );
@@ -150,56 +170,80 @@ const StatsOverlay = () => {
 
   if (source) {
     const renderElement = () => {
-      const player = source.startsWith('player1') ? player1 : player2;
+      const player = source.startsWith("player1") ? player1 : player2;
       switch (source) {
-        case 'player1-name':
-        case 'player2-name':
-          return <div className="text-black">{player?.firstLast || "Player"}</div>;
-        case 'player1-record':
-        case 'player2-record':
-          return <div className="text-black">Record: {player?.wins || 0}-{player?.losses || 0}-{player?.ties || 0}</div>;
-        case 'player1-average-score':
-        case 'player2-average-score':
-          return <div className="text-black">Average Score: {player?.averageScore || "N/A"}</div>;
-        case 'player1-high-score':
-        case 'player2-high-score':
-          return <div className="text-black">High Score: {player?.highScore || "N/A"}</div>;
-        case 'player1-spread':
-        case 'player2-spread':
-          return <div className="text-black">Spread: {player?.spread || "N/A"}</div>;
-        case 'player1-rank':
-        case 'player2-rank':
-          return <div className="text-black">Rank: {player?.rank || "N/A"}</div>;
-        case 'player1-rank-ordinal':
-        case 'player2-rank-ordinal':
-          return <div className="text-black">{player?.rankOrdinal || "N/A"}</div>;
-        case 'player1-rating':
-        case 'player2-rating':
-          return <div className="text-black">Rating: {player?.rating || "N/A"}</div>;
-        case 'player1-under-cam':
-        case 'player2-under-cam':
-          return <div className="text-black">
-            Rating: {player?.rating || "N/A"} {" | "}
-            {player?.wins || 0}-{player?.losses || 0}-{player?.ties || 0} {player?.spread || "N/A"}
-            {" | "}
-            {player?.rankOrdinal || "N/A"}
-          </div>;
-        case 'tournament-data':
-          return <div className="text-black">
-            {matchData?.tournament.name || "N/A"}
-            {" | "}
-            {matchData?.tournament.lexicon || "N/A"}
-          </div>;
+        case "player1-name":
+        case "player2-name":
+          return (
+            <div className="text-black">{player?.firstLast || "Player"}</div>
+          );
+        case "player1-record":
+        case "player2-record":
+          return (
+            <div className="text-black">
+              Record: {player?.wins || 0}-{player?.losses || 0}-
+              {player?.ties || 0}
+            </div>
+          );
+        case "player1-average-score":
+        case "player2-average-score":
+          return (
+            <div className="text-black">
+              Average Score: {player?.averageScore || "N/A"}
+            </div>
+          );
+        case "player1-high-score":
+        case "player2-high-score":
+          return (
+            <div className="text-black">
+              High Score: {player?.highScore || "N/A"}
+            </div>
+          );
+        case "player1-spread":
+        case "player2-spread":
+          return (
+            <div className="text-black">Spread: {player?.spread || "N/A"}</div>
+          );
+        case "player1-rank":
+        case "player2-rank":
+          return (
+            <div className="text-black">Rank: {player?.rank || "N/A"}</div>
+          );
+        case "player1-rank-ordinal":
+        case "player2-rank-ordinal":
+          return (
+            <div className="text-black">{player?.rankOrdinal || "N/A"}</div>
+          );
+        case "player1-rating":
+        case "player2-rating":
+          return (
+            <div className="text-black">Rating: {player?.rating || "N/A"}</div>
+          );
+        case "player1-under-cam":
+        case "player2-under-cam":
+          return (
+            <div className="text-black">
+              Rating: {player?.rating || "N/A"} {" | "}
+              {player?.wins || 0}-{player?.losses || 0}-{player?.ties || 0}{" "}
+              {player?.spread || "N/A"}
+              {" | "}
+              {player?.rankOrdinal || "N/A"}
+            </div>
+          );
+        case "tournament-data":
+          return (
+            <div className="text-black">
+              {matchData?.tournament.name || "N/A"}
+              {" | "}
+              {matchData?.tournament.lexicon || "N/A"}
+            </div>
+          );
         default:
           return null;
       }
     };
 
-    return (
-      <div className="inline-block text-black">
-        {renderElement()}
-      </div>
-    );
+    return <div className="inline-block text-black">{renderElement()}</div>;
   }
 
   return (
@@ -212,17 +256,29 @@ const StatsOverlay = () => {
         </div>
         <div className="space-y-1">
           <div data-obs="player1-record">
-            Record: {player1?.wins || 0}-{player1?.losses || 0}-{player1?.ties || 0}
+            Record: {player1?.wins || 0}-{player1?.losses || 0}-
+            {player1?.ties || 0}
           </div>
-          <div data-obs="player1-average-score">Average Score: {player1?.averageScore || "N/A"}</div>
-          <div data-obs="player1-high-score">High Score: {player1?.highScore || "N/A"}</div>
-          <div data-obs="player1-spread">Spread: {player1?.spread || "N/A"}</div>
+          <div data-obs="player1-average-score">
+            Average Score: {player1?.averageScore || "N/A"}
+          </div>
+          <div data-obs="player1-high-score">
+            High Score: {player1?.highScore || "N/A"}
+          </div>
+          <div data-obs="player1-spread">
+            Spread: {player1?.spread || "N/A"}
+          </div>
           <div data-obs="player1-rank">Rank: {player1?.rank || "N/A"}</div>
-          <div data-obs="player1-rank-ordinal">Rank Ordinal: {player1?.rankOrdinal || "N/A"}</div>
-          <div data-obs="player1-rating">Rating: {player1?.rating || "N/A"}</div>
+          <div data-obs="player1-rank-ordinal">
+            Rank Ordinal: {player1?.rankOrdinal || "N/A"}
+          </div>
+          <div data-obs="player1-rating">
+            Rating: {player1?.rating || "N/A"}
+          </div>
           <div data-obs="player1-under-cam">
             Rating: {player1?.rating || "N/A"} {" | "}
-            {player1?.wins || 0}-{player1?.losses || 0}-{player1?.ties || 0} {player1?.spread || "N/A"}
+            {player1?.wins || 0}-{player1?.losses || 0}-{player1?.ties || 0}{" "}
+            {player1?.spread || "N/A"}
             {" | "}
             {player1?.rankOrdinal || "N/A"}
           </div>
@@ -235,17 +291,29 @@ const StatsOverlay = () => {
         </h2>
         <div className="space-y-1">
           <div data-obs="player2-record">
-            Record: {player2?.wins || 0}-{player2?.losses || 0}-{player2?.ties || 0}
+            Record: {player2?.wins || 0}-{player2?.losses || 0}-
+            {player2?.ties || 0}
           </div>
-          <div data-obs="player2-average-score">Average Score: {player2?.averageScore || "N/A"}</div>
-          <div data-obs="player2-high-score">High Score: {player2?.highScore || "N/A"}</div>
-          <div data-obs="player2-spread">Spread: {player2?.spread || "N/A"}</div>
+          <div data-obs="player2-average-score">
+            Average Score: {player2?.averageScore || "N/A"}
+          </div>
+          <div data-obs="player2-high-score">
+            High Score: {player2?.highScore || "N/A"}
+          </div>
+          <div data-obs="player2-spread">
+            Spread: {player2?.spread || "N/A"}
+          </div>
           <div data-obs="player2-rank">Rank: {player2?.rank || "N/A"}</div>
-          <div data-obs="player2-rank-ordinal">Rank Ordinal: {player2?.rankOrdinal || "N/A"}</div>
-          <div data-obs="player2-rating">Rating: {player2?.rating || "N/A"}</div>
+          <div data-obs="player2-rank-ordinal">
+            Rank Ordinal: {player2?.rankOrdinal || "N/A"}
+          </div>
+          <div data-obs="player2-rating">
+            Rating: {player2?.rating || "N/A"}
+          </div>
           <div data-obs="player2-under-cam">
             Rating: {player2?.rating || "N/A"} {" | "}
-            {player2?.wins || 0}-{player2?.losses || 0}-{player2?.ties || 0} {player2?.spread || "N/A"}
+            {player2?.wins || 0}-{player2?.losses || 0}-{player2?.ties || 0}{" "}
+            {player2?.spread || "N/A"}
             {" | "}
             {player2?.rankOrdinal || "N/A"}
           </div>

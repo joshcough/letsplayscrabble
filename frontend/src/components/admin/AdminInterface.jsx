@@ -15,7 +15,6 @@ const AdminInterface = () => {
   const [success, setSuccess] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Initial data loading
   useEffect(() => {
     const initializeData = async () => {
       setIsLoading(true);
@@ -148,30 +147,42 @@ const AdminInterface = () => {
     }
   };
 
+  const inputStyles = `
+    w-full p-2 border-2 border-[#4A3728]/20 rounded
+    bg-[#FFF8E7] text-[#4A3728]
+    focus:ring-2 focus:ring-[#4A3728]/30 focus:border-[#4A3728]
+    outline-none transition-colors
+    disabled:bg-[#4A3728]/10 disabled:cursor-not-allowed
+  `;
+
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <h1 className="text-2xl font-bold mb-6">Tournament Admin Panel</h1>
+      <div className="bg-[#FAF1DB] shadow-md rounded-lg p-6">
+        <h1 className="text-2xl font-bold mb-6 text-[#4A3728]">
+          Tournament Admin Panel
+        </h1>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="border-2 border-red-700/20 bg-red-700/10 text-red-700 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
+          <div className="border-2 border-green-700/20 bg-green-700/10 text-green-700 px-4 py-3 rounded mb-4">
             {success}
           </div>
         )}
 
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium mb-2">Tournament</label>
+            <label className="block text-[#4A3728] font-medium mb-2">
+              Tournament
+            </label>
             <select
               value={selectedTournament}
               onChange={handleTournamentChange}
-              className="w-full border rounded-md p-2"
+              className={inputStyles}
               disabled={isLoading}
             >
               <option value="">Select Tournament</option>
@@ -186,11 +197,13 @@ const AdminInterface = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Division</label>
+            <label className="block text-[#4A3728] font-medium mb-2">
+              Division
+            </label>
             <select
               value={selectedDivision}
               onChange={handleDivisionChange}
-              className="w-full border rounded-md p-2"
+              className={inputStyles}
               disabled={selectedTournament === "" || isLoading}
             >
               <option value="">Select Division</option>
@@ -204,7 +217,9 @@ const AdminInterface = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Player 1</label>
+              <label className="block text-[#4A3728] font-medium mb-2">
+                Player 1
+              </label>
               <select
                 value={selectedPlayers.player1}
                 onChange={(e) =>
@@ -213,7 +228,7 @@ const AdminInterface = () => {
                     player1: e.target.value,
                   }))
                 }
-                className="w-full border rounded-md p-2"
+                className={inputStyles}
                 disabled={selectedDivision === "" || isLoading}
               >
                 <option value="">Select Player</option>
@@ -228,7 +243,9 @@ const AdminInterface = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Player 2</label>
+              <label className="block text-[#4A3728] font-medium mb-2">
+                Player 2
+              </label>
               <select
                 value={selectedPlayers.player2}
                 onChange={(e) =>
@@ -237,7 +254,7 @@ const AdminInterface = () => {
                     player2: e.target.value,
                   }))
                 }
-                className="w-full border rounded-md p-2"
+                className={inputStyles}
                 disabled={selectedDivision === "" || isLoading}
               >
                 <option value="">Select Player</option>
@@ -257,11 +274,14 @@ const AdminInterface = () => {
             disabled={
               isLoading || !selectedPlayers.player1 || !selectedPlayers.player2
             }
-            className={`w-full py-2 px-4 rounded-md transition-colors ${
-              isLoading || !selectedPlayers.player1 || !selectedPlayers.player2
-                ? "bg-blue-300 cursor-not-allowed"
-                : "bg-blue-500 hover:bg-blue-600 text-white"
-            }`}
+            className={`w-full py-2 px-4 rounded-md transition-colors
+              ${
+                isLoading ||
+                !selectedPlayers.player1 ||
+                !selectedPlayers.player2
+                  ? "bg-[#4A3728]/40 text-[#4A3728]/60 cursor-not-allowed"
+                  : "bg-[#4A3728] hover:bg-[#6B5744] text-[#FAF1DB] shadow-md border-2 border-[#4A3728]"
+              }`}
           >
             {isLoading ? "Updating..." : "Update Match"}
           </button>

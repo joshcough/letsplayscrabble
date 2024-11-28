@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { API_BASE } from "../../config/api";
 
 const TournamentStandings = ({ tournamentId, divisionName }) => {
@@ -68,13 +68,15 @@ const TournamentStandings = ({ tournamentId, divisionName }) => {
   useEffect(() => {
     const fetchStandings = async () => {
       try {
-        const response = await fetch(`${API_BASE}/api/tournaments/${tournamentId}`);
+        const response = await fetch(
+          `${API_BASE}/api/tournaments/${tournamentId}`,
+        );
         if (response.ok) {
           const tournamentData = await response.json();
 
           // Find the correct division
           const divisionIndex = tournamentData.divisions.findIndex(
-            div => div.name === divisionName
+            (div) => div.name === divisionName,
           );
 
           if (divisionIndex === -1) {
@@ -83,7 +85,9 @@ const TournamentStandings = ({ tournamentId, divisionName }) => {
           }
 
           // Get and rank the standings for the specific division
-          const divisionStandings = calculateRanks(tournamentData.standings[divisionIndex]);
+          const divisionStandings = calculateRanks(
+            tournamentData.standings[divisionIndex],
+          );
           setStandings(divisionStandings);
         }
       } catch (error) {
@@ -117,10 +121,10 @@ const TournamentStandings = ({ tournamentId, divisionName }) => {
                     column.key === "name"
                       ? "200px"
                       : ["wins", "losses", "ties"].includes(column.key)
-                      ? "80px"
-                      : ["rank"].includes(column.key)
-                      ? "80px"
-                      : "100px",
+                        ? "80px"
+                        : ["rank"].includes(column.key)
+                          ? "80px"
+                          : "100px",
                 }}
               >
                 <div className="flex items-center justify-between">
@@ -147,8 +151,12 @@ const TournamentStandings = ({ tournamentId, divisionName }) => {
               <td className="px-4 py-2 text-center border">{player.losses}</td>
               <td className="px-4 py-2 text-center border">{player.ties}</td>
               <td className="px-4 py-2 text-right border">{player.spread}</td>
-              <td className="px-4 py-2 text-right border">{player.averageScore}</td>
-              <td className="px-4 py-2 text-right border">{player.highScore}</td>
+              <td className="px-4 py-2 text-right border">
+                {player.averageScore}
+              </td>
+              <td className="px-4 py-2 text-right border">
+                {player.highScore}
+              </td>
             </tr>
           ))}
         </tbody>
