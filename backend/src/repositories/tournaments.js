@@ -48,6 +48,7 @@ class TournamentRepository {
     const tourney = await this.findById(tournamentId);
     const standings = tourney.standings[divisionId];
     return {
+      tournament: { name: tourney.name, lexicon: tourney.lexicon },
       player1: standings[player1Id - 1],
       player2: standings[player2Id - 1],
     };

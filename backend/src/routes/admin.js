@@ -14,6 +14,7 @@ function createAdminRoutes(tournamentRepository, currentMatchRepository, io) {
     );
     return {
       matchData: match,
+      tournament: playerStats.tournament,
       players: [playerStats.player1, playerStats.player2],
     };
   };
