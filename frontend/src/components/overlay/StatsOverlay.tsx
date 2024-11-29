@@ -1,17 +1,32 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import { API_BASE } from "../../config/api";
+import { PlayerStats } from "@shared/types/tournament";
+import { MatchWithPlayers } from "@shared/types/admin";
 
-const StatsOverlay = () => {
+type SourceType =
+  | "player1-name" | "player2-name"
+  | "player1-record" | "player2-record"
+  | "player1-average-score" | "player2-average-score"
+  | "player1-high-score" | "player2-high-score"
+  | "player1-spread" | "player2-spread"
+  | "player1-rank" | "player2-rank"
+  | "player1-rank-ordinal" | "player2-rank-ordinal"
+  | "player1-rating" | "player2-rating"
+  | "player1-under-cam" | "player2-under-cam"
+  | "tournament-data"
+  | null;
+
+const StatsOverlay: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const source = searchParams.get("source");
-  const [matchData, setMatchData] = useState(null);
-  const [connectionStatus, setConnectionStatus] = useState("Initializing...");
-  const [lastUpdate, setLastUpdate] = useState(null);
-  const [error, setError] = useState(null);
-  const socketRef = useRef(null);
-  const reconnectAttempts = useRef(0);
+  const source = searchParams.get("source") as SourceType;
+  const [matchData, setMatchData] = useState<MatchWithPlayers | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<string>("Initializing...");
+  const [lastUpdate, setLastUpdate] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const reconnectAttempts = useRef<number>(0);
   const maxReconnectAttempts = 5;
 
   useEffect(() => {
@@ -54,9 +69,9 @@ const StatsOverlay = () => {
         socketRef.current.on("connect", () => {
           console.log(
             "Connected with transport:",
-            socketRef.current.io.engine.transport.name,
+            socketRef.current?.io.engine.transport.name
           );
-          console.log("Socket connected with ID:", socketRef.current.id);
+          console.log("Socket connected with ID:", socketRef.current?.id);
           setConnectionStatus("Connected to server");
           reconnectAttempts.current = 0;
         });
@@ -64,29 +79,29 @@ const StatsOverlay = () => {
         socketRef.current.io.engine.on("upgrade", () => {
           console.log(
             "Transport upgraded to:",
-            socketRef.current.io.engine.transport.name,
+            socketRef.current?.io.engine.transport.name
           );
         });
 
-        socketRef.current.on("connect_error", (error) => {
+        socketRef.current.on("connect_error", (error: Error) => {
           console.error("Socket connect error:", error);
           console.error("Error details:", {
             message: error.message,
-            description: error.description,
-            type: error.type,
+            description: (error as any).description,
+            type: error.name,
           });
           setConnectionStatus(`Connection error: ${error.message}`);
           reconnectAttempts.current += 1;
           if (reconnectAttempts.current >= maxReconnectAttempts) {
             console.log("Max reconnection attempts reached");
-            socketRef.current.disconnect();
+            socketRef.current?.disconnect();
           }
         });
 
         socketRef.current.on("connect", () => {
           console.log(
             "Socket connected successfully with ID:",
-            socketRef.current.id,
+            socketRef.current?.id
           );
           setConnectionStatus("Connected to server");
           setError(null);
@@ -94,32 +109,33 @@ const StatsOverlay = () => {
           fetchCurrentMatch();
         });
 
-        socketRef.current.on("disconnect", (reason) => {
+        socketRef.current.on("disconnect", (reason: string) => {
           console.log("Socket disconnected. Reason:", reason);
           setConnectionStatus(`Disconnected from server: ${reason}`);
           if (reason === "io server disconnect") {
             console.log("Attempting to reconnect after server disconnect...");
-            socketRef.current.connect();
+            socketRef.current?.connect();
           }
         });
 
-        socketRef.current.onAny((eventName, ...args) => {
+        socketRef.current.onAny((eventName: string, ...args: any[]) => {
           console.log("Received event:", eventName, "with data:", args);
         });
 
-        socketRef.current.on("matchUpdate", (data) => {
+        socketRef.current.on("matchUpdate", (data: MatchWithPlayers) => {
           console.log("Received match update:", data);
           setMatchData(data);
           setLastUpdate(new Date().toISOString());
         });
 
-        socketRef.current.on("error", (error) => {
+        socketRef.current.on("error", (error: Error) => {
           console.error("Socket error:", error);
           setError(`Socket error: ${error.message}`);
         });
       } catch (error) {
-        console.error("Socket initialization error:", error);
-        setError(`Socket initialization failed: ${error.message}`);
+        const err = error as Error;
+        console.error("Socket initialization error:", err);
+        setError(`Socket initialization failed: ${err.message}`);
         setConnectionStatus(`Failed to initialize socket connection`);
       }
     };

@@ -1,20 +1,21 @@
-// src/components/tournaments/AddTournament.jsx
+// src/components/tournaments/AddTournament.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../../config/api";
+import { CreateTournamentParams } from "@shared/types/tournament";
 
-const AddTournament = () => {
+const AddTournament: React.FC = () => {
   const navigate = useNavigate();
-  const [tournament, setTournament] = useState({
+  const [tournament, setTournament] = useState<Omit<CreateTournamentParams, "rawData">>({
     name: "",
     city: "",
-    year: "",
+    year: 0,
     lexicon: "",
     longFormName: "",
     dataUrl: "",
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Sending tournament data:", tournament);
     try {
@@ -33,6 +34,16 @@ const AddTournament = () => {
     }
   };
 
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { id, value } = e.target;
+    setTournament(prev => ({
+      ...prev,
+      [id]: id === "year" ? Number(value) || 0 : value
+    }));
+  };
+
   return (
     <div className="bg-[#FAF1DB] p-6 rounded-lg shadow-md">
       <div className="flex justify-between items-center mb-6">
@@ -41,7 +52,7 @@ const AddTournament = () => {
         </h2>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {Object.entries(tournament).map(([key, value]) => (
+        {(Object.keys(tournament) as Array<keyof typeof tournament>).map((key) => (
           <div key={key}>
             <label
               htmlFor={key}
@@ -60,10 +71,8 @@ const AddTournament = () => {
                        bg-[#FFF8E7] text-[#4A3728]
                        focus:ring-2 focus:ring-[#4A3728]/30 focus:border-[#4A3728]
                        outline-none transition-colors"
-              value={value}
-              onChange={(e) =>
-                setTournament({ ...tournament, [key]: e.target.value })
-              }
+              value={tournament[key]}
+              onChange={handleInputChange}
               required
             />
           </div>
