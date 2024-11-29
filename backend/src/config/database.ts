@@ -1,8 +1,14 @@
-const { Pool } = require("pg");
+import { Pool, PoolConfig } from "pg";
+
+interface DatabaseConfig extends PoolConfig {
+  ssl?: {
+    rejectUnauthorized: boolean;
+  };
+}
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
-const developmentConfig = {
+const developmentConfig: DatabaseConfig = {
   user: "scrabble_user",
   password: "scrabble_pass",
   host: "localhost",
@@ -10,7 +16,7 @@ const developmentConfig = {
   port: 5432,
 };
 
-const productionConfig = {
+const productionConfig: DatabaseConfig = {
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
 };
@@ -23,12 +29,10 @@ pool.on("connect", () => {
   );
 });
 
-pool.on("error", (err) => {
+pool.on("error", (err: Error) => {
   console.error("Unexpected error on idle client", err);
   process.exit(-1);
 });
 
-module.exports = {
-  query: (text, params) => pool.query(text, params),
-  pool,
-};
+export const query = (text: string, params?: any[]) => pool.query(text, params);
+export { pool };

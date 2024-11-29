@@ -1,39 +1,39 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const cors = require("cors");
-const path = require("path");
-const db = require("./config/database");
-const data = require("./services/dataProcessing");
-const TournamentRepository = require("./repositories/tournaments");
-const CurrentMatchRepository = require("./repositories/currentMatch");
-const createTournamentRoutes = require("./routes/tournaments");
-const createAdminRoutes = require("./routes/admin");
-const TournamentPollingService = require("./services/polling-service");
+import express, { Express, Request, Response } from "express";
+import http from "http";
+import { Server as SocketIOServer } from "socket.io";
+import cors from "cors";
+import path from "path";
+import { pool } from "./config/database";
+import { TournamentRepository } from "./repositories/tournamentRepository";
+import { CurrentMatchRepository } from "./repositories/currentMatchRepository";
+import createTournamentRoutes from "./routes/tournaments";
+import createAdminRoutes from "./routes/admin"; // Changed this line
+import { TournamentPollingService } from "./services/pollingService";
 
-const tournamentRepository = new TournamentRepository(db.pool);
-const currentMatchRepository = new CurrentMatchRepository(db.pool);
+const tournamentRepository = new TournamentRepository(pool);
+const currentMatchRepository = new CurrentMatchRepository(pool);
 const pollingService = new TournamentPollingService(tournamentRepository);
 
-const app = express();
+const app: Express = express();
 const server = http.createServer(app);
 
 const allowedOrigins = [
   "http://localhost:3000",
   "https://localhost:3000",
   "https://letsplayscrabble-dev-test-d51cd69c9755.herokuapp.com",
-];
+] as const;
 
-const io = new Server(server, {
+const io = new SocketIOServer(server, {
   cors: {
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       if (!origin) return callback(null, true);
 
-      // Log the incoming origin for debugging
       console.log("Incoming origin:", origin);
 
-      if (allowedOrigins.indexOf(origin) !== -1) {
+      if (allowedOrigins.includes(origin as any)) {
         callback(null, true);
       } else {
         console.log("Origin blocked:", origin);
@@ -43,7 +43,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
     credentials: true,
   },
-  transports: ["websocket", "polling"], // Put websocket first as it's preferred
+  transports: ["websocket", "polling"],
   pingTimeout: 60000,
   pingInterval: 25000,
 });
@@ -59,19 +59,18 @@ app.use(
 app.use(express.json());
 
 // Add error handling for the server
-io.engine.on("connection_error", (err) => {
+io.engine.on("connection_error", (err: Error) => {
   console.log("Connection error:", err);
 });
 
 io.on("connection", (socket) => {
   console.log("Client connected", socket.id);
 
-  // Add error handling for individual sockets
-  socket.on("error", (error) => {
+  socket.on("error", (error: Error) => {
     console.error("Socket error:", error);
   });
 
-  socket.on("disconnect", (reason) => {
+  socket.on("disconnect", (reason: string) => {
     console.log("Client disconnected", socket.id, "Reason:", reason);
   });
 });
@@ -86,16 +85,25 @@ app.use(
 app.use(express.static(path.join(__dirname, "../../frontend/build")));
 
 // Anything that doesn't match the above, send back index.html
-app.get("*", (req, res) => {
+app.get("*", (_req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, "../../frontend/build/index.html"));
 });
 
 // start the polling service
 pollingService.start();
 
-// then start the server
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`WebSocket server available`);
+  console.log("WebSocket server available");
+});
+
+// Handle shutdown gracefully
+process.on("SIGTERM", () => {
+  console.log("SIGTERM signal received. Shutting down gracefully...");
+  pollingService.stop();
+  server.close(() => {
+    console.log("Server closed");
+    process.exit(0);
+  });
 });

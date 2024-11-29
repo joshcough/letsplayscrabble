@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { API_BASE } from "../../config/api";
+import { ProcessedTournament, Division, Player } from "@shared/types/tournament";
+import { CurrentMatch, CreateCurrentMatchParams } from "@shared/types/currentMatch";
 
-const AdminInterface = () => {
-  const [divisions, setDivisions] = useState([]);
-  const [tournaments, setTournaments] = useState([]);
-  const [players, setPlayers] = useState([]);
-  const [selectedTournament, setSelectedTournament] = useState("");
-  const [selectedDivision, setSelectedDivision] = useState("");
+const AdminInterface: React.FC = () => {
+  const [divisions, setDivisions] = useState<Division[]>([]);
+  const [tournaments, setTournaments] = useState<ProcessedTournament[]>([]);
+  const [players, setPlayers] = useState<(Player | null)[]>([]);
+  const [selectedTournament, setSelectedTournament] = useState<string>("");
+  const [selectedDivision, setSelectedDivision] = useState<string>("");
   const [selectedPlayers, setSelectedPlayers] = useState({
     player1: "",
     player2: "",
   });
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -26,28 +28,23 @@ const AdminInterface = () => {
         if (!tournamentsResponse.ok) {
           throw new Error("Failed to fetch tournaments");
         }
-        const tournamentsData = await tournamentsResponse.json();
+        const tournamentsData: ProcessedTournament[] = await tournamentsResponse.json();
         setTournaments(tournamentsData);
 
         // Fetch current match
-        const matchResponse = await fetch(
-          `${API_BASE}/api/admin/match/current`,
-        );
-        const currentMatch = await matchResponse.json();
+        const matchResponse = await fetch(`${API_BASE}/api/admin/match/current`);
+        const currentMatch: { matchData: CurrentMatch } = await matchResponse.json();
 
         // Only proceed if we have match data
         if (currentMatch.matchData) {
           const tourneyObj = tournamentsData.find(
-            (t) => t.id === currentMatch.matchData.tournament_id,
+            (t) => t.id === currentMatch.matchData.tournament_id
           );
 
           if (tourneyObj) {
-            const divisionObj =
-              tourneyObj.divisions[currentMatch.matchData.division_id];
+            const divisionObj = tourneyObj.divisions[currentMatch.matchData.division_id];
 
-            setSelectedTournament(
-              currentMatch.matchData.tournament_id.toString(),
-            );
+            setSelectedTournament(currentMatch.matchData.tournament_id.toString());
             setSelectedDivision(currentMatch.matchData.division_id.toString());
             setDivisions(tourneyObj.divisions);
             setPlayers(divisionObj.players.slice(1));
@@ -68,7 +65,7 @@ const AdminInterface = () => {
     initializeData();
   }, []);
 
-  const handleTournamentChange = (e) => {
+  const handleTournamentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newTournamentId = e.target.value;
     setSelectedTournament(newTournamentId);
 
@@ -82,7 +79,7 @@ const AdminInterface = () => {
       setPlayers([]);
     } else {
       const tourneyObj = tournaments.find(
-        (t) => t.id.toString() === newTournamentId,
+        (t) => t.id.toString() === newTournamentId
       );
       if (tourneyObj) {
         setDivisions(tourneyObj.divisions || []);
@@ -90,7 +87,7 @@ const AdminInterface = () => {
     }
   };
 
-  const handleDivisionChange = (e) => {
+  const handleDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newDivisionId = e.target.value;
     setSelectedDivision(newDivisionId);
 
@@ -102,10 +99,10 @@ const AdminInterface = () => {
       setPlayers([]);
     } else {
       const tourneyObj = tournaments.find(
-        (t) => t.id.toString() === selectedTournament,
+        (t) => t.id.toString() === selectedTournament
       );
-      if (tourneyObj && tourneyObj.divisions[newDivisionId]) {
-        setPlayers(tourneyObj.divisions[newDivisionId].players.slice(1));
+      if (tourneyObj && tourneyObj.divisions[parseInt(newDivisionId)]) {
+        setPlayers(tourneyObj.divisions[parseInt(newDivisionId)].players.slice(1));
       }
     }
   };
@@ -120,15 +117,17 @@ const AdminInterface = () => {
     setError(null);
 
     try {
+      const requestBody: CreateCurrentMatchParams = {
+        player1Id: parseInt(selectedPlayers.player1),
+        player2Id: parseInt(selectedPlayers.player2),
+        divisionId: parseInt(selectedDivision),
+        tournamentId: parseInt(selectedTournament),
+      };
+
       const response = await fetch(`${API_BASE}/api/admin/match/current`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          player1Id: selectedPlayers.player1,
-          player2Id: selectedPlayers.player2,
-          divisionId: selectedDivision,
-          tournamentId: selectedTournament,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
@@ -141,7 +140,7 @@ const AdminInterface = () => {
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       console.error("Error updating match:", err);
-      setError(err.message || "Failed to update match");
+      setError(err instanceof Error ? err.message : "Failed to update match");
     } finally {
       setIsLoading(false);
     }
@@ -233,6 +232,7 @@ const AdminInterface = () => {
               >
                 <option value="">Select Player</option>
                 {[...players]
+                  .filter((p): p is Player => p !== null)
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((player) => (
                     <option key={player.id} value={player.id}>
@@ -259,6 +259,7 @@ const AdminInterface = () => {
               >
                 <option value="">Select Player</option>
                 {[...players]
+                  .filter((p): p is Player => p !== null)
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((player) => (
                     <option key={player.id} value={player.id}>

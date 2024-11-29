@@ -1,14 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { API_BASE } from "../../config/api";
+import { ProcessedTournament, PlayerStats } from "@shared/types/tournament";
 
-const TournamentStandings = ({ tournamentId, divisionName }) => {
-  const [standings, setStandings] = useState(null);
-  const [sortConfig, setSortConfig] = useState({
+interface TournamentStandingsProps {
+  tournamentId?: string;
+  divisionName: string;
+}
+
+interface SortConfig {
+  key: keyof PlayerStats;
+  direction: "asc" | "desc";
+}
+
+interface Column {
+  key: keyof PlayerStats;
+  label: string;
+  sortable: boolean;
+}
+
+const TournamentStandings: React.FC<TournamentStandingsProps> = ({ tournamentId, divisionName }) => {
+  const [standings, setStandings] = useState<PlayerStats[] | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "rank",
     direction: "asc",
   });
 
-  const columns = [
+  const columns: Column[] = [
     { key: "rank", label: "Rank", sortable: true },
     { key: "name", label: "Name", sortable: true },
     { key: "wins", label: "W", sortable: true },
@@ -19,7 +36,7 @@ const TournamentStandings = ({ tournamentId, divisionName }) => {
     { key: "highScore", label: "High", sortable: true },
   ];
 
-  const calculateRanks = (players) => {
+  const calculateRanks = (players: PlayerStats[]): PlayerStats[] => {
     const sortedPlayers = [...players].sort((a, b) => {
       if (a.wins !== b.wins) return b.wins - a.wins;
       if (a.losses !== b.losses) return a.losses - b.losses;
@@ -32,7 +49,7 @@ const TournamentStandings = ({ tournamentId, divisionName }) => {
     }));
   };
 
-  const sortData = (data, sortConfig) => {
+  const sortData = (data: PlayerStats[], sortConfig: SortConfig): PlayerStats[] => {
     return [...data].sort((a, b) => {
       if (a[sortConfig.key] === b[sortConfig.key]) {
         if (a.wins !== b.wins) return b.wins - a.wins;
@@ -48,7 +65,7 @@ const TournamentStandings = ({ tournamentId, divisionName }) => {
     });
   };
 
-  const handleSort = (key) => {
+  const handleSort = (key: keyof PlayerStats) => {
     setSortConfig((prevConfig) => ({
       key,
       direction:
@@ -58,7 +75,7 @@ const TournamentStandings = ({ tournamentId, divisionName }) => {
     }));
   };
 
-  const getSortDirection = (key) => {
+  const getSortDirection = (key: keyof PlayerStats): string => {
     if (sortConfig.key === key) {
       return sortConfig.direction === "asc" ? "↑" : "↓";
     }
@@ -69,14 +86,14 @@ const TournamentStandings = ({ tournamentId, divisionName }) => {
     const fetchStandings = async () => {
       try {
         const response = await fetch(
-          `${API_BASE}/api/tournaments/${tournamentId}`,
+          `${API_BASE}/api/tournaments/${tournamentId}`
         );
         if (response.ok) {
-          const tournamentData = await response.json();
+          const tournamentData: ProcessedTournament = await response.json();
 
           // Find the correct division
           const divisionIndex = tournamentData.divisions.findIndex(
-            (div) => div.name === divisionName,
+            (div) => div.name === divisionName
           );
 
           if (divisionIndex === -1) {
@@ -86,7 +103,7 @@ const TournamentStandings = ({ tournamentId, divisionName }) => {
 
           // Get and rank the standings for the specific division
           const divisionStandings = calculateRanks(
-            tournamentData.standings[divisionIndex],
+            tournamentData.standings[divisionIndex]
           );
           setStandings(divisionStandings);
         }

@@ -1,16 +1,20 @@
-// src/components/tournaments/TournamentList.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { API_BASE } from "../../config/api";
+import { ProcessedTournament } from "@shared/types/tournament";
 
-const TournamentList = ({ onTournamentClick }) => {
-  const [tournaments, setTournaments] = useState([]);
+interface TournamentListProps {
+  onTournamentClick: (id: number) => void;
+}
 
-  React.useEffect(() => {
+const TournamentList: React.FC<TournamentListProps> = ({ onTournamentClick }) => {
+  const [tournaments, setTournaments] = useState<ProcessedTournament[]>([]);
+
+  useEffect(() => {
     const fetchTournaments = async () => {
       try {
         const response = await fetch(`${API_BASE}/api/tournaments`);
         if (response.ok) {
-          const data = await response.json();
+          const data: ProcessedTournament[] = await response.json();
           setTournaments(data);
         }
       } catch (error) {
@@ -22,8 +26,6 @@ const TournamentList = ({ onTournamentClick }) => {
 
   return (
     <div className="bg-[#FAF1DB] rounded-lg shadow-md p-6">
-      {" "}
-      {/* Softer ivory color */}
       <h2 className="text-2xl font-bold mb-6 text-[#4A3728]">Tournaments</h2>
       <div className="space-y-4">
         {tournaments.map((tournament) => (

@@ -2,14 +2,24 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { API_BASE } from "../../config/api";
 import TournamentStandings from "./TournamentStandings";
+import { ProcessedTournament } from "@shared/types/tournament";
 
-const TournamentDetails = () => {
-  const params = useParams();
+interface RouteParams {
+  id?: string;
+  name?: string;
+}
+
+interface PollingResponse {
+  pollUntil: string;
+}
+
+const TournamentDetails: React.FC = () => {
+  const params = useParams<RouteParams>();
   const navigate = useNavigate();
-  const [tournament, setTournament] = useState(null);
-  const [pollingDays, setPollingDays] = useState(1);
-  const [isPolling, setIsPolling] = useState(false);
-  const [pollUntil, setPollUntil] = useState(null);
+  const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
+  const [pollingDays, setPollingDays] = useState<number>(1);
+  const [isPolling, setIsPolling] = useState<boolean>(false);
+  const [pollUntil, setPollUntil] = useState<Date | null>(null);
 
   const handleEnablePolling = async () => {
     try {
@@ -21,11 +31,11 @@ const TournamentDetails = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ days: pollingDays }),
-        },
+        }
       );
 
       if (response.ok) {
-        const data = await response.json();
+        const data: PollingResponse = await response.json();
         setIsPolling(true);
         setPollUntil(new Date(data.pollUntil));
       }
@@ -40,7 +50,7 @@ const TournamentDetails = () => {
         `${API_BASE}/api/tournaments/${params.id}/polling`,
         {
           method: "DELETE",
-        },
+        }
       );
 
       if (response.ok) {
@@ -61,7 +71,7 @@ const TournamentDetails = () => {
 
         const tournamentResponse = await fetch(endpoint);
         if (tournamentResponse.ok) {
-          const tournamentData = await tournamentResponse.json();
+          const tournamentData: ProcessedTournament = await tournamentResponse.json();
           setTournament(tournamentData);
 
           // Set polling status if poll_until exists
@@ -171,8 +181,8 @@ const TournamentDetails = () => {
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-xl font-semibold">{division.name}</h4>
                   <Link
-                    to={`/tournaments/${params.id}/divisions/${encodeURIComponent(
-                      division.name,
+                    to={`/tournaments/${params.id}/standings/${encodeURIComponent(
+                      division.name
                     )}`}
                     className="text-blue-600 hover:text-blue-800 text-sm"
                   >

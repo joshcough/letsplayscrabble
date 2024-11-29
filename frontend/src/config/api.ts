@@ -1,4 +1,4 @@
-const API_BASE =
+const API_BASE: string =
   process.env.NODE_ENV === "production"
     ? window.location.origin // Use the full origin URL in production
     : "http://localhost:3001"; // In development, use localhost
