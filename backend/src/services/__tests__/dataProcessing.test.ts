@@ -6,7 +6,7 @@ describe("calculateStandings", () => {
   let tournamentData: TournamentData;
 
   beforeAll(async () => {
-    const dataUrl = path.join(__dirname, "tourney.js");
+    const dataUrl = path.join(__dirname, "..", "..", "__fixtures__", "tourney.js");
     tournamentData = await loadTournamentFile(dataUrl);
   });
 
