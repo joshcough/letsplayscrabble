@@ -4,7 +4,7 @@ import {
   TournamentData,
   Division,
   Player,
-  ProcessedPlayer,
+  PlayerStats,
   Tournament,
   ProcessedTournament,
 } from "../types/tournament";
@@ -44,8 +44,8 @@ export async function loadTournamentFile(
   }
 }
 
-export function calculateStandings(division: Division): ProcessedPlayer[] {
-  const processedPlayers = division.players
+export function calculateStandings(division: Division): PlayerStats[] {
+  const PlayerStatss = division.players
     .filter(
       (playerData): playerData is Player =>
         playerData !== null && playerData !== undefined,
@@ -94,7 +94,7 @@ export function calculateStandings(division: Division): ProcessedPlayer[] {
       const averageScore =
         gamesPlayed > 0 ? (totalScore / gamesPlayed).toFixed(2) : 0;
 
-      const res: ProcessedPlayer = {
+      const res: PlayerStats = {
         id: playerData.id,
         name: playerData.name,
         rating: playerData.etc.newr.at(-1) ?? 0,
@@ -109,7 +109,7 @@ export function calculateStandings(division: Division): ProcessedPlayer[] {
       return res;
     });
 
-  return calculateRanks(processedPlayers);
+  return calculateRanks(PlayerStatss);
 }
 
 function getOrdinal(n: number): string {
@@ -137,22 +137,20 @@ function formatName(name: string): string {
   return `${first.charAt(0).toUpperCase() + first.slice(1)} ${last.charAt(0).toUpperCase() + last.slice(1)}`;
 }
 
-function calculateRanks(players: ProcessedPlayer[]): ProcessedPlayer[] {
+function calculateRanks(players: PlayerStats[]): PlayerStats[] {
   const sortedPlayers = [...players].sort((a, b) => {
     if (a.wins !== b.wins) return b.wins - a.wins;
     if (a.losses !== b.losses) return a.losses - b.losses;
     return b.spread - a.spread;
   });
 
-  const rankMap = new Map<string, number>();
+  const rankMap = new Map<number, number>();
   sortedPlayers.forEach((player, index) => {
-    const playerKey = `${player.wins}-${player.losses}-${player.spread}-${player.name}`;
-    rankMap.set(playerKey, index + 1);
+    rankMap.set(player.id, index + 1);
   });
 
   return players.map((player) => {
-    const playerKey = `${player.wins}-${player.losses}-${player.spread}-${player.name}`;
-    const rank = rankMap.get(playerKey) ?? 0;
+    const rank = rankMap.get(player.id) ?? 0;
     return {
       ...player,
       rank,
@@ -161,20 +159,10 @@ function calculateRanks(players: ProcessedPlayer[]): ProcessedPlayer[] {
   });
 }
 
-export function processTournament(
-  tournament: Tournament | null,
-): ProcessedTournament | null {
-  if (!tournament) {
-    return null;
-  }
-
-  const standings = tournament.data.divisions.map((division) => {
-    return calculateStandings(division);
-  });
-
+export function processTournament(tournament: Tournament): ProcessedTournament {
   return {
     ...tournament,
     divisions: tournament.data.divisions,
-    standings,
+    standings: tournament.data.divisions.map(calculateStandings),
   };
 }

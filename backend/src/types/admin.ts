@@ -1,4 +1,4 @@
-import { ProcessedPlayer } from "./tournament";
+import { PlayerStats } from "./tournament";
 import { CurrentMatch } from "./currentMatch";
 
 export interface CreateMatchRequest {
@@ -14,5 +14,5 @@ export interface MatchWithPlayers {
     name: string;
     lexicon: string;
   };
-  players: [ProcessedPlayer | undefined, ProcessedPlayer | undefined];
+  players: [PlayerStats, PlayerStats];
 }

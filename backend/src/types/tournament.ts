@@ -21,7 +21,7 @@ export interface Division {
 }
 
 export interface Player {
-  id: string | number;
+  id: number;
   name: string;
   scores: number[];
   pairings: number[];
@@ -30,8 +30,8 @@ export interface Player {
   };
 }
 
-export interface ProcessedPlayer {
-  id: string | number;
+export interface PlayerStats {
+  id: number;
   name: string;
   rating: number;
   firstLast: string;
@@ -47,7 +47,7 @@ export interface ProcessedPlayer {
 
 export interface ProcessedTournament extends Omit<Tournament, "data"> {
   divisions: Division[];
-  standings: ProcessedPlayer[][];
+  standings: PlayerStats[][];
 }
 
 export interface CreateTournamentParams {
@@ -65,6 +65,6 @@ export interface TwoPlayerStats {
     name: string;
     lexicon: string;
   };
-  player1: ProcessedPlayer | undefined;
-  player2: ProcessedPlayer | undefined;
+  player1: PlayerStats;
+  player2: PlayerStats;
 }

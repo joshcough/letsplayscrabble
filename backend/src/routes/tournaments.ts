@@ -43,19 +43,6 @@ export default function createTournamentRoutes(
     }
   };
 
-  // Get all tournament names
-  const getAllTournamentNames: RequestHandler = async (_req, res) => {
-    try {
-      const result = await tournamentRepository.findAllNames();
-      res.json(result);
-    } catch (error) {
-      console.error("Database error:", error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  };
-
   // Get tournament by ID
   const getTournamentById: RequestHandler<TournamentIdParams> = async (
     req,
@@ -163,7 +150,6 @@ export default function createTournamentRoutes(
   };
 
   router.get("/", getAllTournaments);
-  router.get("/names", getAllTournamentNames);
   router.get("/:id", getTournamentById);
   router.get("/by-name/:name", getTournamentByName);
   router.post("/", createTournament);

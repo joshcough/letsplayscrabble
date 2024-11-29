@@ -3,8 +3,9 @@ import { Server as SocketIOServer } from "socket.io";
 import { RequestHandler } from "express-serve-static-core";
 import { TournamentRepository } from "../repositories/tournamentRepository";
 import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
+import { MatchWithPlayers } from "../types/admin";
 import { CurrentMatch } from "../types/currentMatch";
-import { ProcessedPlayer } from "../types/tournament"; // Added this import
+import { PlayerStats } from "../types/tournament"; // Added this import
 
 // Request body type for creating a match
 interface CreateMatchBody {
@@ -14,16 +15,6 @@ interface CreateMatchBody {
   tournamentId: number;
 }
 
-// Response type for match with players
-interface MatchWithPlayers {
-  matchData: CurrentMatch;
-  tournament: {
-    name: string;
-    lexicon: string;
-  };
-  players: [ProcessedPlayer | undefined, ProcessedPlayer | undefined];
-}
-
 export default function createAdminRoutes(
   tournamentRepository: TournamentRepository,
   currentMatchRepository: CurrentMatchRepository,
@@ -31,11 +22,7 @@ export default function createAdminRoutes(
 ): Router {
   const router = express.Router();
 
-  const addPlayers = async (
-    match: CurrentMatch | null,
-  ): Promise<MatchWithPlayers | null> => {
-    if (!match) return null;
-
+  const addPlayers = async (match: CurrentMatch): Promise<MatchWithPlayers> => {
     const playerStats = await tournamentRepository.findTwoPlayerStats(
       match.tournament_id,
       match.division_id,
@@ -53,13 +40,13 @@ export default function createAdminRoutes(
   const getCurrentMatch: RequestHandler = async (_req, res) => {
     try {
       const match = await currentMatchRepository.getCurrentMatch();
-      const matchWithPlayers = await addPlayers(match);
 
-      if (!matchWithPlayers) {
+      if (!match) {
         res.status(404).json({ error: "No current match found" });
         return;
       }
 
+      const matchWithPlayers = await addPlayers(match);
       res.json(matchWithPlayers);
     } catch (error) {
       console.error("Error finding current match:", error);
