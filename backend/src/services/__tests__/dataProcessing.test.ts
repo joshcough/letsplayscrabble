@@ -1,6 +1,6 @@
 import path from "path";
 import { calculateStandings, loadTournamentFile } from "../dataProcessing";
-import { TournamentData } from "../../types/tournament";
+import { TournamentData } from "@shared/types/tournament";
 
 describe("calculateStandings", () => {
   let tournamentData: TournamentData;

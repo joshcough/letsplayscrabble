@@ -5,7 +5,7 @@ import {
   TournamentData,
   CreateTournamentParams,
   TwoPlayerStats,
-} from "../types/tournament";
+} from "@shared/types/tournament";
 import {
   loadTournamentFile,
   processTournament,

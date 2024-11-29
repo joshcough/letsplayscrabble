@@ -1,5 +1,5 @@
 import { Pool, QueryResult } from "pg";
-import { CurrentMatch } from "../types/currentMatch";
+import { CurrentMatch } from "@shared/types/currentMatch";
 
 export class CurrentMatchRepository {
   constructor(private readonly db: Pool) {}

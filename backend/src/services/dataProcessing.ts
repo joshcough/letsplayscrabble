@@ -7,7 +7,7 @@ import {
   PlayerStats,
   Tournament,
   ProcessedTournament,
-} from "../types/tournament";
+} from "@shared/types/tournament";
 
 export async function loadTournamentFile(
   source: string,

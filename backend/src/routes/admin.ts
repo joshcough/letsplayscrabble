@@ -3,9 +3,9 @@ import { Server as SocketIOServer } from "socket.io";
 import { RequestHandler } from "express-serve-static-core";
 import { TournamentRepository } from "../repositories/tournamentRepository";
 import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
-import { MatchWithPlayers } from "../types/admin";
-import { CurrentMatch } from "../types/currentMatch";
-import { PlayerStats } from "../types/tournament"; // Added this import
+import { MatchWithPlayers } from "@shared/types/admin";
+import { CurrentMatch } from "@shared/types/currentMatch";
+import { PlayerStats } from "@shared/types/tournament"; // Added this import
 
 // Request body type for creating a match
 interface CreateMatchBody {
