@@ -1,6 +1,6 @@
-import cron, { ScheduledTask } from 'node-cron';
-import { TournamentRepository } from '../repositories/tournamentRepository';
-import { loadTournamentFile } from './dataProcessing';
+import cron, { ScheduledTask } from "node-cron";
+import { TournamentRepository } from "../repositories/tournamentRepository";
+import { loadTournamentFile } from "./dataProcessing";
 
 export class TournamentPollingService {
   private isRunning: boolean;
@@ -15,28 +15,28 @@ export class TournamentPollingService {
     if (this.isRunning) return;
 
     // Run every 10 seconds
-    this.job = cron.schedule('*/10 * * * * *', async () => {
+    this.job = cron.schedule("*/10 * * * * *", async () => {
       try {
         await this.pollActiveTournaments();
       } catch (error) {
-        console.error('Error in tournament polling:', error);
+        console.error("Error in tournament polling:", error);
       }
     });
 
     this.isRunning = true;
-    console.log('Tournament polling service started');
+    console.log("Tournament polling service started");
   }
 
   stop(): void {
     if (this.job) {
       this.job.stop();
       this.isRunning = false;
-      console.log('Tournament polling service stopped');
+      console.log("Tournament polling service stopped");
     }
   }
 
   private async pollActiveTournaments(): Promise<void> {
-    console.log('Tournament polling service is polling...');
+    console.log("Tournament polling service is polling...");
 
     await this.clearExpiredPolls();
     const activeTournaments = await this.tournamentRepo.findActivePollable();

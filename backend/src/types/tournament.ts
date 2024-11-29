@@ -45,7 +45,7 @@ export interface ProcessedPlayer {
   rankOrdinal?: string;
 }
 
-export interface ProcessedTournament extends Omit<Tournament, 'data'> {
+export interface ProcessedTournament extends Omit<Tournament, "data"> {
   divisions: Division[];
   standings: ProcessedPlayer[][];
 }

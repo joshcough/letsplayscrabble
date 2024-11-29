@@ -171,7 +171,7 @@ const TournamentDetails = () => {
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-xl font-semibold">{division.name}</h4>
                   <Link
-                    to={`/tournaments/${params.id}/divisions/${encodeURIComponent(
+                    to={`/tournaments/${params.id}/standings/${encodeURIComponent(
                       division.name,
                     )}`}
                     className="text-blue-600 hover:text-blue-800 text-sm"

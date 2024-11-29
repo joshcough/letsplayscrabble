@@ -1,7 +1,7 @@
-import express, { Router, Request, Response } from 'express';
-import { ParamsDictionary, RequestHandler } from 'express-serve-static-core';
-import { TournamentRepository } from '../repositories/tournamentRepository';
-import { loadTournamentFile } from '../services/dataProcessing';
+import express, { Router, Request, Response } from "express";
+import { ParamsDictionary, RequestHandler } from "express-serve-static-core";
+import { TournamentRepository } from "../repositories/tournamentRepository";
+import { loadTournamentFile } from "../services/dataProcessing";
 
 // Request types
 interface CreateTournamentBody {
@@ -25,7 +25,9 @@ interface TournamentNameParams extends ParamsDictionary {
   name: string;
 }
 
-export default function createTournamentRoutes(tournamentRepository: TournamentRepository): Router {
+export default function createTournamentRoutes(
+  tournamentRepository: TournamentRepository,
+): Router {
   const router = express.Router();
 
   // Get all tournaments
@@ -34,8 +36,10 @@ export default function createTournamentRoutes(tournamentRepository: TournamentR
       const result = await tournamentRepository.findAll();
       res.json(result);
     } catch (error) {
-      console.error('Database error:', error);
-      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+      console.error("Database error:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   };
 
@@ -45,43 +49,61 @@ export default function createTournamentRoutes(tournamentRepository: TournamentR
       const result = await tournamentRepository.findAllNames();
       res.json(result);
     } catch (error) {
-      console.error('Database error:', error);
-      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+      console.error("Database error:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   };
 
   // Get tournament by ID
-  const getTournamentById: RequestHandler<TournamentIdParams> = async (req, res) => {
+  const getTournamentById: RequestHandler<TournamentIdParams> = async (
+    req,
+    res,
+  ) => {
     try {
-      const t = await tournamentRepository.findById(parseInt(req.params.id, 10));
+      const t = await tournamentRepository.findById(
+        parseInt(req.params.id, 10),
+      );
       if (t === null) {
-        res.status(404).json({ message: 'Tournament not found' });
+        res.status(404).json({ message: "Tournament not found" });
         return;
       }
       res.json(t);
     } catch (error) {
-      console.error('Database error:', error);
-      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+      console.error("Database error:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   };
 
   // Get tournament by name
-  const getTournamentByName: RequestHandler<TournamentNameParams> = async (req, res) => {
+  const getTournamentByName: RequestHandler<TournamentNameParams> = async (
+    req,
+    res,
+  ) => {
     try {
       const t = await tournamentRepository.findByName(req.params.name);
       if (t === null) {
-        res.status(404).json({ message: 'Tournament not found' });
+        res.status(404).json({ message: "Tournament not found" });
         return;
       }
       res.json(t);
     } catch (error) {
-      console.error('Database error:', error);
-      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+      console.error("Database error:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   };
 
   // Create tournament
-  const createTournament: RequestHandler<{}, any, CreateTournamentBody> = async (req, res) => {
+  const createTournament: RequestHandler<
+    {},
+    any,
+    CreateTournamentBody
+  > = async (req, res) => {
     const { name, city, year, lexicon, longFormName, dataUrl } = req.body;
 
     try {
@@ -98,13 +120,19 @@ export default function createTournamentRoutes(tournamentRepository: TournamentR
 
       res.status(201).json(tournament);
     } catch (error) {
-      console.error('Database error:', error);
-      res.status(400).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+      console.error("Database error:", error);
+      res.status(400).json({
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   };
 
   // start or update polling for a tournament
-  const startPolling: RequestHandler<TournamentIdParams, any, EnablePollingBody> = async (req, res) => {
+  const startPolling: RequestHandler<
+    TournamentIdParams,
+    any,
+    EnablePollingBody
+  > = async (req, res) => {
     const { id } = req.params;
     const { days } = req.body;
 
@@ -112,9 +140,11 @@ export default function createTournamentRoutes(tournamentRepository: TournamentR
       const pollUntil = new Date();
       pollUntil.setDate(pollUntil.getDate() + days);
       await tournamentRepository.updatePollUntil(parseInt(id, 10), pollUntil);
-      res.json({ message: 'Polling enabled', pollUntil });
+      res.json({ message: "Polling enabled", pollUntil });
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   };
 
@@ -124,19 +154,21 @@ export default function createTournamentRoutes(tournamentRepository: TournamentR
 
     try {
       await tournamentRepository.stopPolling(parseInt(id, 10));
-      res.json({ message: 'Polling disabled' });
+      res.json({ message: "Polling disabled" });
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   };
 
-  router.get('/', getAllTournaments);
-  router.get('/names', getAllTournamentNames);
-  router.get('/:id', getTournamentById);
-  router.get('/by-name/:name', getTournamentByName);
-  router.post('/', createTournament);
-  router.post('/:id/polling', startPolling);
-  router.delete('/:id/polling', stopPolling);
+  router.get("/", getAllTournaments);
+  router.get("/names", getAllTournamentNames);
+  router.get("/:id", getTournamentById);
+  router.get("/by-name/:name", getTournamentByName);
+  router.post("/", createTournament);
+  router.post("/:id/polling", startPolling);
+  router.delete("/:id/polling", stopPolling);
 
   return router;
 }

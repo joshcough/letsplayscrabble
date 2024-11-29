@@ -1,21 +1,32 @@
-import axios from 'axios';
+import axios from "axios";
+import fs from "fs/promises";
 import {
   TournamentData,
   Division,
   Player,
   ProcessedPlayer,
   Tournament,
-  ProcessedTournament
-} from '../types/tournament';
+  ProcessedTournament,
+} from "../types/tournament";
 
-export async function loadTournamentFile(jsUrl: string): Promise<TournamentData> {
+export async function loadTournamentFile(
+  source: string,
+): Promise<TournamentData> {
   try {
-    const response = await axios.get(jsUrl, {
-      timeout: 25000,
-      transformResponse: [(data: string) => data], // Prevent axios from trying to parse response
-    });
+    let jsContent: string;
 
-    const jsContent = response.data;
+    // Check if it's a URL or local file
+    if (source.startsWith("http")) {
+      // Handle remote file
+      const response = await axios.get(source, {
+        timeout: 25000,
+        transformResponse: [(data: string) => data],
+      });
+      jsContent = response.data;
+    } else {
+      // Handle local file
+      jsContent = await fs.readFile(source, "utf-8");
+    }
 
     // Create a new Function that returns the object portion
     const objectText = jsContent.substring(jsContent.indexOf("{"));
@@ -35,8 +46,9 @@ export async function loadTournamentFile(jsUrl: string): Promise<TournamentData>
 
 export function calculateStandings(division: Division): ProcessedPlayer[] {
   const processedPlayers = division.players
-    .filter((playerData): playerData is Player =>
-      playerData !== null && playerData !== undefined
+    .filter(
+      (playerData): playerData is Player =>
+        playerData !== null && playerData !== undefined,
     )
     .map((playerData) => {
       let totalSpread = 0;
@@ -149,7 +161,9 @@ function calculateRanks(players: ProcessedPlayer[]): ProcessedPlayer[] {
   });
 }
 
-export function processTournament(tournament: Tournament | null): ProcessedTournament | null {
+export function processTournament(
+  tournament: Tournament | null,
+): ProcessedTournament | null {
   if (!tournament) {
     return null;
   }

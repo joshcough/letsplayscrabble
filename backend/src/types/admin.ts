@@ -1,5 +1,5 @@
-import { ProcessedPlayer } from './tournament';
-import { CurrentMatch } from './currentMatch';
+import { ProcessedPlayer } from "./tournament";
+import { CurrentMatch } from "./currentMatch";
 
 export interface CreateMatchRequest {
   player1Id: number;

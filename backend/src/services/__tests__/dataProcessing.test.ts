@@ -1,0 +1,48 @@
+import path from "path";
+import { calculateStandings, loadTournamentFile } from "../dataProcessing";
+import { TournamentData } from "../../types/tournament";
+
+describe("calculateStandings", () => {
+  let tournamentData: TournamentData;
+
+  beforeAll(async () => {
+    const dataUrl = path.join(__dirname, "tourney.js");
+    tournamentData = await loadTournamentFile(dataUrl);
+  });
+
+  it("should calculate correct standings for division 0", () => {
+    const standings = calculateStandings(tournamentData.divisions[0]);
+
+    expect(standings).toHaveLength(24);
+
+    expect(standings[0]).toMatchObject({
+      id: 1,
+      name: "Krafchick, Joey",
+      rating: 2035,
+      firstLast: "Joey Krafchick",
+      wins: 22,
+      losses: 5,
+      ties: 0,
+      spread: 2244,
+      averageScore: "451.04",
+      highScore: 607,
+      rank: 2,
+      rankOrdinal: "2nd",
+    });
+
+    expect(standings[standings.length - 1]).toMatchObject({
+      id: 24,
+      name: "Bigall, Vera",
+      rating: 1485,
+      firstLast: "Vera Bigall",
+      wins: 10,
+      losses: 17,
+      ties: 0,
+      spread: -668,
+      averageScore: "385.31",
+      highScore: 530,
+      rank: 18,
+      rankOrdinal: "18th",
+    });
+  });
+});

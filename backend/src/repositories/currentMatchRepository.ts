@@ -1,5 +1,5 @@
-import { Pool, QueryResult } from 'pg';
-import { CurrentMatch } from '../types/currentMatch';
+import { Pool, QueryResult } from "pg";
+import { CurrentMatch } from "../types/currentMatch";
 
 export class CurrentMatchRepository {
   constructor(private readonly db: Pool) {}
@@ -8,7 +8,7 @@ export class CurrentMatchRepository {
     player1Id: number,
     player2Id: number,
     divisionId: number,
-    tournamentId: number
+    tournamentId: number,
   ): Promise<CurrentMatch> {
     const res = await this.db.query<CurrentMatch>(
       `INSERT INTO current_matches (player1_id, player2_id, division_id, tournament_id)
@@ -16,7 +16,7 @@ export class CurrentMatchRepository {
        ON CONFLICT (id) DO UPDATE
        SET player1_id = $1, player2_id = $2, division_id = $3, tournament_id = $4
        RETURNING *`,
-      [player1Id, player2Id, divisionId, tournamentId]
+      [player1Id, player2Id, divisionId, tournamentId],
     );
     return res.rows[0];
   }
@@ -24,7 +24,7 @@ export class CurrentMatchRepository {
   async getCurrentMatch(): Promise<CurrentMatch | null> {
     try {
       const res = await this.db.query<CurrentMatch>(
-        "SELECT player1_id, player2_id, division_id, tournament_id FROM current_matches LIMIT 1"
+        "SELECT player1_id, player2_id, division_id, tournament_id FROM current_matches LIMIT 1",
       );
 
       if (!res.rows.length) {

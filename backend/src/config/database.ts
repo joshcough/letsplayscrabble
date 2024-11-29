@@ -1,4 +1,4 @@
-import { Pool, PoolConfig } from 'pg';
+import { Pool, PoolConfig } from "pg";
 
 interface DatabaseConfig extends PoolConfig {
   ssl?: {
@@ -25,7 +25,7 @@ const pool = new Pool(isDevelopment ? developmentConfig : productionConfig);
 
 pool.on("connect", () => {
   console.log(
-    `Database connected successfully in ${process.env.NODE_ENV} mode`
+    `Database connected successfully in ${process.env.NODE_ENV} mode`,
   );
 });
 
