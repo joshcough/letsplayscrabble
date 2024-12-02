@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { API_BASE } from "../../config/api";
+import { fetchWithAuth } from "../../config/api";
 import { ProcessedTournament } from "@shared/types/tournament";
 
 interface TournamentListProps {
@@ -12,11 +12,10 @@ const TournamentList: React.FC<TournamentListProps> = ({ onTournamentClick }) =>
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const response = await fetch(`${API_BASE}/api/tournaments`);
-        if (response.ok) {
-          const data: ProcessedTournament[] = await response.json();
-          setTournaments(data);
-        }
+        console.log('Attempting to fetch tournaments');
+        const data: ProcessedTournament[] = await fetchWithAuth(`/api/tournaments`);
+        console.log('Tournaments data received:', data);
+        setTournaments(data);
       } catch (error) {
         console.error("Error fetching tournaments:", error);
       }

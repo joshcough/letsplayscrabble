@@ -1,7 +1,7 @@
 // src/components/tournaments/AddTournament.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE } from "../../config/api";
+import { fetchWithAuth } from "../../config/api";
 import { CreateTournamentParams } from "@shared/types/tournament";
 
 const AddTournament: React.FC = () => {
@@ -19,16 +19,14 @@ const AddTournament: React.FC = () => {
     e.preventDefault();
     console.log("Sending tournament data:", tournament);
     try {
-      const response = await fetch(`${API_BASE}/api/tournaments`, {
+      await fetchWithAuth(`/api/tournaments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(tournament),
       });
-      if (response.ok) {
-        navigate("/tournaments");
-      }
+      navigate("/tournaments");
     } catch (error) {
       console.error("Error adding tournament:", error);
     }

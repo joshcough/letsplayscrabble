@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { API_BASE } from "../../config/api";
+import { fetchWithAuth } from "../../config/api";
 import { ProcessedTournament, Division, Player } from "@shared/types/tournament";
 import { CurrentMatch, CreateCurrentMatchParams } from "@shared/types/currentMatch";
 
@@ -24,16 +24,11 @@ const AdminInterface: React.FC = () => {
 
       try {
         // Fetch tournaments
-        const tournamentsResponse = await fetch(`${API_BASE}/api/tournaments`);
-        if (!tournamentsResponse.ok) {
-          throw new Error("Failed to fetch tournaments");
-        }
-        const tournamentsData: ProcessedTournament[] = await tournamentsResponse.json();
+        const tournamentsData = await fetchWithAuth(`/api/tournaments`);
         setTournaments(tournamentsData);
 
         // Fetch current match
-        const matchResponse = await fetch(`${API_BASE}/api/admin/match/current`);
-        const currentMatch: { matchData: CurrentMatch } = await matchResponse.json();
+        const currentMatch = await fetchWithAuth(`/api/overlay/match/current`);
 
         // Only proceed if we have match data
         if (currentMatch.matchData) {
@@ -124,17 +119,11 @@ const AdminInterface: React.FC = () => {
         tournamentId: parseInt(selectedTournament),
       };
 
-      const response = await fetch(`${API_BASE}/api/admin/match/current`, {
+      await fetchWithAuth(`/api/admin/match/current`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to update match");
-      }
 
       setSuccess("Match updated successfully!");
       setTimeout(() => setSuccess(null), 3000);
