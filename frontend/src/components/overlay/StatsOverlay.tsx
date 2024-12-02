@@ -32,7 +32,7 @@ const StatsOverlay: React.FC = () => {
   useEffect(() => {
     const fetchCurrentMatch = async () => {
       try {
-        const response = await fetch(`${API_BASE}/api/admin/match/current`);
+        const response = await fetch(`${API_BASE}/api/overlay/match/current`);
         const data = await response.json();
         if (!response.ok)
           throw new Error(data.error || "Failed to fetch match data");

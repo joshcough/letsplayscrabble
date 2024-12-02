@@ -39,5 +39,10 @@ CREATE TRIGGER update_tournaments_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TABLE admin_users (
+    username VARCHAR(50) PRIMARY KEY,
+    password_hash VARCHAR(255) NOT NULL
+);
+
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO scrabble_user;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO scrabble_user;

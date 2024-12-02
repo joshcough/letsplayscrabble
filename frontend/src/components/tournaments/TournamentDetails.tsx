@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { API_BASE } from "../../config/api";
+import { fetchWithAuth } from "../../config/api";
 import TournamentStandings from "./TournamentStandings";
 import { ProcessedTournament } from "@shared/types/tournament";
 
@@ -23,8 +23,8 @@ const TournamentDetails: React.FC = () => {
 
   const handleEnablePolling = async () => {
     try {
-      const response = await fetch(
-        `${API_BASE}/api/tournaments/${params.id}/polling`,
+      const data: PollingResponse = await fetchWithAuth(
+        `/api/tournaments/${params.id}/polling`,
         {
           method: "POST",
           headers: {
@@ -34,11 +34,8 @@ const TournamentDetails: React.FC = () => {
         }
       );
 
-      if (response.ok) {
-        const data: PollingResponse = await response.json();
-        setIsPolling(true);
-        setPollUntil(new Date(data.pollUntil));
-      }
+      setIsPolling(true);
+      setPollUntil(new Date(data.pollUntil));
     } catch (error) {
       console.error("Error enabling polling:", error);
     }
@@ -46,17 +43,15 @@ const TournamentDetails: React.FC = () => {
 
   const handleDisablePolling = async () => {
     try {
-      const response = await fetch(
-        `${API_BASE}/api/tournaments/${params.id}/polling`,
+      await fetchWithAuth(
+        `/api/tournaments/${params.id}/polling`,
         {
           method: "DELETE",
         }
       );
 
-      if (response.ok) {
-        setIsPolling(false);
-        setPollUntil(null);
-      }
+      setIsPolling(false);
+      setPollUntil(null);
     } catch (error) {
       console.error("Error disabling polling:", error);
     }
@@ -66,23 +61,20 @@ const TournamentDetails: React.FC = () => {
     const fetchTournamentData = async () => {
       try {
         const endpoint = params.id
-          ? `${API_BASE}/api/tournaments/${params.id}`
-          : `${API_BASE}/api/tournaments/by-name/${params.name}`;
+          ? `/api/tournaments/${params.id}`
+          : `/api/tournaments/by-name/${params.name}`;
 
-        const tournamentResponse = await fetch(endpoint);
-        if (tournamentResponse.ok) {
-          const tournamentData: ProcessedTournament = await tournamentResponse.json();
-          setTournament(tournamentData);
+        const tournamentData: ProcessedTournament = await fetchWithAuth(endpoint);
+        setTournament(tournamentData);
 
-          // Set polling status if poll_until exists
-          if (tournamentData.poll_until) {
-            const pollUntilDate = new Date(tournamentData.poll_until);
-            setIsPolling(pollUntilDate > new Date());
-            setPollUntil(pollUntilDate);
-          } else {
-            setIsPolling(false);
-            setPollUntil(null);
-          }
+        // Set polling status if poll_until exists
+        if (tournamentData.poll_until) {
+          const pollUntilDate = new Date(tournamentData.poll_until);
+          setIsPolling(pollUntilDate > new Date());
+          setPollUntil(pollUntilDate);
+        } else {
+          setIsPolling(false);
+          setPollUntil(null);
         }
       } catch (error) {
         console.error("Error fetching tournament details:", error);

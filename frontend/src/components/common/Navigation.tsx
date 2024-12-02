@@ -1,10 +1,13 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 type NavPath = "/" | "/tournaments/manager" | "/admin";
 
 const Navigation: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const isActive = (path: NavPath): string => {
     return location.pathname === path ? "bg-[#4A3728] text-[#FAF1DB]" : "";
@@ -19,6 +22,11 @@ const Navigation: React.FC = () => {
       case "/admin":
         return "Admin";
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
 
   const paths: NavPath[] = ["/", "/tournaments/manager", "/admin"];
@@ -40,6 +48,17 @@ const Navigation: React.FC = () => {
                 {getLabel(path)}
               </Link>
             ))}
+          </div>
+          <div className="flex items-center">
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center px-4 py-2
+                        text-[#4A3728] font-medium rounded
+                        hover:bg-[#4A3728] hover:text-[#FAF1DB]
+                        transition-colors duration-200"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </div>
