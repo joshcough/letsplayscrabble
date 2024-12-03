@@ -3,12 +3,27 @@ import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import cors from "cors";
 import path from "path";
+import dotenv from "dotenv";
 import { pool } from "./config/database";
 import { TournamentRepository } from "./repositories/tournamentRepository";
 import { CurrentMatchRepository } from "./repositories/currentMatchRepository";
 import createTournamentRoutes from "./routes/tournaments";
-import createAdminRoutes from "./routes/admin"; // Changed this line
+import createAdminRoutes from "./routes/admin";
+import createOverlayRoutes from "./routes/overlay";
+import authRoutes from "./routes/auth";
+import { requireAuth } from "./middleware/auth";
 import { TournamentPollingService } from "./services/pollingService";
+
+dotenv.config();
+
+const envPath = path.join(
+  __dirname,
+  "..",
+  process.env.NODE_ENV === "production"
+    ? ".env.production"
+    : ".env.development",
+);
+dotenv.config({ path: envPath });
 
 const tournamentRepository = new TournamentRepository(pool);
 const currentMatchRepository = new CurrentMatchRepository(pool);
@@ -75,9 +90,22 @@ io.on("connection", (socket) => {
   });
 });
 
-app.use("/api/tournaments", createTournamentRoutes(tournamentRepository));
+// Add authentication routes (unprotected)
+app.use("/api/auth", authRoutes);
+app.use(
+  "/api/overlay",
+  createOverlayRoutes(tournamentRepository, currentMatchRepository),
+);
+
+// Protected routes
+app.use(
+  "/api/tournaments",
+  requireAuth,
+  createTournamentRoutes(tournamentRepository),
+);
 app.use(
   "/api/admin",
+  requireAuth,
   createAdminRoutes(tournamentRepository, currentMatchRepository, io),
 );
 

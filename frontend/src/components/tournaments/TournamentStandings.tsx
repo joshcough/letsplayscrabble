@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { API_BASE } from "../../config/api";
+import { fetchWithAuth } from "../../config/api";
 import { ProcessedTournament, PlayerStats } from "@shared/types/tournament";
 
 interface TournamentStandingsProps {
@@ -18,7 +18,10 @@ interface Column {
   sortable: boolean;
 }
 
-const TournamentStandings: React.FC<TournamentStandingsProps> = ({ tournamentId, divisionName }) => {
+const TournamentStandings: React.FC<TournamentStandingsProps> = ({
+  tournamentId,
+  divisionName,
+}) => {
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "rank",
@@ -49,7 +52,10 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({ tournamentId,
     }));
   };
 
-  const sortData = (data: PlayerStats[], sortConfig: SortConfig): PlayerStats[] => {
+  const sortData = (
+    data: PlayerStats[],
+    sortConfig: SortConfig,
+  ): PlayerStats[] => {
     return [...data].sort((a, b) => {
       if (a[sortConfig.key] === b[sortConfig.key]) {
         if (a.wins !== b.wins) return b.wins - a.wins;
@@ -85,28 +91,25 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({ tournamentId,
   useEffect(() => {
     const fetchStandings = async () => {
       try {
-        const response = await fetch(
-          `${API_BASE}/api/tournaments/${tournamentId}`
+        const tournamentData: ProcessedTournament = await fetchWithAuth(
+          `/api/tournaments/${tournamentId}`,
         );
-        if (response.ok) {
-          const tournamentData: ProcessedTournament = await response.json();
 
-          // Find the correct division
-          const divisionIndex = tournamentData.divisions.findIndex(
-            (div) => div.name === divisionName
-          );
+        // Find the correct division
+        const divisionIndex = tournamentData.divisions.findIndex(
+          (div) => div.name === divisionName,
+        );
 
-          if (divisionIndex === -1) {
-            console.error("Division not found");
-            return;
-          }
-
-          // Get and rank the standings for the specific division
-          const divisionStandings = calculateRanks(
-            tournamentData.standings[divisionIndex]
-          );
-          setStandings(divisionStandings);
+        if (divisionIndex === -1) {
+          console.error("Division not found");
+          return;
         }
+
+        // Get and rank the standings for the specific division
+        const divisionStandings = calculateRanks(
+          tournamentData.standings[divisionIndex],
+        );
+        setStandings(divisionStandings);
       } catch (error) {
         console.error("Error fetching standings:", error);
       }

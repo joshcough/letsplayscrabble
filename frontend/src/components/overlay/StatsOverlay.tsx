@@ -6,15 +6,24 @@ import { PlayerStats } from "@shared/types/tournament";
 import { MatchWithPlayers } from "@shared/types/admin";
 
 type SourceType =
-  | "player1-name" | "player2-name"
-  | "player1-record" | "player2-record"
-  | "player1-average-score" | "player2-average-score"
-  | "player1-high-score" | "player2-high-score"
-  | "player1-spread" | "player2-spread"
-  | "player1-rank" | "player2-rank"
-  | "player1-rank-ordinal" | "player2-rank-ordinal"
-  | "player1-rating" | "player2-rating"
-  | "player1-under-cam" | "player2-under-cam"
+  | "player1-name"
+  | "player2-name"
+  | "player1-record"
+  | "player2-record"
+  | "player1-average-score"
+  | "player2-average-score"
+  | "player1-high-score"
+  | "player2-high-score"
+  | "player1-spread"
+  | "player2-spread"
+  | "player1-rank"
+  | "player2-rank"
+  | "player1-rank-ordinal"
+  | "player2-rank-ordinal"
+  | "player1-rating"
+  | "player2-rating"
+  | "player1-under-cam"
+  | "player2-under-cam"
   | "tournament-data"
   | null;
 
@@ -22,7 +31,8 @@ const StatsOverlay: React.FC = () => {
   const [searchParams] = useSearchParams();
   const source = searchParams.get("source") as SourceType;
   const [matchData, setMatchData] = useState<MatchWithPlayers | null>(null);
-  const [connectionStatus, setConnectionStatus] = useState<string>("Initializing...");
+  const [connectionStatus, setConnectionStatus] =
+    useState<string>("Initializing...");
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
@@ -32,7 +42,7 @@ const StatsOverlay: React.FC = () => {
   useEffect(() => {
     const fetchCurrentMatch = async () => {
       try {
-        const response = await fetch(`${API_BASE}/api/admin/match/current`);
+        const response = await fetch(`${API_BASE}/api/overlay/match/current`);
         const data = await response.json();
         if (!response.ok)
           throw new Error(data.error || "Failed to fetch match data");
@@ -69,7 +79,7 @@ const StatsOverlay: React.FC = () => {
         socketRef.current.on("connect", () => {
           console.log(
             "Connected with transport:",
-            socketRef.current?.io.engine.transport.name
+            socketRef.current?.io.engine.transport.name,
           );
           console.log("Socket connected with ID:", socketRef.current?.id);
           setConnectionStatus("Connected to server");
@@ -79,7 +89,7 @@ const StatsOverlay: React.FC = () => {
         socketRef.current.io.engine.on("upgrade", () => {
           console.log(
             "Transport upgraded to:",
-            socketRef.current?.io.engine.transport.name
+            socketRef.current?.io.engine.transport.name,
           );
         });
 
@@ -101,7 +111,7 @@ const StatsOverlay: React.FC = () => {
         socketRef.current.on("connect", () => {
           console.log(
             "Socket connected successfully with ID:",
-            socketRef.current?.id
+            socketRef.current?.id,
           );
           setConnectionStatus("Connected to server");
           setError(null);
@@ -140,11 +150,9 @@ const StatsOverlay: React.FC = () => {
       }
     };
 
-    console.log("Component mounted, initiating socket connection...");
     connectSocket();
 
     return () => {
-      console.log("Component unmounting, cleaning up socket connection");
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;

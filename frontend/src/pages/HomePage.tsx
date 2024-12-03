@@ -7,7 +7,7 @@ const HomePage: React.FC = () => {
     <div className="min-h-screen bg-[#E4C6A0]">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="flex justify-center mb-12">
-         <a
+          <a
             href="https://letsplayscrabble.com"
             target="_blank"
             rel="noopener noreferrer"

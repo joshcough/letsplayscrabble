@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { API_BASE } from "../../config/api";
+import { fetchWithAuth } from "../../config/api";
 import { ProcessedTournament } from "@shared/types/tournament";
 
 interface TournamentListProps {
   onTournamentClick: (id: number) => void;
 }
 
-const TournamentList: React.FC<TournamentListProps> = ({ onTournamentClick }) => {
+const TournamentList: React.FC<TournamentListProps> = ({
+  onTournamentClick,
+}) => {
   const [tournaments, setTournaments] = useState<ProcessedTournament[]>([]);
 
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const response = await fetch(`${API_BASE}/api/tournaments`);
-        if (response.ok) {
-          const data: ProcessedTournament[] = await response.json();
-          setTournaments(data);
-        }
+        const data: ProcessedTournament[] =
+          await fetchWithAuth(`/api/tournaments`);
+        setTournaments(data);
       } catch (error) {
         console.error("Error fetching tournaments:", error);
       }

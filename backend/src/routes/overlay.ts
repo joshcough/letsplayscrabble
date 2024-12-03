@@ -1,24 +1,14 @@
 import express, { Router, Response } from "express";
-import { Server as SocketIOServer } from "socket.io";
 import { RequestHandler } from "express-serve-static-core";
 import { TournamentRepository } from "../repositories/tournamentRepository";
 import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
 import { MatchWithPlayers } from "@shared/types/admin";
 import { CurrentMatch } from "@shared/types/currentMatch";
-import { PlayerStats } from "@shared/types/tournament"; // Added this import
+import { PlayerStats } from "@shared/types/tournament";
 
-// Request body type for creating a match
-interface CreateMatchBody {
-  player1Id: number;
-  player2Id: number;
-  divisionId: number;
-  tournamentId: number;
-}
-
-export default function createAdminRoutes(
+export default function createOverlayRoutes(
   tournamentRepository: TournamentRepository,
   currentMatchRepository: CurrentMatchRepository,
-  io: SocketIOServer,
 ): Router {
   const router = express.Router();
 
@@ -37,38 +27,26 @@ export default function createAdminRoutes(
     };
   };
 
-  const createMatch: RequestHandler<{}, any, CreateMatchBody> = async (
-    req,
-    res,
-  ) => {
-    const { player1Id, player2Id, divisionId, tournamentId } = req.body;
-
+  const getCurrentMatch: RequestHandler = async (_req, res) => {
     try {
-      const match = await currentMatchRepository.create(
-        player1Id,
-        player2Id,
-        divisionId,
-        tournamentId,
-      );
+      const match = await currentMatchRepository.getCurrentMatch();
 
-      const update = await addPlayers(match);
-
-      if (!update) {
-        res.status(500).json({ error: "Failed to process match data" });
+      if (!match) {
+        res.status(404).json({ error: "No current match found" });
         return;
       }
 
-      io.emit("matchUpdate", update);
-      res.json(update);
+      const matchWithPlayers = await addPlayers(match);
+      res.json(matchWithPlayers);
     } catch (error) {
-      console.error("Error updating match:", error);
+      console.error("Error finding current match:", error);
       res.status(500).json({
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
   };
 
-  router.post("/match/current", createMatch);
+  router.get("/match/current", getCurrentMatch);
 
   return router;
 }
