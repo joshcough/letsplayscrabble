@@ -1,6 +1,6 @@
 // src/middleware/auth.ts
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
 
 interface JWTPayload {
   username: string;
@@ -18,18 +18,18 @@ declare global {
 export const requireAuth = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   // Skip auth for overlay endpoints
-  if (req.path.startsWith('/api/overlay')) {
+  if (req.path.startsWith("/api/overlay")) {
     next();
     return;
   }
 
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
-    res.status(401).json({ error: 'Unauthorized' });
+    res.status(401).json({ error: "Unauthorized" });
     return;
   }
 
@@ -38,7 +38,7 @@ export const requireAuth = async (
     req.user = decoded;
     next();
   } catch (err) {
-    res.status(401).json({ error: 'Invalid token' });
+    res.status(401).json({ error: "Invalid token" });
     return;
   }
 };

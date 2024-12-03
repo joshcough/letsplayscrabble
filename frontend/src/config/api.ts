@@ -4,21 +4,21 @@ const API_BASE: string =
     : "http://localhost:3001"; // In development, use localhost
 
 const fetchWithAuth = async (endpoint: string, options: RequestInit = {}) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
 
   const headers = {
     ...options.headers,
-    'Authorization': `Bearer ${token}`
+    Authorization: `Bearer ${token}`,
   };
 
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
-    headers
+    headers,
   });
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || 'Request failed');
+    throw new Error(error.message || "Request failed");
   }
 
   const data = await response.json();

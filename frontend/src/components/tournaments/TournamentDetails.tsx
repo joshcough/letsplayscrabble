@@ -16,7 +16,9 @@ interface PollingResponse {
 const TournamentDetails: React.FC = () => {
   const params = useParams<RouteParams>();
   const navigate = useNavigate();
-  const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
+  const [tournament, setTournament] = useState<ProcessedTournament | null>(
+    null,
+  );
   const [pollingDays, setPollingDays] = useState<number>(1);
   const [isPolling, setIsPolling] = useState<boolean>(false);
   const [pollUntil, setPollUntil] = useState<Date | null>(null);
@@ -31,7 +33,7 @@ const TournamentDetails: React.FC = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ days: pollingDays }),
-        }
+        },
       );
 
       setIsPolling(true);
@@ -43,12 +45,9 @@ const TournamentDetails: React.FC = () => {
 
   const handleDisablePolling = async () => {
     try {
-      await fetchWithAuth(
-        `/api/tournaments/${params.id}/polling`,
-        {
-          method: "DELETE",
-        }
-      );
+      await fetchWithAuth(`/api/tournaments/${params.id}/polling`, {
+        method: "DELETE",
+      });
 
       setIsPolling(false);
       setPollUntil(null);
@@ -64,7 +63,8 @@ const TournamentDetails: React.FC = () => {
           ? `/api/tournaments/${params.id}`
           : `/api/tournaments/by-name/${params.name}`;
 
-        const tournamentData: ProcessedTournament = await fetchWithAuth(endpoint);
+        const tournamentData: ProcessedTournament =
+          await fetchWithAuth(endpoint);
         setTournament(tournamentData);
 
         // Set polling status if poll_until exists
@@ -174,7 +174,7 @@ const TournamentDetails: React.FC = () => {
                   <h4 className="text-xl font-semibold">{division.name}</h4>
                   <Link
                     to={`/tournaments/${params.id}/standings/${encodeURIComponent(
-                      division.name
+                      division.name,
                     )}`}
                     className="text-blue-600 hover:text-blue-800 text-sm"
                   >

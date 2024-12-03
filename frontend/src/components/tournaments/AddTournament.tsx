@@ -6,7 +6,9 @@ import { CreateTournamentParams } from "@shared/types/tournament";
 
 const AddTournament: React.FC = () => {
   const navigate = useNavigate();
-  const [tournament, setTournament] = useState<Omit<CreateTournamentParams, "rawData">>({
+  const [tournament, setTournament] = useState<
+    Omit<CreateTournamentParams, "rawData">
+  >({
     name: "",
     city: "",
     year: 0,
@@ -31,13 +33,11 @@ const AddTournament: React.FC = () => {
     }
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setTournament(prev => ({
+    setTournament((prev) => ({
       ...prev,
-      [id]: id === "year" ? Number(value) || 0 : value
+      [id]: id === "year" ? Number(value) || 0 : value,
     }));
   };
 
@@ -49,31 +49,33 @@ const AddTournament: React.FC = () => {
         </h2>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {(Object.keys(tournament) as Array<keyof typeof tournament>).map((key) => (
-          <div key={key}>
-            <label
-              htmlFor={key}
-              className="block text-[#4A3728] font-medium mb-1"
-            >
-              {key === "longFormName"
-                ? "Long Form Name"
-                : key === "dataUrl"
-                  ? "Data URL"
-                  : key.charAt(0).toUpperCase() + key.slice(1)}
-            </label>
-            <input
-              type={key === "year" ? "number" : "text"}
-              id={key}
-              className="w-full p-2 border-2 border-[#4A3728]/20 rounded
+        {(Object.keys(tournament) as Array<keyof typeof tournament>).map(
+          (key) => (
+            <div key={key}>
+              <label
+                htmlFor={key}
+                className="block text-[#4A3728] font-medium mb-1"
+              >
+                {key === "longFormName"
+                  ? "Long Form Name"
+                  : key === "dataUrl"
+                    ? "Data URL"
+                    : key.charAt(0).toUpperCase() + key.slice(1)}
+              </label>
+              <input
+                type={key === "year" ? "number" : "text"}
+                id={key}
+                className="w-full p-2 border-2 border-[#4A3728]/20 rounded
                        bg-[#FFF8E7] text-[#4A3728]
                        focus:ring-2 focus:ring-[#4A3728]/30 focus:border-[#4A3728]
                        outline-none transition-colors"
-              value={tournament[key]}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-        ))}
+                value={tournament[key]}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+          ),
+        )}
         <button
           type="submit"
           className="w-full bg-[#4A3728] text-[#FAF1DB] py-2 px-4 rounded
