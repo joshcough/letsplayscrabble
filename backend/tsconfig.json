@@ -3,16 +3,16 @@
     "target": "ES2020",
     "module": "commonjs",
     "outDir": "./dist",
-    "rootDir": "..",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "baseUrl": "..",
+    "baseUrl": ".",
     "paths": {
-      "@shared/*": ["shared/*"]
+      "@shared/*": ["./shared/*"]
     },
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -23,6 +23,6 @@
     "useUnknownInCatchVariables": true,
     "alwaysStrict": true
   },
-  "include": ["src/**/*", "../shared/**/*"],
+  "include": ["src/**/*", "./shared/**/*"],
   "exclude": ["node_modules", "dist", "**/__tests__/**"]
 }
