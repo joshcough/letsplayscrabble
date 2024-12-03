@@ -3,7 +3,7 @@ import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import cors from "cors";
 import path from "path";
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 import { pool } from "./config/database";
 import { TournamentRepository } from "./repositories/tournamentRepository";
 import { CurrentMatchRepository } from "./repositories/currentMatchRepository";
@@ -16,7 +16,13 @@ import { TournamentPollingService } from "./services/pollingService";
 
 dotenv.config();
 
-const envPath = path.join(__dirname, '..', process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development');
+const envPath = path.join(
+  __dirname,
+  "..",
+  process.env.NODE_ENV === "production"
+    ? ".env.production"
+    : ".env.development",
+);
 dotenv.config({ path: envPath });
 
 const tournamentRepository = new TournamentRepository(pool);
@@ -86,10 +92,17 @@ io.on("connection", (socket) => {
 
 // Add authentication routes (unprotected)
 app.use("/api/auth", authRoutes);
-app.use("/api/overlay", createOverlayRoutes(tournamentRepository, currentMatchRepository));
+app.use(
+  "/api/overlay",
+  createOverlayRoutes(tournamentRepository, currentMatchRepository),
+);
 
 // Protected routes
-app.use("/api/tournaments", requireAuth, createTournamentRoutes(tournamentRepository));
+app.use(
+  "/api/tournaments",
+  requireAuth,
+  createTournamentRoutes(tournamentRepository),
+);
 app.use(
   "/api/admin",
   requireAuth,

@@ -35,41 +35,62 @@ const AppContent: React.FC = () => {
         <Route path="/overlay" element={<OverlayPage />} />
 
         {/* Protected Routes */}
-        <Route path="/" element={
-          <ProtectedRoute>
-            <HomePage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin" element={
-          <ProtectedRoute>
-            <AdminPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/tournaments/manager" element={
-          <ProtectedRoute>
-            <TournamentManagerPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/tournaments/add" element={
-          <ProtectedRoute>
-            <AddTournament />
-          </ProtectedRoute>
-        } />
-        <Route path="/tournaments/:id" element={
-          <ProtectedRoute>
-            <TournamentDetailsPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/tournaments/:tournamentId/standings/:divisionName" element={
-          <ProtectedRoute>
-            <StandingsPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/tournaments/name/:name" element={
-          <ProtectedRoute>
-            <TournamentDetailsPage />
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tournaments/manager"
+          element={
+            <ProtectedRoute>
+              <TournamentManagerPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tournaments/add"
+          element={
+            <ProtectedRoute>
+              <AddTournament />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tournaments/:id"
+          element={
+            <ProtectedRoute>
+              <TournamentDetailsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tournaments/:tournamentId/standings/:divisionName"
+          element={
+            <ProtectedRoute>
+              <StandingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tournaments/name/:name"
+          element={
+            <ProtectedRoute>
+              <TournamentDetailsPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </div>
   );

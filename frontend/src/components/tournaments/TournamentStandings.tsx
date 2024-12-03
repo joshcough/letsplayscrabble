@@ -18,7 +18,10 @@ interface Column {
   sortable: boolean;
 }
 
-const TournamentStandings: React.FC<TournamentStandingsProps> = ({ tournamentId, divisionName }) => {
+const TournamentStandings: React.FC<TournamentStandingsProps> = ({
+  tournamentId,
+  divisionName,
+}) => {
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "rank",
@@ -49,7 +52,10 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({ tournamentId,
     }));
   };
 
-  const sortData = (data: PlayerStats[], sortConfig: SortConfig): PlayerStats[] => {
+  const sortData = (
+    data: PlayerStats[],
+    sortConfig: SortConfig,
+  ): PlayerStats[] => {
     return [...data].sort((a, b) => {
       if (a[sortConfig.key] === b[sortConfig.key]) {
         if (a.wins !== b.wins) return b.wins - a.wins;
@@ -86,12 +92,12 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({ tournamentId,
     const fetchStandings = async () => {
       try {
         const tournamentData: ProcessedTournament = await fetchWithAuth(
-          `/api/tournaments/${tournamentId}`
+          `/api/tournaments/${tournamentId}`,
         );
 
         // Find the correct division
         const divisionIndex = tournamentData.divisions.findIndex(
-          (div) => div.name === divisionName
+          (div) => div.name === divisionName,
         );
 
         if (divisionIndex === -1) {
@@ -101,7 +107,7 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({ tournamentId,
 
         // Get and rank the standings for the specific division
         const divisionStandings = calculateRanks(
-          tournamentData.standings[divisionIndex]
+          tournamentData.standings[divisionIndex],
         );
         setStandings(divisionStandings);
       } catch (error) {

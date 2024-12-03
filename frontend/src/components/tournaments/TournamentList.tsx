@@ -6,13 +6,16 @@ interface TournamentListProps {
   onTournamentClick: (id: number) => void;
 }
 
-const TournamentList: React.FC<TournamentListProps> = ({ onTournamentClick }) => {
+const TournamentList: React.FC<TournamentListProps> = ({
+  onTournamentClick,
+}) => {
   const [tournaments, setTournaments] = useState<ProcessedTournament[]>([]);
 
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const data: ProcessedTournament[] = await fetchWithAuth(`/api/tournaments`);
+        const data: ProcessedTournament[] =
+          await fetchWithAuth(`/api/tournaments`);
         setTournaments(data);
       } catch (error) {
         console.error("Error fetching tournaments:", error);

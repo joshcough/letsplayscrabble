@@ -46,7 +46,6 @@ export default function createOverlayRoutes(
     }
   };
 
-
   router.get("/match/current", getCurrentMatch);
 
   return router;

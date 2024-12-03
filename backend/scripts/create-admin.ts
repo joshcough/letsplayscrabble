@@ -1,13 +1,13 @@
 // backend/scripts/create-admin.ts
-import dotenv from 'dotenv';
-import bcrypt from 'bcrypt';
-import { pool } from '../src/config/database';
+import dotenv from "dotenv";
+import bcrypt from "bcrypt";
+import { pool } from "../src/config/database";
 
 dotenv.config();
 
 async function createAdmin(username: string, password: string): Promise<void> {
   if (!username || !password) {
-    console.error('Usage: ts-node create-admin.ts <username> <password>');
+    console.error("Usage: ts-node create-admin.ts <username> <password>");
     process.exit(1);
   }
 
@@ -15,15 +15,15 @@ async function createAdmin(username: string, password: string): Promise<void> {
 
   try {
     await pool.query(
-      'INSERT INTO admin_users (username, password_hash) VALUES ($1, $2)',
-      [username, passwordHash]
+      "INSERT INTO admin_users (username, password_hash) VALUES ($1, $2)",
+      [username, passwordHash],
     );
 
-    console.log('Admin user created successfully');
+    console.log("Admin user created successfully");
     await pool.end();
     process.exit(0);
   } catch (error) {
-    console.error('Error creating admin:', error);
+    console.error("Error creating admin:", error);
     await pool.end();
     process.exit(1);
   }
