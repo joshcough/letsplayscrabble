@@ -2,17 +2,17 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "commonjs",
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "outDir": "./dist/backend",  // Changed this
+    "rootDir": "..",            // Parent directory
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "baseUrl": ".",
+    "baseUrl": "..",
     "paths": {
-      "@shared/*": ["./shared/*"]
+      "@shared/*": ["shared/*"]
     },
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -23,6 +23,6 @@
     "useUnknownInCatchVariables": true,
     "alwaysStrict": true
   },
-  "include": ["src/**/*", "./shared/**/*"],
+  "include": ["../backend/src/**/*", "../shared/**/*"],
   "exclude": ["node_modules", "dist", "**/__tests__/**"]
 }
