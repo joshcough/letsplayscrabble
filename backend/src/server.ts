@@ -17,14 +17,7 @@ import { TournamentPollingService } from "./services/pollingService";
 dotenv.config();
 
 const envPath = path.join(__dirname, '..', process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development');
-console.log('Full env path:', envPath);
-dotenv.config({
-  path: envPath
-});
-
-// console.log('Current NODE_ENV:', process.env.NODE_ENV);
-// console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
-// console.log('Env file being used:', process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development');
+dotenv.config({ path: envPath });
 
 const tournamentRepository = new TournamentRepository(pool);
 const currentMatchRepository = new CurrentMatchRepository(pool);

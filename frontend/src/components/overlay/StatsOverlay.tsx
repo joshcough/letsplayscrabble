@@ -140,11 +140,9 @@ const StatsOverlay: React.FC = () => {
       }
     };
 
-    console.log("Component mounted, initiating socket connection...");
     connectSocket();
 
     return () => {
-      console.log("Component unmounting, cleaning up socket connection");
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;

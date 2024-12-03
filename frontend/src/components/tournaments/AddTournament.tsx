@@ -17,7 +17,6 @@ const AddTournament: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Sending tournament data:", tournament);
     try {
       await fetchWithAuth(`/api/tournaments`, {
         method: "POST",
