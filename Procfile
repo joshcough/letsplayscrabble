@@ -1,3 +1,1 @@
-web: cd frontend && npm install && npm run build
-web: cd backend && cp -r ../shared . && npm install && npm run build
-web: cd backend && npm run start
+web: cd frontend && npm install && npm run build && cd ../backend && cp -r ../shared . && npm install && npm run build && npm run start
