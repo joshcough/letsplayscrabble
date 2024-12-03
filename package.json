@@ -6,8 +6,10 @@
   },
   "scripts": {
     "postinstall": "cd frontend && npm install && npm run build && cd ../backend && npm install",
-    "start": "cd backend && node src/server.js",
-    "format": "prettier --write \"backend/**/*.{js,ts}\" \"frontend/**/*.{js,jsx,ts,tsx}\""
+    "start": "node backend/dist/backend/backend/src/server.js",
+    "format": "prettier --write \"backend/**/*.{js,ts}\" \"frontend/**/*.{js,jsx,ts,tsx}\"",
+    "heroku-prebuild": "cd frontend && npm install && cd ../backend && npm install",
+    "heroku-postbuild": "cd frontend && npm install && npm run build && cd ../backend && cp -r ../shared . && npm install && npm run build"
   },
   "devDependencies": {
     "prettier": "^3.3.3"

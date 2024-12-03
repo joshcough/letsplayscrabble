@@ -4,10 +4,10 @@ import { fetchWithAuth } from "../../config/api";
 import TournamentStandings from "./TournamentStandings";
 import { ProcessedTournament } from "@shared/types/tournament";
 
-interface RouteParams {
-  id?: string;
-  name?: string;
-}
+type RouteParams = {
+  id: string;
+  name: string;
+};
 
 interface PollingResponse {
   pollUntil: string;

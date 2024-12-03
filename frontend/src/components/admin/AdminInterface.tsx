@@ -40,9 +40,9 @@ const AdminInterface: React.FC = () => {
         // Only proceed if we have match data
         if (currentMatch.matchData) {
           const tourneyObj = tournamentsData.find(
-            (t) => t.id === currentMatch.matchData.tournament_id,
+            (t: ProcessedTournament) =>
+              t.id === currentMatch.matchData.tournament_id,
           );
-
           if (tourneyObj) {
             const divisionObj =
               tourneyObj.divisions[currentMatch.matchData.division_id];
