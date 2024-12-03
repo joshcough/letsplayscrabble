@@ -17,6 +17,7 @@ export interface TournamentData {
 }
 
 export interface Division {
+  name: string;
   players: (Player | null)[];
 }
 

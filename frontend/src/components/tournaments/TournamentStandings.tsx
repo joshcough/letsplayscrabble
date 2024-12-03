@@ -63,11 +63,18 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({
         return b.spread - a.spread;
       }
 
-      if (sortConfig.direction === "asc") {
-        return a[sortConfig.key] > b[sortConfig.key] ? 1 : -1;
-      } else {
-        return a[sortConfig.key] < b[sortConfig.key] ? 1 : -1;
+      // Handle different types appropriately
+      const aVal = a[sortConfig.key];
+      const bVal = b[sortConfig.key];
+
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        return sortConfig.direction === "asc" ? aVal - bVal : bVal - aVal;
       }
+
+      // For strings
+      return sortConfig.direction === "asc"
+        ? String(aVal).localeCompare(String(bVal))
+        : String(bVal).localeCompare(String(aVal));
     });
   };
 
