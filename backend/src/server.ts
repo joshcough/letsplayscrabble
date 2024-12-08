@@ -17,8 +17,9 @@ import { TournamentPollingService } from "./services/pollingService";
 // Helper function to determine project root path
 function getProjectRoot(): string {
   if (process.env.NODE_ENV === 'production') {
-    // In production (Heroku), we need to go up 4 levels from dist/backend/backend/src
-    return path.join(__dirname, '../../../../');
+    // In production (Heroku), we're in /app/backend/dist/backend/backend/src
+    // Need to go up to /app
+    return path.join(__dirname, '../../../../../');
   } else {
     // In development, we need to go up 2 levels from src
     return path.join(__dirname, '../../');
