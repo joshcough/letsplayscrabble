@@ -6,7 +6,7 @@
   },
   "scripts": {
     "postinstall": "cd frontend && npm install && npm run build && cd ../backend && npm install",
-    "start": "node dist/backend/backend/src/server.js",
+    "start": "node backend/dist/backend/backend/src/server.js",
     "format": "prettier --write \"backend/**/*.{js,ts}\" \"frontend/**/*.{js,jsx,ts,tsx}\"",
     "heroku-prebuild": "cd frontend && npm install && cd ../backend && npm install",
     "heroku-postbuild": "cd frontend && npm run build && cd ../backend && cp -r ../shared . && npm run build"
