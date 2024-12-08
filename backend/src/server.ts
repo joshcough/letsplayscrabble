@@ -14,6 +14,17 @@ import authRoutes from "./routes/auth";
 import { requireAuth } from "./middleware/auth";
 import { TournamentPollingService } from "./services/pollingService";
 
+// Helper function to determine project root path
+function getProjectRoot(): string {
+  if (process.env.NODE_ENV === 'production') {
+    // In production (Heroku), we need to go up 4 levels from dist/backend/backend/src
+    return path.join(__dirname, '../../../../');
+  } else {
+    // In development, we need to go up 2 levels from src
+    return path.join(__dirname, '../../');
+  }
+}
+
 dotenv.config();
 
 const envPath = path.join(
@@ -109,12 +120,15 @@ app.use(
   createAdminRoutes(tournamentRepository, currentMatchRepository, io),
 );
 
+// Get the project root once
+const projectRoot = getProjectRoot();
+
 // Serve static files from the React frontend app
-app.use(express.static(path.join(__dirname, "../../frontend/build")));
+app.use(express.static(path.join(projectRoot, 'frontend/build')));
 
 // Anything that doesn't match the above, send back index.html
 app.get("*", (_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, "../../frontend/build/index.html"));
+  res.sendFile(path.join(projectRoot, 'frontend/build/index.html'));
 });
 
 // start the polling service
