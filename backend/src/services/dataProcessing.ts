@@ -133,8 +133,30 @@ function getOrdinal(n: number): string {
 }
 
 function formatName(name: string): string {
-  const [last, first] = name.split(", ");
-  return `${first.charAt(0).toUpperCase() + first.slice(1)} ${last.charAt(0).toUpperCase() + last.slice(1)}`;
+  console.log("Formatting name:", name); // Debug log
+
+  try {
+    if (!name) {
+      console.log("Name is null or empty");
+      return "Unknown Player";
+    }
+
+    if (!name.includes(",")) {
+      console.log("Name doesn't contain comma:", name);
+      return name; // or return it formatted differently
+    }
+
+    const [last, first] = name.split(", ");
+    if (!first || !last) {
+      console.log("Invalid name format after split:", {last, first});
+      return name; // or return some default format
+    }
+
+    return `${first.charAt(0).toUpperCase() + first.slice(1)} ${last.charAt(0).toUpperCase() + last.slice(1)}`;
+  } catch (error) {
+    console.error("Error formatting name:", name, error);
+    return "Unknown Player";
+  }
 }
 
 function calculateRanks(players: PlayerStats[]): PlayerStats[] {
