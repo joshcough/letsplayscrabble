@@ -18,17 +18,36 @@ export interface TournamentData {
 
 export interface Division {
   name: string;
-  players: (Player | null)[];
+  players: (RawPlayer | null)[];
 }
 
-export interface Player {
+export interface RawPlayer {
   id: number;
   name: string;
   scores: number[];
   pairings: number[];
   etc: {
     newr: number[]; // Player ratings history
+    p12: number[]; // 1 = player goes first, 2 = opponent goes first, 0 = bye
   };
+}
+
+export interface PlayerData {
+  id: number;
+  name: string;
+  firstLast: string;
+}
+
+export interface Pairing {
+  round: number;
+  player1: PlayerData;
+  player2: PlayerData;
+}
+
+export interface RoundPairings {
+  round: number;
+  divisionName: string;
+  pairings: Pairing[];
 }
 
 export interface PlayerStats {
@@ -40,7 +59,7 @@ export interface PlayerStats {
   losses: number;
   ties: number;
   spread: number;
-  averageScore: string | number;
+  averageScore: string; // this is a string because its rounded to two decimal places
   highScore: number;
   rank?: number;
   rankOrdinal?: string;
@@ -48,7 +67,8 @@ export interface PlayerStats {
 
 export interface ProcessedTournament extends Omit<Tournament, "data"> {
   divisions: Division[];
-  standings: PlayerStats[][];
+  standings: PlayerStats[][]; // a PlayerStats[] per division.
+  divisionPairings: RoundPairings[][]; // a RoundsPairing[] per division
 }
 
 export interface CreateTournamentParams {

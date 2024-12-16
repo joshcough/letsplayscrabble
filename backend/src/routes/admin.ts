@@ -1,18 +1,18 @@
-import express, { Router, Response } from "express";
+import express, { Router } from "express";
 import { Server as SocketIOServer } from "socket.io";
 import { RequestHandler } from "express-serve-static-core";
 import { TournamentRepository } from "../repositories/tournamentRepository";
 import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
 import { MatchWithPlayers } from "@shared/types/admin";
 import { CurrentMatch } from "@shared/types/currentMatch";
-import { PlayerStats } from "@shared/types/tournament"; // Added this import
+import { PlayerStats } from "@shared/types/tournament";
 
-// Request body type for creating a match
+// Updated request body type
 interface CreateMatchBody {
-  player1Id: number;
-  player2Id: number;
-  divisionId: number;
   tournamentId: number;
+  divisionId: number;
+  round: number;
+  pairingId: number;
 }
 
 export default function createAdminRoutes(
@@ -23,16 +23,39 @@ export default function createAdminRoutes(
   const router = express.Router();
 
   const addPlayers = async (match: CurrentMatch): Promise<MatchWithPlayers> => {
+    const tournament = await tournamentRepository.findById(match.tournament_id);
+    if (!tournament) {
+      throw new Error("Tournament not found");
+    }
+
+    // Get the pairing details from the tournament data
+    const divisionPairings = tournament.divisionPairings[match.division_id];
+    const roundPairings = divisionPairings.find(
+      (rp) => rp.round === match.round,
+    );
+    if (!roundPairings) {
+      throw new Error("Round not found");
+    }
+
+    const pairing = roundPairings.pairings[match.pairing_id];
+    if (!pairing) {
+      throw new Error("Pairing not found");
+    }
+
+    // Get full player stats for both players
     const playerStats = await tournamentRepository.findTwoPlayerStats(
       match.tournament_id,
       match.division_id,
-      match.player1_id,
-      match.player2_id,
+      pairing.player1.id,
+      pairing.player2.id,
     );
 
     return {
       matchData: match,
-      tournament: playerStats.tournament,
+      tournament: {
+        name: tournament.name,
+        lexicon: tournament.lexicon,
+      },
       players: [playerStats.player1, playerStats.player2],
     };
   };
@@ -41,14 +64,14 @@ export default function createAdminRoutes(
     req,
     res,
   ) => {
-    const { player1Id, player2Id, divisionId, tournamentId } = req.body;
+    const { tournamentId, divisionId, round, pairingId } = req.body;
 
     try {
       const match = await currentMatchRepository.create(
-        player1Id,
-        player2Id,
-        divisionId,
         tournamentId,
+        divisionId,
+        round,
+        pairingId,
       );
 
       const update = await addPlayers(match);

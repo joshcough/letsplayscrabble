@@ -3,23 +3,19 @@ import { fetchWithAuth } from "../../config/api";
 import {
   ProcessedTournament,
   Division,
-  Player,
+  RoundPairings,
+  Pairing,
 } from "@shared/types/tournament";
-import {
-  CurrentMatch,
-  CreateCurrentMatchParams,
-} from "@shared/types/currentMatch";
+import { CreateCurrentMatchParams } from "@shared/types/currentMatch";
 
 const AdminInterface: React.FC = () => {
-  const [divisions, setDivisions] = useState<Division[]>([]);
   const [tournaments, setTournaments] = useState<ProcessedTournament[]>([]);
-  const [players, setPlayers] = useState<(Player | null)[]>([]);
   const [selectedTournament, setSelectedTournament] = useState<string>("");
   const [selectedDivision, setSelectedDivision] = useState<string>("");
-  const [selectedPlayers, setSelectedPlayers] = useState({
-    player1: "",
-    player2: "",
-  });
+  const [selectedRound, setSelectedRound] = useState<string>("");
+  const [selectedPairing, setSelectedPairing] = useState<number | null>(null);
+  const [availableRounds, setAvailableRounds] = useState<number[]>([]);
+  const [availablePairings, setAvailablePairings] = useState<Pairing[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,38 +26,58 @@ const AdminInterface: React.FC = () => {
       setError(null);
 
       try {
-        // Fetch tournaments
+        // Fetch tournaments first
         const tournamentsData = await fetchWithAuth(`/api/tournaments`);
         setTournaments(tournamentsData);
 
-        // Fetch current match
-        const currentMatch = await fetchWithAuth(`/api/overlay/match/current`);
-
-        // Only proceed if we have match data
-        if (currentMatch.matchData) {
-          const tourneyObj = tournamentsData.find(
-            (t: ProcessedTournament) =>
-              t.id === currentMatch.matchData.tournament_id,
+        try {
+          // Try to fetch current match - but don't break if it fails
+          const currentMatchResponse = await fetchWithAuth(
+            `/api/overlay/match/current`,
           );
-          if (tourneyObj) {
-            const divisionObj =
-              tourneyObj.divisions[currentMatch.matchData.division_id];
 
-            setSelectedTournament(
-              currentMatch.matchData.tournament_id.toString(),
+          if (currentMatchResponse && currentMatchResponse.matchData) {
+            const tourneyObj = tournamentsData.find(
+              (t: ProcessedTournament) =>
+                t.id === currentMatchResponse.matchData.tournament_id,
             );
-            setSelectedDivision(currentMatch.matchData.division_id.toString());
-            setDivisions(tourneyObj.divisions);
-            setPlayers(divisionObj.players.slice(1));
-            setSelectedPlayers({
-              player1: currentMatch.matchData.player1_id.toString(),
-              player2: currentMatch.matchData.player2_id.toString(),
-            });
+
+            if (tourneyObj) {
+              setSelectedTournament(
+                currentMatchResponse.matchData.tournament_id.toString(),
+              );
+              setSelectedDivision(
+                currentMatchResponse.matchData.division_id.toString(),
+              );
+              setSelectedRound(currentMatchResponse.matchData.round.toString());
+              setSelectedPairing(currentMatchResponse.matchData.pairing_id);
+
+              const divisionPairings =
+                tourneyObj.divisionPairings[
+                  currentMatchResponse.matchData.division_id
+                ];
+              const rounds = divisionPairings.map(
+                (rp: RoundPairings) => rp.round,
+              );
+              setAvailableRounds(rounds);
+
+              const roundPairings = divisionPairings.find(
+                (rp: RoundPairings) =>
+                  rp.round === currentMatchResponse.matchData.round,
+              );
+              if (roundPairings) {
+                setAvailablePairings(roundPairings.pairings);
+              }
+            }
           }
+        } catch (matchError) {
+          // If current match fetch fails, just log it and continue
+          console.error("Error fetching current match:", matchError);
+          // Don't set error state - let the user proceed with empty selections
         }
       } catch (err) {
-        console.error("Error loading initial data:", err);
-        setError("Failed to load initial data. Please try again later.");
+        console.error("Error loading tournaments:", err);
+        setError("Failed to load tournaments. Please try again later.");
       } finally {
         setIsLoading(false);
       }
@@ -73,50 +89,67 @@ const AdminInterface: React.FC = () => {
   const handleTournamentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newTournamentId = e.target.value;
     setSelectedTournament(newTournamentId);
-
-    // Clear division and player selections
     setSelectedDivision("");
-    setSelectedPlayers({ player1: "", player2: "" });
-
-    // Update divisions list
-    if (newTournamentId === "") {
-      setDivisions([]);
-      setPlayers([]);
-    } else {
-      const tourneyObj = tournaments.find(
-        (t) => t.id.toString() === newTournamentId,
-      );
-      if (tourneyObj) {
-        setDivisions(tourneyObj.divisions || []);
-      }
-    }
+    setSelectedRound("");
+    setSelectedPairing(null);
+    setAvailableRounds([]);
+    setAvailablePairings([]);
   };
 
   const handleDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newDivisionId = e.target.value;
     setSelectedDivision(newDivisionId);
+    setSelectedRound("");
+    setSelectedPairing(null);
 
-    // Clear player selections
-    setSelectedPlayers({ player1: "", player2: "" });
-
-    // Update players list
-    if (newDivisionId === "" || selectedTournament === "") {
-      setPlayers([]);
-    } else {
-      const tourneyObj = tournaments.find(
+    if (newDivisionId && selectedTournament) {
+      const tournament = tournaments.find(
         (t) => t.id.toString() === selectedTournament,
       );
-      if (tourneyObj && tourneyObj.divisions[parseInt(newDivisionId)]) {
-        setPlayers(
-          tourneyObj.divisions[parseInt(newDivisionId)].players.slice(1),
-        );
+      if (tournament) {
+        const divisionPairings =
+          tournament.divisionPairings[parseInt(newDivisionId)];
+        const rounds = divisionPairings.map((rp: RoundPairings) => rp.round);
+        setAvailableRounds(rounds);
       }
+    } else {
+      setAvailableRounds([]);
+    }
+    setAvailablePairings([]);
+  };
+
+  const handleRoundChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newRound = e.target.value;
+    setSelectedRound(newRound);
+    setSelectedPairing(null);
+
+    if (newRound && selectedDivision && selectedTournament) {
+      const tournament = tournaments.find(
+        (t) => t.id.toString() === selectedTournament,
+      );
+      if (tournament) {
+        const divisionPairings =
+          tournament.divisionPairings[parseInt(selectedDivision)];
+        const roundPairings = divisionPairings.find(
+          (rp: RoundPairings) => rp.round === parseInt(newRound),
+        );
+        if (roundPairings) {
+          setAvailablePairings(roundPairings.pairings);
+        }
+      }
+    } else {
+      setAvailablePairings([]);
     }
   };
 
+  const handlePairingChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const pairingIndex = parseInt(e.target.value);
+    setSelectedPairing(pairingIndex);
+  };
+
   const updateCurrentMatch = async () => {
-    if (!selectedPlayers.player1 || !selectedPlayers.player2) {
-      setError("Please select both players");
+    if (selectedPairing === null) {
+      setError("Please select a pairing");
       return;
     }
 
@@ -125,10 +158,10 @@ const AdminInterface: React.FC = () => {
 
     try {
       const requestBody: CreateCurrentMatchParams = {
-        player1Id: parseInt(selectedPlayers.player1),
-        player2Id: parseInt(selectedPlayers.player2),
-        divisionId: parseInt(selectedDivision),
         tournamentId: parseInt(selectedTournament),
+        divisionId: parseInt(selectedDivision),
+        round: parseInt(selectedRound),
+        pairingId: selectedPairing,
       };
 
       await fetchWithAuth(`/api/admin/match/current`, {
@@ -204,83 +237,72 @@ const AdminInterface: React.FC = () => {
               value={selectedDivision}
               onChange={handleDivisionChange}
               className={inputStyles}
-              disabled={selectedTournament === "" || isLoading}
+              disabled={!selectedTournament || isLoading}
             >
               <option value="">Select Division</option>
-              {divisions.map((div, index) => (
-                <option key={index} value={index}>
-                  {div.name}
+              {selectedTournament &&
+                tournaments
+                  .find((t) => t.id.toString() === selectedTournament)
+                  ?.divisions.map((div, index) => (
+                    <option key={index} value={index}>
+                      {div.name}
+                    </option>
+                  ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[#4A3728] font-medium mb-2">
+              Round
+            </label>
+            <select
+              value={selectedRound}
+              onChange={handleRoundChange}
+              className={inputStyles}
+              disabled={!selectedDivision || isLoading}
+            >
+              <option value="">Select Round</option>
+              {availableRounds.map((round) => (
+                <option key={round} value={round}>
+                  Round {round}
                 </option>
               ))}
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[#4A3728] font-medium mb-2">
-                Player 1
-              </label>
-              <select
-                value={selectedPlayers.player1}
-                onChange={(e) =>
-                  setSelectedPlayers((prev) => ({
-                    ...prev,
-                    player1: e.target.value,
-                  }))
-                }
-                className={inputStyles}
-                disabled={selectedDivision === "" || isLoading}
-              >
-                <option value="">Select Player</option>
-                {[...players]
-                  .filter((p): p is Player => p !== null)
-                  .sort((a, b) => a.name.localeCompare(b.name))
-                  .map((player) => (
-                    <option key={player.id} value={player.id}>
-                      {player.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[#4A3728] font-medium mb-2">
-                Player 2
-              </label>
-              <select
-                value={selectedPlayers.player2}
-                onChange={(e) =>
-                  setSelectedPlayers((prev) => ({
-                    ...prev,
-                    player2: e.target.value,
-                  }))
-                }
-                className={inputStyles}
-                disabled={selectedDivision === "" || isLoading}
-              >
-                <option value="">Select Player</option>
-                {[...players]
-                  .filter((p): p is Player => p !== null)
-                  .sort((a, b) => a.name.localeCompare(b.name))
-                  .map((player) => (
-                    <option key={player.id} value={player.id}>
-                      {player.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
+          <div>
+            <label className="block text-[#4A3728] font-medium mb-2">
+              Pairing
+            </label>
+            <select
+              value={selectedPairing !== null ? selectedPairing.toString() : ""}
+              onChange={handlePairingChange}
+              className={inputStyles}
+              disabled={!selectedRound || isLoading}
+            >
+              <option value="">Select Pairing</option>
+              {availablePairings
+                .map((pairing, originalIndex) => ({
+                  pairing,
+                  originalIndex,
+                }))
+                .sort((a, b) =>
+                  a.pairing.player1.name.localeCompare(b.pairing.player1.name),
+                )
+                .map(({ pairing, originalIndex }) => (
+                  <option key={originalIndex} value={originalIndex}>
+                    {pairing.player1.name} vs {pairing.player2.name}
+                  </option>
+                ))}
+            </select>
           </div>
 
           <button
             onClick={updateCurrentMatch}
-            disabled={
-              isLoading || !selectedPlayers.player1 || !selectedPlayers.player2
-            }
+            disabled={isLoading || selectedPairing === null}
             className={`w-full py-2 px-4 rounded-md transition-colors
               ${
-                isLoading ||
-                !selectedPlayers.player1 ||
-                !selectedPlayers.player2
+                isLoading || selectedPairing === null
                   ? "bg-[#4A3728]/40 text-[#4A3728]/60 cursor-not-allowed"
                   : "bg-[#4A3728] hover:bg-[#6B5744] text-[#FAF1DB] shadow-md border-2 border-[#4A3728]"
               }`}

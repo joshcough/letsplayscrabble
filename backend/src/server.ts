@@ -16,13 +16,13 @@ import { TournamentPollingService } from "./services/pollingService";
 
 // Helper function to determine project root path
 function getProjectRoot(): string {
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     // In production (Heroku), we're in /app/backend/dist/backend/backend/src
     // Need to go up to /app
-    return path.join(__dirname, '../../../../../');
+    return path.join(__dirname, "../../../../../");
   } else {
     // In development, we need to go up 2 levels from src
-    return path.join(__dirname, '../../');
+    return path.join(__dirname, "../../");
   }
 }
 
@@ -125,11 +125,11 @@ app.use(
 const projectRoot = getProjectRoot();
 
 // Serve static files from the React frontend app
-app.use(express.static(path.join(projectRoot, 'frontend/build')));
+app.use(express.static(path.join(projectRoot, "frontend/build")));
 
 // Anything that doesn't match the above, send back index.html
 app.get("*", (_req: Request, res: Response) => {
-  res.sendFile(path.join(projectRoot, 'frontend/build/index.html'));
+  res.sendFile(path.join(projectRoot, "frontend/build/index.html"));
 });
 
 // start the polling service
