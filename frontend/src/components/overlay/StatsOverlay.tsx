@@ -265,11 +265,14 @@ const StatsOverlay: React.FC = () => {
             </div>
           );
         case "tournament-data":
+          console.log("matchWithPlayers:", matchWithPlayers);
           return (
             <div className="text-black">
               {matchWithPlayers.tournament.name || "N/A"}
               {" | "}
               {matchWithPlayers.tournament.lexicon || "N/A"}
+              {" | Round "}
+              {matchWithPlayers.matchData.round || "N/A"}
             </div>
           );
         default:

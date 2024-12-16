@@ -76,12 +76,22 @@ export function calculatePairings(division: Division): RoundPairings[] {
     )
     .map((p) => {
       return p.pairings
-        .map((id, index) => ({ id, index: index + 1 })) // zip with index first
-        .filter(({ id }) => id > 0) // then filter
-        .map(({ id: pairingId, index }) => {
-          const p1 = playerDataList[p.id - 1];
-          const p2 = playerDataList[pairingId - 1];
-          const pairing: Pairing = { round: index, player1: p1, player2: p2 };
+        .map((id, index) => ({
+          id,
+          index: index + 1,
+          isFirstPlayer: p.etc.p12[index] === 1,
+        }))
+        .filter(({ id }) => id > 0) // filter out byes (0)
+        .map(({ id: pairingId, index, isFirstPlayer }) => {
+          const currentPlayer = playerDataList[p.id - 1];
+          const otherPlayer = playerDataList[pairingId - 1];
+
+          // Determine player order based on p12 value
+          const pairing: Pairing = {
+            round: index,
+            player1: isFirstPlayer ? currentPlayer : otherPlayer,
+            player2: isFirstPlayer ? otherPlayer : currentPlayer,
+          };
           return pairing;
         });
     });
@@ -97,10 +107,6 @@ export function calculatePairings(division: Division): RoundPairings[] {
     pairings: [...pairingsSet],
   }));
 
-  //   console.log(division.name, "pairings");
-  //   if(division.name === "A") {
-  //     console.log(JSON.stringify(res, null, 2));
-  //   }
   return res;
 }
 

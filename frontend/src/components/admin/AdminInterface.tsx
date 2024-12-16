@@ -281,11 +281,19 @@ const AdminInterface: React.FC = () => {
               disabled={!selectedRound || isLoading}
             >
               <option value="">Select Pairing</option>
-              {availablePairings.map((pairing, index) => (
-                <option key={index} value={index}>
-                  {pairing.player1.name} vs {pairing.player2.name}
-                </option>
-              ))}
+              {availablePairings
+                .map((pairing, originalIndex) => ({
+                  pairing,
+                  originalIndex,
+                }))
+                .sort((a, b) =>
+                  a.pairing.player1.name.localeCompare(b.pairing.player1.name),
+                )
+                .map(({ pairing, originalIndex }) => (
+                  <option key={originalIndex} value={originalIndex}>
+                    {pairing.player1.name} vs {pairing.player2.name}
+                  </option>
+                ))}
             </select>
           </div>
 
