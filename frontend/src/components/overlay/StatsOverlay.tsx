@@ -30,7 +30,8 @@ type SourceType =
 const StatsOverlay: React.FC = () => {
   const [searchParams] = useSearchParams();
   const source = searchParams.get("source") as SourceType;
-  const [matchData, setMatchData] = useState<MatchWithPlayers | null>(null);
+  const [matchWithPlayers, setMatchWithPlayers] =
+    useState<MatchWithPlayers | null>(null);
   const [connectionStatus, setConnectionStatus] =
     useState<string>("Initializing...");
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
@@ -44,9 +45,10 @@ const StatsOverlay: React.FC = () => {
       try {
         const response = await fetch(`${API_BASE}/api/overlay/match/current`);
         const data = await response.json();
-        if (!response.ok)
+        if (!response.ok) {
           throw new Error(data.error || "Failed to fetch match data");
-        setMatchData(data);
+        }
+        setMatchWithPlayers(data);
         setError(null);
       } catch (err) {
         console.error("Error fetching current match:", err);
@@ -134,7 +136,7 @@ const StatsOverlay: React.FC = () => {
 
         socketRef.current.on("matchUpdate", (data: MatchWithPlayers) => {
           console.log("Received match update:", data);
-          setMatchData(data);
+          setMatchWithPlayers(data);
           setLastUpdate(new Date().toISOString());
         });
 
@@ -172,7 +174,7 @@ const StatsOverlay: React.FC = () => {
     );
   }
 
-  if (!matchData) {
+  if (!matchWithPlayers) {
     if (source) {
       return <div className="text-black p-2">Loading...</div>;
     }
@@ -190,7 +192,15 @@ const StatsOverlay: React.FC = () => {
     );
   }
 
-  const [player1, player2] = matchData.players;
+  // Add these debug lines here
+  console.log("matchWithPlayers received:", matchWithPlayers);
+
+  if (!matchWithPlayers.players) {
+    console.log("No players found in:", matchWithPlayers);
+    return <div className="text-black p-2">Waiting for player data...</div>;
+  }
+
+  const [player1, player2] = matchWithPlayers.players;
 
   if (source) {
     const renderElement = () => {
@@ -257,9 +267,9 @@ const StatsOverlay: React.FC = () => {
         case "tournament-data":
           return (
             <div className="text-black">
-              {matchData?.tournament.name || "N/A"}
+              {matchWithPlayers.tournament.name || "N/A"}
               {" | "}
-              {matchData?.tournament.lexicon || "N/A"}
+              {matchWithPlayers.tournament.lexicon || "N/A"}
             </div>
           );
         default:
@@ -311,7 +321,7 @@ const StatsOverlay: React.FC = () => {
 
       <div className="text-black p-4 w-64" data-obs="player2-container">
         <h2 className="text-xl font-bold mb-2" data-obs="player2-name">
-          {player2?.firstLast || "Player 1"}
+          {player2?.firstLast || "Player 2"}
         </h2>
         <div className="space-y-1">
           <div data-obs="player2-record">

@@ -23,6 +23,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.21.1",
+    "fp-ts": "^2.16.9",
     "jsonwebtoken": "^9.0.2",
     "node-cron": "^3.0.3",
     "node-schedule": "^2.1.1",

@@ -1,13 +1,21 @@
 import axios from "axios";
 import fs from "fs/promises";
+import { Eq } from "fp-ts/Eq";
+import * as S from "fp-ts/lib/Set"; // Note the /lib/ path
+
 import {
   TournamentData,
   Division,
-  Player,
+  Pairing,
+  PlayerData,
   PlayerStats,
+  RawPlayer,
+  RoundPairings,
   Tournament,
   ProcessedTournament,
 } from "@shared/types/tournament";
+
+import { eqPairing } from "./tournamentInstances";
 
 export async function loadTournamentFile(
   source: string,
@@ -44,11 +52,81 @@ export async function loadTournamentFile(
   }
 }
 
+export function playerDataFromRawData(p: RawPlayer) {
+  const playerData: PlayerData = {
+    id: p.id,
+    name: p.name,
+    firstLast: formatName(p.name),
+  };
+  return playerData;
+}
+
+export function calculatePairings(division: Division): RoundPairings[] {
+  const playerDataList = division.players
+    .filter(
+      (playerData): playerData is RawPlayer =>
+        playerData !== null && playerData !== undefined,
+    )
+    .map(playerDataFromRawData);
+
+  const pairingsArray: Pairing[][] = division.players
+    .filter(
+      (playerData): playerData is RawPlayer =>
+        playerData !== null && playerData !== undefined,
+    )
+    .map((p) => {
+      return p.pairings
+        .map((id, index) => ({ id, index: index + 1 })) // zip with index first
+        .filter(({ id }) => id > 0) // then filter
+        .map(({ id: pairingId, index }) => {
+          const p1 = playerDataList[p.id - 1];
+          const p2 = playerDataList[pairingId - 1];
+          const pairing: Pairing = { round: index, player1: p1, player2: p2 };
+          return pairing;
+        });
+    });
+
+  const flatPairings: Pairing[] = pairingsArray.flat();
+  const pairingsSet = S.fromArray<Pairing>(eqPairing)(flatPairings);
+
+  const sortedPairings = sortAndGroupByRound([...pairingsSet]);
+
+  const res = [...sortedPairings].map(([round, pairingsSet]) => ({
+    round: round,
+    divisionName: division.name,
+    pairings: [...pairingsSet],
+  }));
+
+  //   console.log(division.name, "pairings");
+  //   if(division.name === "A") {
+  //     console.log(JSON.stringify(res, null, 2));
+  //   }
+  return res;
+}
+
+function sortAndGroupByRound(items: Pairing[]): Map<number, Pairing[]> {
+  // First sort the items by round number
+  const sortedItems = [...items].sort((a, b) => a.round - b.round);
+
+  // Create a Map to store the grouped items
+  const groupedByRound = new Map<number, Pairing[]>();
+
+  // Group items by round
+  sortedItems.forEach((item) => {
+    if (!groupedByRound.has(item.round)) {
+      groupedByRound.set(item.round, []);
+    }
+    groupedByRound.get(item.round)!.push(item);
+  });
+
+  return groupedByRound;
+}
+
 export function calculateStandings(division: Division): PlayerStats[] {
   try {
-    const PlayerStatss = division.players
+    const PlayerStats = division.players
       .filter(
-        (playerData): playerData is Player =>
+        (playerData): playerData is RawPlayer =>
           playerData !== null && playerData !== undefined,
       )
       .map((playerData) => {
@@ -93,13 +171,17 @@ export function calculateStandings(division: Division): PlayerStats[] {
             }
           });
 
-          const averageScore =
+          const averageScore: string =
             gamesPlayed > 0 ? (totalScore / gamesPlayed).toFixed(2) : "0";
 
           // Add defensive checks for rating calculation
           let rating = 0;
           try {
-            if (playerData.etc && playerData.etc.newr && Array.isArray(playerData.etc.newr)) {
+            if (
+              playerData.etc &&
+              playerData.etc.newr &&
+              Array.isArray(playerData.etc.newr)
+            ) {
               rating = playerData.etc.newr[playerData.etc.newr.length - 1] ?? 0;
               if (isNaN(rating)) {
                 console.log("Invalid rating for player:", playerData.name);
@@ -109,7 +191,11 @@ export function calculateStandings(division: Division): PlayerStats[] {
               console.log("Missing rating data for player:", playerData.name);
             }
           } catch (error) {
-            console.error("Error calculating rating for player:", playerData.name, error);
+            console.error(
+              "Error calculating rating for player:",
+              playerData.name,
+              error,
+            );
           }
 
           const res: PlayerStats = {
@@ -142,7 +228,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
         }
       });
 
-    return calculateRanks(PlayerStatss);
+    return calculateRanks(PlayerStats);
   } catch (error) {
     console.error("Error in calculateStandings:", error);
     return [];
@@ -176,8 +262,6 @@ function getOrdinal(n: number): string {
 
 function formatName(name: string | undefined): string {
   try {
-    console.log("Formatting name:", name);
-
     if (!name) {
       console.log("Name is null or empty");
       return "Unknown Player";
@@ -224,10 +308,10 @@ function calculateRanks(players: PlayerStats[]): PlayerStats[] {
     });
   } catch (error) {
     console.error("Error in calculateRanks:", error);
-    return players.map(player => ({
+    return players.map((player) => ({
       ...player,
       rank: 0,
-      rankOrdinal: "0th"
+      rankOrdinal: "0th",
     }));
   }
 }
@@ -238,13 +322,15 @@ export function processTournament(tournament: Tournament): ProcessedTournament {
       ...tournament,
       divisions: tournament.data.divisions,
       standings: tournament.data.divisions.map(calculateStandings),
+      divisionPairings: tournament.data.divisions.map(calculatePairings),
     };
   } catch (error) {
     console.error("Error processing tournament:", error);
     return {
       ...tournament,
       divisions: [],
-      standings: []
+      standings: [],
+      divisionPairings: [],
     };
   }
 }

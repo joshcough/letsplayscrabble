@@ -14,10 +14,10 @@ CREATE TABLE IF NOT EXISTS tournaments (
 
 CREATE TABLE current_matches (
     id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),  -- Ensures only one current match
-    player1_id INTEGER,
-    player2_id INTEGER,
+    tournament_id INTEGER REFERENCES tournaments(id),
     division_id INTEGER,
-    tournament_id INTEGER references tournaments(id),
+    round INTEGER,
+    pairing_id INTEGER,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
