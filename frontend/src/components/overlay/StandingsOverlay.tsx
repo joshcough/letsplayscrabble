@@ -17,9 +17,7 @@ const StandingsOverlay: React.FC<StandingsOverlayProps> = ({
   divisionName,
 }) => {
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
-  const [tournament, setTournament] = useState<ProcessedTournament | null>(
-    null,
-  );
+  const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
 
   const columns: Column[] = [
     { key: "rank", label: "Rank" },
@@ -98,7 +96,7 @@ const StandingsOverlay: React.FC<StandingsOverlayProps> = ({
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`px-4 py-2 text-${column.key === "name" ? "left" : "right"}`}
+                  className={`px-4 py-2 text-${column.key === "name" ? "left" : "center"}`}
                   style={{
                     minWidth:
                       column.key === "name"
@@ -117,20 +115,19 @@ const StandingsOverlay: React.FC<StandingsOverlayProps> = ({
           </thead>
           <tbody>
             {standings.map((player) => (
-              <tr key={player.name} className="bg-white">
-                <td className="px-4 py-2 text-right">{player.rank}</td>
+              <tr
+                key={player.name}
+                className="bg-white"
+              >
+                <td className="px-4 py-2 text-center">{player.rank}</td>
                 <td className="px-4 py-2">{player.name}</td>
-                <td className="px-4 py-2 text-right">{player.wins}</td>
-                <td className="px-4 py-2 text-right">{player.losses}</td>
-                <td className="px-4 py-2 text-right">{player.ties}</td>
-                <td className="px-4 py-2 text-right">
-                  {formatNumberWithSign(player.spread)}
-                </td>
-                <td className="px-4 py-2 text-right">{player.averageScore}</td>
-                <td className="px-4 py-2 text-right">{player.highScore}</td>
-                <td
-                  className={`px-4 py-2 text-right ${player.ratingDiff > 0 ? "text-red-600" : "text-blue-600"}`}
-                >
+                <td className="px-4 py-2 text-center">{player.wins}</td>
+                <td className="px-4 py-2 text-center">{player.losses}</td>
+                <td className="px-4 py-2 text-center">{player.ties}</td>
+                <td className="px-4 py-2 text-center">{formatNumberWithSign(player.spread)}</td>
+                <td className="px-4 py-2 text-center">{player.averageScore}</td>
+                <td className="px-4 py-2 text-center">{player.highScore}</td>
+                <td className={`px-4 py-2 text-center ${player.ratingDiff > 0 ? 'text-red-600' : 'text-blue-600'}`}>
                   {formatNumberWithSign(player.ratingDiff)}
                 </td>
               </tr>
