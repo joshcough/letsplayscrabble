@@ -178,7 +178,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
           });
 
           const averageScore: string =
-            gamesPlayed > 0 ? (totalScore / gamesPlayed).toFixed(2) : "0";
+            gamesPlayed > 0 ? (totalScore / gamesPlayed).toFixed(1) : "0";
 
           // Add defensive checks for rating calculation
           let rating = 0;
@@ -194,7 +194,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
                 console.log("Invalid rating for player:", playerData.name);
                 rating = 0;
               }
-              ratingDiff = rating - playerData.rating
+              ratingDiff = rating - playerData.rating;
             } else {
               console.log("Missing rating data for player:", playerData.name);
             }

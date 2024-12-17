@@ -102,7 +102,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// Add authentication routes (unprotected)
+// Unprotected routes
 app.use("/api/auth", authRoutes);
 app.use(
   "/api/overlay",

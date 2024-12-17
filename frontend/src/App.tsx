@@ -12,6 +12,7 @@ import Navigation from "./components/common/Navigation";
 import HomePage from "./pages/HomePage";
 import AdminPage from "./pages/admin/AdminPage";
 import OverlayPage from "./pages/overlay/OverlayPage";
+import StandingsOverlayPage from "./pages/overlay/StandingsOverlayPage";
 import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
 import StandingsPage from "./pages/tournaments/StandingsPage";
@@ -32,7 +33,8 @@ const AppContent: React.FC = () => {
       {!isOverlay && <Navigation />}
       <Routes>
         <Route path="/login" element={<AdminLogin />} />
-        <Route path="/overlay" element={<OverlayPage />} />
+        <Route path="/overlay/misc" element={<OverlayPage />} />
+        <Route path="/overlay/standings" element={<StandingsOverlayPage />} />
 
         {/* Protected Routes */}
         <Route
