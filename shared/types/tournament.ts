@@ -30,7 +30,6 @@ export interface RawPlayer {
   etc: {
     newr: number[]; // Player ratings history
     p12: number[]; // 1 = player goes first, 2 = opponent goes first, 0 = bye
-    newr: number[];
   };
 }
 

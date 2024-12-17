@@ -183,7 +183,9 @@ export function calculateStandings(division: Division): PlayerStats[] {
             gamesPlayed > 0 ? (totalScore / gamesPlayed).toFixed(1) : "0";
 
           const averageOpponentScore: string =
-            gamesPlayed > 0 ? (totalOpponentScore / gamesPlayed).toFixed(1) : "0";
+            gamesPlayed > 0
+              ? (totalOpponentScore / gamesPlayed).toFixed(1)
+              : "0";
 
           // Rating calculation remains the same
           let rating = 0;

@@ -27,7 +27,7 @@ const AdminInterface: React.FC = () => {
 
       try {
         // Fetch tournaments first
-        const tournamentsData = await fetchWithAuth(`/api/tournaments`);
+        const tournamentsData = await fetchWithAuth(`/api/tournaments/public`);
         setTournaments(tournamentsData);
 
         try {

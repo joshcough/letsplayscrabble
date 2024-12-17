@@ -100,7 +100,7 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({
     const fetchStandings = async () => {
       try {
         const tournamentData: ProcessedTournament = await fetchWithAuth(
-          `/api/tournaments/${tournamentId}`,
+          `/api/tournaments/public/${tournamentId}`,
         );
 
         // Find the correct division
