@@ -127,9 +127,9 @@ const StandingsOverlay: React.FC<StandingsOverlayProps> = ({
                 <td className="px-4 py-2 text-center">
                   {formatNumberWithSign(player.spread)}
                 </td>
-                <td className="px-4 py-2 text-center">{player.averageScore}</td>
+                <td className="px-4 py-2 text-center">{player.averageScore} ({player.averageScoreRankOrdinal})</td>
                 <td className="px-4 py-2 text-center">
-                  {player.averageOpponentScore}
+                  {player.averageOpponentScore} ({player.averageOpponentScoreRankOrdinal})
                 </td>
                 <td className="px-4 py-2 text-center">{player.highScore}</td>
                 <td

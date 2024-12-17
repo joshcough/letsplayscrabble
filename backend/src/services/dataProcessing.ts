@@ -130,7 +130,7 @@ function sortAndGroupByRound(items: Pairing[]): Map<number, Pairing[]> {
 
 export function calculateStandings(division: Division): PlayerStats[] {
   try {
-    const PlayerStats = division.players
+    const initialPlayerStats = division.players
       .filter(
         (playerData): playerData is RawPlayer =>
           playerData !== null && playerData !== undefined,
@@ -139,12 +139,12 @@ export function calculateStandings(division: Division): PlayerStats[] {
         try {
           let totalSpread = 0;
           let totalScore = 0;
+          let totalOpponentScore = 0;
           let highScore = 0;
           let wins = 0;
           let losses = 0;
           let ties = 0;
           let gamesPlayed = 0;
-          let totalOpponentScore = 0;
 
           playerData.scores.forEach((score, index) => {
             const opponentIdx = playerData.pairings[index];
@@ -179,15 +179,12 @@ export function calculateStandings(division: Division): PlayerStats[] {
             }
           });
 
-          const averageScore: string =
+          const averageScore =
             gamesPlayed > 0 ? (totalScore / gamesPlayed).toFixed(1) : "0";
 
-          const averageOpponentScore: string =
-            gamesPlayed > 0
-              ? (totalOpponentScore / gamesPlayed).toFixed(1)
-              : "0";
+          const averageOpponentScore =
+            gamesPlayed > 0 ? (totalOpponentScore / gamesPlayed).toFixed(1) : "0";
 
-          // Rating calculation remains the same
           let rating = 0;
           let ratingDiff = 0;
           try {
@@ -213,7 +210,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
             );
           }
 
-          const res: PlayerStats = {
+          const stats: PlayerStats = {
             id: playerData.id,
             name: playerData.name || "Unknown Player",
             rating,
@@ -226,11 +223,15 @@ export function calculateStandings(division: Division): PlayerStats[] {
             averageScore,
             averageOpponentScore,
             highScore,
+            averageScoreRank: 0,
+            averageOpponentScoreRank: 0,
+            averageScoreRankOrdinal: "0th",
+            averageOpponentScoreRankOrdinal: "0th"
           };
-          return res;
+          return stats;
         } catch (error) {
           console.error("Error processing player data:", playerData, error);
-          return {
+          const defaultStats: PlayerStats = {
             id: playerData.id || 0,
             name: playerData.name || "Unknown Player",
             rating: 0,
@@ -243,15 +244,74 @@ export function calculateStandings(division: Division): PlayerStats[] {
             averageScore: "0",
             averageOpponentScore: "0",
             highScore: 0,
+            averageScoreRank: 0,
+            averageOpponentScoreRank: 0,
+            averageScoreRankOrdinal: "0th",
+            averageOpponentScoreRankOrdinal: "0th"
           };
+          return defaultStats;
         }
       });
 
-    return calculateRanks(PlayerStats);
+    // Calculate various rankings
+    return calculateAllRanks(initialPlayerStats);
   } catch (error) {
     console.error("Error in calculateStandings:", error);
     return [];
   }
+}
+
+function calculateAllRanks(players: PlayerStats[]): PlayerStats[] {
+  // First calculate win/loss/spread ranks
+  const playersByWins = [...players].sort((a, b) => {
+    if (a.wins !== b.wins) return b.wins - a.wins;
+    if (a.losses !== b.losses) return a.losses - b.losses;
+    return b.spread - a.spread;
+  });
+
+  // Calculate average score ranks (higher is better)
+  const playersByAvgScore = [...players].sort((a, b) => {
+    return parseFloat(b.averageScore) - parseFloat(a.averageScore);
+  });
+
+  // Calculate opponent score ranks (lower is better)
+  const playersByOpponentScore = [...players].sort((a, b) => {
+    return parseFloat(a.averageOpponentScore) - parseFloat(b.averageOpponentScore);
+  });
+
+  // Create maps for all rankings
+  const rankMap = new Map<number, number>();
+  const avgScoreRankMap = new Map<number, number>();
+  const avgOpponentScoreRankMap = new Map<number, number>();
+
+  playersByWins.forEach((player, index) => {
+    rankMap.set(player.id, index + 1);
+  });
+
+  playersByAvgScore.forEach((player, index) => {
+    avgScoreRankMap.set(player.id, index + 1);
+  });
+
+  playersByOpponentScore.forEach((player, index) => {
+    avgOpponentScoreRankMap.set(player.id, index + 1);
+  });
+
+  // Apply all rankings to players
+  return players.map((player) => {
+    const averageScoreRank = avgScoreRankMap.get(player.id) ?? 0;
+    const averageOpponentScoreRank = avgOpponentScoreRankMap.get(player.id) ?? 0;
+    const rank = rankMap.get(player.id) ?? 0;
+
+    return {
+      ...player,
+      rank,
+      rankOrdinal: getOrdinal(rank),
+      averageScoreRank,
+      averageScoreRankOrdinal: getOrdinal(averageScoreRank),
+      averageOpponentScoreRank,
+      averageOpponentScoreRankOrdinal: getOrdinal(averageOpponentScoreRank)
+    };
+  });
 }
 
 function getOrdinal(n: number): string {
