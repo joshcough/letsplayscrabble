@@ -27,6 +27,7 @@ const StandingsOverlay: React.FC<StandingsOverlayProps> = ({
     { key: "ties", label: "Ties" },
     { key: "spread", label: "Spread" },
     { key: "averageScore", label: "Avg Pts For" },
+    { key: "averageOpponentScore", label: "Avg Pts Ag" },
     { key: "highScore", label: "High" },
     { key: "ratingDiff", label: "Rating +/-" },
   ];
@@ -126,6 +127,7 @@ const StandingsOverlay: React.FC<StandingsOverlayProps> = ({
                 <td className="px-4 py-2 text-center">{player.ties}</td>
                 <td className="px-4 py-2 text-center">{formatNumberWithSign(player.spread)}</td>
                 <td className="px-4 py-2 text-center">{player.averageScore}</td>
+                <td className="px-4 py-2 text-center">{player.averageOpponentScore}</td>
                 <td className="px-4 py-2 text-center">{player.highScore}</td>
                 <td className={`px-4 py-2 text-center ${player.ratingDiff > 0 ? 'text-red-600' : 'text-blue-600'}`}>
                   {formatNumberWithSign(player.ratingDiff)}

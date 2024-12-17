@@ -63,6 +63,7 @@ export interface PlayerStats {
   ties: number;
   spread: number;
   averageScore: string; // this is a string because its rounded to two decimal places
+  averageOpponentScore: string;
   highScore: number;
   rank?: number;
   rankOrdinal?: string;
