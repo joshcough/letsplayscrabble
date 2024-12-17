@@ -25,7 +25,7 @@ interface TournamentNameParams extends ParamsDictionary {
   name: string;
 }
 
-export default function createTournamentRoutes(
+export function protectedTournamentRoutes(
   tournamentRepository: TournamentRepository,
 ): Router {
   const router = express.Router();
@@ -155,6 +155,73 @@ export default function createTournamentRoutes(
   router.post("/", createTournament);
   router.post("/:id/polling", startPolling);
   router.delete("/:id/polling", stopPolling);
+
+  return router;
+}
+
+export function unprotectedTournamentRoutes(
+  tournamentRepository: TournamentRepository,
+): Router {
+  const router = express.Router();
+
+  // Get all tournaments
+  const getAllTournaments: RequestHandler = async (_req, res) => {
+    try {
+      const result = await tournamentRepository.findAll();
+      res.json(result);
+    } catch (error) {
+      console.error("Database error:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  };
+
+  // Get tournament by ID
+  const getTournamentById: RequestHandler<TournamentIdParams> = async (
+    req,
+    res,
+  ) => {
+    try {
+      const t = await tournamentRepository.findById(
+        parseInt(req.params.id, 10),
+      );
+      if (t === null) {
+        res.status(404).json({ message: "Tournament not found" });
+        return;
+      }
+      res.json(t);
+    } catch (error) {
+      console.error("Database error:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  };
+
+  // Get tournament by name
+  const getTournamentByName: RequestHandler<TournamentNameParams> = async (
+    req,
+    res,
+  ) => {
+    try {
+      const t = await tournamentRepository.findByName(req.params.name);
+      if (t === null) {
+        res.status(404).json({ message: "Tournament not found" });
+        return;
+      }
+      res.json(t);
+    } catch (error) {
+      console.error("Database error:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  };
+
+  router.get("/", getAllTournaments);
+  router.get("/:id", getTournamentById);
+  router.get("/by-name/:name", getTournamentByName);
 
   return router;
 }

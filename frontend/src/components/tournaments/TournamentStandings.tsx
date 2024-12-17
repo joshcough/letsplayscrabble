@@ -37,6 +37,7 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({
     { key: "spread", label: "Spread", sortable: true },
     { key: "averageScore", label: "Average", sortable: true },
     { key: "highScore", label: "High", sortable: true },
+    { key: "ratingDiff", label: "Rating Change", sortable: true },
   ];
 
   const calculateRanks = (players: PlayerStats[]): PlayerStats[] => {
@@ -99,7 +100,7 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({
     const fetchStandings = async () => {
       try {
         const tournamentData: ProcessedTournament = await fetchWithAuth(
-          `/api/tournaments/${tournamentId}`,
+          `/api/tournaments/public/${tournamentId}`,
         );
 
         // Find the correct division
@@ -183,6 +184,9 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({
               </td>
               <td className="px-4 py-2 text-right border">
                 {player.highScore}
+              </td>
+              <td className="px-4 py-2 text-right border">
+                {player.ratingDiff}
               </td>
             </tr>
           ))}

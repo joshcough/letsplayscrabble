@@ -26,6 +26,7 @@ export interface RawPlayer {
   name: string;
   scores: number[];
   pairings: number[];
+  rating: number;
   etc: {
     newr: number[]; // Player ratings history
     p12: number[]; // 1 = player goes first, 2 = opponent goes first, 0 = bye
@@ -54,12 +55,14 @@ export interface PlayerStats {
   id: number;
   name: string;
   rating: number;
+  ratingDiff: number;
   firstLast: string;
   wins: number;
   losses: number;
   ties: number;
   spread: number;
   averageScore: string; // this is a string because its rounded to two decimal places
+  averageOpponentScore: string;
   highScore: number;
   rank?: number;
   rankOrdinal?: string;

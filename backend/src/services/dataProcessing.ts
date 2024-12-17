@@ -144,6 +144,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
           let losses = 0;
           let ties = 0;
           let gamesPlayed = 0;
+          let totalOpponentScore = 0;
 
           playerData.scores.forEach((score, index) => {
             const opponentIdx = playerData.pairings[index];
@@ -171,6 +172,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
                 }
 
                 totalScore += score;
+                totalOpponentScore += opponentScore;
                 highScore = Math.max(highScore, score);
                 gamesPlayed += 1;
               }
@@ -178,10 +180,16 @@ export function calculateStandings(division: Division): PlayerStats[] {
           });
 
           const averageScore: string =
-            gamesPlayed > 0 ? (totalScore / gamesPlayed).toFixed(2) : "0";
+            gamesPlayed > 0 ? (totalScore / gamesPlayed).toFixed(1) : "0";
 
-          // Add defensive checks for rating calculation
+          const averageOpponentScore: string =
+            gamesPlayed > 0
+              ? (totalOpponentScore / gamesPlayed).toFixed(1)
+              : "0";
+
+          // Rating calculation remains the same
           let rating = 0;
+          let ratingDiff = 0;
           try {
             if (
               playerData.etc &&
@@ -193,6 +201,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
                 console.log("Invalid rating for player:", playerData.name);
                 rating = 0;
               }
+              ratingDiff = rating - playerData.rating;
             } else {
               console.log("Missing rating data for player:", playerData.name);
             }
@@ -208,12 +217,14 @@ export function calculateStandings(division: Division): PlayerStats[] {
             id: playerData.id,
             name: playerData.name || "Unknown Player",
             rating,
+            ratingDiff,
             firstLast: formatName(playerData.name),
             wins,
             losses,
             ties,
             spread: totalSpread,
             averageScore,
+            averageOpponentScore,
             highScore,
           };
           return res;
@@ -223,12 +234,14 @@ export function calculateStandings(division: Division): PlayerStats[] {
             id: playerData.id || 0,
             name: playerData.name || "Unknown Player",
             rating: 0,
+            ratingDiff: 0,
             firstLast: "Unknown Player",
             wins: 0,
             losses: 0,
             ties: 0,
             spread: 0,
             averageScore: "0",
+            averageOpponentScore: "0",
             highScore: 0,
           };
         }

@@ -26,7 +26,7 @@ const TournamentDetails: React.FC = () => {
   const handleEnablePolling = async () => {
     try {
       const data: PollingResponse = await fetchWithAuth(
-        `/api/tournaments/${params.id}/polling`,
+        `/api/tournaments/admin/${params.id}/polling`,
         {
           method: "POST",
           headers: {
@@ -45,7 +45,7 @@ const TournamentDetails: React.FC = () => {
 
   const handleDisablePolling = async () => {
     try {
-      await fetchWithAuth(`/api/tournaments/${params.id}/polling`, {
+      await fetchWithAuth(`/api/tournaments/admin/${params.id}/polling`, {
         method: "DELETE",
       });
 
@@ -60,8 +60,8 @@ const TournamentDetails: React.FC = () => {
     const fetchTournamentData = async () => {
       try {
         const endpoint = params.id
-          ? `/api/tournaments/${params.id}`
-          : `/api/tournaments/by-name/${params.name}`;
+          ? `/api/tournaments/public/${params.id}`
+          : `/api/tournaments/public/by-name/${params.name}`;
 
         const tournamentData: ProcessedTournament =
           await fetchWithAuth(endpoint);

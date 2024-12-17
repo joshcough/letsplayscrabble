@@ -14,8 +14,9 @@ const TournamentList: React.FC<TournamentListProps> = ({
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const data: ProcessedTournament[] =
-          await fetchWithAuth(`/api/tournaments`);
+        const data: ProcessedTournament[] = await fetchWithAuth(
+          `/api/tournaments/public`,
+        );
         setTournaments(data);
       } catch (error) {
         console.error("Error fetching tournaments:", error);
