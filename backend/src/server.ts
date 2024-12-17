@@ -113,7 +113,6 @@ app.use(
 );
 app.use(
   "/api/tournaments/public",
-  requireAuth,
   unprotectedTournamentRoutes(tournamentRepository),
 );
 
