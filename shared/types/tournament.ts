@@ -26,9 +26,11 @@ export interface RawPlayer {
   name: string;
   scores: number[];
   pairings: number[];
+  rating: number;
   etc: {
     newr: number[]; // Player ratings history
     p12: number[]; // 1 = player goes first, 2 = opponent goes first, 0 = bye
+    newr: number[];
   };
 }
 
@@ -54,6 +56,7 @@ export interface PlayerStats {
   id: number;
   name: string;
   rating: number;
+  ratingDiff: number;
   firstLast: string;
   wins: number;
   losses: number;

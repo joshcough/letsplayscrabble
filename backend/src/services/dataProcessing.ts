@@ -182,6 +182,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
 
           // Add defensive checks for rating calculation
           let rating = 0;
+          let ratingDiff = 0;
           try {
             if (
               playerData.etc &&
@@ -193,6 +194,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
                 console.log("Invalid rating for player:", playerData.name);
                 rating = 0;
               }
+              ratingDiff = rating - playerData.rating
             } else {
               console.log("Missing rating data for player:", playerData.name);
             }
@@ -208,6 +210,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
             id: playerData.id,
             name: playerData.name || "Unknown Player",
             rating,
+            ratingDiff,
             firstLast: formatName(playerData.name),
             wins,
             losses,
@@ -223,6 +226,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
             id: playerData.id || 0,
             name: playerData.name || "Unknown Player",
             rating: 0,
+            ratingDiff: 0,
             firstLast: "Unknown Player",
             wins: 0,
             losses: 0,
