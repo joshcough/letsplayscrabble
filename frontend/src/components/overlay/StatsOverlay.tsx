@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import io, { Socket } from "socket.io-client";
 import { API_BASE } from "../../config/api";
-import { PlayerStats } from "@shared/types/tournament";
+import { PlayerStats, GameResult } from "@shared/types/tournament";
 import { MatchWithPlayers } from "@shared/types/admin";
 
 type SourceType =
@@ -24,8 +24,33 @@ type SourceType =
   | "player2-rating"
   | "player1-under-cam"
   | "player2-under-cam"
+  | "player1-game-history"
+  | "player2-game-history"
   | "tournament-data"
   | null;
+
+const GameHistoryDisplay: React.FC<{
+  games: GameResult[];
+  side: "player1" | "player2";
+}> = ({ games, side }) => {
+  if (!games || games.length === 0) return null;
+
+  return (
+    <div className="mt-4 space-y-2" data-obs={`${side}-game-history`}>
+      <h3 className="font-semibold">Recent Games:</h3>
+      {games.map((game, index) => (
+        <div
+          key={`${game.round}-${index}`}
+          className="text-sm"
+          data-obs={`${side}-game-${index + 1}`}
+        >
+          Round {game.round}: {game.playerScore}-{game.opponentScore} vs{" "}
+          {game.opponentName}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const StatsOverlay: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -43,8 +68,10 @@ const StatsOverlay: React.FC = () => {
   useEffect(() => {
     const fetchCurrentMatch = async () => {
       try {
+        console.log("Fetching current match...");
         const response = await fetch(`${API_BASE}/api/overlay/match/current`);
         const data = await response.json();
+        console.log("Received match data:", data);
         if (!response.ok) {
           throw new Error(data.error || "Failed to fetch match data");
         }
@@ -52,98 +79,87 @@ const StatsOverlay: React.FC = () => {
         setError(null);
       } catch (err) {
         console.error("Error fetching current match:", err);
-        setError("Failed to fetch current match. Please try again later.");
+        setError(
+          `Failed to fetch current match: ${err instanceof Error ? err.message : "Unknown error"}`,
+        );
       }
     };
 
     const connectSocket = () => {
-      console.log("Debug info:", {
-        API_BASE,
-        currentEnvironment: process.env.NODE_ENV,
-        existingSocket: socketRef.current ? "exists" : "none",
-      });
-      if (socketRef.current) {
-        console.log("Cleaning up existing socket connection");
-        socketRef.current.disconnect();
+      if (socketRef.current?.connected) {
+        console.log("Socket already connected, skipping connection...");
+        return;
       }
+
       try {
         console.log("Attempting to connect to:", API_BASE);
+
+        // Clean up existing socket if any
+        if (socketRef.current) {
+          socketRef.current.removeAllListeners();
+          socketRef.current.disconnect();
+          socketRef.current = null;
+        }
+
         socketRef.current = io(API_BASE, {
-          transports: ["polling", "websocket"],
-          reconnectionDelay: 1000,
-          reconnectionDelayMax: 5000,
+          transports: ["polling", "websocket"], // Start with polling, upgrade to websocket
+          reconnectionDelay: 2000,
+          reconnectionDelayMax: 10000,
           reconnectionAttempts: maxReconnectAttempts,
-          timeout: 20000,
+          timeout: 60000, // Increased timeout
           forceNew: true,
           withCredentials: true,
         });
 
         socketRef.current.on("connect", () => {
-          console.log(
-            "Connected with transport:",
-            socketRef.current?.io.engine.transport.name,
-          );
-          console.log("Socket connected with ID:", socketRef.current?.id);
+          console.log("Socket connected successfully");
           setConnectionStatus("Connected to server");
           reconnectAttempts.current = 0;
-        });
-
-        socketRef.current.io.engine.on("upgrade", () => {
-          console.log(
-            "Transport upgraded to:",
-            socketRef.current?.io.engine.transport.name,
-          );
+          setError(null);
+          fetchCurrentMatch();
         });
 
         socketRef.current.on("connect_error", (error: Error) => {
-          console.error("Socket connect error:", error);
-          console.error("Error details:", {
-            message: error.message,
-            description: (error as any).description,
-            type: error.name,
-          });
+          console.log("Connection error:", error.message);
           setConnectionStatus(`Connection error: ${error.message}`);
-          reconnectAttempts.current += 1;
+          // Only set error if we've exceeded max attempts
           if (reconnectAttempts.current >= maxReconnectAttempts) {
-            console.log("Max reconnection attempts reached");
-            socketRef.current?.disconnect();
+            setError(`Socket connection error: ${error.message}`);
           }
-        });
-
-        socketRef.current.on("connect", () => {
-          console.log(
-            "Socket connected successfully with ID:",
-            socketRef.current?.id,
-          );
-          setConnectionStatus("Connected to server");
-          setError(null);
-          reconnectAttempts.current = 0;
-          fetchCurrentMatch();
         });
 
         socketRef.current.on("disconnect", (reason: string) => {
           console.log("Socket disconnected. Reason:", reason);
-          setConnectionStatus(`Disconnected from server: ${reason}`);
-          if (reason === "io server disconnect") {
-            console.log("Attempting to reconnect after server disconnect...");
-            socketRef.current?.connect();
+          setConnectionStatus(`Disconnected: ${reason}`);
+
+          // Don't try to reconnect on intentional disconnects
+          if (
+            reason === "io server disconnect" ||
+            reason === "io client disconnect"
+          ) {
+            return;
+          }
+
+          // Attempt reconnection if within limits
+          if (reconnectAttempts.current < maxReconnectAttempts) {
+            reconnectAttempts.current += 1;
+            setTimeout(() => {
+              console.log(
+                `Attempting reconnect ${reconnectAttempts.current}/${maxReconnectAttempts}`,
+              );
+              socketRef.current?.connect();
+            }, 2000);
           }
         });
 
-        socketRef.current.onAny((eventName: string, ...args: any[]) => {
-          console.log("Received event:", eventName, "with data:", args);
-        });
-
         socketRef.current.on("matchUpdate", (data: MatchWithPlayers) => {
-          console.log("Received match update:", data);
+          console.log("Received match update");
           setMatchWithPlayers(data);
           setLastUpdate(new Date().toISOString());
         });
 
-        socketRef.current.on("error", (error: Error) => {
-          console.error("Socket error:", error);
-          setError(`Socket error: ${error.message}`);
-        });
+        // Initial data fetch
+        fetchCurrentMatch();
       } catch (error) {
         const err = error as Error;
         console.error("Socket initialization error:", err);
@@ -156,13 +172,15 @@ const StatsOverlay: React.FC = () => {
 
     return () => {
       if (socketRef.current) {
+        console.log("Cleaning up socket connection...");
+        socketRef.current.removeAllListeners();
         socketRef.current.disconnect();
         socketRef.current = null;
       }
     };
   }, []);
 
-  // Early return with error display for any error state
+  // Early return with error display
   if (error) {
     return (
       <div className="fixed inset-0 flex items-center justify-center text-black">
@@ -174,6 +192,7 @@ const StatsOverlay: React.FC = () => {
     );
   }
 
+  // Loading state
   if (!matchWithPlayers) {
     if (source) {
       return <div className="text-black p-2">Loading...</div>;
@@ -190,14 +209,6 @@ const StatsOverlay: React.FC = () => {
         </div>
       </div>
     );
-  }
-
-  // Add these debug lines here
-  console.log("matchWithPlayers received:", matchWithPlayers);
-
-  if (!matchWithPlayers.players) {
-    console.log("No players found in:", matchWithPlayers);
-    return <div className="text-black p-2">Waiting for player data...</div>;
   }
 
   const [player1, player2] = matchWithPlayers.players;
@@ -264,8 +275,19 @@ const StatsOverlay: React.FC = () => {
               {player?.rankOrdinal || "N/A"}
             </div>
           );
+        case "player1-game-history":
+        case "player2-game-history":
+          const playerIndex = source === "player1-game-history" ? 0 : 1;
+          const games = matchWithPlayers.last5?.[playerIndex] || [];
+          return (
+            <div className="text-black">
+              <GameHistoryDisplay
+                games={games}
+                side={source === "player1-game-history" ? "player1" : "player2"}
+              />
+            </div>
+          );
         case "tournament-data":
-          console.log("matchWithPlayers:", matchWithPlayers);
           return (
             <div className="text-black">
               {matchWithPlayers.tournament.name || "N/A"}
@@ -319,6 +341,12 @@ const StatsOverlay: React.FC = () => {
             {" | "}
             {player1?.rankOrdinal || "N/A"}
           </div>
+          {matchWithPlayers.last5 && (
+            <GameHistoryDisplay
+              games={matchWithPlayers.last5[0]}
+              side="player1"
+            />
+          )}
         </div>
       </div>
 
@@ -354,6 +382,12 @@ const StatsOverlay: React.FC = () => {
             {" | "}
             {player2?.rankOrdinal || "N/A"}
           </div>
+          {matchWithPlayers.last5 && (
+            <GameHistoryDisplay
+              games={matchWithPlayers.last5[1]}
+              side="player2"
+            />
+          )}
         </div>
       </div>
     </div>

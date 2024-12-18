@@ -1,4 +1,4 @@
-import { PlayerStats } from "./tournament";
+import { GameResult, PlayerStats } from "./tournament";
 import { CurrentMatch } from "./currentMatch";
 
 export interface CreateMatchRequest {
@@ -15,4 +15,5 @@ export interface MatchWithPlayers {
     lexicon: string;
   };
   players: [PlayerStats, PlayerStats];
+  last5: [GameResult[], GameResult[]];
 }

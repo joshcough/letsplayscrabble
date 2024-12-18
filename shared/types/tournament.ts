@@ -72,6 +72,13 @@ export interface PlayerStats {
   rankOrdinal?: string;
 }
 
+export interface GameResult {
+  round: number;
+  opponentName: string;
+  playerScore: number;
+  opponentScore: number;
+}
+
 export interface ProcessedTournament extends Omit<Tournament, "data"> {
   divisions: Division[];
   standings: PlayerStats[][]; // a PlayerStats[] per division.

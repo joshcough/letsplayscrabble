@@ -28,9 +28,13 @@ interface CurrentMatchResponse {
 
 const StandingsOverlay: React.FC = () => {
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
-  const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
-  const [matchWithPlayers, setMatchWithPlayers] = useState<CurrentMatchResponse | null>(null);
-  const [connectionStatus, setConnectionStatus] = useState<string>("Initializing...");
+  const [tournament, setTournament] = useState<ProcessedTournament | null>(
+    null,
+  );
+  const [matchWithPlayers, setMatchWithPlayers] =
+    useState<CurrentMatchResponse | null>(null);
+  const [connectionStatus, setConnectionStatus] =
+    useState<string>("Initializing...");
   const [error, setError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const reconnectAttempts = useRef<number>(0);
@@ -66,18 +70,24 @@ const StandingsOverlay: React.FC = () => {
     }));
   };
 
-  const fetchTournamentData = async (tournamentId: number, divisionId: number) => {
+  const fetchTournamentData = async (
+    tournamentId: number,
+    divisionId: number,
+  ) => {
     try {
-      console.log("Fetching tournament data for:", { tournamentId, divisionId });
+      console.log("Fetching tournament data for:", {
+        tournamentId,
+        divisionId,
+      });
       const tournamentData: ProcessedTournament = await fetchWithAuth(
-        `/api/tournaments/public/${tournamentId}`
+        `/api/tournaments/public/${tournamentId}`,
       );
 
       setTournament(tournamentData);
 
       const divisionIndex = divisionId;
       const divisionStandings = calculateRanks(
-        tournamentData.standings[divisionIndex]
+        tournamentData.standings[divisionIndex],
       );
       setStandings(divisionStandings);
     } catch (err) {
@@ -97,8 +107,14 @@ const StandingsOverlay: React.FC = () => {
       console.log("Current match data:", data);
       setMatchWithPlayers(data);
 
-      if (data.matchData?.tournament_id !== undefined && data.matchData?.division_id !== undefined) {
-        await fetchTournamentData(data.matchData.tournament_id, data.matchData.division_id);
+      if (
+        data.matchData?.tournament_id !== undefined &&
+        data.matchData?.division_id !== undefined
+      ) {
+        await fetchTournamentData(
+          data.matchData.tournament_id,
+          data.matchData.division_id,
+        );
       } else {
         console.error("Missing tournament data in match:", data);
         setError("Missing tournament information in current match");
@@ -153,8 +169,14 @@ const StandingsOverlay: React.FC = () => {
         socketRef.current.on("matchUpdate", (data: CurrentMatchResponse) => {
           console.log("Received match update:", data);
           setMatchWithPlayers(data);
-          if (data.matchData?.tournament_id !== undefined && data.matchData?.division_id !== undefined) {
-            fetchTournamentData(data.matchData.tournament_id, data.matchData.division_id);
+          if (
+            data.matchData?.tournament_id !== undefined &&
+            data.matchData?.division_id !== undefined
+          ) {
+            fetchTournamentData(
+              data.matchData.tournament_id,
+              data.matchData.division_id,
+            );
           }
         });
 
@@ -198,7 +220,9 @@ const StandingsOverlay: React.FC = () => {
   return (
     <div className="flex flex-col items-center">
       <div className="text-black text-4xl font-bold text-center mb-4">
-        {tournament.name} {tournament.lexicon} Division {tournament.divisions[matchWithPlayers.matchData.division_id].name} Standings
+        {tournament.name} {tournament.lexicon} Division{" "}
+        {tournament.divisions[matchWithPlayers.matchData.division_id].name}{" "}
+        Standings
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full">
@@ -239,7 +263,8 @@ const StandingsOverlay: React.FC = () => {
                   {player.averageScore} ({player.averageScoreRankOrdinal})
                 </td>
                 <td className="px-4 py-2 text-center">
-                  {player.averageOpponentScore} ({player.averageOpponentScoreRankOrdinal})
+                  {player.averageOpponentScore} (
+                  {player.averageOpponentScoreRankOrdinal})
                 </td>
                 <td className="px-4 py-2 text-center">{player.highScore}</td>
                 <td

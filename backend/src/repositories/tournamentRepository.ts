@@ -6,7 +6,10 @@ import {
   CreateTournamentParams,
   TwoPlayerStats,
 } from "@shared/types/tournament";
+import { CurrentMatch } from "@shared/types/currentMatch";
+import { MatchWithPlayers } from "@shared/types/admin";
 import {
+  getPlayerRecentGames,
   loadTournamentFile,
   processTournament,
 } from "../services/dataProcessing";
@@ -165,5 +168,49 @@ export class TournamentRepository {
   ): Promise<ProcessedTournament> {
     const rawData = await loadTournamentFile(params.dataUrl);
     return this.create({ ...params, rawData });
+  }
+
+  async getMatchWithPlayers(match: CurrentMatch): Promise<MatchWithPlayers> {
+    const tournament = await this.findById(match.tournament_id);
+    if (!tournament) {
+      throw new Error("Tournament not found");
+    }
+
+    // Get the pairing details
+    const divisionPairings = tournament.divisionPairings[match.division_id];
+    if (!divisionPairings) {
+      throw new Error(`Division ${match.division_id} pairings not found`);
+    }
+
+    const roundPairings = divisionPairings.find(
+      (rp) => rp.round === match.round,
+    );
+    if (!roundPairings) {
+      throw new Error(`Round ${match.round} not found`);
+    }
+
+    const pairing = roundPairings.pairings[match.pairing_id];
+    if (!pairing) {
+      throw new Error(`Pairing ${match.pairing_id} not found`);
+    }
+
+    const division = tournament.divisions[match.division_id];
+    const player1Last5 = getPlayerRecentGames(division, pairing.player1.id);
+    const player2Last5 = getPlayerRecentGames(division, pairing.player2.id);
+
+    // Get player stats using the player IDs from the pairing
+    const playerStats = await this.findTwoPlayerStats(
+      match.tournament_id,
+      match.division_id,
+      pairing.player1.id,
+      pairing.player2.id,
+    );
+
+    return {
+      matchData: match,
+      tournament: playerStats.tournament,
+      players: [playerStats.player1, playerStats.player2],
+      last5: [player1Last5, player2Last5],
+    };
   }
 }

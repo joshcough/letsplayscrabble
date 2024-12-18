@@ -5,6 +5,7 @@ import * as S from "fp-ts/lib/Set"; // Note the /lib/ path
 
 import {
   TournamentData,
+  GameResult,
   Division,
   Pairing,
   PlayerData,
@@ -416,5 +417,57 @@ export function processTournament(tournament: Tournament): ProcessedTournament {
       standings: [],
       divisionPairings: [],
     };
+  }
+}
+
+export function getPlayerRecentGames(
+  division: Division,
+  playerId: number,
+): GameResult[] {
+  try {
+    // Find the player in the division
+    const player = division.players.find((p) => p?.id === playerId);
+    if (!player) {
+      throw new Error(`Player with ID ${playerId} not found in division`);
+    }
+
+    const allGames: GameResult[] = [];
+
+    // First collect all played games
+    for (
+      let roundIndex = 0;
+      roundIndex < player.pairings.length;
+      roundIndex++
+    ) {
+      const opponentId = player.pairings[roundIndex];
+      const playerScore = player.scores[roundIndex];
+
+      // Skip byes (opponent ID of 0)
+      if (opponentId === 0) continue;
+
+      // Find opponent in the original players array
+      const opponent =
+        opponentId === playerId
+          ? player // If the opponent is the same as the player
+          : division.players.find((p) => p?.id === opponentId); // Otherwise find them in the array
+
+      if (!opponent) continue;
+
+      const opponentScore = opponent.scores[roundIndex];
+      if (opponentScore === undefined) continue;
+
+      allGames.push({
+        round: roundIndex + 1,
+        opponentName: formatName(opponent.name),
+        playerScore,
+        opponentScore,
+      });
+    }
+
+    // Return the last 5 (or fewer) games
+    return allGames.slice(-5);
+  } catch (error) {
+    console.error("Error getting recent games:", error);
+    return [];
   }
 }
