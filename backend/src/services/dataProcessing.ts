@@ -183,7 +183,9 @@ export function calculateStandings(division: Division): PlayerStats[] {
             gamesPlayed > 0 ? (totalScore / gamesPlayed).toFixed(1) : "0";
 
           const averageOpponentScore =
-            gamesPlayed > 0 ? (totalOpponentScore / gamesPlayed).toFixed(1) : "0";
+            gamesPlayed > 0
+              ? (totalOpponentScore / gamesPlayed).toFixed(1)
+              : "0";
 
           let rating = 0;
           let ratingDiff = 0;
@@ -226,7 +228,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
             averageScoreRank: 0,
             averageOpponentScoreRank: 0,
             averageScoreRankOrdinal: "0th",
-            averageOpponentScoreRankOrdinal: "0th"
+            averageOpponentScoreRankOrdinal: "0th",
           };
           return stats;
         } catch (error) {
@@ -247,7 +249,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
             averageScoreRank: 0,
             averageOpponentScoreRank: 0,
             averageScoreRankOrdinal: "0th",
-            averageOpponentScoreRankOrdinal: "0th"
+            averageOpponentScoreRankOrdinal: "0th",
           };
           return defaultStats;
         }
@@ -276,7 +278,9 @@ function calculateAllRanks(players: PlayerStats[]): PlayerStats[] {
 
   // Calculate opponent score ranks (lower is better)
   const playersByOpponentScore = [...players].sort((a, b) => {
-    return parseFloat(a.averageOpponentScore) - parseFloat(b.averageOpponentScore);
+    return (
+      parseFloat(a.averageOpponentScore) - parseFloat(b.averageOpponentScore)
+    );
   });
 
   // Create maps for all rankings
@@ -299,7 +303,8 @@ function calculateAllRanks(players: PlayerStats[]): PlayerStats[] {
   // Apply all rankings to players
   return players.map((player) => {
     const averageScoreRank = avgScoreRankMap.get(player.id) ?? 0;
-    const averageOpponentScoreRank = avgOpponentScoreRankMap.get(player.id) ?? 0;
+    const averageOpponentScoreRank =
+      avgOpponentScoreRankMap.get(player.id) ?? 0;
     const rank = rankMap.get(player.id) ?? 0;
 
     return {
@@ -309,7 +314,7 @@ function calculateAllRanks(players: PlayerStats[]): PlayerStats[] {
       averageScoreRank,
       averageScoreRankOrdinal: getOrdinal(averageScoreRank),
       averageOpponentScoreRank,
-      averageOpponentScoreRankOrdinal: getOrdinal(averageOpponentScoreRank)
+      averageOpponentScoreRankOrdinal: getOrdinal(averageOpponentScoreRank),
     };
   });
 }

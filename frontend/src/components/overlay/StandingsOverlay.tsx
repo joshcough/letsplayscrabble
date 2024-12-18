@@ -99,7 +99,7 @@ const StandingsOverlay: React.FC<StandingsOverlayProps> = ({
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`px-4 py-2 text-${column.key === "name" ? "left" : "center"}`}
+                  className={`px-4 py-2 ${column.key === "name" ? "text-left" : "text-center"}`}
                   style={{
                     minWidth:
                       column.key === "name"
@@ -127,9 +127,12 @@ const StandingsOverlay: React.FC<StandingsOverlayProps> = ({
                 <td className="px-4 py-2 text-center">
                   {formatNumberWithSign(player.spread)}
                 </td>
-                <td className="px-4 py-2 text-center">{player.averageScore} ({player.averageScoreRankOrdinal})</td>
                 <td className="px-4 py-2 text-center">
-                  {player.averageOpponentScore} ({player.averageOpponentScoreRankOrdinal})
+                  {player.averageScore} ({player.averageScoreRankOrdinal})
+                </td>
+                <td className="px-4 py-2 text-center">
+                  {player.averageOpponentScore} (
+                  {player.averageOpponentScoreRankOrdinal})
                 </td>
                 <td className="px-4 py-2 text-center">{player.highScore}</td>
                 <td
