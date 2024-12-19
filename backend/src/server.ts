@@ -73,9 +73,17 @@ const io = new SocketIOServer(server, {
     methods: ["GET", "POST"],
     credentials: true,
   },
-  transports: ["websocket", "polling"],
+  transports: ["polling", "websocket"], // Changed order to match client
   pingTimeout: 60000,
   pingInterval: 25000,
+  connectTimeout: 45000, // Added longer connect timeout
+  allowEIO3: true, // Added support for EIO3
+  maxHttpBufferSize: 1e8, // Increased buffer size for large updates
+  // Add connection throttling to prevent too many connections
+  connectionStateRecovery: {
+    maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
+    skipMiddlewares: true,
+  },
 });
 
 app.use(

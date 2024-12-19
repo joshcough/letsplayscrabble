@@ -8,7 +8,6 @@ import { CurrentMatch } from "@shared/types/currentMatch";
 import { PlayerStats } from "@shared/types/tournament";
 import { getPlayerRecentGames } from "../services/dataProcessing";
 
-// Updated request body type
 interface CreateMatchBody {
   tournamentId: number;
   divisionId: number;
