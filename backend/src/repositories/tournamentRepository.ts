@@ -232,6 +232,7 @@ export class TournamentRepository {
       dataUrl: string;
     },
   ): Promise<ProcessedTournament> {
+    const newData = await loadTournamentFile(dataUrl);
     const result = await this.db.query<Tournament>(
       `UPDATE tournaments
        SET name = $1,
@@ -239,10 +240,11 @@ export class TournamentRepository {
            year = $3,
            lexicon = $4,
            long_form_name = $5,
-           data_url = $6
-       WHERE id = $7
+           data_url = $6,
+           data = $7
+       WHERE id = $8
        RETURNING *`,
-      [name, city, year, lexicon, longFormName, dataUrl, id],
+      [name, city, year, lexicon, longFormName, dataUrl, newData, id],
     );
 
     if (!result.rows[0]) {

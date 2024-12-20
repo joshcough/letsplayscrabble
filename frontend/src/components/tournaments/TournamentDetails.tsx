@@ -16,15 +16,13 @@ interface PollingResponse {
 const TournamentDetails: React.FC = () => {
   const params = useParams<RouteParams>();
   const navigate = useNavigate();
-  const [tournament, setTournament] = useState<ProcessedTournament | null>(
-    null,
-  );
+  const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
   const [pollingDays, setPollingDays] = useState<number>(1);
   const [isPolling, setIsPolling] = useState<boolean>(false);
   const [pollUntil, setPollUntil] = useState<Date | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [editedTournament, setEditedTournament] =
-    useState<ProcessedTournament | null>(null);
+  const [editedTournament, setEditedTournament] = useState<ProcessedTournament | null>(null);
+  const [lastUpdateTime, setLastUpdateTime] = useState<number>(Date.now());
 
   useEffect(() => {
     if (tournament) {
@@ -69,14 +67,13 @@ const TournamentDetails: React.FC = () => {
     try {
       if (!editedTournament) return;
 
-      // Only send the editable fields, ensuring they're not undefined
       const editableFields = {
-        name: editedTournament.name || "",
-        city: editedTournament.city || "",
+        name: editedTournament.name || '',
+        city: editedTournament.city || '',
         year: editedTournament.year || 0,
-        lexicon: editedTournament.lexicon || "",
-        longFormName: editedTournament.long_form_name || "",
-        dataUrl: editedTournament.data_url || "",
+        lexicon: editedTournament.lexicon || '',
+        longFormName: editedTournament.long_form_name || '',
+        dataUrl: editedTournament.data_url || '',
       };
 
       await fetchWithAuth(`/api/tournaments/admin/${params.id}`, {
@@ -87,19 +84,16 @@ const TournamentDetails: React.FC = () => {
         body: JSON.stringify(editableFields),
       });
 
-      if (tournament) {
-        // Update only the editable fields in the tournament state
-        // while maintaining the required ProcessedTournament type
-        setTournament({
-          ...tournament,
-          name: editableFields.name,
-          city: editableFields.city,
-          year: editableFields.year,
-          lexicon: editableFields.lexicon,
-          long_form_name: editableFields.longFormName,
-          data_url: editableFields.dataUrl,
-        });
-      }
+      // Trigger a refresh by updating lastUpdateTime
+      setLastUpdateTime(Date.now());
+
+      // After successful update, fetch fresh tournament data
+      const endpoint = params.id
+        ? `/api/tournaments/public/${params.id}`
+        : `/api/tournaments/public/by-name/${editableFields.name}`;
+
+      const freshTournamentData = await fetchWithAuth(endpoint);
+      setTournament(freshTournamentData);
       setIsEditing(false);
     } catch (error) {
       console.error("Error saving tournament changes:", error);
@@ -122,8 +116,7 @@ const TournamentDetails: React.FC = () => {
           ? `/api/tournaments/public/${params.id}`
           : `/api/tournaments/public/by-name/${params.name}`;
 
-        const tournamentData: ProcessedTournament =
-          await fetchWithAuth(endpoint);
+        const tournamentData: ProcessedTournament = await fetchWithAuth(endpoint);
         setTournament(tournamentData);
 
         if (tournamentData.poll_until) {
@@ -239,16 +232,12 @@ const TournamentDetails: React.FC = () => {
               )}
             </div>
             <div className="flex">
-              <span className="text-gray-600 font-medium w-32">
-                Long Form Name:
-              </span>
+              <span className="text-gray-600 font-medium w-32">Long Form Name:</span>
               {isEditing ? (
                 <input
                   type="text"
                   value={editedTournament.long_form_name || ""}
-                  onChange={(e) =>
-                    handleInputChange("long_form_name", e.target.value)
-                  }
+                  onChange={(e) => handleInputChange("long_form_name", e.target.value)}
                   className="px-2 py-1 border rounded"
                 />
               ) : (
@@ -261,9 +250,7 @@ const TournamentDetails: React.FC = () => {
                 <input
                   type="text"
                   value={editedTournament.data_url || ""}
-                  onChange={(e) =>
-                    handleInputChange("data_url", e.target.value)
-                  }
+                  onChange={(e) => handleInputChange("data_url", e.target.value)}
                   className="px-2 py-1 border rounded"
                 />
               ) : (
@@ -271,9 +258,7 @@ const TournamentDetails: React.FC = () => {
               )}
             </div>
             <div className="flex">
-              <span className="text-gray-600 font-medium w-32">
-                Auto-Update:
-              </span>
+              <span className="text-gray-600 font-medium w-32">Auto-Update:</span>
               <div className="flex items-center space-x-4">
                 {isPolling ? (
                   <div className="flex items-center space-x-4">
@@ -330,6 +315,7 @@ const TournamentDetails: React.FC = () => {
                 <TournamentStandings
                   tournamentId={params.id}
                   divisionName={division.name}
+                  key={`${division.name}-${lastUpdateTime}`}
                 />
               </div>
             ))}
