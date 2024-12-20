@@ -7,15 +7,24 @@ const GameHistoryDisplay = ({
   games: GameResult[];
   side: "player1" | "player2";
 }) => {
-  if (!games || games.length === 0) return null;
+  if (!games || games.length === 0) {
+    return null;
+  }
+
+  const reversedGames = [...games].reverse();
+  const headerText =
+    games.length === 1 ? "Last Game:" : `Last ${games.length} Games:`;
 
   return (
-    <div className="mt-4 space-y-2" data-obs={`${side}-game-history`}>
-      <h3 className="font-semibold">Recent Games:</h3>
-      {games.map((game, index) => (
+    <div
+      className="mt-4 flex flex-col items-start"
+      data-obs={`${side}-game-history`}
+    >
+      <div className="text-base w-full text-left">{headerText}</div>
+      {reversedGames.map((game, index) => (
         <div
           key={`${game.round}-${index}`}
-          className="text-sm"
+          className="text-base w-full text-left"
           data-obs={`${side}-game-${index + 1}`}
         >
           Round {game.round}: {game.playerScore}-{game.opponentScore} vs{" "}

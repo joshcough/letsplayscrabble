@@ -54,9 +54,11 @@ export interface RoundPairings {
 export interface PlayerStats {
   id: number;
   name: string;
+  firstLast: string;
   rating: number;
   ratingDiff: number;
-  firstLast: string;
+  seed: number;
+  seedOrdinal: string;
   wins: number;
   losses: number;
   ties: number;

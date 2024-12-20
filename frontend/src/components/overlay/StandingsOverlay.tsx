@@ -220,7 +220,7 @@ const StandingsOverlay: React.FC = () => {
   return (
     <div className="flex flex-col items-center">
       <div className="text-black text-4xl font-bold text-center mb-4">
-        {tournament.name} {tournament.lexicon} Division{" "}
+        {tournament.name} {tournament.lexicon} Div{" "}
         {tournament.divisions[matchWithPlayers.matchData.division_id].name}{" "}
         Standings
       </div>
