@@ -268,12 +268,17 @@ const StatsOverlay: React.FC = () => {
           return (
             <div>
               <div className="text-black">
-                <PointsDisplay stats={player} side={source === "player1-points" ? "player1" : "player2"}/>
+                <PointsDisplay
+                  stats={player}
+                  side={source === "player1-points" ? "player1" : "player2"}
+                />
               </div>
               <div className="text-black">
                 <GameHistoryDisplay
                   games={games}
-                  side={source === "player1-game-history" ? "player1" : "player2"}
+                  side={
+                    source === "player1-game-history" ? "player1" : "player2"
+                  }
                 />
               </div>
             </div>
