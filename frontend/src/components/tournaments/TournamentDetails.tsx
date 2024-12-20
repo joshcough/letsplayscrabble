@@ -22,6 +22,15 @@ const TournamentDetails: React.FC = () => {
   const [pollingDays, setPollingDays] = useState<number>(1);
   const [isPolling, setIsPolling] = useState<boolean>(false);
   const [pollUntil, setPollUntil] = useState<Date | null>(null);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [editedTournament, setEditedTournament] =
+    useState<ProcessedTournament | null>(null);
+
+  useEffect(() => {
+    if (tournament) {
+      setEditedTournament(tournament);
+    }
+  }, [tournament]);
 
   const handleEnablePolling = async () => {
     try {
@@ -56,6 +65,56 @@ const TournamentDetails: React.FC = () => {
     }
   };
 
+  const handleSaveChanges = async () => {
+    try {
+      if (!editedTournament) return;
+
+      // Only send the editable fields, ensuring they're not undefined
+      const editableFields = {
+        name: editedTournament.name || "",
+        city: editedTournament.city || "",
+        year: editedTournament.year || 0,
+        lexicon: editedTournament.lexicon || "",
+        longFormName: editedTournament.long_form_name || "",
+        dataUrl: editedTournament.data_url || "",
+      };
+
+      await fetchWithAuth(`/api/tournaments/admin/${params.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editableFields),
+      });
+
+      if (tournament) {
+        // Update only the editable fields in the tournament state
+        // while maintaining the required ProcessedTournament type
+        setTournament({
+          ...tournament,
+          name: editableFields.name,
+          city: editableFields.city,
+          year: editableFields.year,
+          lexicon: editableFields.lexicon,
+          long_form_name: editableFields.longFormName,
+          data_url: editableFields.dataUrl,
+        });
+      }
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error saving tournament changes:", error);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    if (editedTournament) {
+      setEditedTournament({
+        ...editedTournament,
+        [field]: value,
+      });
+    }
+  };
+
   useEffect(() => {
     const fetchTournamentData = async () => {
       try {
@@ -67,7 +126,6 @@ const TournamentDetails: React.FC = () => {
           await fetchWithAuth(endpoint);
         setTournament(tournamentData);
 
-        // Set polling status if poll_until exists
         if (tournamentData.poll_until) {
           const pollUntilDate = new Date(tournamentData.poll_until);
           setIsPolling(pollUntilDate > new Date());
@@ -83,20 +141,59 @@ const TournamentDetails: React.FC = () => {
     fetchTournamentData();
   }, [params.id, params.name]);
 
-  if (!tournament) {
+  if (!tournament || !editedTournament) {
     return <div>Loading...</div>;
   }
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold">{tournament.name}</h2>
-        <button
-          onClick={() => navigate("/tournaments")}
-          className="px-4 py-2 border rounded hover:bg-gray-50"
-        >
-          Back to List
-        </button>
+        <h2 className="text-2xl font-bold">
+          {isEditing ? (
+            <input
+              type="text"
+              value={editedTournament.name}
+              onChange={(e) => handleInputChange("name", e.target.value)}
+              className="px-2 py-1 border rounded w-full"
+            />
+          ) : (
+            tournament.name
+          )}
+        </h2>
+        <div className="flex gap-2">
+          {isEditing ? (
+            <>
+              <button
+                onClick={handleSaveChanges}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditedTournament(tournament);
+                }}
+                className="px-4 py-2 border rounded hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200"
+            >
+              Edit
+            </button>
+          )}
+          <button
+            onClick={() => navigate("/tournaments")}
+            className="px-4 py-2 border rounded hover:bg-gray-50"
+          >
+            Back to List
+          </button>
+        </div>
       </div>
       <div className="space-y-4">
         <div>
@@ -104,25 +201,74 @@ const TournamentDetails: React.FC = () => {
           <div className="mt-2 p-4 bg-gray-50 rounded-lg space-y-2">
             <div className="flex">
               <span className="text-gray-600 font-medium w-32">City:</span>
-              <span>{tournament.city || "N/A"}</span>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editedTournament.city || ""}
+                  onChange={(e) => handleInputChange("city", e.target.value)}
+                  className="px-2 py-1 border rounded"
+                />
+              ) : (
+                <span>{tournament.city || "N/A"}</span>
+              )}
             </div>
             <div className="flex">
               <span className="text-gray-600 font-medium w-32">Year:</span>
-              <span>{tournament.year || "N/A"}</span>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editedTournament.year || ""}
+                  onChange={(e) => handleInputChange("year", e.target.value)}
+                  className="px-2 py-1 border rounded"
+                />
+              ) : (
+                <span>{tournament.year || "N/A"}</span>
+              )}
             </div>
             <div className="flex">
               <span className="text-gray-600 font-medium w-32">Lexicon:</span>
-              <span>{tournament.lexicon || "N/A"}</span>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editedTournament.lexicon || ""}
+                  onChange={(e) => handleInputChange("lexicon", e.target.value)}
+                  className="px-2 py-1 border rounded"
+                />
+              ) : (
+                <span>{tournament.lexicon || "N/A"}</span>
+              )}
             </div>
             <div className="flex">
               <span className="text-gray-600 font-medium w-32">
                 Long Form Name:
               </span>
-              <span>{tournament.long_form_name || "N/A"}</span>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editedTournament.long_form_name || ""}
+                  onChange={(e) =>
+                    handleInputChange("long_form_name", e.target.value)
+                  }
+                  className="px-2 py-1 border rounded"
+                />
+              ) : (
+                <span>{tournament.long_form_name || "N/A"}</span>
+              )}
             </div>
             <div className="flex">
               <span className="text-gray-600 font-medium w-32">Data URL:</span>
-              <span>{tournament.data_url || "N/A"}</span>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editedTournament.data_url || ""}
+                  onChange={(e) =>
+                    handleInputChange("data_url", e.target.value)
+                  }
+                  className="px-2 py-1 border rounded"
+                />
+              ) : (
+                <span>{tournament.data_url || "N/A"}</span>
+              )}
             </div>
             <div className="flex">
               <span className="text-gray-600 font-medium w-32">

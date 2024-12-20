@@ -213,4 +213,46 @@ export class TournamentRepository {
       last5: [player1Last5, player2Last5],
     };
   }
+
+  async update(
+    id: number,
+    {
+      name,
+      city,
+      year,
+      lexicon,
+      longFormName,
+      dataUrl,
+    }: {
+      name: string;
+      city: string;
+      year: number;
+      lexicon: string;
+      longFormName: string;
+      dataUrl: string;
+    },
+  ): Promise<ProcessedTournament> {
+    const result = await this.db.query<Tournament>(
+      `UPDATE tournaments
+       SET name = $1,
+           city = $2,
+           year = $3,
+           lexicon = $4,
+           long_form_name = $5,
+           data_url = $6
+       WHERE id = $7
+       RETURNING *`,
+      [name, city, year, lexicon, longFormName, dataUrl, id],
+    );
+
+    if (!result.rows[0]) {
+      throw new Error(`Tournament ${id} not found`);
+    }
+
+    const processed = processTournament(result.rows[0]);
+    if (!processed) {
+      throw new Error("Failed to process updated tournament data");
+    }
+    return processed;
+  }
 }

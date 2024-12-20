@@ -25,6 +25,15 @@ interface TournamentNameParams extends ParamsDictionary {
   name: string;
 }
 
+interface UpdateTournamentBody {
+  name: string;
+  city: string;
+  year: number;
+  lexicon: string;
+  longFormName: string;
+  dataUrl: string;
+}
+
 export function protectedTournamentRoutes(
   tournamentRepository: TournamentRepository,
 ): Router {
@@ -149,12 +158,40 @@ export function protectedTournamentRoutes(
     }
   };
 
+  const updateTournament: RequestHandler<
+    TournamentIdParams,
+    any,
+    UpdateTournamentBody
+  > = async (req, res) => {
+    const { id } = req.params;
+    const { name, city, year, lexicon, longFormName, dataUrl } = req.body;
+
+    try {
+      const tournament = await tournamentRepository.update(parseInt(id, 10), {
+        name,
+        city,
+        year,
+        lexicon,
+        longFormName,
+        dataUrl,
+      });
+
+      res.json(tournament);
+    } catch (error) {
+      console.error("Database error:", error);
+      res.status(400).json({
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  };
+
   router.get("/", getAllTournaments);
   router.get("/:id", getTournamentById);
   router.get("/by-name/:name", getTournamentByName);
   router.post("/", createTournament);
   router.post("/:id/polling", startPolling);
   router.delete("/:id/polling", stopPolling);
+  router.put("/:id", updateTournament);
 
   return router;
 }
