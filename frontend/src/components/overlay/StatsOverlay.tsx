@@ -250,7 +250,7 @@ const StatsOverlay: React.FC = () => {
           return (
             <div className="text-black">
               {player?.wins || 0}-{player?.losses || 0}-{player?.ties || 0}{" "}
-              {player?.spread || "N/A"}
+              {(player1?.spread && player1.spread > 0 ? "+" : "") + (player1?.spread || "+0")}
               {" | "}
               {player?.rankOrdinal || "N/A"}
               {" Place"}
@@ -321,7 +321,7 @@ const StatsOverlay: React.FC = () => {
             High Score: {player1?.highScore || "N/A"}
           </div>
           <div data-obs="player1-spread">
-            Spread: {player1?.spread || "N/A"}
+            Spread: {player1?.spread || "+0"}
           </div>
           <div data-obs="player1-rank">Rank: {player1?.rank || "N/A"}</div>
           <div data-obs="player1-rank-ordinal">
@@ -333,7 +333,7 @@ const StatsOverlay: React.FC = () => {
           <div data-obs="player1-under-cam">
             Rating: {player1?.rating || "N/A"} {" | "}
             {player1?.wins || 0}-{player1?.losses || 0}-{player1?.ties || 0}{" "}
-            {player1?.spread || "N/A"}
+            {(player1?.spread && player1.spread > 0 ? "+" : "") + (player1?.spread || "+0")}
             {" | "}
             {player1?.rankOrdinal || "N/A"}
           </div>
@@ -362,7 +362,7 @@ const StatsOverlay: React.FC = () => {
             High Score: {player2?.highScore || "N/A"}
           </div>
           <div data-obs="player2-spread">
-            Spread: {player2?.spread || "N/A"}
+            Spread: {player2?.spread || "+0"}
           </div>
           <div data-obs="player2-rank">Rank: {player2?.rank || "N/A"}</div>
           <div data-obs="player2-rank-ordinal">
@@ -374,7 +374,7 @@ const StatsOverlay: React.FC = () => {
           <div data-obs="player2-under-cam">
             Rating: {player2?.rating || "N/A"} {" | "}
             {player2?.wins || 0}-{player2?.losses || 0}-{player2?.ties || 0}{" "}
-            {player2?.spread || "N/A"}
+            {player2?.spread || "+0"}
             {" | "}
             {player2?.rankOrdinal || "N/A"}
           </div>

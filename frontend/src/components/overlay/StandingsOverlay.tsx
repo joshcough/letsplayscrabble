@@ -218,7 +218,7 @@ const StandingsOverlay: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center pt-8 font-bold">
       <div className="text-black text-4xl font-bold text-center mb-4">
         {tournament.name} {tournament.lexicon} Div{" "}
         {tournament.divisions[matchWithPlayers.matchData.division_id].name}{" "}
@@ -237,9 +237,9 @@ const StandingsOverlay: React.FC = () => {
                       column.key === "name"
                         ? "200px"
                         : ["wins", "losses", "ties"].includes(column.key)
-                          ? "80px"
+                          ? "50px"
                           : ["rank"].includes(column.key)
-                            ? "80px"
+                            ? "50px"
                             : "100px",
                   }}
                 >
@@ -260,11 +260,14 @@ const StandingsOverlay: React.FC = () => {
                   {formatNumberWithSign(player.spread)}
                 </td>
                 <td className="px-4 py-2 text-center">
-                  {player.averageScore} ({player.averageScoreRankOrdinal})
+                  {player.averageScore}
+                  <span className="mx-2"></span>
+                  ({player.averageScoreRankOrdinal})
                 </td>
                 <td className="px-4 py-2 text-center">
-                  {player.averageOpponentScore} (
-                  {player.averageOpponentScoreRankOrdinal})
+                  {player.averageOpponentScore}
+                  <span className="mx-2"></span>
+                  ({player.averageOpponentScoreRankOrdinal})
                 </td>
                 <td className="px-4 py-2 text-center">{player.highScore}</td>
                 <td
