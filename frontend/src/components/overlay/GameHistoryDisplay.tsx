@@ -16,9 +16,10 @@ const GameHistoryDisplay = ({
     games.length === 1 ? "Last Game:" : `Last ${games.length} Games:`;
 
   const getGameResult = (game: GameResult) => {
-    const isWin = side === "player1"
-      ? game.playerScore > game.opponentScore
-      : game.opponentScore > game.playerScore;
+    const isWin =
+      side === "player1"
+        ? game.playerScore > game.opponentScore
+        : game.opponentScore > game.playerScore;
     return isWin ? "Win" : "Loss";
   };
 
@@ -36,8 +37,12 @@ const GameHistoryDisplay = ({
               data-obs={`${side}-game-${index + 1}`}
             >
               <td className="whitespace-nowrap">Round {game.round}:</td>
-              <td className="whitespace-nowrap">{game.playerScore}-{game.opponentScore}</td>
-              <td className={`whitespace-nowrap font-extrabold ${getGameResult(game) === 'Win' ? 'text-red-600' : 'text-blue-600'}`}>
+              <td className="whitespace-nowrap">
+                {game.playerScore}-{game.opponentScore}
+              </td>
+              <td
+                className={`whitespace-nowrap font-extrabold ${getGameResult(game) === "Win" ? "text-red-600" : "text-blue-600"}`}
+              >
                 {getGameResult(game)}
               </td>
               <td>vs {game.opponentName}</td>

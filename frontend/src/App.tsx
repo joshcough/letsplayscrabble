@@ -12,6 +12,8 @@ import Navigation from "./components/common/Navigation";
 import HomePage from "./pages/HomePage";
 import AdminPage from "./pages/admin/AdminPage";
 import OverlayPage from "./pages/overlay/OverlayPage";
+import RatingGainOverlayPage from "./pages/overlay/RatingGainOverlayPage";
+import ScoringLeadersOverlayPage from "./pages/overlay/ScoringLeadersOverlayPage";
 import StandingsOverlayPage from "./pages/overlay/StandingsOverlayPage";
 import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
@@ -35,6 +37,14 @@ const AppContent: React.FC = () => {
         <Route path="/login" element={<AdminLogin />} />
         <Route path="/overlay/misc" element={<OverlayPage />} />
         <Route path="/overlay/standings" element={<StandingsOverlayPage />} />
+        <Route
+          path="/overlay/rating_gain"
+          element={<RatingGainOverlayPage />}
+        />
+        <Route
+          path="/overlay/scoring_leaders"
+          element={<ScoringLeadersOverlayPage />}
+        />
 
         {/* Protected Routes */}
         <Route

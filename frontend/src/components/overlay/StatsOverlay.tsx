@@ -215,7 +215,7 @@ const StatsOverlay: React.FC = () => {
         case "player2-average-score":
           return (
             <div className="text-black">
-              Average Score: {player?.averageScore || "N/A"}
+              Average Score: {player?.averageScoreRounded || "N/A"}
             </div>
           );
         case "player1-high-score":
@@ -243,14 +243,17 @@ const StatsOverlay: React.FC = () => {
         case "player1-rating":
         case "player2-rating":
           return (
-            <div className="text-black">Rating: {player?.rating || "N/A"}</div>
+            <div className="text-black">
+              Rating: {player?.currentRating || "N/A"}
+            </div>
           );
         case "player1-under-cam":
         case "player2-under-cam":
           return (
             <div className="text-black">
               {player?.wins || 0}-{player?.losses || 0}-{player?.ties || 0}{" "}
-              {(player1?.spread && player1.spread > 0 ? "+" : "") + (player1?.spread || "+0")}
+              {(player1?.spread && player1.spread > 0 ? "+" : "") +
+                (player1?.spread || "+0")}
               {" | "}
               {player?.rankOrdinal || "N/A"}
               {" Place"}
@@ -315,25 +318,24 @@ const StatsOverlay: React.FC = () => {
             {player1?.ties || 0}
           </div>
           <div data-obs="player1-average-score">
-            Average Score: {player1?.averageScore || "N/A"}
+            Average Score: {player1?.averageScoreRounded || "N/A"}
           </div>
           <div data-obs="player1-high-score">
             High Score: {player1?.highScore || "N/A"}
           </div>
-          <div data-obs="player1-spread">
-            Spread: {player1?.spread || "+0"}
-          </div>
+          <div data-obs="player1-spread">Spread: {player1?.spread || "+0"}</div>
           <div data-obs="player1-rank">Rank: {player1?.rank || "N/A"}</div>
           <div data-obs="player1-rank-ordinal">
             Rank Ordinal: {player1?.rankOrdinal || "N/A"}
           </div>
           <div data-obs="player1-rating">
-            Rating: {player1?.rating || "N/A"}
+            Rating: {player1?.currentRating || "N/A"}
           </div>
           <div data-obs="player1-under-cam">
-            Rating: {player1?.rating || "N/A"} {" | "}
+            Rating: {player1?.currentRating || "N/A"} {" | "}
             {player1?.wins || 0}-{player1?.losses || 0}-{player1?.ties || 0}{" "}
-            {(player1?.spread && player1.spread > 0 ? "+" : "") + (player1?.spread || "+0")}
+            {(player1?.spread && player1.spread > 0 ? "+" : "") +
+              (player1?.spread || "+0")}
             {" | "}
             {player1?.rankOrdinal || "N/A"}
           </div>
@@ -356,23 +358,21 @@ const StatsOverlay: React.FC = () => {
             {player2?.ties || 0}
           </div>
           <div data-obs="player2-average-score">
-            Average Score: {player2?.averageScore || "N/A"}
+            Average Score: {player2?.averageScoreRounded || "N/A"}
           </div>
           <div data-obs="player2-high-score">
             High Score: {player2?.highScore || "N/A"}
           </div>
-          <div data-obs="player2-spread">
-            Spread: {player2?.spread || "+0"}
-          </div>
+          <div data-obs="player2-spread">Spread: {player2?.spread || "+0"}</div>
           <div data-obs="player2-rank">Rank: {player2?.rank || "N/A"}</div>
           <div data-obs="player2-rank-ordinal">
             Rank Ordinal: {player2?.rankOrdinal || "N/A"}
           </div>
           <div data-obs="player2-rating">
-            Rating: {player2?.rating || "N/A"}
+            Rating: {player2?.currentRating || "N/A"}
           </div>
           <div data-obs="player2-under-cam">
-            Rating: {player2?.rating || "N/A"} {" | "}
+            Rating: {player2?.currentRating || "N/A"} {" | "}
             {player2?.wins || 0}-{player2?.losses || 0}-{player2?.ties || 0}{" "}
             {player2?.spread || "+0"}
             {" | "}

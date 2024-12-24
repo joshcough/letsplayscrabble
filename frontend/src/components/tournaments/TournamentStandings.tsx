@@ -35,7 +35,7 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({
     { key: "losses", label: "L", sortable: true },
     { key: "ties", label: "T", sortable: true },
     { key: "spread", label: "Spread", sortable: true },
-    { key: "averageScore", label: "Average", sortable: true },
+    { key: "averageScoreRounded", label: "Average", sortable: true },
     { key: "highScore", label: "High", sortable: true },
     { key: "ratingDiff", label: "Rating Change", sortable: true },
   ];
@@ -180,7 +180,7 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({
               <td className="px-4 py-2 text-center border">{player.ties}</td>
               <td className="px-4 py-2 text-right border">{player.spread}</td>
               <td className="px-4 py-2 text-right border">
-                {player.averageScore}
+                {player.averageScoreRounded}
               </td>
               <td className="px-4 py-2 text-right border">
                 {player.highScore}

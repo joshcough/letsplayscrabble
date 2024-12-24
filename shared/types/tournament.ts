@@ -55,7 +55,8 @@ export interface PlayerStats {
   id: number;
   name: string;
   firstLast: string;
-  rating: number;
+  initialRating: number;
+  currentRating: number;
   ratingDiff: number;
   seed: number;
   seedOrdinal: string;
@@ -63,7 +64,8 @@ export interface PlayerStats {
   losses: number;
   ties: number;
   spread: number;
-  averageScore: string; // this is a string because its rounded to two decimal places
+  averageScore: number;
+  averageScoreRounded: string; // this is a string because its rounded to two decimal places
   averageOpponentScore: string;
   averageScoreRank: number;
   averageOpponentScoreRank: number;

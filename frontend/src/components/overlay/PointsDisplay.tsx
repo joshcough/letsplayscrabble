@@ -15,7 +15,7 @@ const PointsDisplay = ({
             className="text-base w-full text-left"
             data-obs={`${side}-points-for`}
           >
-            Avg Points For: {stats.averageScore}
+            Avg Points For: {stats.averageScoreRounded}
           </div>
           <div className="text-base w-full text-left">
             Ranked: {stats.averageScoreRankOrdinal}

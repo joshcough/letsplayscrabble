@@ -26,7 +26,7 @@ interface CurrentMatchResponse {
   }>;
 }
 
-const StandingsOverlay: React.FC = () => {
+const RatingGainOverlay: React.FC = () => {
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
   const [tournament, setTournament] = useState<ProcessedTournament | null>(
     null,
@@ -43,14 +43,9 @@ const StandingsOverlay: React.FC = () => {
   const columns = [
     { key: "rank", label: "Rank" },
     { key: "name", label: "Name" },
-    { key: "wins", label: "Wins" },
-    { key: "losses", label: "Losses" },
-    { key: "ties", label: "Ties" },
-    { key: "spread", label: "Spread" },
-    { key: "averageScoreRounded", label: "Avg Pts For" },
-    { key: "averageOpponentScore", label: "Avg Pts Ag" },
-    { key: "highScore", label: "High" },
     { key: "ratingDiff", label: "Rating +/-" },
+    { key: "currentRating", label: "New Rating" },
+    { key: "initialRating", label: "Old Rating" },
   ];
 
   const formatNumberWithSign = (value: number) => {
@@ -59,9 +54,7 @@ const StandingsOverlay: React.FC = () => {
 
   const calculateRanks = (players: PlayerStats[]): PlayerStats[] => {
     const sortedPlayers = [...players].sort((a, b) => {
-      if (a.wins !== b.wins) return b.wins - a.wins;
-      if (a.losses !== b.losses) return a.losses - b.losses;
-      return b.spread - a.spread;
+      return b.ratingDiff - a.ratingDiff;
     });
 
     return sortedPlayers.map((player, index) => ({
@@ -222,7 +215,7 @@ const StandingsOverlay: React.FC = () => {
       <div className="text-black text-4xl font-bold text-center mb-4">
         {tournament.name} {tournament.lexicon} Div{" "}
         {tournament.divisions[matchWithPlayers.matchData.division_id].name}{" "}
-        Standings
+        Rating Gain Leaders
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full">
@@ -253,29 +246,18 @@ const StandingsOverlay: React.FC = () => {
               <tr key={player.name} className="bg-white">
                 <td className="px-4 py-2 text-center">{player.rank}</td>
                 <td className="px-4 py-2">{player.name}</td>
-                <td className="px-4 py-2 text-center">{player.wins}</td>
-                <td className="px-4 py-2 text-center">{player.losses}</td>
-                <td className="px-4 py-2 text-center">{player.ties}</td>
-                <td className="px-4 py-2 text-center">
-                  {formatNumberWithSign(player.spread)}
-                </td>
-                <td className="px-4 py-2 text-center">
-                  {player.averageScoreRounded}
-                  <span className="mx-2"></span>(
-                  {player.averageScoreRankOrdinal})
-                </td>
-                <td className="px-4 py-2 text-center">
-                  {player.averageOpponentScore}
-                  <span className="mx-2"></span>(
-                  {player.averageOpponentScoreRankOrdinal})
-                </td>
-                <td className="px-4 py-2 text-center">{player.highScore}</td>
                 <td
                   className={`px-4 py-2 text-center ${
                     player.ratingDiff > 0 ? "text-red-600" : "text-blue-600"
                   }`}
                 >
                   {formatNumberWithSign(player.ratingDiff)}
+                </td>
+                <td className="px-4 py-2 text-center">
+                  {player.currentRating}
+                </td>
+                <td className="px-4 py-2 text-center">
+                  {player.initialRating}
                 </td>
               </tr>
             ))}
@@ -286,4 +268,4 @@ const StandingsOverlay: React.FC = () => {
   );
 };
 
-export default StandingsOverlay;
+export default RatingGainOverlay;

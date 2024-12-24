@@ -180,15 +180,15 @@ export function calculateStandings(division: Division): PlayerStats[] {
             }
           });
 
-          const averageScore =
-            gamesPlayed > 0 ? (totalScore / gamesPlayed).toFixed(1) : "0";
+          const averageScore = gamesPlayed > 0 ? totalScore / gamesPlayed : 0;
+          const averageScoreRounded = averageScore.toFixed(1);
 
           const averageOpponentScore =
             gamesPlayed > 0
               ? (totalOpponentScore / gamesPlayed).toFixed(1)
               : "0";
 
-          let rating = 0;
+          let currentRating = 0;
           let ratingDiff = 0;
           try {
             if (
@@ -196,12 +196,13 @@ export function calculateStandings(division: Division): PlayerStats[] {
               playerData.etc.newr &&
               Array.isArray(playerData.etc.newr)
             ) {
-              rating = playerData.etc.newr[playerData.etc.newr.length - 1] ?? 0;
-              if (isNaN(rating)) {
+              currentRating =
+                playerData.etc.newr[playerData.etc.newr.length - 1] ?? 0;
+              if (isNaN(currentRating)) {
                 console.log("Invalid rating for player:", playerData.name);
-                rating = 0;
+                currentRating = 0;
               }
-              ratingDiff = rating - playerData.rating;
+              ratingDiff = currentRating - playerData.rating;
             } else {
               console.log("Missing rating data for player:", playerData.name);
             }
@@ -216,7 +217,8 @@ export function calculateStandings(division: Division): PlayerStats[] {
           const stats: PlayerStats = {
             id: playerData.id,
             name: playerData.name || "Unknown Player",
-            rating,
+            initialRating: playerData.rating,
+            currentRating,
             ratingDiff,
             seed: playerData.id,
             seedOrdinal: getOrdinal(playerData.id),
@@ -226,6 +228,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
             ties,
             spread: totalSpread,
             averageScore,
+            averageScoreRounded,
             averageOpponentScore,
             highScore,
             averageScoreRank: 0,
@@ -239,7 +242,8 @@ export function calculateStandings(division: Division): PlayerStats[] {
           const defaultStats: PlayerStats = {
             id: playerData.id || 0,
             name: playerData.name || "Unknown Player",
-            rating: 0,
+            initialRating: 0,
+            currentRating: 0,
             ratingDiff: 0,
             seed: 0,
             seedOrdinal: "0th",
@@ -248,7 +252,8 @@ export function calculateStandings(division: Division): PlayerStats[] {
             losses: 0,
             ties: 0,
             spread: 0,
-            averageScore: "0",
+            averageScore: 0,
+            averageScoreRounded: "0",
             averageOpponentScore: "0",
             highScore: 0,
             averageScoreRank: 0,
@@ -278,7 +283,7 @@ function calculateAllRanks(players: PlayerStats[]): PlayerStats[] {
 
   // Calculate average score ranks (higher is better)
   const playersByAvgScore = [...players].sort((a, b) => {
-    return parseFloat(b.averageScore) - parseFloat(a.averageScore);
+    return b.averageScore - a.averageScore;
   });
 
   // Calculate opponent score ranks (lower is better)
