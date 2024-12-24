@@ -252,8 +252,8 @@ const StatsOverlay: React.FC = () => {
           return (
             <div className="text-black">
               {player?.wins || 0}-{player?.losses || 0}-{player?.ties || 0}{" "}
-              {(player1?.spread && player1.spread > 0 ? "+" : "") +
-                (player1?.spread || "+0")}
+              {(player?.spread && player.spread > 0 ? "+" : "") +
+                (player?.spread || "+0")}
               {" | "}
               {player?.rankOrdinal || "N/A"}
               {" Place"}
