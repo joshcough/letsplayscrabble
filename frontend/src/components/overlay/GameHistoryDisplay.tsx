@@ -16,10 +16,7 @@ const GameHistoryDisplay = ({
     games.length === 1 ? "Last Game:" : `Last ${games.length} Games:`;
 
   const getGameResult = (game: GameResult) => {
-    const isWin =
-      side === "player1"
-        ? game.playerScore > game.opponentScore
-        : game.opponentScore > game.playerScore;
+    const isWin = game.playerScore > game.opponentScore
     return isWin ? "Win" : "Loss";
   };
 
