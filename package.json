@@ -2,16 +2,23 @@
   "name": "letsplayscrabble",
   "version": "1.0.0",
   "engines": {
-    "node": "18.x"
+    "node": "21.x"
   },
   "scripts": {
     "postinstall": "cd frontend && npm install && npm run build && cd ../backend && npm install",
     "start": "node backend/dist/backend/backend/src/server.js",
     "format": "prettier --write \"backend/**/*.{js,ts}\" \"frontend/**/*.{js,jsx,ts,tsx}\"",
     "heroku-prebuild": "cd frontend && npm install && cd ../backend && npm install",
-    "heroku-postbuild": "cd frontend && npm install && npm run build && cd ../backend && cp -r ../shared . && npm install && npm run build"
+    "build:frontend": "cd frontend && npm install && npm run build",
+    "build:backend": "cd backend && cp -r ../shared . && npm install && npm run build",
+    "migrate": "cd backend && npx knex migrate:latest --knexfile ./knexfile.js",
+    "heroku-postbuild": "npm run build:frontend && npm run build:backend && npm run migrate"
   },
   "devDependencies": {
     "prettier": "^3.3.3"
+  },
+  "dependencies": {
+    "knex": "^3.1.0",
+    "pg": "^8.13.1"
   }
 }
