@@ -12,11 +12,23 @@
 
 ### To run migrations
 
-#### Locally 
+* Locally 
 
 `npx knex migrate:up --knexfile ./knexfile.js`
 
-#### In production
+* In production
+
+Just deploy and it'll run automatically.
+
+### Rolling back
+
+* Locally
+
+`npx knex migrate:rollback`
+
+* In production
+
+I don't know. 
 
 ### Backing up Heroku
 
@@ -44,7 +56,16 @@ pg_restore --verbose --clean --no-acl --no-owner -h localhost -U scrabble_user -
 `INSERT INTO knex_migrations (name, batch, migration_time)
 VALUES ('20241229235425_initial_schema.js', 1, CURRENT_TIMESTAMP);`
 
+
+
+
+
+
+
+
 ```
+other notes:
+
 what if i have more migrations after the initial one?
 
 
@@ -71,5 +92,25 @@ This time it will skip the initial migration (because we inserted the record) an
 
 Want me to help you through this process when you're ready to deploy?
 
+
+
+By default, `knex migrate:rollback` only rolls back one batch of migrations at a time. A batch is all the migrations that were run together in a single `migrate:latest` command.
+
+You can verify what migrations are in what batch by running:
+```bash
+npx knex migrate:status
+```
+
+If you want to be extra careful, you can also specify rolling back a single migration with:
+```bash
+npx knex migrate:down 20241231023909_players_and_games.js
+```
+
+(Using your specific migration filename)
+
+Also, if you want to see what would be rolled back without actually doing it, you can use:
+```bash
+npx knex migrate:rollback --dry-run
+```
 
 ```
