@@ -37,6 +37,13 @@ export class TournamentRepository {
 
     const tournament = result.rows[0];
     const processed = processTournament(tournament);
+
+    // here all we do is insert the tourney into the db
+    // but we need to insert all the players and games here
+    // but of course, not if they already
+    // so, we need a players repo and a games repo
+    // and we need to loop through all the divisions and players to insert them
+    // then loop through all the divisions and games and add those too.
     if (!processed) {
       throw new Error("Failed to process tournament after creation");
     }
@@ -162,13 +169,14 @@ export class TournamentRepository {
     );
   }
 
-  // Helper method for initial tournament creation
-  async createFromUrl(
-    params: Omit<CreateTournamentParams, "rawData">,
-  ): Promise<ProcessedTournament> {
-    const rawData = await loadTournamentFile(params.dataUrl);
-    return this.create({ ...params, rawData });
-  }
+//   // ZZZ
+//   // Helper method for initial tournament creation
+//   async createFromUrl(
+//     params: Omit<CreateTournamentParams, "rawData">,
+//   ): Promise<ProcessedTournament> {
+//     const rawData = await loadTournamentFile(params.dataUrl);
+//     return this.create({ ...params, rawData });
+//   }
 
   async getMatchWithPlayers(match: CurrentMatch): Promise<MatchWithPlayers> {
     const tournament = await this.findById(match.tournament_id);

@@ -2,7 +2,13 @@
 
 ## TODO
 
-1. Read the google sheet from python to get all the scores for the tourney
-2. Add the following to the admin page when players are selected:
-  Wins, Losses, Ties, Spread, Current Standing/Place, Average Score, High Score
-3. Create a CurrentGame page that shows all this information as well. Leave it on the admin page.
+* New way to process a tournament:
+
+Read the file
+Add all the players to the players table (if they don't already exist)
+Add all the games to the games table
+Change all the code to stop reading the whole json file, but fetch the games from the tables
+Review _all_ endpoints because most of them use that style and so they will have to be fixed
+All the websocket code will have to be fixed to.
+
+* Review the websocket code to figure out how to make sure all pages update automatically.
