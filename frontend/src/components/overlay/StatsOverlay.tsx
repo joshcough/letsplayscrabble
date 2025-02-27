@@ -30,6 +30,8 @@ type SourceType =
   | "player2-points"
   | "player1-game-history"
   | "player2-game-history"
+  | "player1-bo7"
+  | "player2-bo7"
   | "tournament-data"
   | null;
 
@@ -260,6 +262,16 @@ const StatsOverlay: React.FC = () => {
               {" ("}
               {player?.seedOrdinal || "N/A"}
               {" Seed)"}
+            </div>
+          );
+        case "player1-bo7":
+        case "player2-bo7":
+          return (
+            <div className="text-black">
+              {"Best of 7 Record: "}
+              {player?.wins || 0}-{player?.losses || 0}-{player?.ties || 0}{" "}
+              {(player?.spread && player.spread > 0 ? "+" : "") +
+                (player?.spread || "+0")}
             </div>
           );
         case "player1-points":
