@@ -58,6 +58,7 @@ export function playerDataFromRawData(p: RawPlayer) {
     id: p.id,
     name: p.name,
     firstLast: formatName(p.name),
+    etc: p.etc
   };
   return playerData;
 }
@@ -235,6 +236,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
             averageOpponentScoreRank: 0,
             averageScoreRankOrdinal: "0th",
             averageOpponentScoreRankOrdinal: "0th",
+            etc: playerData.etc,
           };
           return stats;
         } catch (error) {
@@ -260,6 +262,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
             averageOpponentScoreRank: 0,
             averageScoreRankOrdinal: "0th",
             averageOpponentScoreRankOrdinal: "0th",
+            etc: playerData.etc,
           };
           return defaultStats;
         }
