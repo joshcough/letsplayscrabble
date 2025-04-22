@@ -14,6 +14,8 @@ import AdminPage from "./pages/admin/AdminPage";
 import OverlayPage from "./pages/overlay/OverlayPage";
 import RatingGainOverlayPage from "./pages/overlay/RatingGainOverlayPage";
 import ScoringLeadersOverlayPage from "./pages/overlay/ScoringLeadersOverlayPage";
+import ElemScoringLeadersOverlayPage from "./pages/overlay/ElemScoringLeadersOverlayPage";
+import HSScoringLeadersOverlayPage from "./pages/overlay/HSScoringLeadersOverlayPage";
 import StandingsOverlayPage from "./pages/overlay/StandingsOverlayPage";
 import HSStandingsOverlayPage from "./pages/overlay/HSStandingsOverlayPage";
 import ElemStandingsOverlayPage from "./pages/overlay/ElemStandingsOverlayPage";
@@ -58,7 +60,14 @@ const AppContent: React.FC = () => {
           path="/overlay/scoring_leaders"
           element={<ScoringLeadersOverlayPage />}
         />
-
+        <Route
+          path="/overlay/elem_scoring_leaders"
+          element={<ElemScoringLeadersOverlayPage />}
+        />
+        <Route
+          path="/overlay/hs_scoring_leaders"
+          element={<HSScoringLeadersOverlayPage />}
+        />
         {/* Protected Routes */}
         <Route
           path="/"
