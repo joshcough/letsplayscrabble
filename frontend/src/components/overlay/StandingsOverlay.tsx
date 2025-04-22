@@ -1,41 +1,25 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
 import io, { Socket } from "socket.io-client";
 import { API_BASE, fetchWithAuth } from "../../config/api";
 import { ProcessedTournament, PlayerStats } from "@shared/types/tournament";
-import { MatchWithPlayers } from "@shared/types/admin";
 
-interface CurrentMatchResponse {
-  matchData: {
-    tournament_id: number;
-    division_id: number;
-    round: number;
-    pairing_id: number;
-    updated_at: string;
-  };
-  tournament: {
-    name: string;
-    lexicon: string;
-  };
-  players: Array<{
-    id: number;
-    name: string;
-    rating: number;
-    ratingDiff: number;
-    firstLast: string;
-    [key: string]: any;
-  }>;
+type RouteParams = {
+  [key: string]: string | undefined;
+  tournamentId: string;
+  divisionName: string;
 }
 
 const StandingsOverlay: React.FC = () => {
+  console.log("Component rendering"); // Debug log
+
+  const { tournamentId, divisionName } = useParams();
+  console.log("URL params:", { tournamentId, divisionName }); // Debug log
+
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
-  const [tournament, setTournament] = useState<ProcessedTournament | null>(
-    null,
-  );
-  const [matchWithPlayers, setMatchWithPlayers] =
-    useState<CurrentMatchResponse | null>(null);
-  const [connectionStatus, setConnectionStatus] =
-    useState<string>("Initializing...");
+  const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<string>("Initializing...");
   const socketRef = useRef<Socket | null>(null);
   const reconnectAttempts = useRef<number>(0);
   const maxReconnectAttempts = 5;
@@ -70,62 +54,48 @@ const StandingsOverlay: React.FC = () => {
     }));
   };
 
-  const fetchTournamentData = async (
-    tournamentId: number,
-    divisionId: number,
-  ) => {
+  const fetchTournamentData = async () => {
     try {
-      console.log("Fetching tournament data for:", {
-        tournamentId,
-        divisionId,
-      });
+      if (!tournamentId) {
+        throw new Error("Tournament ID is required");
+      }
+
+      console.log("Fetching tournament data for:", { tournamentId, divisionName });
       const tournamentData: ProcessedTournament = await fetchWithAuth(
-        `/api/tournaments/public/${tournamentId}`,
+        `/api/tournaments/public/${tournamentId}`
       );
+      console.log("Received tournament data:", tournamentData); // Debug log
 
       setTournament(tournamentData);
 
-      const divisionIndex = divisionId;
+      // Find the index of the division in the standings array that matches our division name
+      const divisionIndex = tournamentData.divisions.findIndex(
+        div => div.name.toUpperCase() === divisionName?.toUpperCase()
+      );
+      console.log("Division index:", divisionIndex); // Debug log
+
+      if (divisionIndex === -1) {
+        throw new Error(`Division ${divisionName} not found in tournament`);
+      }
+
+      console.log("Standings for division:", tournamentData.standings[divisionIndex]); // Debug log
       const divisionStandings = calculateRanks(
-        tournamentData.standings[divisionIndex],
+        tournamentData.standings[divisionIndex]
       );
       setStandings(divisionStandings);
     } catch (err) {
       console.error("Error fetching tournament data:", err);
-      setError("Failed to fetch tournament data. Please try again later.");
-    }
-  };
-
-  const fetchCurrentMatch = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/api/overlay/match/current`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch match data");
-      }
-
-      const data: CurrentMatchResponse = await response.json();
-      console.log("Current match data:", data);
-      setMatchWithPlayers(data);
-
-      if (
-        data.matchData?.tournament_id !== undefined &&
-        data.matchData?.division_id !== undefined
-      ) {
-        await fetchTournamentData(
-          data.matchData.tournament_id,
-          data.matchData.division_id,
-        );
-      } else {
-        console.error("Missing tournament data in match:", data);
-        setError("Missing tournament information in current match");
-      }
-    } catch (err) {
-      console.error("Error fetching current match:", err);
-      setError("Failed to fetch match data. Please try again later.");
+      setError(`Failed to fetch tournament data: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
   useEffect(() => {
+    console.log("Running tournament data fetch effect"); // Debug log
+    fetchTournamentData();
+  }, [tournamentId, divisionName]);
+
+  useEffect(() => {
+    console.log("Running socket connection effect"); // Debug log
     const connectSocket = () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
@@ -146,7 +116,6 @@ const StandingsOverlay: React.FC = () => {
           console.log("Socket connected");
           setConnectionStatus("Connected to server");
           reconnectAttempts.current = 0;
-          fetchCurrentMatch();
         });
 
         socketRef.current.on("connect_error", (error: Error) => {
@@ -166,17 +135,14 @@ const StandingsOverlay: React.FC = () => {
           }
         });
 
-        socketRef.current.on("matchUpdate", (data: CurrentMatchResponse) => {
+        socketRef.current.on("matchUpdate", (data: any) => {
           console.log("Received match update:", data);
-          setMatchWithPlayers(data);
+          // Only update if the match is for our tournament and division
           if (
-            data.matchData?.tournament_id !== undefined &&
-            data.matchData?.division_id !== undefined
+            data.matchData?.tournament_id === Number(tournamentId) &&
+            data.division?.name?.toUpperCase() === divisionName?.toUpperCase()
           ) {
-            fetchTournamentData(
-              data.matchData.tournament_id,
-              data.matchData.division_id,
-            );
+            fetchTournamentData();
           }
         });
 
@@ -196,13 +162,15 @@ const StandingsOverlay: React.FC = () => {
 
     return () => {
       if (socketRef.current) {
+        console.log("Cleaning up socket connection"); // Debug log
         socketRef.current.disconnect();
         socketRef.current = null;
       }
     };
-  }, []);
+  }, [tournamentId, divisionName]);
 
   if (error) {
+    console.log("Rendering error state:", error); // Debug log
     return (
       <div className="fixed inset-0 flex items-center justify-center text-black">
         <div className="p-4 bg-red-50 rounded-lg">
@@ -213,16 +181,21 @@ const StandingsOverlay: React.FC = () => {
     );
   }
 
-  if (!standings || !tournament || !matchWithPlayers) {
+  if (!standings || !tournament) {
+    console.log("Rendering loading state"); // Debug log
     return <div className="text-black p-2">Loading...</div>;
   }
 
+  const divisionIndex = tournament.divisions.findIndex(
+    div => div.name.toUpperCase() === divisionName?.toUpperCase()
+  );
+
+  console.log("Rendering standings table"); // Debug log
   return (
     <div className="flex flex-col items-center pt-8 font-bold">
       <div className="text-black text-4xl font-bold text-center mb-4">
         {tournament.name} {tournament.lexicon} Div{" "}
-        {tournament.divisions[matchWithPlayers.matchData.division_id].name}{" "}
-        Standings
+        {tournament.divisions[divisionIndex].name} Standings
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full">

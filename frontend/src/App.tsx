@@ -36,6 +36,10 @@ const AppContent: React.FC = () => {
       <Routes>
         <Route path="/login" element={<AdminLogin />} />
         <Route path="/overlay/misc" element={<OverlayPage />} />
+        <Route
+          path="/overlay/standings/:tournamentId/:divisionName"
+          element={<StandingsOverlayPage />}
+        />
         <Route path="/overlay/standings" element={<StandingsOverlayPage />} />
         <Route
           path="/overlay/rating_gain"
