@@ -96,6 +96,8 @@ export interface PlayerStats {
 export interface GameResult {
   round: number;
   opponentName: string;
+  opponentElemName: string;
+  opponentHSName: string;
   playerScore: number;
   opponentScore: number;
 }

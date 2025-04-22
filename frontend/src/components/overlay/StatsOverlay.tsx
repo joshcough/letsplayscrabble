@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import io, { Socket } from "socket.io-client";
 import { API_BASE } from "../../config/api";
-import { PlayerStats, GameResult } from "@shared/types/tournament";
 import { MatchWithPlayers } from "@shared/types/admin";
 import GameHistoryDisplay from "./GameHistoryDisplay";
+import HSGameHistoryDisplay from "./HSGameHistoryDisplay";
+import ElemGameHistoryDisplay from "./ElemGameHistoryDisplay";
 import PointsDisplay from "./PointsDisplay";
 
 type SourceType =
@@ -42,6 +43,8 @@ type SourceType =
   | "player2-esms-grades"
   | "player1-esms-hometowns"
   | "player2-esms-hometowns"
+  | "player1-elem-game-history"
+  | "player2-elem-game-history"
   // high school
   | "player1-hs-name"
   | "player2-hs-name"
@@ -51,6 +54,8 @@ type SourceType =
   | "player2-hs-hometown"
   | "player1-hs-school-name"
   | "player2-hs-school-name"
+  | "player1-hs-game-history"
+  | "player2-hs-game-history"
   | null;
 
 const StatsOverlay: React.FC = () => {
@@ -366,7 +371,6 @@ const StatsOverlay: React.FC = () => {
           return (
             <div className="text-black">{player?.etc.schoolname1.join(" ")}</div>
           );
-
         case "player1-points":
         case "player2-points":
         case "player1-game-history":
@@ -378,19 +382,58 @@ const StatsOverlay: React.FC = () => {
               <div className="text-black">
                 <PointsDisplay
                   stats={player}
-                  side={source === "player1-points" ? "player1" : "player2"}
+                  side={source.startsWith("player1") ? "player1" : "player2"}
                 />
               </div>
               <div className="text-black">
                 <GameHistoryDisplay
                   games={games}
-                  side={
-                    source === "player1-game-history" ? "player1" : "player2"
-                  }
+                  side={source.startsWith("player1") ? "player1" : "player2"}
                 />
               </div>
             </div>
           );
+        case "player1-hs-game-history":
+        case "player2-hs-game-history":
+          const playerHsIndex = source === "player1-hs-game-history" ? 0 : 1;
+          const hsGames = matchWithPlayers.last5?.[playerHsIndex] || [];
+          return (
+            <div>
+              <div className="text-black">
+                <PointsDisplay
+                  stats={player}
+                  side={source.startsWith("player1") ? "player1" : "player2"}
+                />
+              </div>
+              <div className="text-black">
+                <HSGameHistoryDisplay
+                  games={hsGames}
+                  side={source.startsWith("player1") ? "player1" : "player2"}
+                />
+              </div>
+            </div>
+          );
+        case "player1-elem-game-history":
+        case "player2-elem-game-history":
+          const playerElemIndex = source === "player1-elem-game-history" ? 0 : 1;
+          const elemGames = matchWithPlayers.last5?.[playerElemIndex] || [];
+          return (
+            <div>
+              <div className="text-black">
+                <PointsDisplay
+                  stats={player}
+                  side={source.startsWith("player1") ? "player1" : "player2"}
+                />
+              </div>
+              <div className="text-black">
+                <ElemGameHistoryDisplay
+                  games={elemGames}
+                  side={source.startsWith("player1") ? "player1" : "player2"}
+                />
+              </div>
+            </div>
+          );
+
         case "tournament-data":
           return (
             <div className="text-black">

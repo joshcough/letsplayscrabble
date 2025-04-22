@@ -471,6 +471,8 @@ export function getPlayerRecentGames(
       allGames.push({
         round: roundIndex + 1,
         opponentName: formatName(opponent.name),
+        opponentHSName: opponent.etc.firstname1 + " " + opponent.etc.lastname1,
+        opponentElemName: opponent.etc.firstname1 + " & " + opponent.etc.firstname2,
         playerScore,
         opponentScore,
       });
