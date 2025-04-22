@@ -15,6 +15,8 @@ import OverlayPage from "./pages/overlay/OverlayPage";
 import RatingGainOverlayPage from "./pages/overlay/RatingGainOverlayPage";
 import ScoringLeadersOverlayPage from "./pages/overlay/ScoringLeadersOverlayPage";
 import StandingsOverlayPage from "./pages/overlay/StandingsOverlayPage";
+import HSStandingsOverlayPage from "./pages/overlay/HSStandingsOverlayPage";
+import ElemStandingsOverlayPage from "./pages/overlay/ElemStandingsOverlayPage";
 import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
 import StandingsPage from "./pages/tournaments/StandingsPage";
@@ -40,7 +42,14 @@ const AppContent: React.FC = () => {
           path="/overlay/standings/:tournamentId/:divisionName"
           element={<StandingsOverlayPage />}
         />
-        <Route path="/overlay/standings" element={<StandingsOverlayPage />} />
+        <Route
+          path="/overlay/hs_standings/:tournamentId/:divisionName"
+          element={<HSStandingsOverlayPage />}
+        />
+        <Route
+          path="/overlay/elem_standings/:tournamentId/:divisionName"
+          element={<ElemStandingsOverlayPage />}
+        />
         <Route
           path="/overlay/rating_gain"
           element={<RatingGainOverlayPage />}
