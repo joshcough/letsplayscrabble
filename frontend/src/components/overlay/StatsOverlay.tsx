@@ -337,14 +337,14 @@ const StatsOverlay: React.FC = () => {
         case "player1-esms-hometowns":
           const p1Hometown1 = player?.etc.hometown1.join(" ") + ", " + player?.etc.state1.join(" ");
           const p1Hometown2 = player?.etc.hometown2.join(" ") + ", " + player?.etc.state2.join(" ");
-          const p1Hometown = p1Hometown1 === p1Hometown2 ? p1Hometown1 : p1Hometown1 + p1Hometown2;
+          const p1Hometown = p1Hometown1 === p1Hometown2 ? p1Hometown1 : p1Hometown1 + " & " + p1Hometown2;
           return (
             <div className="text-black">{p1Hometown}</div>
           );
         case "player2-esms-hometowns":
           const p2Hometown1 = player?.etc.hometown1.join(" ") + ", " + player?.etc.state1.join(" ");
           const p2Hometown2 = player?.etc.hometown2.join(" ") + ", " + player?.etc.state2.join(" ");
-          const p2Hometown = p2Hometown1 === p2Hometown2 ? p2Hometown1 : p2Hometown1 + p2Hometown2;
+          const p2Hometown = p2Hometown1 === p2Hometown2 ? p2Hometown1 : p2Hometown1 + " & " + p2Hometown2;
           return (
             <div className="text-black">{p2Hometown}</div>
           );
