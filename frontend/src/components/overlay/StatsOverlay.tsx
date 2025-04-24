@@ -27,6 +27,8 @@ type SourceType =
   | "player2-rating"
   | "player1-under-cam"
   | "player2-under-cam"
+  | "player1-under-cam-small"
+  | "player2-under-cam-small"
   | "player1-points"
   | "player2-points"
   | "player1-game-history"
@@ -285,6 +287,15 @@ const StatsOverlay: React.FC = () => {
               {" ("}
               {player?.seedOrdinal || "N/A"}
               {" Seed)"}
+            </div>
+          );
+        case "player1-under-cam-small":
+        case "player2-under-cam-small":
+          return (
+            <div className="text-black">
+              {player?.wins || 0}-{player?.losses || 0}-{player?.ties || 0}{" "}
+              {(player?.spread && player.spread > 0 ? "+" : "") +
+                (player?.spread || "+0")}
             </div>
           );
         case "player1-bo7":
