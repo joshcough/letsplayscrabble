@@ -31,10 +31,7 @@ const StandingsOverlay: React.FC = () => {
     { key: "losses", label: "Losses" },
     { key: "ties", label: "Ties" },
     { key: "spread", label: "Spread" },
-    { key: "averageScoreRounded", label: "Avg Pts For" },
-    { key: "averageOpponentScore", label: "Avg Pts Ag" },
     { key: "highScore", label: "High" },
-    { key: "ratingDiff", label: "Rating +/-" },
   ];
 
   const formatNumberWithSign = (value: number) => {
@@ -232,24 +229,7 @@ const StandingsOverlay: React.FC = () => {
                 <td className="px-4 py-2 text-center">
                   {formatNumberWithSign(player.spread)}
                 </td>
-                <td className="px-4 py-2 text-center">
-                  {player.averageScoreRounded}
-                  <span className="mx-2"></span>(
-                  {player.averageScoreRankOrdinal})
-                </td>
-                <td className="px-4 py-2 text-center">
-                  {player.averageOpponentScore}
-                  <span className="mx-2"></span>(
-                  {player.averageOpponentScoreRankOrdinal})
-                </td>
                 <td className="px-4 py-2 text-center">{player.highScore}</td>
-                <td
-                  className={`px-4 py-2 text-center ${
-                    player.ratingDiff > 0 ? "text-red-600" : "text-blue-600"
-                  }`}
-                >
-                  {formatNumberWithSign(player.ratingDiff)}
-                </td>
               </tr>
             ))}
           </tbody>

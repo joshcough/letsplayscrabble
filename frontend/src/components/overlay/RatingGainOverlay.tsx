@@ -46,6 +46,9 @@ const RatingGainOverlay: React.FC = () => {
     { key: "ratingDiff", label: "Rating +/-" },
     { key: "currentRating", label: "New Rating" },
     { key: "initialRating", label: "Old Rating" },
+    { key: "wins", label: "Wins" },
+    { key: "losses", label: "Losses" },
+    { key: "ties", label: "Ties" },
   ];
 
   const formatNumberWithSign = (value: number) => {
@@ -215,6 +218,8 @@ const RatingGainOverlay: React.FC = () => {
       <div className="text-black text-4xl font-bold text-center mb-4">
         {tournament.name} {tournament.lexicon} Div{" "}
         {tournament.divisions[matchWithPlayers.matchData.division_id].name}{" "}
+      </div>
+      <div className="text-black text-4xl font-bold text-center mb-4">
         Rating Gain Leaders
       </div>
       <div className="overflow-x-auto">
@@ -259,6 +264,9 @@ const RatingGainOverlay: React.FC = () => {
                 <td className="px-4 py-2 text-center">
                   {player.initialRating}
                 </td>
+                <td className="px-4 py-2 text-center">{player.wins}</td>
+                <td className="px-4 py-2 text-center">{player.losses}</td>
+                <td className="px-4 py-2 text-center">{player.ties}</td>
               </tr>
             ))}
           </tbody>

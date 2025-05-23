@@ -46,6 +46,7 @@ const ScoringLeadersOverlay: React.FC = () => {
     { key: "averageScoreRounded", label: "Avg Pts For" },
     { key: "averageOpponentScoreScore", label: "Avg Pts Ag" },
     { key: "spread", label: "Spread" },
+    { key: "highScore", label: "High" },
   ];
 
   const formatNumberWithSign = (value: number) => {
@@ -215,6 +216,8 @@ const ScoringLeadersOverlay: React.FC = () => {
       <div className="text-black text-4xl font-bold text-center mb-4">
         {tournament.name} {tournament.lexicon} Div{" "}
         {tournament.divisions[matchWithPlayers.matchData.division_id].name}{" "}
+      </div>
+      <div className="text-black text-4xl font-bold text-center mb-4">
         Scoring Leaders
       </div>
       <div className="overflow-x-auto">
@@ -252,6 +255,7 @@ const ScoringLeadersOverlay: React.FC = () => {
                 >
                   {formatNumberWithSign(player.spread)}
                 </td>
+                <td className="px-4 py-2 text-center">{player.highScore}</td>
               </tr>
             ))}
           </tbody>
