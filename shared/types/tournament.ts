@@ -21,22 +21,39 @@ export interface Division {
   players: (RawPlayer | null)[];
 }
 
+export interface Etc {
+    newr: number[]; // Player ratings history
+    p12: number[]; // 1 = player goes first, 2 = opponent goes first, 0 = bye
+    firstname1: string[];
+    firstname2: string[];
+    lastname1: string[];
+    lastname2: string[];
+    grade1: number[];
+    grade2: number[];
+    hometown1: string[];
+    hometown2: string[];
+    schoolname1: string[];
+    schoolname2: string[];
+    state1: string[];
+    state2: string[];
+    teamname: string[];
+}
+
 export interface RawPlayer {
   id: number;
   name: string;
   scores: number[];
   pairings: number[];
   rating: number;
-  etc: {
-    newr: number[]; // Player ratings history
-    p12: number[]; // 1 = player goes first, 2 = opponent goes first, 0 = bye
-  };
+  etc: Etc;
+  photo: string;
 }
 
 export interface PlayerData {
   id: number;
   name: string;
   firstLast: string;
+  etc: Etc;
 }
 
 export interface Pairing {
@@ -74,11 +91,15 @@ export interface PlayerStats {
   highScore: number;
   rank?: number;
   rankOrdinal?: string;
+  etc: Etc;
+  photo: string;
 }
 
 export interface GameResult {
   round: number;
   opponentName: string;
+  opponentElemName: string;
+  opponentHSName: string;
   playerScore: number;
   opponentScore: number;
 }
@@ -87,6 +108,7 @@ export interface ProcessedTournament extends Omit<Tournament, "data"> {
   divisions: Division[];
   standings: PlayerStats[][]; // a PlayerStats[] per division.
   divisionPairings: RoundPairings[][]; // a RoundsPairing[] per division
+  data_url: string;
 }
 
 export interface CreateTournamentParams {

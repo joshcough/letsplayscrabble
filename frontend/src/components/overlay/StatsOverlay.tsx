@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import io, { Socket } from "socket.io-client";
 import { API_BASE } from "../../config/api";
-import { PlayerStats, GameResult } from "@shared/types/tournament";
 import { MatchWithPlayers } from "@shared/types/admin";
 import GameHistoryDisplay from "./GameHistoryDisplay";
+import HSGameHistoryDisplay from "./HSGameHistoryDisplay";
+import ElemGameHistoryDisplay from "./ElemGameHistoryDisplay";
 import PointsDisplay from "./PointsDisplay";
 
 type SourceType =
@@ -26,6 +27,8 @@ type SourceType =
   | "player2-rating"
   | "player1-under-cam"
   | "player2-under-cam"
+  | "player1-under-cam-small"
+  | "player2-under-cam-small"
   | "player1-points"
   | "player2-points"
   | "player1-game-history"
@@ -33,6 +36,28 @@ type SourceType =
   | "player1-bo7"
   | "player2-bo7"
   | "tournament-data"
+  // elementary school
+  | "player1-esms-first-names"
+  | "player2-esms-first-names"
+  | "player1-esms-team-name"
+  | "player2-esms-team-name"
+  | "player1-esms-grades"
+  | "player2-esms-grades"
+  | "player1-esms-hometowns"
+  | "player2-esms-hometowns"
+  | "player1-elem-game-history"
+  | "player2-elem-game-history"
+  // high school
+  | "player1-hs-name"
+  | "player2-hs-name"
+  | "player1-hs-grade"
+  | "player2-hs-grade"
+  | "player1-hs-hometown"
+  | "player2-hs-hometown"
+  | "player1-hs-school-name"
+  | "player2-hs-school-name"
+  | "player1-hs-game-history"
+  | "player2-hs-game-history"
   | null;
 
 const StatsOverlay: React.FC = () => {
@@ -264,6 +289,15 @@ const StatsOverlay: React.FC = () => {
               {" Seed)"}
             </div>
           );
+        case "player1-under-cam-small":
+        case "player2-under-cam-small":
+          return (
+            <div className="text-black">
+              {player?.wins || 0}-{player?.losses || 0}-{player?.ties || 0}{" "}
+              {(player?.spread && player.spread > 0 ? "+" : "") +
+                (player?.spread || "+0")}
+            </div>
+          );
         case "player1-bo7":
         case "player2-bo7":
           return (
@@ -273,6 +307,80 @@ const StatsOverlay: React.FC = () => {
               {(player?.spread && player.spread > 0 ? "+" : "") +
                 (player?.spread || "+0")}
             </div>
+          );
+        case "player1-esms-first-names":
+          return (
+            <div className="text-black">{player?.etc.firstname1 || "N/A"} {" & "} {player?.etc.firstname2 || "N/A"}</div>
+          );
+        case "player2-esms-first-names":
+          return (
+            <div className="text-black">{player?.etc.firstname1 || "N/A"} {" & "} {player?.etc.firstname2 || "N/A"}</div>
+          );
+        case "player1-esms-team-name":
+          const p1TeamName: string = player?.etc.teamname.join(" ");
+          return (
+            <div className="text-black">{p1TeamName}</div>
+          );
+        case "player2-esms-team-name":
+          const p2TeamName: string = player?.etc.teamname.join(" ");
+          return (
+            <div className="text-black">{p2TeamName}</div>
+          );
+        case "player1-esms-grades":
+          return (
+            <div className="text-black">{" Grades "} {player?.etc.grade1} {" / "} {player?.etc.grade2}</div>
+          );
+        case "player2-esms-grades":
+          return (
+            <div className="text-black">{" Grades "} {player?.etc.grade1} {" / "} {player?.etc.grade2}</div>
+          );
+        case "player1-esms-hometowns":
+          const p1Hometown1 = player?.etc.hometown1.join(" ") + ", " + player?.etc.state1.join(" ");
+          const p1Hometown2 = player?.etc.hometown2.join(" ") + ", " + player?.etc.state2.join(" ");
+          const p1Hometown = p1Hometown1 === p1Hometown2 ? p1Hometown1 : p1Hometown1 + " & " + p1Hometown2;
+          return (
+            <div className="text-black">{p1Hometown}</div>
+          );
+        case "player2-esms-hometowns":
+          const p2Hometown1 = player?.etc.hometown1.join(" ") + ", " + player?.etc.state1.join(" ");
+          const p2Hometown2 = player?.etc.hometown2.join(" ") + ", " + player?.etc.state2.join(" ");
+          const p2Hometown = p2Hometown1 === p2Hometown2 ? p2Hometown1 : p2Hometown1 + " & " + p2Hometown2;
+          return (
+            <div className="text-black">{p2Hometown}</div>
+          );
+
+        case "player1-hs-name":
+          return (
+            <div className="text-black">{player?.etc.firstname1} {" "} {player?.etc.lastname1}</div>
+          );
+        case "player2-hs-name":
+          return (
+            <div className="text-black">{player?.etc.firstname1} {" "} {player?.etc.lastname1}</div>
+          );
+
+        case "player1-hs-grade":
+          return (
+            <div className="text-black">{" Grade "} {player?.etc.grade1}</div>
+          );
+        case "player2-hs-grade":
+          return (
+            <div className="text-black">{" Grade "} {player?.etc.grade1}</div>
+          );
+        case "player1-hs-hometown":
+          return (
+            <div className="text-black">{player?.etc.hometown1.join(" ") + ", " + player?.etc.state1.join(" ")}</div>
+          );
+        case "player2-hs-hometown":
+          return (
+            <div className="text-black">{player?.etc.hometown1.join(" ") + ", " + player?.etc.state1.join(" ")}</div>
+          );
+        case "player1-hs-school-name":
+          return (
+            <div className="text-black">{player?.etc.schoolname1.join(" ")}</div>
+          );
+        case "player2-hs-school-name":
+          return (
+            <div className="text-black">{player?.etc.schoolname1.join(" ")}</div>
           );
         case "player1-points":
         case "player2-points":
@@ -285,19 +393,58 @@ const StatsOverlay: React.FC = () => {
               <div className="text-black">
                 <PointsDisplay
                   stats={player}
-                  side={source === "player1-points" ? "player1" : "player2"}
+                  side={source.startsWith("player1") ? "player1" : "player2"}
                 />
               </div>
               <div className="text-black">
                 <GameHistoryDisplay
                   games={games}
-                  side={
-                    source === "player1-game-history" ? "player1" : "player2"
-                  }
+                  side={source.startsWith("player1") ? "player1" : "player2"}
                 />
               </div>
             </div>
           );
+        case "player1-hs-game-history":
+        case "player2-hs-game-history":
+          const playerHsIndex = source === "player1-hs-game-history" ? 0 : 1;
+          const hsGames = matchWithPlayers.last5?.[playerHsIndex] || [];
+          return (
+            <div>
+              <div className="text-black">
+                <PointsDisplay
+                  stats={player}
+                  side={source.startsWith("player1") ? "player1" : "player2"}
+                />
+              </div>
+              <div className="text-black">
+                <HSGameHistoryDisplay
+                  games={hsGames}
+                  side={source.startsWith("player1") ? "player1" : "player2"}
+                />
+              </div>
+            </div>
+          );
+        case "player1-elem-game-history":
+        case "player2-elem-game-history":
+          const playerElemIndex = source === "player1-elem-game-history" ? 0 : 1;
+          const elemGames = matchWithPlayers.last5?.[playerElemIndex] || [];
+          return (
+            <div>
+              <div className="text-black">
+                <PointsDisplay
+                  stats={player}
+                  side={source.startsWith("player1") ? "player1" : "player2"}
+                />
+              </div>
+              <div className="text-black">
+                <ElemGameHistoryDisplay
+                  games={elemGames}
+                  side={source.startsWith("player1") ? "player1" : "player2"}
+                />
+              </div>
+            </div>
+          );
+
         case "tournament-data":
           return (
             <div className="text-black">

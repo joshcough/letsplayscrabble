@@ -58,6 +58,7 @@ export function playerDataFromRawData(p: RawPlayer) {
     id: p.id,
     name: p.name,
     firstLast: formatName(p.name),
+    etc: p.etc
   };
   return playerData;
 }
@@ -235,6 +236,8 @@ export function calculateStandings(division: Division): PlayerStats[] {
             averageOpponentScoreRank: 0,
             averageScoreRankOrdinal: "0th",
             averageOpponentScoreRankOrdinal: "0th",
+            etc: playerData.etc,
+            photo: playerData.photo,
           };
           return stats;
         } catch (error) {
@@ -260,6 +263,8 @@ export function calculateStandings(division: Division): PlayerStats[] {
             averageOpponentScoreRank: 0,
             averageScoreRankOrdinal: "0th",
             averageOpponentScoreRankOrdinal: "0th",
+            etc: playerData.etc,
+            photo: playerData.photo,
           };
           return defaultStats;
         }
@@ -362,7 +367,6 @@ function formatName(name: string | undefined): string {
     }
 
     if (!name.includes(",")) {
-      console.log("Name doesn't contain comma:", name);
       return name;
     }
 
@@ -468,6 +472,8 @@ export function getPlayerRecentGames(
       allGames.push({
         round: roundIndex + 1,
         opponentName: formatName(opponent.name),
+        opponentHSName: opponent.etc.firstname1 + " " + opponent.etc.lastname1,
+        opponentElemName: opponent.etc.firstname1 + " & " + opponent.etc.firstname2,
         playerScore,
         opponentScore,
       });

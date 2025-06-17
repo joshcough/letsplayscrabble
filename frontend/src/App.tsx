@@ -14,7 +14,12 @@ import AdminPage from "./pages/admin/AdminPage";
 import OverlayPage from "./pages/overlay/OverlayPage";
 import RatingGainOverlayPage from "./pages/overlay/RatingGainOverlayPage";
 import ScoringLeadersOverlayPage from "./pages/overlay/ScoringLeadersOverlayPage";
+import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
+import ElemScoringLeadersOverlayPage from "./pages/overlay/ElemScoringLeadersOverlayPage";
+import HSScoringLeadersOverlayPage from "./pages/overlay/HSScoringLeadersOverlayPage";
 import StandingsOverlayPage from "./pages/overlay/StandingsOverlayPage";
+import HSStandingsOverlayPage from "./pages/overlay/HSStandingsOverlayPage";
+import ElemStandingsOverlayPage from "./pages/overlay/ElemStandingsOverlayPage";
 import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
 import StandingsPage from "./pages/tournaments/StandingsPage";
@@ -36,16 +41,38 @@ const AppContent: React.FC = () => {
       <Routes>
         <Route path="/login" element={<AdminLogin />} />
         <Route path="/overlay/misc" element={<OverlayPage />} />
-        <Route path="/overlay/standings" element={<StandingsOverlayPage />} />
+        <Route
+          path="/overlay/standings/:tournamentId/:divisionName"
+          element={<StandingsOverlayPage />}
+        />
+        <Route
+          path="/overlay/hs_standings/:tournamentId/:divisionName"
+          element={<HSStandingsOverlayPage />}
+        />
+        <Route
+          path="/overlay/elem_standings/:tournamentId/:divisionName"
+          element={<ElemStandingsOverlayPage />}
+        />
         <Route
           path="/overlay/rating_gain"
           element={<RatingGainOverlayPage />}
         />
         <Route
+          path="/overlay/high_scores"
+          element={<HighScoresWithPicsOverlayPage />}
+        />
+        <Route
           path="/overlay/scoring_leaders"
           element={<ScoringLeadersOverlayPage />}
         />
-
+        <Route
+          path="/overlay/elem_scoring_leaders"
+          element={<ElemScoringLeadersOverlayPage />}
+        />
+        <Route
+          path="/overlay/hs_scoring_leaders"
+          element={<HSScoringLeadersOverlayPage />}
+        />
         {/* Protected Routes */}
         <Route
           path="/"

@@ -4,35 +4,33 @@ import { API_BASE, fetchWithAuth } from "../../config/api";
 import { ProcessedTournament, PlayerStats } from "@shared/types/tournament";
 import { MatchWithPlayers } from "@shared/types/admin";
 
-interface CurrentMatchResponse {
-  matchData: {
-    tournament_id: number;
-    division_id: number;
-    round: number;
-    pairing_id: number;
-    updated_at: string;
-  };
-  tournament: {
-    name: string;
-    lexicon: string;
-  };
-  players: Array<{
-    id: number;
-    name: string;
-    rating: number;
-    ratingDiff: number;
-    firstLast: string;
-    [key: string]: any;
-  }>;
+const baseUrl = "https://scrabbleplayers.org/directors/AA003954/";
+
+const getTournamentName = (tourney_url: string): string => {
+  const suffix = "/html/tourney.js";
+  return tourney_url.slice(baseUrl.length, -suffix.length);
+};
+
+const getPlayerImageUrl = (tourney_url: string, player_photo: string): string => {
+  return baseUrl + getTournamentName(tourney_url) + "/html/" + player_photo;
 }
 
-const ScoringLeadersOverlay: React.FC = () => {
+const formatPlayerName = (name: string): string => {
+  if (!name.includes(',')) { return name; }
+  const parts = name.split(',').map(part => part.trim());
+  // Return original if format is unexpected
+  if (parts.length !== 2 || !parts[0] || !parts[1]) { return name; }
+  const [lastName, firstName] = parts;
+  return `${firstName} ${lastName}`;
+};
+
+const HighScoresWithPicsOverlay: React.FC = () => {
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
   const [tournament, setTournament] = useState<ProcessedTournament | null>(
     null,
   );
   const [matchWithPlayers, setMatchWithPlayers] =
-    useState<CurrentMatchResponse | null>(null);
+    useState<MatchWithPlayers | null>(null);
   const [connectionStatus, setConnectionStatus] =
     useState<string>("Initializing...");
   const [error, setError] = useState<string | null>(null);
@@ -44,22 +42,9 @@ const ScoringLeadersOverlay: React.FC = () => {
   const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
   const maxReconnectAttempts = 5;
 
-  const columns = [
-    { key: "rank", label: "Rank" },
-    { key: "name", label: "Name" },
-    { key: "averageScoreRounded", label: "Avg Pts For" },
-    { key: "averageOpponentScoreScore", label: "Avg Pts Ag" },
-    { key: "spread", label: "Spread" },
-    { key: "highScore", label: "High" },
-  ];
-
-  const formatNumberWithSign = (value: number) => {
-    return value > 0 ? `+${value}` : value.toString();
-  };
-
   const calculateRanks = (players: PlayerStats[]): PlayerStats[] => {
     const sortedPlayers = [...players].sort((a, b) => {
-      return b.averageScore - a.averageScore;
+      return b.highScore - a.highScore; // Sort by high score instead of average
     });
 
     return sortedPlayers.map((player, index) => ({
@@ -101,7 +86,7 @@ const ScoringLeadersOverlay: React.FC = () => {
         throw new Error("Failed to fetch match data");
       }
 
-      const data: CurrentMatchResponse = await response.json();
+      const data: MatchWithPlayers = await response.json();
       console.log("Current match data:", data);
       setMatchWithPlayers(data);
       setLastDataUpdate(Date.now());
@@ -196,7 +181,7 @@ const ScoringLeadersOverlay: React.FC = () => {
         }
       });
 
-      socketRef.current.on("matchUpdate", (data: CurrentMatchResponse) => {
+      socketRef.current.on("matchUpdate", (data: MatchWithPlayers) => {
         console.log("Received match update:", data);
         setMatchWithPlayers(data);
         setLastDataUpdate(Date.now());
@@ -303,58 +288,46 @@ const ScoringLeadersOverlay: React.FC = () => {
     return <div className="text-black p-2">Loading...</div>;
   }
 
+  // Get top 5 players by high score
+  const top5Players = standings.slice(0, 5);
+
   return (
     <div className="flex flex-col items-center pt-8 font-bold">
-      <div className="text-black text-4xl font-bold text-center mb-4">
+      <div className="text-black text-6xl font-bold text-center mb-4">
+        High Scores
+      </div>
+
+      <div className="text-black text-4xl font-bold text-center mb-8">
         {tournament.name} {tournament.lexicon} Div{" "}
         {tournament.divisions[matchWithPlayers.matchData.division_id].name}{" "}
       </div>
-      <div className="text-black text-4xl font-bold text-center mb-4">
-        Scoring Leaders
-      </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full">
-          <thead>
-            <tr className="bg-white">
-              {columns.map((column) => (
-                <th
-                  key={column.key}
-                  className={`px-4 py-2 ${column.key === "name" ? "text-left" : "text-center"}`}
-                  style={{
-                    minWidth: column.key === "name" ? "200px" : "100px",
-                  }}
-                >
-                  {column.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {standings.map((player) => (
-              <tr key={player.name} className="bg-white">
-                <td className="px-4 py-2 text-center">{player.rank}</td>
-                <td className="px-4 py-2">{player.name}</td>
-                <td className="px-4 py-2 text-center">
-                  {player.averageScoreRounded}
-                </td>
-                <td className="px-4 py-2 text-center">
-                  {player.averageOpponentScore}
-                </td>
-                <td
-                  className={`px-4 py-2 text-center ${
-                    player.spread > 0 ? "text-red-600" : "text-blue-600"
-                  }`}
-                >
-                  {formatNumberWithSign(player.spread)}
-                </td>
-                <td className="px-4 py-2 text-center">{player.highScore}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+      <div className="flex justify-center items-end gap-8 px-4">
+        {top5Players.map((player, index) => (
+          <div key={player.name} className="flex flex-col items-center">
+            {/* Player Image */}
+            <div className="w-32 h-32 mb-4 rounded-lg overflow-hidden border-4 border-gray-300 bg-gray-200">
+              <img
+                src={getPlayerImageUrl(tournament.data_url, player.photo)}
+                alt={player.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {/* Player Name */}
+            <div className="text-black text-xl font-bold text-center mb-2 max-w-40">
+              {formatPlayerName(player.name)}
+            </div>
+
+            {/* High Score */}
+            <div className="text-black text-3xl font-bold text-center">
+              {player.highScore}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 };
 
-export default ScoringLeadersOverlay;
+export default HighScoresWithPicsOverlay;

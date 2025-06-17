@@ -36,12 +36,8 @@ const ScoringLeadersOverlay: React.FC = () => {
   const [connectionStatus, setConnectionStatus] =
     useState<string>("Initializing...");
   const [error, setError] = useState<string | null>(null);
-  const [lastDataUpdate, setLastDataUpdate] = useState<number>(Date.now());
-
   const socketRef = useRef<Socket | null>(null);
   const reconnectAttempts = useRef<number>(0);
-  const healthCheckInterval = useRef<NodeJS.Timeout | null>(null);
-  const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
   const maxReconnectAttempts = 5;
 
   const columns = [
@@ -50,7 +46,6 @@ const ScoringLeadersOverlay: React.FC = () => {
     { key: "averageScoreRounded", label: "Avg Pts For" },
     { key: "averageOpponentScoreScore", label: "Avg Pts Ag" },
     { key: "spread", label: "Spread" },
-    { key: "highScore", label: "High" },
   ];
 
   const formatNumberWithSign = (value: number) => {
@@ -104,7 +99,6 @@ const ScoringLeadersOverlay: React.FC = () => {
       const data: CurrentMatchResponse = await response.json();
       console.log("Current match data:", data);
       setMatchWithPlayers(data);
-      setLastDataUpdate(Date.now());
 
       if (
         data.matchData?.tournament_id !== undefined &&
@@ -124,167 +118,80 @@ const ScoringLeadersOverlay: React.FC = () => {
     }
   };
 
-  const startPollingFallback = () => {
-    console.log("Starting HTTP polling fallback");
-
-    const pollInterval = setInterval(async () => {
-      try {
-        await fetchCurrentMatch();
-        setConnectionStatus("Connected via HTTP polling");
-        setError(null);
-      } catch (error) {
-        console.error("Polling failed:", error);
-        setConnectionStatus("Polling failed, retrying socket...");
-        clearInterval(pollInterval);
-
-        // Try socket connection again
-        setTimeout(connectSocket, 5000);
-      }
-    }, 10000); // Poll every 10 seconds
-
-    // Store interval to clean up later
-    reconnectTimeout.current = pollInterval;
-  };
-
-  const connectSocket = () => {
-    if (socketRef.current) {
-      socketRef.current.disconnect();
-    }
-
-    try {
-      socketRef.current = io(API_BASE, {
-        transports: ["polling", "websocket"],
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        reconnectionAttempts: Infinity, // Never stop trying
-        timeout: 20000,
-        forceNew: true,
-        withCredentials: true,
-      });
-
-      socketRef.current.on("connect", () => {
-        console.log("Socket connected");
-        setConnectionStatus("Connected to server");
-        setError(null); // Clear any previous errors
-        reconnectAttempts.current = 0;
-        setLastDataUpdate(Date.now());
-        fetchCurrentMatch();
-      });
-
-      socketRef.current.on("connect_error", (error: Error) => {
-        console.error("Socket connect error:", error);
-        setConnectionStatus(`Connection error: ${error.message}`);
-        reconnectAttempts.current += 1;
-
-        // If we've tried many times, fall back to polling
-        if (reconnectAttempts.current > 10) {
-          console.log("Falling back to HTTP polling");
-          startPollingFallback();
-        }
-      });
-
-      socketRef.current.on("disconnect", (reason: string) => {
-        console.log("Socket disconnected:", reason);
-        setConnectionStatus(`Disconnected from server: ${reason}`);
-
-        // Always try to reconnect
-        if (reason === "io server disconnect" || reason === "ping timeout") {
-          setTimeout(() => {
-            console.log("Attempting manual reconnection...");
-            socketRef.current?.connect();
-          }, 2000);
-        }
-      });
-
-      socketRef.current.on("matchUpdate", (data: CurrentMatchResponse) => {
-        console.log("Received match update:", data);
-        setMatchWithPlayers(data);
-        setLastDataUpdate(Date.now());
-
-        if (
-          data.matchData?.tournament_id !== undefined &&
-          data.matchData?.division_id !== undefined
-        ) {
-          fetchTournamentData(
-            data.matchData.tournament_id,
-            data.matchData.division_id,
-          );
-        }
-      });
-
-      socketRef.current.on("error", (error: Error) => {
-        console.error("Socket error:", error);
-        setError(`Socket error: ${error.message}`);
-      });
-
-      // Add ping/pong handling
-      socketRef.current.on("ping", () => {
-        console.log("Received ping");
-        setLastDataUpdate(Date.now());
-      });
-
-    } catch (error) {
-      const err = error as Error;
-      console.error("Socket initialization error:", err);
-      setError(`Socket initialization failed: ${err.message}`);
-      setConnectionStatus(`Failed to initialize socket connection`);
-
-      // Retry connection after delay
-      setTimeout(connectSocket, 5000);
-    }
-  };
-
-  const startHealthCheck = () => {
-    healthCheckInterval.current = setInterval(() => {
-      const timeSinceLastUpdate = Date.now() - lastDataUpdate;
-      const maxIdleTime = 60000; // 1 minute
-
-      if (timeSinceLastUpdate > maxIdleTime) {
-        console.log("No data received for too long, reconnecting...");
-        setConnectionStatus("Reconnecting due to inactivity...");
-
-        // Force reconnection
-        if (socketRef.current) {
-          socketRef.current.disconnect();
-          setTimeout(connectSocket, 1000);
-        }
-      }
-    }, 30000); // Check every 30 seconds
-  };
-
   useEffect(() => {
+    const connectSocket = () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+
+      try {
+        socketRef.current = io(API_BASE, {
+          transports: ["polling", "websocket"],
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          reconnectionAttempts: maxReconnectAttempts,
+          timeout: 20000,
+          forceNew: true,
+          withCredentials: true,
+        });
+
+        socketRef.current.on("connect", () => {
+          console.log("Socket connected");
+          setConnectionStatus("Connected to server");
+          reconnectAttempts.current = 0;
+          fetchCurrentMatch();
+        });
+
+        socketRef.current.on("connect_error", (error: Error) => {
+          console.error("Socket connect error:", error);
+          setConnectionStatus(`Connection error: ${error.message}`);
+          reconnectAttempts.current += 1;
+          if (reconnectAttempts.current >= maxReconnectAttempts) {
+            socketRef.current?.disconnect();
+          }
+        });
+
+        socketRef.current.on("disconnect", (reason: string) => {
+          console.log("Socket disconnected:", reason);
+          setConnectionStatus(`Disconnected from server: ${reason}`);
+          if (reason === "io server disconnect") {
+            socketRef.current?.connect();
+          }
+        });
+
+        socketRef.current.on("matchUpdate", (data: CurrentMatchResponse) => {
+          console.log("Received match update:", data);
+          setMatchWithPlayers(data);
+          if (
+            data.matchData?.tournament_id !== undefined &&
+            data.matchData?.division_id !== undefined
+          ) {
+            fetchTournamentData(
+              data.matchData.tournament_id,
+              data.matchData.division_id,
+            );
+          }
+        });
+
+        socketRef.current.on("error", (error: Error) => {
+          console.error("Socket error:", error);
+          setError(`Socket error: ${error.message}`);
+        });
+      } catch (error) {
+        const err = error as Error;
+        console.error("Socket initialization error:", err);
+        setError(`Socket initialization failed: ${err.message}`);
+        setConnectionStatus(`Failed to initialize socket connection`);
+      }
+    };
+
     connectSocket();
-    startHealthCheck();
 
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
       }
-
-      if (healthCheckInterval.current) {
-        clearInterval(healthCheckInterval.current);
-      }
-
-      if (reconnectTimeout.current) {
-        clearInterval(reconnectTimeout.current);
-      }
-    };
-  }, []);
-
-  // Add window focus handler to reconnect when window becomes visible
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && socketRef.current?.connected === false) {
-        console.log("Page became visible, checking connection...");
-        connectSocket();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
@@ -308,8 +215,6 @@ const ScoringLeadersOverlay: React.FC = () => {
       <div className="text-black text-4xl font-bold text-center mb-4">
         {tournament.name} {tournament.lexicon} Div{" "}
         {tournament.divisions[matchWithPlayers.matchData.division_id].name}{" "}
-      </div>
-      <div className="text-black text-4xl font-bold text-center mb-4">
         Scoring Leaders
       </div>
       <div className="overflow-x-auto">
@@ -333,7 +238,7 @@ const ScoringLeadersOverlay: React.FC = () => {
             {standings.map((player) => (
               <tr key={player.name} className="bg-white">
                 <td className="px-4 py-2 text-center">{player.rank}</td>
-                <td className="px-4 py-2">{player.name}</td>
+                <td className="px-4 py-2">{player.etc.firstname1}{ " " }{player.etc.lastname1}</td>
                 <td className="px-4 py-2 text-center">
                   {player.averageScoreRounded}
                 </td>
@@ -347,7 +252,6 @@ const ScoringLeadersOverlay: React.FC = () => {
                 >
                   {formatNumberWithSign(player.spread)}
                 </td>
-                <td className="px-4 py-2 text-center">{player.highScore}</td>
               </tr>
             ))}
           </tbody>
