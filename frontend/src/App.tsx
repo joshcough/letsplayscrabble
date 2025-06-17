@@ -14,6 +14,7 @@ import AdminPage from "./pages/admin/AdminPage";
 import OverlayPage from "./pages/overlay/OverlayPage";
 import RatingGainOverlayPage from "./pages/overlay/RatingGainOverlayPage";
 import ScoringLeadersOverlayPage from "./pages/overlay/ScoringLeadersOverlayPage";
+import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
 import ElemScoringLeadersOverlayPage from "./pages/overlay/ElemScoringLeadersOverlayPage";
 import HSScoringLeadersOverlayPage from "./pages/overlay/HSScoringLeadersOverlayPage";
 import StandingsOverlayPage from "./pages/overlay/StandingsOverlayPage";
@@ -55,6 +56,10 @@ const AppContent: React.FC = () => {
         <Route
           path="/overlay/rating_gain"
           element={<RatingGainOverlayPage />}
+        />
+        <Route
+          path="/overlay/high_scores"
+          element={<HighScoresWithPicsOverlayPage />}
         />
         <Route
           path="/overlay/scoring_leaders"

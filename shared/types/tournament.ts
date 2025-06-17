@@ -46,6 +46,7 @@ export interface RawPlayer {
   pairings: number[];
   rating: number;
   etc: Etc;
+  photo: string;
 }
 
 export interface PlayerData {
@@ -91,6 +92,7 @@ export interface PlayerStats {
   rank?: number;
   rankOrdinal?: string;
   etc: Etc;
+  photo: string;
 }
 
 export interface GameResult {
@@ -106,6 +108,7 @@ export interface ProcessedTournament extends Omit<Tournament, "data"> {
   divisions: Division[];
   standings: PlayerStats[][]; // a PlayerStats[] per division.
   divisionPairings: RoundPairings[][]; // a RoundsPairing[] per division
+  data_url: string;
 }
 
 export interface CreateTournamentParams {

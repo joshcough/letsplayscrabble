@@ -237,6 +237,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
             averageScoreRankOrdinal: "0th",
             averageOpponentScoreRankOrdinal: "0th",
             etc: playerData.etc,
+            photo: playerData.photo,
           };
           return stats;
         } catch (error) {
@@ -263,6 +264,7 @@ export function calculateStandings(division: Division): PlayerStats[] {
             averageScoreRankOrdinal: "0th",
             averageOpponentScoreRankOrdinal: "0th",
             etc: playerData.etc,
+            photo: playerData.photo,
           };
           return defaultStats;
         }
@@ -365,7 +367,6 @@ function formatName(name: string | undefined): string {
     }
 
     if (!name.includes(",")) {
-      console.log("Name doesn't contain comma:", name);
       return name;
     }
 

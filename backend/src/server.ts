@@ -93,8 +93,19 @@ io.engine.on("connection_error", (err: Error) => {
   console.log("Connection error:", err);
 });
 
+// Store intervals for cleanup
+const clientIntervals = new Map<string, NodeJS.Timeout>();
+
 io.on("connection", (socket) => {
   console.log("Client connected", socket.id);
+
+  // Send ping every 30 seconds to keep connection alive
+  const pingInterval = setInterval(() => {
+    socket.emit('ping');
+  }, 30000);
+
+  // Store interval for cleanup
+  clientIntervals.set(socket.id, pingInterval);
 
   socket.on("error", (error: Error) => {
     console.error("Socket error:", error);
@@ -102,8 +113,20 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", (reason: string) => {
     console.log("Client disconnected", socket.id, "Reason:", reason);
+
+    // Clean up ping interval
+    const interval = clientIntervals.get(socket.id);
+    if (interval) {
+      clearInterval(interval);
+      clientIntervals.delete(socket.id);
+    }
   });
 });
+
+// Global ping to all connected clients every 30 seconds (backup)
+setInterval(() => {
+  io.emit('ping');
+}, 30000);
 
 // Unprotected routes
 app.use("/api/auth", authRoutes);
@@ -151,6 +174,13 @@ server.listen(PORT, () => {
 // Handle shutdown gracefully
 process.on("SIGTERM", () => {
   console.log("SIGTERM signal received. Shutting down gracefully...");
+
+  // Clean up all ping intervals
+  clientIntervals.forEach((interval) => {
+    clearInterval(interval);
+  });
+  clientIntervals.clear();
+
   pollingService.stop();
   server.close(() => {
     console.log("Server closed");
