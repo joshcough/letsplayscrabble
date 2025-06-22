@@ -67,13 +67,11 @@ const ElemStandingsOverlay: React.FC = () => {
       const divisionIndex = tournamentData.divisions.findIndex(
         div => div.name.toUpperCase() === divisionName?.toUpperCase()
       );
-      console.log("Division index:", divisionIndex); // Debug log
 
       if (divisionIndex === -1) {
         throw new Error(`Division ${divisionName} not found in tournament`);
       }
 
-      console.log("Standings for division:", tournamentData.standings[divisionIndex]); // Debug log
       const divisionStandings = calculateStandingsRanks(
         tournamentData.standings[divisionIndex]
       );
