@@ -1,19 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import io, { Socket } from "socket.io-client";
 import { API_BASE } from "../config/api";
-import { CurrentMatch } from "@shared/types/currentMatch";
-import { MatchWithPlayers } from "@shared/types/admin";
 
 interface UseSocketConnectionReturn {
-  matchWithPlayers: MatchWithPlayers | null;
+  socket: Socket | null;
   connectionStatus: string;
   error: string | null;
   lastDataUpdate: number;
-  refetchCurrentMatch: () => Promise<void>;
 }
 
 export const useSocketConnection = (): UseSocketConnectionReturn => {
-  const [matchWithPlayers, setMatchWithPlayers] = useState<MatchWithPlayers | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<string>("Initializing...");
   const [error, setError] = useState<string | null>(null);
   const [lastDataUpdate, setLastDataUpdate] = useState<number>(Date.now());
@@ -24,47 +21,12 @@ export const useSocketConnection = (): UseSocketConnectionReturn => {
   const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
   const maxReconnectAttempts = 5;
 
-  const fetchCurrentMatch = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/api/overlay/match/current`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch match data");
-      }
-
-      const data: CurrentMatch = await response.json();
-      console.log("Current match data:", data);
-      setMatchWithPlayers(data);
-      setLastDataUpdate(Date.now());
-
-      if (
-        data.matchData?.tournament_id === undefined ||
-        data.matchData?.division_id === undefined
-      ) {
-        console.error("Missing tournament data in match:", data);
-        setError("Missing tournament information in current match");
-      }
-    } catch (err) {
-      console.error("Error fetching current match:", err);
-      setError("Failed to fetch match data. Please try again later.");
-    }
-  };
-
   const startPollingFallback = () => {
     console.log("Starting HTTP polling fallback");
+    setConnectionStatus("Connected via HTTP polling");
 
-    const pollInterval = setInterval(async () => {
-      try {
-        await fetchCurrentMatch();
-        setConnectionStatus("Connected via HTTP polling");
-        setError(null);
-      } catch (error) {
-        console.error("Polling failed:", error);
-        setConnectionStatus("Polling failed, retrying socket...");
-        clearInterval(pollInterval);
-
-        // Try socket connection again
-        setTimeout(connectSocket, 5000);
-      }
+    const pollInterval = setInterval(() => {
+      setLastDataUpdate(Date.now());
     }, 10000); // Poll every 10 seconds
 
     // Store interval to clean up later
@@ -81,11 +43,13 @@ export const useSocketConnection = (): UseSocketConnectionReturn => {
         transports: ["polling", "websocket"],
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
-        reconnectionAttempts: Infinity, // Never stop trying
+        reconnectionAttempts: Infinity,
         timeout: 20000,
         forceNew: true,
         withCredentials: true,
       });
+
+      setSocket(socketRef.current);
 
       socketRef.current.on("connect", () => {
         console.log("Socket connected");
@@ -93,7 +57,6 @@ export const useSocketConnection = (): UseSocketConnectionReturn => {
         setError(null); // Clear any previous errors
         reconnectAttempts.current = 0;
         setLastDataUpdate(Date.now());
-        fetchCurrentMatch();
       });
 
       socketRef.current.on("connect_error", (error: Error) => {
@@ -121,18 +84,11 @@ export const useSocketConnection = (): UseSocketConnectionReturn => {
         }
       });
 
-      socketRef.current.on("AdminPanelUpdate", (data: MatchWithPlayers) => {
-        console.log("Received match update:", data);
-        setMatchWithPlayers(data);
-        setLastDataUpdate(Date.now());
-      });
-
       socketRef.current.on("error", (error: Error) => {
         console.error("Socket error:", error);
         setError(`Socket error: ${error.message}`);
       });
 
-      // Add ping/pong handling
       socketRef.current.on("ping", () => {
         console.log("Received ping");
         setLastDataUpdate(Date.now());
@@ -204,10 +160,9 @@ export const useSocketConnection = (): UseSocketConnectionReturn => {
   }, []);
 
   return {
-    matchWithPlayers,
+    socket,
     connectionStatus,
     error,
     lastDataUpdate,
-    refetchCurrentMatch: fetchCurrentMatch,
   };
 };

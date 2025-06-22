@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { fetchWithAuth } from "../../config/api";
 import { ProcessedTournament, PlayerStats } from "@shared/types/tournament";
-import { useSocketConnection } from "../../hooks/useSocketConnection";
+import { useCurrentMatch } from "../../hooks/useCurrentMatch";
+import { fetchTournament } from "../../utils/tournamentApi";
+import { calculateRanks, formatNumberWithSign } from "../../utils/tournamentHelpers";
 
 const HSScoringLeadersOverlay: React.FC = () => {
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
   const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const {
-    matchWithPlayers,
-    connectionStatus,
-    error
-  } = useSocketConnection();
+  const { currentMatch, loading: matchLoading, error: matchError } = useCurrentMatch();
 
   const columns = [
     { key: "rank", label: "Rank" },
@@ -21,80 +20,57 @@ const HSScoringLeadersOverlay: React.FC = () => {
     { key: "spread", label: "Spread" },
   ];
 
-  const formatNumberWithSign = (value: number) => {
-    return value > 0 ? `+${value}` : value.toString();
-  };
-
-  const calculateRanks = (players: PlayerStats[]): PlayerStats[] => {
-    const sortedPlayers = [...players].sort((a, b) => {
-      return b.averageScore - a.averageScore;
-    });
-
-    return sortedPlayers.map((player, index) => ({
-      ...player,
-      rank: index + 1,
-    }));
-  };
-
-  const fetchTournamentData = async (
-    tournamentId: number,
-    divisionId: number,
-  ) => {
+  const fetchTournamentData = async (tournamentId: number, divisionId: number) => {
     try {
-      console.log("Fetching tournament data for:", {
-        tournamentId,
-        divisionId,
-      });
-      const tournamentData: ProcessedTournament = await fetchWithAuth(
-        `/api/tournaments/public/${tournamentId}`,
-      );
+      setLoading(true);
+      setFetchError(null);
 
+      const tournamentData = await fetchTournament(tournamentId);
       setTournament(tournamentData);
 
-      const divisionIndex = divisionId;
-      const divisionStandings = calculateRanks(
-        tournamentData.standings[divisionIndex],
-      );
+      const divisionStandings = calculateRanks(tournamentData.standings[divisionId]);
       setStandings(divisionStandings);
     } catch (err) {
       console.error("Error fetching tournament data:", err);
+      setFetchError(err instanceof Error ? err.message : "Failed to fetch tournament data");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Fetch tournament data when matchWithPlayers changes
+  // Fetch tournament data when currentMatch changes
   useEffect(() => {
-    if (
-      matchWithPlayers?.matchData?.tournament_id !== undefined &&
-      matchWithPlayers?.matchData?.division_id !== undefined
-    ) {
-      fetchTournamentData(
-        matchWithPlayers.matchData.tournament_id,
-        matchWithPlayers.matchData.division_id,
-      );
+    if (currentMatch?.tournament_id !== undefined && currentMatch?.division_id !== undefined) {
+      fetchTournamentData(currentMatch.tournament_id, currentMatch.division_id);
     }
-  }, [matchWithPlayers]);
+  }, [currentMatch]);
 
-  if (error) {
+  // Show loading state
+  if (matchLoading || loading) {
+    return <div className="text-black p-2">Loading...</div>;
+  }
+
+  // Show errors
+  if (matchError || fetchError) {
     return (
       <div className="fixed inset-0 flex items-center justify-center text-black">
         <div className="p-4 bg-red-50 rounded-lg">
-          <p className="text-red-600">{error}</p>
-          <p className="text-sm mt-2">Status: {connectionStatus}</p>
+          <p className="text-red-600">{matchError || fetchError}</p>
         </div>
       </div>
     );
   }
 
-  if (!standings || !tournament || !matchWithPlayers) {
-    return <div className="text-black p-2">Loading...</div>;
+  // Show message when no data
+  if (!currentMatch || !standings || !tournament) {
+    return <div className="text-black p-2">No current match or tournament data</div>;
   }
 
   return (
     <div className="flex flex-col items-center pt-8 font-bold">
       <div className="text-black text-4xl font-bold text-center mb-4">
         {tournament.name} {tournament.lexicon} Div{" "}
-        {tournament.divisions[matchWithPlayers.matchData.division_id].name}{" "}
-        Scoring Leaders
+        {tournament.divisions[currentMatch.division_id].name} Scoring Leaders
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full">
@@ -117,7 +93,9 @@ const HSScoringLeadersOverlay: React.FC = () => {
             {standings.map((player) => (
               <tr key={player.name} className="bg-white">
                 <td className="px-4 py-2 text-center">{player.rank}</td>
-                <td className="px-4 py-2">{player.etc.firstname1}{ " " }{player.etc.lastname1}</td>
+                <td className="px-4 py-2">
+                  {player.etc.firstname1} {player.etc.lastname1}
+                </td>
                 <td className="px-4 py-2 text-center">
                   {player.averageScoreRounded}
                 </td>

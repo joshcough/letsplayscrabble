@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import GameHistoryDisplay from "./GameHistoryDisplay";
 import HSGameHistoryDisplay from "./HSGameHistoryDisplay";
 import ElemGameHistoryDisplay from "./ElemGameHistoryDisplay";
 import PointsDisplay from "./PointsDisplay";
-import { useSocketConnection } from "../../hooks/useSocketConnection";
+import { useCurrentMatch } from "../../hooks/useCurrentMatch";
+import { fetchCurrentMatchWithPlayers } from "../../utils/matchApi";
+import { MatchWithPlayers } from "@shared/types/admin";
 
 type SourceType =
   | "player1-name"
@@ -62,27 +64,47 @@ const StatsOverlay: React.FC = () => {
   const [searchParams] = useSearchParams();
   const source = searchParams.get("source") as SourceType;
 
-  const {
-    matchWithPlayers,
-    connectionStatus,
-    error,
-    lastDataUpdate
-  } = useSocketConnection();
+  const [matchWithPlayers, setMatchWithPlayers] = useState<MatchWithPlayers | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const { currentMatch, loading: matchLoading, error: matchError } = useCurrentMatch();
+
+  // Fetch full match data when current match changes
+  const fetchFullMatchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const fullMatchData = await fetchCurrentMatchWithPlayers();
+      setMatchWithPlayers(fullMatchData);
+    } catch (err) {
+      console.error("Error fetching full match data:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch match data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (currentMatch) {
+      fetchFullMatchData();
+    }
+  }, [currentMatch]);
 
   // Early return with error display
-  if (error) {
+  if (matchError || error) {
     return (
       <div className="fixed inset-0 flex items-center justify-center text-black">
         <div className="p-4 bg-red-50 rounded-lg">
-          <p className="text-red-600">{error}</p>
-          <p className="text-sm mt-2">Status: {connectionStatus}</p>
+          <p className="text-red-600">{matchError || error}</p>
         </div>
       </div>
     );
   }
 
   // Loading state
-  if (!matchWithPlayers) {
+  if (matchLoading || loading || !matchWithPlayers) {
     if (source) {
       return <div className="text-black p-2">Loading...</div>;
     }
@@ -90,11 +112,7 @@ const StatsOverlay: React.FC = () => {
       <div className="fixed inset-0 flex items-center justify-center text-black">
         <div className="p-4">
           <h2 className="text-xl mb-4">Scrabble Stats Overlay</h2>
-          <p>Status: {connectionStatus}</p>
-          <p className="text-sm mt-2">Waiting for player selection...</p>
-          {lastDataUpdate && (
-            <p className="text-sm mt-2">Last update: {new Date(lastDataUpdate).toISOString()}</p>
-          )}
+          <p>Status: {matchLoading || loading ? "Loading..." : "Waiting for player selection..."}</p>
         </div>
       </div>
     );

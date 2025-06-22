@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { fetchWithAuth } from "../../config/api";
 import { ProcessedTournament, PlayerStats } from "@shared/types/tournament";
-import { useSocketConnection } from "../../hooks/useSocketConnection";
+import { useCurrentMatch } from "../../hooks/useCurrentMatch";
+import { fetchTournament } from "../../utils/tournamentApi";
 
 const baseUrl = "https://scrabbleplayers.org/directors/AA003954/";
 
@@ -26,15 +26,13 @@ const formatPlayerName = (name: string): string => {
 const HighScoresWithPicsOverlay: React.FC = () => {
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
   const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const {
-    matchWithPlayers,
-    connectionStatus,
-    error,
-    lastDataUpdate
-  } = useSocketConnection();
+  const { currentMatch, loading: matchLoading, error: matchError } = useCurrentMatch();
 
-  const calculateRanks = (players: PlayerStats[]): PlayerStats[] => {
+  // Calculate ranks based on high score (unique to this component)
+  const calculateHighScoreRanks = (players: PlayerStats[]): PlayerStats[] => {
     const sortedPlayers = [...players].sort((a, b) => {
       return b.highScore - a.highScore; // Sort by high score instead of average
     });
@@ -45,57 +43,50 @@ const HighScoresWithPicsOverlay: React.FC = () => {
     }));
   };
 
-  const fetchTournamentData = async (
-    tournamentId: number,
-    divisionId: number,
-  ) => {
+  const fetchTournamentData = async (tournamentId: number, divisionId: number) => {
     try {
-      console.log("Fetching tournament data for:", {
-        tournamentId,
-        divisionId,
-      });
-      const tournamentData: ProcessedTournament = await fetchWithAuth(
-        `/api/tournaments/public/${tournamentId}`,
-      );
+      setLoading(true);
+      setFetchError(null);
 
+      const tournamentData = await fetchTournament(tournamentId);
       setTournament(tournamentData);
 
-      const divisionIndex = divisionId;
-      const divisionStandings = calculateRanks(
-        tournamentData.standings[divisionIndex],
-      );
+      const divisionStandings = calculateHighScoreRanks(tournamentData.standings[divisionId]);
       setStandings(divisionStandings);
     } catch (err) {
       console.error("Error fetching tournament data:", err);
+      setFetchError(err instanceof Error ? err.message : "Failed to fetch tournament data");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Fetch tournament data when matchWithPlayers changes
+  // Fetch tournament data when currentMatch changes
   useEffect(() => {
-    if (
-      matchWithPlayers?.matchData?.tournament_id !== undefined &&
-      matchWithPlayers?.matchData?.division_id !== undefined
-    ) {
-      fetchTournamentData(
-        matchWithPlayers.matchData.tournament_id,
-        matchWithPlayers.matchData.division_id,
-      );
+    if (currentMatch?.tournament_id !== undefined && currentMatch?.division_id !== undefined) {
+      fetchTournamentData(currentMatch.tournament_id, currentMatch.division_id);
     }
-  }, [matchWithPlayers]);
+  }, [currentMatch]);
 
-  if (error) {
+  // Show loading state
+  if (matchLoading || loading) {
+    return <div className="text-black p-2">Loading...</div>;
+  }
+
+  // Show errors
+  if (matchError || fetchError) {
     return (
       <div className="fixed inset-0 flex items-center justify-center text-black">
         <div className="p-4 bg-red-50 rounded-lg">
-          <p className="text-red-600">{error}</p>
-          <p className="text-sm mt-2">Status: {connectionStatus}</p>
+          <p className="text-red-600">{matchError || fetchError}</p>
         </div>
       </div>
     );
   }
 
-  if (!standings || !tournament || !matchWithPlayers) {
-    return <div className="text-black p-2">Loading...</div>;
+  // Show message when no data
+  if (!currentMatch || !standings || !tournament) {
+    return <div className="text-black p-2">No current match or tournament data</div>;
   }
 
   // Get top 5 players by high score
@@ -109,7 +100,7 @@ const HighScoresWithPicsOverlay: React.FC = () => {
 
       <div className="text-black text-4xl font-bold text-center mb-8">
         {tournament.name} {tournament.lexicon} Div{" "}
-        {tournament.divisions[matchWithPlayers.matchData.division_id].name}{" "}
+        {tournament.divisions[currentMatch.division_id].name}
       </div>
 
       <div className="flex justify-center items-end gap-8 px-4">

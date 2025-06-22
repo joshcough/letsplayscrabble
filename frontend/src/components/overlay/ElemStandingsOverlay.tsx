@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { fetchWithAuth } from "../../config/api";
 import { ProcessedTournament, PlayerStats } from "@shared/types/tournament";
 import { useSocketConnection } from "../../hooks/useSocketConnection";
+import { useGamesAdded } from "../../utils/socketHelpers";
+import { fetchTournament } from "../../utils/tournamentApi";
+import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
 type RouteParams = {
   [key: string]: string | undefined;
@@ -13,17 +15,15 @@ type RouteParams = {
 const ElemStandingsOverlay: React.FC = () => {
   console.log("Component rendering"); // Debug log
 
-  const { tournamentId, divisionName } = useParams();
+  const { tournamentId, divisionName } = useParams<RouteParams>();
   console.log("URL params:", { tournamentId, divisionName }); // Debug log
 
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
   const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const {
-    matchWithPlayers,
-    connectionStatus
-  } = useSocketConnection();
+  const { socket } = useSocketConnection();
 
   const columns = [
     { key: "name", label: "Name" },
@@ -34,12 +34,8 @@ const ElemStandingsOverlay: React.FC = () => {
     { key: "highScore", label: "High Score" },
   ];
 
-  const formatNumberWithSign = (value: number | null) => {
-    if (value === null) return '';
-    return value > 0 ? `+${value}` : value.toString();
-  };
-
-  const calculateRanks = (players: PlayerStats[]): PlayerStats[] => {
+  // Calculate ranks based on wins/losses/spread (different from scoring leaders)
+  const calculateStandingsRanks = (players: PlayerStats[]): PlayerStats[] => {
     const sortedPlayers = [...players].sort((a, b) => {
       if (a.wins !== b.wins) return b.wins - a.wins;
       if (a.losses !== b.losses) return a.losses - b.losses;
@@ -58,10 +54,11 @@ const ElemStandingsOverlay: React.FC = () => {
         throw new Error("Tournament ID is required");
       }
 
+      setLoading(true);
+      setFetchError(null);
+
       console.log("Fetching tournament data for:", { tournamentId, divisionName });
-      const tournamentData: ProcessedTournament = await fetchWithAuth(
-        `/api/tournaments/public/${tournamentId}`
-      );
+      const tournamentData = await fetchTournament(Number(tournamentId));
       console.log("Received tournament data:", tournamentData); // Debug log
 
       setTournament(tournamentData);
@@ -77,13 +74,15 @@ const ElemStandingsOverlay: React.FC = () => {
       }
 
       console.log("Standings for division:", tournamentData.standings[divisionIndex]); // Debug log
-      const divisionStandings = calculateRanks(
+      const divisionStandings = calculateStandingsRanks(
         tournamentData.standings[divisionIndex]
       );
       setStandings(divisionStandings);
     } catch (err) {
       console.error("Error fetching tournament data:", err);
-      setError(`Failed to fetch tournament data: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setFetchError(err instanceof Error ? err.message : "Failed to fetch tournament data");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,24 +92,27 @@ const ElemStandingsOverlay: React.FC = () => {
     fetchTournamentData();
   }, [tournamentId, divisionName]);
 
-  // Listen for socket updates and refresh if relevant to this tournament/division
-  useEffect(() => {
-    if (
-      matchWithPlayers?.matchData?.tournament_id === Number(tournamentId) &&
-      tournament?.divisions[matchWithPlayers.matchData.division_id]?.name?.toUpperCase() === divisionName?.toUpperCase()
-    ) {
-      console.log("Received relevant match update, refreshing data");
+  // Listen for games being added to this tournament
+  useGamesAdded(socket, (data: { tournamentId: number }) => {
+    if (data.tournamentId === Number(tournamentId)) {
+      console.log("Games added to our tournament, refreshing data");
       fetchTournamentData();
     }
-  }, [matchWithPlayers, tournamentId, divisionName, tournament]);
+  });
 
-  if (error) {
-    console.log("Rendering error state:", error); // Debug log
+  // Show loading state
+  if (loading) {
+    console.log("Rendering loading state"); // Debug log
+    return <div className="text-black p-2">Loading...</div>;
+  }
+
+  // Show errors
+  if (fetchError) {
+    console.log("Rendering error state:", fetchError); // Debug log
     return (
       <div className="fixed inset-0 flex items-center justify-center text-black">
         <div className="p-4 bg-red-50 rounded-lg">
-          <p className="text-red-600">{error}</p>
-          <p className="text-sm mt-2">Status: {connectionStatus}</p>
+          <p className="text-red-600">{fetchError}</p>
         </div>
       </div>
     );
@@ -159,7 +161,9 @@ const ElemStandingsOverlay: React.FC = () => {
           <tbody>
             {standings.map((player) => (
               <tr key={player.name} className="bg-white">
-                <td className="px-4 py-2">{player.etc.firstname1.join(" ")}{" & "}{player.etc.firstname2.join(" ")}</td>
+                <td className="px-4 py-2">
+                  {player.etc.firstname1.join(" ")} & {player.etc.firstname2.join(" ")}
+                </td>
                 <td className="px-4 py-2 text-center">{player.wins}</td>
                 <td className="px-4 py-2 text-center">{player.losses}</td>
                 <td className="px-4 py-2 text-center">{player.ties}</td>
