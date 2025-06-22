@@ -1,6 +1,6 @@
 import { GameResult } from "@shared/types/tournament";
 
-const GameHistoryDisplay = ({
+const HSGameHistoryDisplay = ({
   games,
   side,
 }: {
@@ -51,4 +51,4 @@ const GameHistoryDisplay = ({
   );
 };
 
-export default GameHistoryDisplay;
+export default HSGameHistoryDisplay;

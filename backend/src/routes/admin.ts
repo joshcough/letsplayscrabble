@@ -8,14 +8,6 @@ import { CurrentMatch } from "@shared/types/currentMatch";
 import { PlayerStats } from "@shared/types/tournament";
 import { getPlayerRecentGames } from "../services/dataProcessing";
 
-// Updated request body type
-interface CreateMatchBody {
-  tournamentId: number;
-  divisionId: number;
-  round: number;
-  pairingId: number;
-}
-
 export default function createAdminRoutes(
   tournamentRepository: TournamentRepository,
   currentMatchRepository: CurrentMatchRepository,
@@ -23,28 +15,35 @@ export default function createAdminRoutes(
 ): Router {
   const router = express.Router();
 
-  const createMatch: RequestHandler<{}, any, CreateMatchBody> = async (
+  const createMatch: RequestHandler<{}, any, CurrentMatch> = async (
     req,
     res,
   ) => {
-    const { tournamentId, divisionId, round, pairingId } = req.body;
+    const { tournament_id, division_id, round, pairing_id } = req.body;
 
     try {
       const match = await currentMatchRepository.create(
-        tournamentId,
-        divisionId,
+        tournament_id,
+        division_id,
         round,
-        pairingId,
+        pairing_id,
       );
 
-      const update = await tournamentRepository.getMatchWithPlayers(match);
+      const adminUpdate: CurrentMatch = {
+        tournament_id: match.tournament_id,
+        division_id: match.division_id,
+        round: match.round,
+        pairing_id: match.pairing_id
+      };
 
+      io.emit("AdminPanelUpdate", adminUpdate);
+
+      // Still return the full data for the API response
+      const update = await tournamentRepository.getMatchWithPlayers(match);
       if (!update) {
         res.status(500).json({ error: "Failed to process match data" });
         return;
       }
-
-      io.emit("matchUpdate", update);
       res.json(update);
     } catch (error) {
       console.error("Error updating match:", error);

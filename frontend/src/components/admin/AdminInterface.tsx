@@ -6,7 +6,7 @@ import {
   RoundPairings,
   Pairing,
 } from "@shared/types/tournament";
-import { CreateCurrentMatchParams } from "@shared/types/currentMatch";
+import { CurrentMatch } from "@shared/types/currentMatch";
 
 const AdminInterface: React.FC = () => {
   const [tournaments, setTournaments] = useState<ProcessedTournament[]>([]);
@@ -32,29 +32,29 @@ const AdminInterface: React.FC = () => {
 
         try {
           // Try to fetch current match - but don't break if it fails
-          const currentMatchResponse = await fetchWithAuth(
+          const matchWithPlayers = await fetchWithAuth(
             `/api/overlay/match/current`,
           );
 
-          if (currentMatchResponse && currentMatchResponse.matchData) {
+          if (matchWithPlayers && matchWithPlayers.matchData) {
             const tourneyObj = tournamentsData.find(
               (t: ProcessedTournament) =>
-                t.id === currentMatchResponse.matchData.tournament_id,
+                t.id === matchWithPlayers.matchData.tournament_id,
             );
 
             if (tourneyObj) {
               setSelectedTournament(
-                currentMatchResponse.matchData.tournament_id.toString(),
+                matchWithPlayers.matchData.tournament_id.toString(),
               );
               setSelectedDivision(
-                currentMatchResponse.matchData.division_id.toString(),
+                matchWithPlayers.matchData.division_id.toString(),
               );
-              setSelectedRound(currentMatchResponse.matchData.round.toString());
-              setSelectedPairing(currentMatchResponse.matchData.pairing_id);
+              setSelectedRound(matchWithPlayers.matchData.round.toString());
+              setSelectedPairing(matchWithPlayers.matchData.pairing_id);
 
               const divisionPairings =
                 tourneyObj.divisionPairings[
-                  currentMatchResponse.matchData.division_id
+                  matchWithPlayers.matchData.division_id
                 ];
               const rounds = divisionPairings.map(
                 (rp: RoundPairings) => rp.round,
@@ -63,7 +63,7 @@ const AdminInterface: React.FC = () => {
 
               const roundPairings = divisionPairings.find(
                 (rp: RoundPairings) =>
-                  rp.round === currentMatchResponse.matchData.round,
+                  rp.round === matchWithPlayers.matchData.round,
               );
               if (roundPairings) {
                 setAvailablePairings(roundPairings.pairings);
@@ -157,11 +157,11 @@ const AdminInterface: React.FC = () => {
     setError(null);
 
     try {
-      const requestBody: CreateCurrentMatchParams = {
-        tournamentId: parseInt(selectedTournament),
-        divisionId: parseInt(selectedDivision),
+      const requestBody: CurrentMatch = {
+        tournament_id: parseInt(selectedTournament),
+        division_id: parseInt(selectedDivision),
         round: parseInt(selectedRound),
-        pairingId: selectedPairing,
+        pairing_id: selectedPairing,
       };
 
       await fetchWithAuth(`/api/admin/match/current`, {

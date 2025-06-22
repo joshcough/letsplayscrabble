@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import io, { Socket } from "socket.io-client";
-import { API_BASE, fetchWithAuth } from "../../config/api";
+import { fetchWithAuth } from "../../config/api";
 import { ProcessedTournament, PlayerStats } from "@shared/types/tournament";
+import { useSocketConnection } from "../../hooks/useSocketConnection";
 
 type RouteParams = {
   [key: string]: string | undefined;
@@ -10,7 +10,7 @@ type RouteParams = {
   divisionName: string;
 }
 
-const StandingsOverlay: React.FC = () => {
+const HSStandingsOverlay: React.FC = () => {
   console.log("Component rendering"); // Debug log
 
   const { tournamentId, divisionName } = useParams();
@@ -19,10 +19,11 @@ const StandingsOverlay: React.FC = () => {
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
   const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [connectionStatus, setConnectionStatus] = useState<string>("Initializing...");
-  const socketRef = useRef<Socket | null>(null);
-  const reconnectAttempts = useRef<number>(0);
-  const maxReconnectAttempts = 5;
+
+  const {
+    matchWithPlayers,
+    connectionStatus
+  } = useSocketConnection();
 
   const columns = [
     { key: "name", label: "Name" },
@@ -86,85 +87,22 @@ const StandingsOverlay: React.FC = () => {
     }
   };
 
+  // Initial fetch on mount and when params change
   useEffect(() => {
     console.log("Running tournament data fetch effect"); // Debug log
     fetchTournamentData();
   }, [tournamentId, divisionName]);
 
+  // Listen for socket updates and refresh if relevant to this tournament/division
   useEffect(() => {
-    console.log("Running socket connection effect"); // Debug log
-    const connectSocket = () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
-
-      try {
-        socketRef.current = io(API_BASE, {
-          transports: ["polling", "websocket"],
-          reconnectionDelay: 1000,
-          reconnectionDelayMax: 5000,
-          reconnectionAttempts: maxReconnectAttempts,
-          timeout: 20000,
-          forceNew: true,
-          withCredentials: true,
-        });
-
-        socketRef.current.on("connect", () => {
-          console.log("Socket connected");
-          setConnectionStatus("Connected to server");
-          reconnectAttempts.current = 0;
-        });
-
-        socketRef.current.on("connect_error", (error: Error) => {
-          console.error("Socket connect error:", error);
-          setConnectionStatus(`Connection error: ${error.message}`);
-          reconnectAttempts.current += 1;
-          if (reconnectAttempts.current >= maxReconnectAttempts) {
-            socketRef.current?.disconnect();
-          }
-        });
-
-        socketRef.current.on("disconnect", (reason: string) => {
-          console.log("Socket disconnected:", reason);
-          setConnectionStatus(`Disconnected from server: ${reason}`);
-          if (reason === "io server disconnect") {
-            socketRef.current?.connect();
-          }
-        });
-
-        socketRef.current.on("matchUpdate", (data: any) => {
-          console.log("Received match update:", data);
-          // Only update if the match is for our tournament and division
-          if (
-            data.matchData?.tournament_id === Number(tournamentId) &&
-            data.division?.name?.toUpperCase() === divisionName?.toUpperCase()
-          ) {
-            fetchTournamentData();
-          }
-        });
-
-        socketRef.current.on("error", (error: Error) => {
-          console.error("Socket error:", error);
-          setError(`Socket error: ${error.message}`);
-        });
-      } catch (error) {
-        const err = error as Error;
-        console.error("Socket initialization error:", err);
-        setError(`Socket initialization failed: ${err.message}`);
-        setConnectionStatus(`Failed to initialize socket connection`);
-      }
-    };
-
-    connectSocket();
-
-    return () => {
-      if (socketRef.current) {
-        console.log("Cleaning up socket connection"); // Debug log
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-    };
-  }, [tournamentId, divisionName]);
+    if (
+      matchWithPlayers?.matchData?.tournament_id === Number(tournamentId) &&
+      tournament?.divisions[matchWithPlayers.matchData.division_id]?.name?.toUpperCase() === divisionName?.toUpperCase()
+    ) {
+      console.log("Received relevant match update, refreshing data");
+      fetchTournamentData();
+    }
+  }, [matchWithPlayers, tournamentId, divisionName, tournament]);
 
   if (error) {
     console.log("Rendering error state:", error); // Debug log
@@ -238,4 +176,4 @@ const StandingsOverlay: React.FC = () => {
   );
 };
 
-export default StandingsOverlay;
+export default HSStandingsOverlay;

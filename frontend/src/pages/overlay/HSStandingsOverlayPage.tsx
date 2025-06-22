@@ -1,8 +1,8 @@
 import React from "react";
-import StandingsOverlay from "../../components/overlay/HSStandingsOverlay";
+import StandingsOverlay from "../../components/overlay/HSGameHistoryDisplay";
 
-const HSStandingsOverlayPage: React.FC = () => {
-  return <StandingsOverlay />;
+const HSGameHistoryDisplay: React.FC = () => {
+  return <HSGameHistoryDisplay />;
 };
 
-export default HSStandingsOverlayPage;
+export default HSGameHistoryDisplay;
