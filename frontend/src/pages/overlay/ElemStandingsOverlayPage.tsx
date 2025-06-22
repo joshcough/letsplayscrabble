@@ -1,8 +1,8 @@
 import React from "react";
-import StandingsOverlay from "../../components/overlay/ElemStandingsOverlay";
+import ElemStandingsOverlay from "../../components/overlay/ElemStandingsOverlay";
 
 const ElemStandingsOverlayPage: React.FC = () => {
-  return <StandingsOverlay />;
+  return <ElemStandingsOverlay />;
 };
 
 export default ElemStandingsOverlayPage;

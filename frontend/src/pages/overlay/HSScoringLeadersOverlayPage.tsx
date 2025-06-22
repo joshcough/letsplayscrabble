@@ -1,8 +1,8 @@
 import React from "react";
-import ScoringLeadersOverlay from "../../components/overlay/HSScoringLeadersOverlay";
+import HSScoringLeadersOverlay from "../../components/overlay/HSScoringLeadersOverlay";
 
 const HSScoringLeadersOverlayPage: React.FC = () => {
-  return <ScoringLeadersOverlay />;
+  return <HSScoringLeadersOverlay />;
 };
 
 export default HSScoringLeadersOverlayPage;

@@ -1,12 +1,16 @@
 import cron, { ScheduledTask } from "node-cron";
 import { TournamentRepository } from "../repositories/tournamentRepository";
 import { loadTournamentFile } from "./dataProcessing";
+import { Server as SocketIOServer } from "socket.io";
 
 export class TournamentPollingService {
   private isRunning: boolean;
   private job: ScheduledTask | null;
 
-  constructor(private readonly tournamentRepo: TournamentRepository) {
+  constructor(
+    private readonly tournamentRepo: TournamentRepository,
+    private readonly io: SocketIOServer  // Add this
+  ) {
     this.isRunning = false;
     this.job = null;
   }
@@ -49,6 +53,7 @@ export class TournamentPollingService {
         if (JSON.stringify(newData) !== JSON.stringify(tournament.data)) {
           await this.tournamentRepo.updateData(tournament.id, newData);
           console.log(`Updated tournament ${tournament.id} with new data`);
+          this.io.emit("GamesAdded", { tournamentId: tournament.id });
         }
       } catch (error) {
         console.error(`Error polling tournament ${tournament.id}:`, error);

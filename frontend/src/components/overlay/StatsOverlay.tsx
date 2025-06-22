@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import io, { Socket } from "socket.io-client";
-import { API_BASE } from "../../config/api";
-import { MatchWithPlayers } from "@shared/types/admin";
 import GameHistoryDisplay from "./GameHistoryDisplay";
 import HSGameHistoryDisplay from "./HSGameHistoryDisplay";
 import ElemGameHistoryDisplay from "./ElemGameHistoryDisplay";
 import PointsDisplay from "./PointsDisplay";
+import { useCurrentMatch } from "../../hooks/useCurrentMatch";
+import { fetchCurrentMatchWithPlayers } from "../../utils/matchApi";
+import { MatchWithPlayers } from "@shared/types/admin";
 
 type SourceType =
   | "player1-name"
@@ -63,145 +63,48 @@ type SourceType =
 const StatsOverlay: React.FC = () => {
   const [searchParams] = useSearchParams();
   const source = searchParams.get("source") as SourceType;
-  const [matchWithPlayers, setMatchWithPlayers] =
-    useState<MatchWithPlayers | null>(null);
-  const [connectionStatus, setConnectionStatus] =
-    useState<string>("Initializing...");
-  const [lastUpdate, setLastUpdate] = useState<string | null>(null);
+
+  const [matchWithPlayers, setMatchWithPlayers] = useState<MatchWithPlayers | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const socketRef = useRef<Socket | null>(null);
-  const reconnectAttempts = useRef<number>(0);
-  const maxReconnectAttempts = 5;
+
+  const { currentMatch, loading: matchLoading, error: matchError } = useCurrentMatch();
+
+  // Fetch full match data when current match changes
+  const fetchFullMatchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const fullMatchData = await fetchCurrentMatchWithPlayers();
+      setMatchWithPlayers(fullMatchData);
+    } catch (err) {
+      console.error("Error fetching full match data:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch match data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchCurrentMatch = async () => {
-      try {
-        console.log("Fetching current match...");
-        const response = await fetch(`${API_BASE}/api/overlay/match/current`);
-        const data = await response.json();
-        console.log("Received match data:", data);
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to fetch match data");
-        }
-        setMatchWithPlayers(data);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching current match:", err);
-        setError(
-          `Failed to fetch current match: ${err instanceof Error ? err.message : "Unknown error"}`,
-        );
-      }
-    };
-
-    const connectSocket = () => {
-      if (socketRef.current?.connected) {
-        console.log("Socket already connected, skipping connection...");
-        return;
-      }
-
-      try {
-        console.log("Attempting to connect to:", API_BASE);
-
-        // Clean up existing socket if any
-        if (socketRef.current) {
-          socketRef.current.removeAllListeners();
-          socketRef.current.disconnect();
-          socketRef.current = null;
-        }
-
-        socketRef.current = io(API_BASE, {
-          transports: ["polling", "websocket"], // Start with polling, upgrade to websocket
-          reconnectionDelay: 2000,
-          reconnectionDelayMax: 10000,
-          reconnectionAttempts: maxReconnectAttempts,
-          timeout: 60000, // Increased timeout
-          forceNew: true,
-          withCredentials: true,
-        });
-
-        socketRef.current.on("connect", () => {
-          console.log("Socket connected successfully");
-          setConnectionStatus("Connected to server");
-          reconnectAttempts.current = 0;
-          setError(null);
-          fetchCurrentMatch();
-        });
-
-        socketRef.current.on("connect_error", (error: Error) => {
-          console.log("Connection error:", error.message);
-          setConnectionStatus(`Connection error: ${error.message}`);
-          // Only set error if we've exceeded max attempts
-          if (reconnectAttempts.current >= maxReconnectAttempts) {
-            setError(`Socket connection error: ${error.message}`);
-          }
-        });
-
-        socketRef.current.on("disconnect", (reason: string) => {
-          console.log("Socket disconnected. Reason:", reason);
-          setConnectionStatus(`Disconnected: ${reason}`);
-
-          // Don't try to reconnect on intentional disconnects
-          if (
-            reason === "io server disconnect" ||
-            reason === "io client disconnect"
-          ) {
-            return;
-          }
-
-          // Attempt reconnection if within limits
-          if (reconnectAttempts.current < maxReconnectAttempts) {
-            reconnectAttempts.current += 1;
-            setTimeout(() => {
-              console.log(
-                `Attempting reconnect ${reconnectAttempts.current}/${maxReconnectAttempts}`,
-              );
-              socketRef.current?.connect();
-            }, 2000);
-          }
-        });
-
-        socketRef.current.on("matchUpdate", (data: MatchWithPlayers) => {
-          console.log("Received match update");
-          setMatchWithPlayers(data);
-          setLastUpdate(new Date().toISOString());
-        });
-
-        // Initial data fetch
-        fetchCurrentMatch();
-      } catch (error) {
-        const err = error as Error;
-        console.error("Socket initialization error:", err);
-        setError(`Socket initialization failed: ${err.message}`);
-        setConnectionStatus(`Failed to initialize socket connection`);
-      }
-    };
-
-    connectSocket();
-
-    return () => {
-      if (socketRef.current) {
-        console.log("Cleaning up socket connection...");
-        socketRef.current.removeAllListeners();
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-    };
-  }, []);
+    if (currentMatch) {
+      fetchFullMatchData();
+    }
+  }, [currentMatch]);
 
   // Early return with error display
-  if (error) {
+  if (matchError || error) {
     return (
       <div className="fixed inset-0 flex items-center justify-center text-black">
         <div className="p-4 bg-red-50 rounded-lg">
-          <p className="text-red-600">{error}</p>
-          <p className="text-sm mt-2">Status: {connectionStatus}</p>
+          <p className="text-red-600">{matchError || error}</p>
         </div>
       </div>
     );
   }
 
   // Loading state
-  if (!matchWithPlayers) {
+  if (matchLoading || loading || !matchWithPlayers) {
     if (source) {
       return <div className="text-black p-2">Loading...</div>;
     }
@@ -209,11 +112,7 @@ const StatsOverlay: React.FC = () => {
       <div className="fixed inset-0 flex items-center justify-center text-black">
         <div className="p-4">
           <h2 className="text-xl mb-4">Scrabble Stats Overlay</h2>
-          <p>Status: {connectionStatus}</p>
-          <p className="text-sm mt-2">Waiting for player selection...</p>
-          {lastUpdate && (
-            <p className="text-sm mt-2">Last update: {lastUpdate}</p>
-          )}
+          <p>Status: {matchLoading || loading ? "Loading..." : "Waiting for player selection..."}</p>
         </div>
       </div>
     );

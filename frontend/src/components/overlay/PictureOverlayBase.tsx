@@ -2,23 +2,31 @@ import React, { useState, useEffect } from "react";
 import { ProcessedTournament, PlayerStats } from "@shared/types/tournament";
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { fetchTournament } from "../../utils/tournamentApi";
-import { calculateRanks, formatNumberWithSign } from "../../utils/tournamentHelpers";
+import { formatNumberWithSign } from "../../utils/tournamentHelpers";
+import {
+  getPlayerImageUrl,
+  formatPlayerName,
+  calculateRanksBySortType,
+  SortType
+} from "../../utils/pictureOverlayUtils";
 
-const ElemScoringLeadersOverlay: React.FC = () => {
+interface PictureOverlayBaseProps {
+  title: string;
+  sortType: SortType;
+  renderPlayerContent: (player: PlayerStats) => React.ReactNode;
+}
+
+const PictureOverlayBase: React.FC<PictureOverlayBaseProps> = ({
+  title,
+  sortType,
+  renderPlayerContent
+}) => {
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
   const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   const { currentMatch, loading: matchLoading, error: matchError } = useCurrentMatch();
-
-  const columns = [
-    { key: "rank", label: "Rank" },
-    { key: "name", label: "Name" },
-    { key: "averageScoreRounded", label: "Avg Pts For" },
-    { key: "averageOpponentScoreScore", label: "Avg Pts Ag" },
-    { key: "spread", label: "Spread" },
-  ];
 
   const fetchTournamentData = async (tournamentId: number, divisionId: number) => {
     try {
@@ -28,7 +36,7 @@ const ElemScoringLeadersOverlay: React.FC = () => {
       const tournamentData = await fetchTournament(tournamentId);
       setTournament(tournamentData);
 
-      const divisionStandings = calculateRanks(tournamentData.standings[divisionId]);
+      const divisionStandings = calculateRanksBySortType(tournamentData.standings[divisionId], sortType);
       setStandings(divisionStandings);
     } catch (err) {
       console.error("Error fetching tournament data:", err);
@@ -66,56 +74,44 @@ const ElemScoringLeadersOverlay: React.FC = () => {
     return <div className="text-black p-2">No current match or tournament data</div>;
   }
 
+  // Get top 5 players
+  const top5Players = standings.slice(0, 5);
+
   return (
     <div className="flex flex-col items-center pt-8 font-bold">
-      <div className="text-black text-4xl font-bold text-center mb-4">
-        {tournament.name} {tournament.lexicon} Div{" "}
-        {tournament.divisions[currentMatch.division_id].name} Scoring Leaders
+      <div className="text-black text-6xl font-bold text-center mb-4">
+        {title}
       </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full">
-          <thead>
-            <tr className="bg-white">
-              {columns.map((column) => (
-                <th
-                  key={column.key}
-                  className={`px-4 py-2 ${column.key === "name" ? "text-left" : "text-center"}`}
-                  style={{
-                    minWidth: column.key === "name" ? "200px" : "100px",
-                  }}
-                >
-                  {column.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {standings.map((player) => (
-              <tr key={player.name} className="bg-white">
-                <td className="px-4 py-2 text-center">{player.rank}</td>
-                <td className="px-4 py-2">
-                  {player.etc.firstname1} & {player.etc.firstname2}
-                </td>
-                <td className="px-4 py-2 text-center">
-                  {player.averageScoreRounded}
-                </td>
-                <td className="px-4 py-2 text-center">
-                  {player.averageOpponentScore}
-                </td>
-                <td
-                  className={`px-4 py-2 text-center ${
-                    player.spread > 0 ? "text-red-600" : "text-blue-600"
-                  }`}
-                >
-                  {formatNumberWithSign(player.spread)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+      <div className="text-black text-4xl font-bold text-center mb-8">
+        {tournament.name} {tournament.lexicon} Div{" "}
+        {tournament.divisions[currentMatch.division_id].name}
+      </div>
+
+      <div className="flex justify-center items-start gap-8 px-4">
+        {top5Players.map((player) => (
+          <div key={player.name} className="flex flex-col items-center">
+            {/* Player Image */}
+            <div className="w-32 h-32 mb-4 rounded-lg overflow-hidden border-4 border-gray-300 bg-gray-200">
+              <img
+                src={getPlayerImageUrl(tournament.data_url, player.photo)}
+                alt={player.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {/* Player Name */}
+            <div className="text-black text-xl font-bold text-center mb-2 max-w-40 min-h-[3.5rem] flex items-center justify-center">
+              {formatPlayerName(player.name)}
+            </div>
+
+            {/* Custom Content */}
+            {renderPlayerContent(player)}
+          </div>
+        ))}
       </div>
     </div>
   );
 };
 
-export default ElemScoringLeadersOverlay;
+export default PictureOverlayBase;

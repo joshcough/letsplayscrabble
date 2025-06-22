@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import io, { Socket } from "socket.io-client";
-import { API_BASE, fetchWithAuth } from "../../config/api";
 import { ProcessedTournament, PlayerStats } from "@shared/types/tournament";
+import { useSocketConnection } from "../../hooks/useSocketConnection";
+import { useGamesAdded } from "../../utils/socketHelpers";
+import { fetchTournament } from "../../utils/tournamentApi";
+import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
 type RouteParams = {
   [key: string]: string | undefined;
@@ -10,19 +12,18 @@ type RouteParams = {
   divisionName: string;
 }
 
-const StandingsOverlay: React.FC = () => {
+const ElemStandingsOverlay: React.FC = () => {
   console.log("Component rendering"); // Debug log
 
-  const { tournamentId, divisionName } = useParams();
+  const { tournamentId, divisionName } = useParams<RouteParams>();
   console.log("URL params:", { tournamentId, divisionName }); // Debug log
 
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
   const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [connectionStatus, setConnectionStatus] = useState<string>("Initializing...");
-  const socketRef = useRef<Socket | null>(null);
-  const reconnectAttempts = useRef<number>(0);
-  const maxReconnectAttempts = 5;
+  const [loading, setLoading] = useState<boolean>(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const { socket } = useSocketConnection();
 
   const columns = [
     { key: "name", label: "Name" },
@@ -33,12 +34,8 @@ const StandingsOverlay: React.FC = () => {
     { key: "highScore", label: "High Score" },
   ];
 
-  const formatNumberWithSign = (value: number | null) => {
-    if (value === null) return '';
-    return value > 0 ? `+${value}` : value.toString();
-  };
-
-  const calculateRanks = (players: PlayerStats[]): PlayerStats[] => {
+  // Calculate ranks based on wins/losses/spread (different from scoring leaders)
+  const calculateStandingsRanks = (players: PlayerStats[]): PlayerStats[] => {
     const sortedPlayers = [...players].sort((a, b) => {
       if (a.wins !== b.wins) return b.wins - a.wins;
       if (a.losses !== b.losses) return a.losses - b.losses;
@@ -57,10 +54,11 @@ const StandingsOverlay: React.FC = () => {
         throw new Error("Tournament ID is required");
       }
 
+      setLoading(true);
+      setFetchError(null);
+
       console.log("Fetching tournament data for:", { tournamentId, divisionName });
-      const tournamentData: ProcessedTournament = await fetchWithAuth(
-        `/api/tournaments/public/${tournamentId}`
-      );
+      const tournamentData = await fetchTournament(Number(tournamentId));
       console.log("Received tournament data:", tournamentData); // Debug log
 
       setTournament(tournamentData);
@@ -69,110 +67,50 @@ const StandingsOverlay: React.FC = () => {
       const divisionIndex = tournamentData.divisions.findIndex(
         div => div.name.toUpperCase() === divisionName?.toUpperCase()
       );
-      console.log("Division index:", divisionIndex); // Debug log
 
       if (divisionIndex === -1) {
         throw new Error(`Division ${divisionName} not found in tournament`);
       }
 
-      console.log("Standings for division:", tournamentData.standings[divisionIndex]); // Debug log
-      const divisionStandings = calculateRanks(
+      const divisionStandings = calculateStandingsRanks(
         tournamentData.standings[divisionIndex]
       );
       setStandings(divisionStandings);
     } catch (err) {
       console.error("Error fetching tournament data:", err);
-      setError(`Failed to fetch tournament data: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setFetchError(err instanceof Error ? err.message : "Failed to fetch tournament data");
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Initial fetch on mount and when params change
   useEffect(() => {
     console.log("Running tournament data fetch effect"); // Debug log
     fetchTournamentData();
   }, [tournamentId, divisionName]);
 
-  useEffect(() => {
-    console.log("Running socket connection effect"); // Debug log
-    const connectSocket = () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
+  // Listen for games being added to this tournament
+  useGamesAdded(socket, (data: { tournamentId: number }) => {
+    if (data.tournamentId === Number(tournamentId)) {
+      console.log("Games added to our tournament, refreshing data");
+      fetchTournamentData();
+    }
+  });
 
-      try {
-        socketRef.current = io(API_BASE, {
-          transports: ["polling", "websocket"],
-          reconnectionDelay: 1000,
-          reconnectionDelayMax: 5000,
-          reconnectionAttempts: maxReconnectAttempts,
-          timeout: 20000,
-          forceNew: true,
-          withCredentials: true,
-        });
+  // Show loading state
+  if (loading) {
+    console.log("Rendering loading state"); // Debug log
+    return <div className="text-black p-2">Loading...</div>;
+  }
 
-        socketRef.current.on("connect", () => {
-          console.log("Socket connected");
-          setConnectionStatus("Connected to server");
-          reconnectAttempts.current = 0;
-        });
-
-        socketRef.current.on("connect_error", (error: Error) => {
-          console.error("Socket connect error:", error);
-          setConnectionStatus(`Connection error: ${error.message}`);
-          reconnectAttempts.current += 1;
-          if (reconnectAttempts.current >= maxReconnectAttempts) {
-            socketRef.current?.disconnect();
-          }
-        });
-
-        socketRef.current.on("disconnect", (reason: string) => {
-          console.log("Socket disconnected:", reason);
-          setConnectionStatus(`Disconnected from server: ${reason}`);
-          if (reason === "io server disconnect") {
-            socketRef.current?.connect();
-          }
-        });
-
-        socketRef.current.on("matchUpdate", (data: any) => {
-          console.log("Received match update:", data);
-          // Only update if the match is for our tournament and division
-          if (
-            data.matchData?.tournament_id === Number(tournamentId) &&
-            data.division?.name?.toUpperCase() === divisionName?.toUpperCase()
-          ) {
-            fetchTournamentData();
-          }
-        });
-
-        socketRef.current.on("error", (error: Error) => {
-          console.error("Socket error:", error);
-          setError(`Socket error: ${error.message}`);
-        });
-      } catch (error) {
-        const err = error as Error;
-        console.error("Socket initialization error:", err);
-        setError(`Socket initialization failed: ${err.message}`);
-        setConnectionStatus(`Failed to initialize socket connection`);
-      }
-    };
-
-    connectSocket();
-
-    return () => {
-      if (socketRef.current) {
-        console.log("Cleaning up socket connection"); // Debug log
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-    };
-  }, [tournamentId, divisionName]);
-
-  if (error) {
-    console.log("Rendering error state:", error); // Debug log
+  // Show errors
+  if (fetchError) {
+    console.log("Rendering error state:", fetchError); // Debug log
     return (
       <div className="fixed inset-0 flex items-center justify-center text-black">
         <div className="p-4 bg-red-50 rounded-lg">
-          <p className="text-red-600">{error}</p>
-          <p className="text-sm mt-2">Status: {connectionStatus}</p>
+          <p className="text-red-600">{fetchError}</p>
         </div>
       </div>
     );
@@ -221,7 +159,9 @@ const StandingsOverlay: React.FC = () => {
           <tbody>
             {standings.map((player) => (
               <tr key={player.name} className="bg-white">
-                <td className="px-4 py-2">{player.etc.firstname1.join(" ")}{" & "}{player.etc.firstname2.join(" ")}</td>
+                <td className="px-4 py-2">
+                  {player.etc.firstname1.join(" ")} & {player.etc.firstname2.join(" ")}
+                </td>
                 <td className="px-4 py-2 text-center">{player.wins}</td>
                 <td className="px-4 py-2 text-center">{player.losses}</td>
                 <td className="px-4 py-2 text-center">{player.ties}</td>
@@ -238,4 +178,4 @@ const StandingsOverlay: React.FC = () => {
   );
 };
 
-export default StandingsOverlay;
+export default ElemStandingsOverlay;

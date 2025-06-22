@@ -6,7 +6,7 @@ import {
   RoundPairings,
   Pairing,
 } from "@shared/types/tournament";
-import { CreateCurrentMatchParams } from "@shared/types/currentMatch";
+import { CurrentMatch } from "@shared/types/currentMatch";
 
 const AdminInterface: React.FC = () => {
   const [tournaments, setTournaments] = useState<ProcessedTournament[]>([]);
@@ -18,68 +18,92 @@ const AdminInterface: React.FC = () => {
   const [availablePairings, setAvailablePairings] = useState<Pairing[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [initializationStatus, setInitializationStatus] = useState<string>("Loading tournaments...");
 
   useEffect(() => {
     const initializeData = async () => {
       setIsLoading(true);
       setError(null);
+      setInitializationStatus("Loading tournaments...");
 
       try {
         // Fetch tournaments first
         const tournamentsData = await fetchWithAuth(`/api/tournaments/public`);
+
+        if (!tournamentsData || !Array.isArray(tournamentsData)) {
+          throw new Error("Invalid tournaments data received");
+        }
+
         setTournaments(tournamentsData);
+        setInitializationStatus("Tournaments loaded. Checking for current match...");
 
+        // Try to fetch current match
         try {
-          // Try to fetch current match - but don't break if it fails
-          const currentMatchResponse = await fetchWithAuth(
-            `/api/overlay/match/current`,
-          );
+          const match = await fetchWithAuth(`/api/overlay/match/current`);
 
-          if (currentMatchResponse && currentMatchResponse.matchData) {
+          if (match?.tournament_id) {
+            console.log("Current match loaded:", {
+              tournament_id: match.tournament_id,
+              division_id: match.division_id,
+              round: match.round,
+              pairing_id: match.pairing_id
+            });
+            setInitializationStatus("Loading current match selections...");
+
             const tourneyObj = tournamentsData.find(
-              (t: ProcessedTournament) =>
-                t.id === currentMatchResponse.matchData.tournament_id,
+              (t: ProcessedTournament) => t.id === match.tournament_id,
             );
 
             if (tourneyObj) {
-              setSelectedTournament(
-                currentMatchResponse.matchData.tournament_id.toString(),
-              );
-              setSelectedDivision(
-                currentMatchResponse.matchData.division_id.toString(),
-              );
-              setSelectedRound(currentMatchResponse.matchData.round.toString());
-              setSelectedPairing(currentMatchResponse.matchData.pairing_id);
+              const divisionId = match.division_id;
 
-              const divisionPairings =
-                tourneyObj.divisionPairings[
-                  currentMatchResponse.matchData.division_id
-                ];
-              const rounds = divisionPairings.map(
-                (rp: RoundPairings) => rp.round,
-              );
-              setAvailableRounds(rounds);
+              if (divisionId >= 0 && divisionId < tourneyObj.divisions.length) {
+                setSelectedTournament(match.tournament_id.toString());
+                setSelectedDivision(divisionId.toString());
+                setSelectedRound(match.round.toString());
+                setSelectedPairing(match.pairing_id);
 
-              const roundPairings = divisionPairings.find(
-                (rp: RoundPairings) =>
-                  rp.round === currentMatchResponse.matchData.round,
-              );
-              if (roundPairings) {
-                setAvailablePairings(roundPairings.pairings);
+                // Safely access division pairings
+                const divisionPairings = tourneyObj.divisionPairings?.[divisionId];
+
+                if (divisionPairings && Array.isArray(divisionPairings)) {
+                  const rounds = divisionPairings.map((rp: RoundPairings) => rp.round);
+                  setAvailableRounds(rounds);
+
+                  const roundPairings = divisionPairings.find(
+                    (rp: RoundPairings) => rp.round === match.round,
+                  );
+
+                  if (roundPairings?.pairings) {
+                    setAvailablePairings(roundPairings.pairings);
+                  }
+                }
+                setInitializationStatus("Current match loaded successfully");
+              } else {
+                console.warn("Invalid division ID in current match:", divisionId);
+                setInitializationStatus("Current match has invalid division - starting fresh");
               }
+            } else {
+              console.warn("Tournament not found for current match ID:", match.tournament_id);
+              setInitializationStatus("Current match tournament not found - starting fresh");
             }
+          } else {
+            console.log("No current match found");
+            setInitializationStatus("No current match found - ready for selection");
           }
         } catch (matchError) {
-          // If current match fetch fails, just log it and continue
           console.error("Error fetching current match:", matchError);
-          // Don't set error state - let the user proceed with empty selections
+          setInitializationStatus("Could not load current match - ready for selection");
         }
       } catch (err) {
         console.error("Error loading tournaments:", err);
-        setError("Failed to load tournaments. Please try again later.");
+        setError(`Failed to load tournaments: ${err instanceof Error ? err.message : "Unknown error"}`);
+        setInitializationStatus("Failed to load data");
       } finally {
         setIsLoading(false);
+        // Clear status message after a delay
+        setTimeout(() => setInitializationStatus(""), 2000);
       }
     };
 
@@ -101,21 +125,22 @@ const AdminInterface: React.FC = () => {
     setSelectedDivision(newDivisionId);
     setSelectedRound("");
     setSelectedPairing(null);
+    setAvailablePairings([]);
 
     if (newDivisionId && selectedTournament) {
-      const tournament = tournaments.find(
-        (t) => t.id.toString() === selectedTournament,
-      );
-      if (tournament) {
-        const divisionPairings =
-          tournament.divisionPairings[parseInt(newDivisionId)];
-        const rounds = divisionPairings.map((rp: RoundPairings) => rp.round);
-        setAvailableRounds(rounds);
+      const tournament = tournaments.find((t) => t.id.toString() === selectedTournament);
+      if (tournament?.divisionPairings) {
+        const divisionPairings = tournament.divisionPairings[parseInt(newDivisionId)];
+        if (divisionPairings && Array.isArray(divisionPairings)) {
+          const rounds = divisionPairings.map((rp: RoundPairings) => rp.round);
+          setAvailableRounds(rounds);
+        } else {
+          setAvailableRounds([]);
+        }
       }
     } else {
       setAvailableRounds([]);
     }
-    setAvailablePairings([]);
   };
 
   const handleRoundChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -124,17 +149,18 @@ const AdminInterface: React.FC = () => {
     setSelectedPairing(null);
 
     if (newRound && selectedDivision && selectedTournament) {
-      const tournament = tournaments.find(
-        (t) => t.id.toString() === selectedTournament,
-      );
-      if (tournament) {
-        const divisionPairings =
-          tournament.divisionPairings[parseInt(selectedDivision)];
-        const roundPairings = divisionPairings.find(
-          (rp: RoundPairings) => rp.round === parseInt(newRound),
-        );
-        if (roundPairings) {
-          setAvailablePairings(roundPairings.pairings);
+      const tournament = tournaments.find((t) => t.id.toString() === selectedTournament);
+      if (tournament?.divisionPairings) {
+        const divisionPairings = tournament.divisionPairings[parseInt(selectedDivision)];
+        if (divisionPairings) {
+          const roundPairings = divisionPairings.find(
+            (rp: RoundPairings) => rp.round === parseInt(newRound),
+          );
+          if (roundPairings?.pairings) {
+            setAvailablePairings(roundPairings.pairings);
+          } else {
+            setAvailablePairings([]);
+          }
         }
       }
     } else {
@@ -155,14 +181,17 @@ const AdminInterface: React.FC = () => {
 
     setIsLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
-      const requestBody: CreateCurrentMatchParams = {
-        tournamentId: parseInt(selectedTournament),
-        divisionId: parseInt(selectedDivision),
+      const requestBody: CurrentMatch = {
+        tournament_id: parseInt(selectedTournament),
+        division_id: parseInt(selectedDivision),
         round: parseInt(selectedRound),
-        pairingId: selectedPairing,
+        pairing_id: selectedPairing,
       };
+
+      console.log("Updating current match:", requestBody);
 
       await fetchWithAuth(`/api/admin/match/current`, {
         method: "POST",
@@ -188,6 +217,25 @@ const AdminInterface: React.FC = () => {
     disabled:bg-[#4A3728]/10 disabled:cursor-not-allowed
   `;
 
+  // Show loading state during initialization
+  if (isLoading && tournaments.length === 0) {
+    return (
+      <div className="p-8 max-w-4xl mx-auto">
+        <div className="bg-[#FAF1DB] shadow-md rounded-lg p-6">
+          <h1 className="text-2xl font-bold mb-6 text-[#4A3728]">
+            Tournament Admin Panel
+          </h1>
+          <div className="flex items-center justify-center py-8">
+            <div className="text-[#4A3728]">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4A3728] mx-auto mb-4"></div>
+              <p>{initializationStatus}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8 max-w-4xl mx-auto">
       <div className="bg-[#FAF1DB] shadow-md rounded-lg p-6">
@@ -207,10 +255,16 @@ const AdminInterface: React.FC = () => {
           </div>
         )}
 
+        {initializationStatus && (
+          <div className="border-2 border-blue-700/20 bg-blue-700/10 text-blue-700 px-4 py-3 rounded mb-4">
+            {initializationStatus}
+          </div>
+        )}
+
         <div className="space-y-6">
           <div>
             <label className="block text-[#4A3728] font-medium mb-2">
-              Tournament
+              Tournament ({tournaments.length} available)
             </label>
             <select
               value={selectedTournament}
@@ -232,6 +286,9 @@ const AdminInterface: React.FC = () => {
           <div>
             <label className="block text-[#4A3728] font-medium mb-2">
               Division
+              {selectedTournament &&
+                ` (${tournaments.find(t => t.id.toString() === selectedTournament)?.divisions.length || 0} available)`
+              }
             </label>
             <select
               value={selectedDivision}
@@ -253,7 +310,7 @@ const AdminInterface: React.FC = () => {
 
           <div>
             <label className="block text-[#4A3728] font-medium mb-2">
-              Round
+              Round ({availableRounds.length} available)
             </label>
             <select
               value={selectedRound}
@@ -272,7 +329,7 @@ const AdminInterface: React.FC = () => {
 
           <div>
             <label className="block text-[#4A3728] font-medium mb-2">
-              Pairing
+              Pairing ({availablePairings.length} available)
             </label>
             <select
               value={selectedPairing !== null ? selectedPairing.toString() : ""}

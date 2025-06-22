@@ -40,10 +40,6 @@ const envPath = path.join(
 );
 dotenv.config({ path: envPath });
 
-const tournamentRepository = new TournamentRepository(pool);
-const currentMatchRepository = new CurrentMatchRepository(pool);
-const pollingService = new TournamentPollingService(tournamentRepository);
-
 const app: Express = express();
 const server = http.createServer(app);
 
@@ -77,6 +73,10 @@ const io = new SocketIOServer(server, {
   pingTimeout: 60000,
   pingInterval: 25000,
 });
+
+const tournamentRepository = new TournamentRepository(pool);
+const currentMatchRepository = new CurrentMatchRepository(pool);
+const pollingService = new TournamentPollingService(tournamentRepository, io);
 
 app.use(
   cors({

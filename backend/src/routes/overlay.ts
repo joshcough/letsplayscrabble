@@ -12,7 +12,7 @@ export default function createOverlayRoutes(
 ): Router {
   const router = express.Router();
 
-  const getCurrentMatch: RequestHandler = async (_req, res) => {
+  const getCurrentMatchForStatsDeleteThisFunction: RequestHandler = async (_req, res) => {
     try {
       const match = await currentMatchRepository.getCurrentMatch();
 
@@ -34,6 +34,25 @@ export default function createOverlayRoutes(
     }
   };
 
+  const getCurrentMatch: RequestHandler = async (_req, res) => {
+    try {
+      const currentMatch = await currentMatchRepository.getCurrentMatch();
+
+      if (!currentMatch) {
+        res.status(404).json({ error: "No current match found" });
+        return;
+      }
+
+      res.json(currentMatch);
+    } catch (error) {
+      console.error("Error fetching current match basic data:", error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  };
+
+  router.get("/match/current_match_for_stats_delete_this_route", getCurrentMatchForStatsDeleteThisFunction);
   router.get("/match/current", getCurrentMatch);
 
   return router;

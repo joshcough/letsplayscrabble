@@ -1,44 +1,16 @@
-import React, { useState, useEffect, useRef } from "react";
-import io, { Socket } from "socket.io-client";
-import { API_BASE, fetchWithAuth } from "../../config/api";
+import React, { useState, useEffect } from "react";
 import { ProcessedTournament, PlayerStats } from "@shared/types/tournament";
-import { MatchWithPlayers } from "@shared/types/admin";
-
-interface CurrentMatchResponse {
-  matchData: {
-    tournament_id: number;
-    division_id: number;
-    round: number;
-    pairing_id: number;
-    updated_at: string;
-  };
-  tournament: {
-    name: string;
-    lexicon: string;
-  };
-  players: Array<{
-    id: number;
-    name: string;
-    rating: number;
-    ratingDiff: number;
-    firstLast: string;
-    [key: string]: any;
-  }>;
-}
+import { useCurrentMatch } from "../../hooks/useCurrentMatch";
+import { fetchTournament } from "../../utils/tournamentApi";
+import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
 const RatingGainOverlay: React.FC = () => {
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
-  const [tournament, setTournament] = useState<ProcessedTournament | null>(
-    null,
-  );
-  const [matchWithPlayers, setMatchWithPlayers] =
-    useState<CurrentMatchResponse | null>(null);
-  const [connectionStatus, setConnectionStatus] =
-    useState<string>("Initializing...");
-  const [error, setError] = useState<string | null>(null);
-  const socketRef = useRef<Socket | null>(null);
-  const reconnectAttempts = useRef<number>(0);
-  const maxReconnectAttempts = 5;
+  const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const { currentMatch, loading: matchLoading, error: matchError } = useCurrentMatch();
 
   const columns = [
     { key: "rank", label: "Rank" },
@@ -51,11 +23,8 @@ const RatingGainOverlay: React.FC = () => {
     { key: "ties", label: "Ties" },
   ];
 
-  const formatNumberWithSign = (value: number) => {
-    return value > 0 ? `+${value}` : value.toString();
-  };
-
-  const calculateRanks = (players: PlayerStats[]): PlayerStats[] => {
+  // Calculate ranks based on rating difference (unique to this component)
+  const calculateRatingGainRanks = (players: PlayerStats[]): PlayerStats[] => {
     const sortedPlayers = [...players].sort((a, b) => {
       return b.ratingDiff - a.ratingDiff;
     });
@@ -66,158 +35,57 @@ const RatingGainOverlay: React.FC = () => {
     }));
   };
 
-  const fetchTournamentData = async (
-    tournamentId: number,
-    divisionId: number,
-  ) => {
+  const fetchTournamentData = async (tournamentId: number, divisionId: number) => {
     try {
-      console.log("Fetching tournament data for:", {
-        tournamentId,
-        divisionId,
-      });
-      const tournamentData: ProcessedTournament = await fetchWithAuth(
-        `/api/tournaments/public/${tournamentId}`,
-      );
+      setLoading(true);
+      setFetchError(null);
 
+      const tournamentData = await fetchTournament(tournamentId);
       setTournament(tournamentData);
 
-      const divisionIndex = divisionId;
-      const divisionStandings = calculateRanks(
-        tournamentData.standings[divisionIndex],
-      );
+      const divisionStandings = calculateRatingGainRanks(tournamentData.standings[divisionId]);
       setStandings(divisionStandings);
     } catch (err) {
       console.error("Error fetching tournament data:", err);
-      setError("Failed to fetch tournament data. Please try again later.");
+      setFetchError(err instanceof Error ? err.message : "Failed to fetch tournament data");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchCurrentMatch = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/api/overlay/match/current`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch match data");
-      }
-
-      const data: CurrentMatchResponse = await response.json();
-      console.log("Current match data:", data);
-      setMatchWithPlayers(data);
-
-      if (
-        data.matchData?.tournament_id !== undefined &&
-        data.matchData?.division_id !== undefined
-      ) {
-        await fetchTournamentData(
-          data.matchData.tournament_id,
-          data.matchData.division_id,
-        );
-      } else {
-        console.error("Missing tournament data in match:", data);
-        setError("Missing tournament information in current match");
-      }
-    } catch (err) {
-      console.error("Error fetching current match:", err);
-      setError("Failed to fetch match data. Please try again later.");
-    }
-  };
-
+  // Fetch tournament data when currentMatch changes
   useEffect(() => {
-    const connectSocket = () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
+    if (currentMatch?.tournament_id !== undefined && currentMatch?.division_id !== undefined) {
+      fetchTournamentData(currentMatch.tournament_id, currentMatch.division_id);
+    }
+  }, [currentMatch]);
 
-      try {
-        socketRef.current = io(API_BASE, {
-          transports: ["polling", "websocket"],
-          reconnectionDelay: 1000,
-          reconnectionDelayMax: 5000,
-          reconnectionAttempts: maxReconnectAttempts,
-          timeout: 20000,
-          forceNew: true,
-          withCredentials: true,
-        });
+  // Show loading state
+  if (matchLoading || loading) {
+    return <div className="text-black p-2">Loading...</div>;
+  }
 
-        socketRef.current.on("connect", () => {
-          console.log("Socket connected");
-          setConnectionStatus("Connected to server");
-          reconnectAttempts.current = 0;
-          fetchCurrentMatch();
-        });
-
-        socketRef.current.on("connect_error", (error: Error) => {
-          console.error("Socket connect error:", error);
-          setConnectionStatus(`Connection error: ${error.message}`);
-          reconnectAttempts.current += 1;
-          if (reconnectAttempts.current >= maxReconnectAttempts) {
-            socketRef.current?.disconnect();
-          }
-        });
-
-        socketRef.current.on("disconnect", (reason: string) => {
-          console.log("Socket disconnected:", reason);
-          setConnectionStatus(`Disconnected from server: ${reason}`);
-          if (reason === "io server disconnect") {
-            socketRef.current?.connect();
-          }
-        });
-
-        socketRef.current.on("matchUpdate", (data: CurrentMatchResponse) => {
-          console.log("Received match update:", data);
-          setMatchWithPlayers(data);
-          if (
-            data.matchData?.tournament_id !== undefined &&
-            data.matchData?.division_id !== undefined
-          ) {
-            fetchTournamentData(
-              data.matchData.tournament_id,
-              data.matchData.division_id,
-            );
-          }
-        });
-
-        socketRef.current.on("error", (error: Error) => {
-          console.error("Socket error:", error);
-          setError(`Socket error: ${error.message}`);
-        });
-      } catch (error) {
-        const err = error as Error;
-        console.error("Socket initialization error:", err);
-        setError(`Socket initialization failed: ${err.message}`);
-        setConnectionStatus(`Failed to initialize socket connection`);
-      }
-    };
-
-    connectSocket();
-
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-    };
-  }, []);
-
-  if (error) {
+  // Show errors
+  if (matchError || fetchError) {
     return (
       <div className="fixed inset-0 flex items-center justify-center text-black">
         <div className="p-4 bg-red-50 rounded-lg">
-          <p className="text-red-600">{error}</p>
-          <p className="text-sm mt-2">Status: {connectionStatus}</p>
+          <p className="text-red-600">{matchError || fetchError}</p>
         </div>
       </div>
     );
   }
 
-  if (!standings || !tournament || !matchWithPlayers) {
-    return <div className="text-black p-2">Loading...</div>;
+  // Show message when no data
+  if (!currentMatch || !standings || !tournament) {
+    return <div className="text-black p-2">No current match or tournament data</div>;
   }
 
   return (
     <div className="flex flex-col items-center pt-8 font-bold">
       <div className="text-black text-4xl font-bold text-center mb-4">
         {tournament.name} {tournament.lexicon} Div{" "}
-        {tournament.divisions[matchWithPlayers.matchData.division_id].name}{" "}
+        {tournament.divisions[currentMatch.division_id].name}
       </div>
       <div className="text-black text-4xl font-bold text-center mb-4">
         Rating Gain Leaders

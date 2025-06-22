@@ -1,8 +1,8 @@
 import React from "react";
-import ScoringLeadersOverlay from "../../components/overlay/ElemScoringLeadersOverlay";
+import ElemScoringLeadersOverlay from "../../components/overlay/ElemScoringLeadersOverlay";
 
 const ElemScoringLeadersOverlayPage: React.FC = () => {
-  return <ScoringLeadersOverlay />;
+  return <ElemScoringLeadersOverlay />;
 };
 
 export default ElemScoringLeadersOverlayPage;
