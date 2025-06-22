@@ -81,3 +81,4 @@ frontend/build/
 frontend/dist/
 frontend/coverage/
 frontend/.cache/
+/purescript/
