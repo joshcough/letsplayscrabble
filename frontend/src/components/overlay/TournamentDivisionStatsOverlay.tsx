@@ -112,8 +112,8 @@ const TournamentDivisionStatsOverlay: React.FC = () => {
       gamesPlayed: totalGamesPlayed,
       pointsScored: totalPoints,
       averageScore: Math.round(averageScore * 100) / 100,
-      averageWinningScore: Math.round(averageWinningScore * 100) / 100,
-      averageLosingScore: Math.round(averageLosingScore * 100) / 100,
+      averageWinningScore: Math.round(averageWinningScore),
+      averageLosingScore: Math.round(averageLosingScore),
       higherSeedWinPercentage: Math.round(higherSeedWinPercentage * 10) / 10,
       goingFirstWinPercentage: Math.round(goingFirstWinPercentage * 10) / 10,
     };
@@ -173,55 +173,39 @@ const TournamentDivisionStatsOverlay: React.FC = () => {
         {tournament.divisions[currentMatch.division_id].name} - Total Tournament Stats
       </div>
 
-      <div className="flex flex-wrap justify-center gap-8 max-w-6xl">
-        <div className="bg-white rounded-full px-8 py-6 shadow-lg border-4 border-black">
-          <div className="text-center">
-            <div className="text-gray-600 text-lg mb-2">Games Played</div>
-            <div className="text-4xl font-bold text-black">{stats.gamesPlayed}</div>
+      <div className="flex justify-center gap-8 max-w-6xl overflow-x-auto">
+        <div className="flex flex-col items-center">
+          <div className="text-black text-lg font-bold mb-2">Games Played</div>
+          <div className="bg-white rounded-full px-8 py-6 shadow-lg border-4 border-black">
+            <div className="text-4xl font-bold text-black text-center">{stats.gamesPlayed}</div>
           </div>
         </div>
 
-        <div className="bg-white rounded-full px-8 py-6 shadow-lg border-4 border-black">
-          <div className="text-center">
-            <div className="text-gray-600 text-lg mb-2">Points Scored</div>
-            <div className="text-4xl font-bold text-black">{stats.pointsScored.toLocaleString()}</div>
+        <div className="flex flex-col items-center">
+          <div className="text-black text-lg font-bold mb-2">Points Scored</div>
+          <div className="bg-white rounded-full px-8 py-6 shadow-lg border-4 border-black">
+            <div className="text-4xl font-bold text-black text-center">{stats.pointsScored.toLocaleString()}</div>
           </div>
         </div>
 
-        <div className="bg-white rounded-full px-8 py-6 shadow-lg border-4 border-black">
-          <div className="text-center">
-            <div className="text-gray-600 text-lg mb-2">Average Score</div>
-            <div className="text-4xl font-bold text-black">{stats.averageScore}</div>
+        <div className="flex flex-col items-center">
+          <div className="text-black text-lg font-bold mb-2">Average Score</div>
+          <div className="bg-white rounded-full px-8 py-6 shadow-lg border-4 border-black">
+            <div className="text-4xl font-bold text-black text-center">{stats.averageWinningScore}-{stats.averageLosingScore}</div>
           </div>
         </div>
 
-        <div className="bg-white rounded-full px-8 py-6 shadow-lg border-4 border-black">
-          <div className="text-center">
-            <div className="text-gray-600 text-lg mb-2">Higher Rated Win%</div>
-            <div className="text-4xl font-bold text-black">{stats.higherSeedWinPercentage}%</div>
+        <div className="flex flex-col items-center">
+          <div className="text-black text-lg font-bold mb-2">Higher Rated Win%</div>
+          <div className="bg-white rounded-full px-8 py-6 shadow-lg border-4 border-black">
+            <div className="text-4xl font-bold text-black text-center">{stats.higherSeedWinPercentage}%</div>
           </div>
         </div>
 
-        <div className="bg-white rounded-full px-8 py-6 shadow-lg border-4 border-black">
-          <div className="text-center">
-            <div className="text-gray-600 text-lg mb-2">Going First Win%</div>
-            <div className="text-4xl font-bold text-black">{stats.goingFirstWinPercentage}%</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap justify-center gap-8 max-w-4xl mt-8">
-        <div className="bg-white rounded-full px-8 py-6 shadow-lg border-4 border-black">
-          <div className="text-center">
-            <div className="text-gray-600 text-lg mb-2">Average Winning Score</div>
-            <div className="text-4xl font-bold text-black">{stats.averageWinningScore}</div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-full px-8 py-6 shadow-lg border-4 border-black">
-          <div className="text-center">
-            <div className="text-gray-600 text-lg mb-2">Average Losing Score</div>
-            <div className="text-4xl font-bold text-black">{stats.averageLosingScore}</div>
+        <div className="flex flex-col items-center">
+          <div className="text-black text-lg font-bold mb-2">Going First Win%</div>
+          <div className="bg-white rounded-full px-8 py-6 shadow-lg border-4 border-black">
+            <div className="text-4xl font-bold text-black text-center">{stats.goingFirstWinPercentage}%</div>
           </div>
         </div>
       </div>
