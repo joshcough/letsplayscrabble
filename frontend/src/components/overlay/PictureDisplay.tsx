@@ -24,18 +24,18 @@ const PictureDisplay: React.FC<PictureDisplayProps> = ({
   const top5Players = standings.slice(0, 5);
 
   return (
-    <div className="flex flex-col items-center pt-8 font-bold">
-      <div className="text-black text-6xl font-bold text-center mb-4">
+    <div className="flex flex-col items-center pt-1 font-bold">
+      <div className="text-black text-6xl font-bold text-center mb-2">
         {title}
       </div>
 
-      <div className="text-black text-4xl font-bold text-center mb-8">
+      <div className="text-black text-4xl font-bold text-center mb-4">
         {tournament.name} {tournament.lexicon} Div {divisionName}
       </div>
 
       <div className="flex justify-center items-start gap-8 px-4">
         {top5Players.map((player) => (
-          <div key={player.name} className="flex flex-col items-center">
+          <div key={player.name} className="flex flex-col items-center w-40">
             {/* Player Image */}
             <div className="w-32 h-32 mb-4 rounded-lg overflow-hidden border-4 border-gray-300 bg-gray-200">
               <img

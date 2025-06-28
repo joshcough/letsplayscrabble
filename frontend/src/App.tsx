@@ -17,12 +17,8 @@ import RatingGainWithPicsOverlayPage from "./pages/overlay/RatingGainWithPicsOve
 import ScoringLeadersOverlayPage from "./pages/overlay/ScoringLeadersOverlayPage";
 import ScoringLeadersWithPicsOverlayPage from "./pages/overlay/ScoringLeadersWithPicsOverlayPage";
 import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
-import ElemScoringLeadersOverlayPage from "./pages/overlay/ElemScoringLeadersOverlayPage";
-import HSScoringLeadersOverlayPage from "./pages/overlay/HSScoringLeadersOverlayPage";
 import StandingsOverlayPage from "./pages/overlay/StandingsOverlayPage";
 import StandingsWithPicsOverlayPage from "./pages/overlay/StandingsWithPicsOverlayPage";
-import HSStandingsOverlayPage from "./pages/overlay/HSStandingsOverlayPage";
-import ElemStandingsOverlayPage from "./pages/overlay/ElemStandingsOverlayPage";
 import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
 import TournamentDivisionStatsOverlayPage from "./pages/overlay/TournamentDivisionStatsOverlayPage";
@@ -55,14 +51,6 @@ const AppContent: React.FC = () => {
           element={<StandingsWithPicsOverlayPage />}
         />
         <Route
-          path="/overlay/hs_standings/:tournamentId/:divisionName"
-          element={<HSStandingsOverlayPage />}
-        />
-        <Route
-          path="/overlay/elem_standings/:tournamentId/:divisionName"
-          element={<ElemStandingsOverlayPage />}
-        />
-        <Route
           path="/overlay/rating_gain"
           element={<RatingGainOverlayPage />}
         />
@@ -81,14 +69,6 @@ const AppContent: React.FC = () => {
         <Route
           path="/overlay/scoring_leaders_with_pics"
           element={<ScoringLeadersWithPicsOverlayPage />}
-        />
-        <Route
-          path="/overlay/elem_scoring_leaders"
-          element={<ElemScoringLeadersOverlayPage />}
-        />
-        <Route
-          path="/overlay/hs_scoring_leaders"
-          element={<HSScoringLeadersOverlayPage />}
         />
         <Route
           path="/overlay/tournament_division_stats"

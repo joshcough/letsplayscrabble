@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import GameHistoryDisplay from "./GameHistoryDisplay";
-import HSGameHistoryDisplay from "./HSGameHistoryDisplay";
-import ElemGameHistoryDisplay from "./ElemGameHistoryDisplay";
 import PointsDisplay from "./PointsDisplay";
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { fetchCurrentMatchWithPlayers } from "../../utils/matchApi";
@@ -329,12 +327,6 @@ const StatsOverlay: React.FC = () => {
                   side={source.startsWith("player1") ? "player1" : "player2"}
                 />
               </div>
-              <div className="text-black">
-                <HSGameHistoryDisplay
-                  games={hsGames}
-                  side={source.startsWith("player1") ? "player1" : "player2"}
-                />
-              </div>
             </div>
           );
         case "player1-elem-game-history":
@@ -346,12 +338,6 @@ const StatsOverlay: React.FC = () => {
               <div className="text-black">
                 <PointsDisplay
                   stats={player}
-                  side={source.startsWith("player1") ? "player1" : "player2"}
-                />
-              </div>
-              <div className="text-black">
-                <ElemGameHistoryDisplay
-                  games={elemGames}
                   side={source.startsWith("player1") ? "player1" : "player2"}
                 />
               </div>

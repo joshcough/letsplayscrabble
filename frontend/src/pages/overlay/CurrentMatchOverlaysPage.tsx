@@ -34,16 +34,6 @@ const CurrentMatchOverlaysPage: React.FC = () => {
       description: "Scoring leaders with player photos"
     },
     {
-      title: "Elementary Scoring Leaders",
-      path: "/overlay/elem_scoring_leaders",
-      description: "Elementary division scoring leaders"
-    },
-    {
-      title: "High School Scoring Leaders",
-      path: "/overlay/hs_scoring_leaders",
-      description: "High school division scoring leaders"
-    },
-    {
       title: "Tournament Division Stats",
       path: "/overlay/tournament_division_stats",
       description: "Overall tournament statistics"
