@@ -36,28 +36,6 @@ type SourceType =
   | "player1-bo7"
   | "player2-bo7"
   | "tournament-data"
-  // elementary school
-  | "player1-esms-first-names"
-  | "player2-esms-first-names"
-  | "player1-esms-team-name"
-  | "player2-esms-team-name"
-  | "player1-esms-grades"
-  | "player2-esms-grades"
-  | "player1-esms-hometowns"
-  | "player2-esms-hometowns"
-  | "player1-elem-game-history"
-  | "player2-elem-game-history"
-  // high school
-  | "player1-hs-name"
-  | "player2-hs-name"
-  | "player1-hs-grade"
-  | "player2-hs-grade"
-  | "player1-hs-hometown"
-  | "player2-hs-hometown"
-  | "player1-hs-school-name"
-  | "player2-hs-school-name"
-  | "player1-hs-game-history"
-  | "player2-hs-game-history"
   | null;
 
 const StatsOverlay: React.FC = () => {
@@ -218,80 +196,6 @@ const StatsOverlay: React.FC = () => {
               {(player?.spread && player.spread > 0 ? "+" : "") +
                 (player?.spread || "+0")}
             </div>
-          );
-        case "player1-esms-first-names":
-          return (
-            <div className="text-black">{player?.etc.firstname1 || "N/A"} {" & "} {player?.etc.firstname2 || "N/A"}</div>
-          );
-        case "player2-esms-first-names":
-          return (
-            <div className="text-black">{player?.etc.firstname1 || "N/A"} {" & "} {player?.etc.firstname2 || "N/A"}</div>
-          );
-        case "player1-esms-team-name":
-          const p1TeamName: string = player?.etc.teamname.join(" ");
-          return (
-            <div className="text-black">{p1TeamName}</div>
-          );
-        case "player2-esms-team-name":
-          const p2TeamName: string = player?.etc.teamname.join(" ");
-          return (
-            <div className="text-black">{p2TeamName}</div>
-          );
-        case "player1-esms-grades":
-          return (
-            <div className="text-black">{" Grades "} {player?.etc.grade1} {" / "} {player?.etc.grade2}</div>
-          );
-        case "player2-esms-grades":
-          return (
-            <div className="text-black">{" Grades "} {player?.etc.grade1} {" / "} {player?.etc.grade2}</div>
-          );
-        case "player1-esms-hometowns":
-          const p1Hometown1 = player?.etc.hometown1.join(" ") + ", " + player?.etc.state1.join(" ");
-          const p1Hometown2 = player?.etc.hometown2.join(" ") + ", " + player?.etc.state2.join(" ");
-          const p1Hometown = p1Hometown1 === p1Hometown2 ? p1Hometown1 : p1Hometown1 + " & " + p1Hometown2;
-          return (
-            <div className="text-black">{p1Hometown}</div>
-          );
-        case "player2-esms-hometowns":
-          const p2Hometown1 = player?.etc.hometown1.join(" ") + ", " + player?.etc.state1.join(" ");
-          const p2Hometown2 = player?.etc.hometown2.join(" ") + ", " + player?.etc.state2.join(" ");
-          const p2Hometown = p2Hometown1 === p2Hometown2 ? p2Hometown1 : p2Hometown1 + " & " + p2Hometown2;
-          return (
-            <div className="text-black">{p2Hometown}</div>
-          );
-
-        case "player1-hs-name":
-          return (
-            <div className="text-black">{player?.etc.firstname1} {" "} {player?.etc.lastname1}</div>
-          );
-        case "player2-hs-name":
-          return (
-            <div className="text-black">{player?.etc.firstname1} {" "} {player?.etc.lastname1}</div>
-          );
-
-        case "player1-hs-grade":
-          return (
-            <div className="text-black">{" Grade "} {player?.etc.grade1}</div>
-          );
-        case "player2-hs-grade":
-          return (
-            <div className="text-black">{" Grade "} {player?.etc.grade1}</div>
-          );
-        case "player1-hs-hometown":
-          return (
-            <div className="text-black">{player?.etc.hometown1.join(" ") + ", " + player?.etc.state1.join(" ")}</div>
-          );
-        case "player2-hs-hometown":
-          return (
-            <div className="text-black">{player?.etc.hometown1.join(" ") + ", " + player?.etc.state1.join(" ")}</div>
-          );
-        case "player1-hs-school-name":
-          return (
-            <div className="text-black">{player?.etc.schoolname1.join(" ")}</div>
-          );
-        case "player2-hs-school-name":
-          return (
-            <div className="text-black">{player?.etc.schoolname1.join(" ")}</div>
           );
         case "player1-points":
         case "player2-points":
