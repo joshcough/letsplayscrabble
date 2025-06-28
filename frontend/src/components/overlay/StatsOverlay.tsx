@@ -219,35 +219,6 @@ const StatsOverlay: React.FC = () => {
               </div>
             </div>
           );
-        case "player1-hs-game-history":
-        case "player2-hs-game-history":
-          const playerHsIndex = source === "player1-hs-game-history" ? 0 : 1;
-          const hsGames = matchWithPlayers.last5?.[playerHsIndex] || [];
-          return (
-            <div>
-              <div className="text-black">
-                <PointsDisplay
-                  stats={player}
-                  side={source.startsWith("player1") ? "player1" : "player2"}
-                />
-              </div>
-            </div>
-          );
-        case "player1-elem-game-history":
-        case "player2-elem-game-history":
-          const playerElemIndex = source === "player1-elem-game-history" ? 0 : 1;
-          const elemGames = matchWithPlayers.last5?.[playerElemIndex] || [];
-          return (
-            <div>
-              <div className="text-black">
-                <PointsDisplay
-                  stats={player}
-                  side={source.startsWith("player1") ? "player1" : "player2"}
-                />
-              </div>
-            </div>
-          );
-
         case "tournament-data":
           return (
             <div className="text-black">
