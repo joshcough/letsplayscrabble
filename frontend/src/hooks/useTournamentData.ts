@@ -1,0 +1,54 @@
+import { useState, useEffect } from 'react';
+import { ProcessedTournament, PlayerStats } from '@shared/types/tournament';
+import { fetchTournament } from '../utils/tournamentApi';
+
+interface UseTournamentDataProps {
+  tournamentId?: number;
+  divisionId?: number;
+  rankCalculator?: (players: PlayerStats[]) => PlayerStats[];
+}
+
+export const useTournamentData = ({
+  tournamentId,
+  divisionId,
+  rankCalculator
+}: UseTournamentDataProps) => {
+  const [standings, setStandings] = useState<PlayerStats[] | null>(null);
+  const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const fetchTournamentData = async () => {
+    if (tournamentId === undefined || divisionId === undefined) return;
+
+    try {
+      setLoading(true);
+      setFetchError(null);
+
+      const tournamentData = await fetchTournament(tournamentId);
+      setTournament(tournamentData);
+
+      const divisionStandings = rankCalculator
+        ? rankCalculator(tournamentData.standings[divisionId])
+        : tournamentData.standings[divisionId];
+      setStandings(divisionStandings);
+    } catch (err) {
+      console.error("Error fetching tournament data:", err);
+      setFetchError(err instanceof Error ? err.message : "Failed to fetch tournament data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTournamentData();
+  }, [tournamentId, divisionId]);
+
+  return {
+    standings,
+    tournament,
+    loading,
+    fetchError,
+    refetch: fetchTournamentData
+  };
+};

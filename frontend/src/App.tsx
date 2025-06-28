@@ -29,6 +29,7 @@ import TournamentDivisionStatsOverlayPage from "./pages/overlay/TournamentDivisi
 import StandingsPage from "./pages/tournaments/StandingsPage";
 import AddTournament from "./components/tournaments/AddTournament";
 import AdminLogin from "./components/AdminLogin";
+import CurrentMatchOverlaysPage from "./pages/overlay/CurrentMatchOverlaysPage";
 
 // Wrapper component to conditionally apply theme
 const AppContent: React.FC = () => {
@@ -92,6 +93,10 @@ const AppContent: React.FC = () => {
         <Route
           path="/overlay/tournament_division_stats"
           element={<TournamentDivisionStatsOverlayPage />}
+        />
+        <Route
+          path="/overlay/current_match_overlays"
+          element={<CurrentMatchOverlaysPage />}
         />
         {/* Protected Routes */}
         <Route

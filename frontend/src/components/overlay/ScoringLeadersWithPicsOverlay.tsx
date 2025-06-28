@@ -1,22 +1,19 @@
 import React from "react";
 import { PlayerStats } from "@shared/types/tournament";
-import PictureOverlayCurrentMatch from "./PictureOverlayCurrentMatch";
+import { BasePictureOverlay } from "../shared/BasePictureOverlay";
 import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
 const ScoringLeadersWithPicsOverlay: React.FC = () => {
   const renderPlayerContent = (player: PlayerStats) => (
     <>
-      {/* Scoring Average */}
       <div className="text-black text-3xl font-bold text-center mb-2">
         {player.averageScoreRounded}
       </div>
 
-      {/* Spread Label */}
       <div className="text-black text-lg font-bold text-center mb-1">
         Spread
       </div>
 
-      {/* Spread Value */}
       <div
         className={`text-2xl font-bold text-center ${
           player.spread > 0 ? "text-red-600" : "text-blue-600"
@@ -28,10 +25,11 @@ const ScoringLeadersWithPicsOverlay: React.FC = () => {
   );
 
   return (
-    <PictureOverlayCurrentMatch
+    <BasePictureOverlay
       title="Scoring Leaders"
       sortType="averageScore"
       renderPlayerContent={renderPlayerContent}
+      useCurrentMatch={true}
     />
   );
 };
