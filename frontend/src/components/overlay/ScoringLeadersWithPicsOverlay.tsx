@@ -1,6 +1,6 @@
 import React from "react";
 import { PlayerStats } from "@shared/types/tournament";
-import PictureOverlayBase from "./PictureOverlayBase";
+import PictureOverlayCurrentMatch from "./PictureOverlayCurrentMatch";
 import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
 const ScoringLeadersWithPicsOverlay: React.FC = () => {
@@ -28,7 +28,7 @@ const ScoringLeadersWithPicsOverlay: React.FC = () => {
   );
 
   return (
-    <PictureOverlayBase
+    <PictureOverlayCurrentMatch
       title="Scoring Leaders"
       sortType="averageScore"
       renderPlayerContent={renderPlayerContent}

@@ -20,7 +20,7 @@ export const formatPlayerName = (name: string): string => {
   return `${firstName} ${lastName}`;
 };
 
-export type SortType = 'highScore' | 'averageScore' | 'ratingDiff';
+export type SortType = 'highScore' | 'averageScore' | 'ratingDiff' | 'standings' ;
 
 export const calculateRanksBySortType = (players: PlayerStats[], sortType: SortType): PlayerStats[] => {
   const sortedPlayers = [...players].sort((a, b) => {
@@ -31,6 +31,10 @@ export const calculateRanksBySortType = (players: PlayerStats[], sortType: SortT
         return b.averageScore - a.averageScore;
       case 'ratingDiff':
         return b.ratingDiff - a.ratingDiff;
+      case 'standings':
+        if (a.wins !== b.wins) return b.wins - a.wins;
+        if (a.losses !== b.losses) return a.losses - b.losses;
+        return b.spread - a.spread;
       default:
         return 0;
     }

@@ -1,6 +1,6 @@
 import React from "react";
 import { PlayerStats } from "@shared/types/tournament";
-import PictureOverlayBase from "./PictureOverlayBase";
+import PictureOverlayCurrentMatch from "./PictureOverlayCurrentMatch";
 
 const HighScoresWithPicsOverlay: React.FC = () => {
   const renderPlayerContent = (player: PlayerStats) => (
@@ -10,7 +10,7 @@ const HighScoresWithPicsOverlay: React.FC = () => {
   );
 
   return (
-    <PictureOverlayBase
+    <PictureOverlayCurrentMatch
       title="High Scores"
       sortType="highScore"
       renderPlayerContent={renderPlayerContent}

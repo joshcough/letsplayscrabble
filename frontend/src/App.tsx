@@ -20,10 +20,12 @@ import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOve
 import ElemScoringLeadersOverlayPage from "./pages/overlay/ElemScoringLeadersOverlayPage";
 import HSScoringLeadersOverlayPage from "./pages/overlay/HSScoringLeadersOverlayPage";
 import StandingsOverlayPage from "./pages/overlay/StandingsOverlayPage";
+import StandingsWithPicsOverlayPage from "./pages/overlay/StandingsWithPicsOverlayPage";
 import HSStandingsOverlayPage from "./pages/overlay/HSStandingsOverlayPage";
 import ElemStandingsOverlayPage from "./pages/overlay/ElemStandingsOverlayPage";
 import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
+import TournamentDivisionStatsOverlayPage from "./pages/overlay/TournamentDivisionStatsOverlayPage";
 import StandingsPage from "./pages/tournaments/StandingsPage";
 import AddTournament from "./components/tournaments/AddTournament";
 import AdminLogin from "./components/AdminLogin";
@@ -46,6 +48,10 @@ const AppContent: React.FC = () => {
         <Route
           path="/overlay/standings/:tournamentId/:divisionName"
           element={<StandingsOverlayPage />}
+        />
+        <Route
+          path="/overlay/standings_with_pics/:tournamentId/:divisionName"
+          element={<StandingsWithPicsOverlayPage />}
         />
         <Route
           path="/overlay/hs_standings/:tournamentId/:divisionName"
@@ -82,6 +88,10 @@ const AppContent: React.FC = () => {
         <Route
           path="/overlay/hs_scoring_leaders"
           element={<HSScoringLeadersOverlayPage />}
+        />
+        <Route
+          path="/overlay/tournament_division_stats"
+          element={<TournamentDivisionStatsOverlayPage />}
         />
         {/* Protected Routes */}
         <Route
@@ -128,7 +138,7 @@ const AppContent: React.FC = () => {
           path="/tournaments/:tournamentId/standings/:divisionName"
           element={
             <ProtectedRoute>
-              <StandingsPage />
+              <StandingsWithPicsOverlayPage />
             </ProtectedRoute>
           }
         />

@@ -13,8 +13,6 @@ type RouteParams = {
 }
 
 const StandingsOverlay: React.FC = () => {
-  console.log("Component rendering"); // Debug log
-
   const { tournamentId, divisionName } = useParams<RouteParams>();
   console.log("URL params:", { tournamentId, divisionName }); // Debug log
 

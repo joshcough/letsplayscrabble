@@ -1,6 +1,6 @@
 import React from "react";
 import { PlayerStats } from "@shared/types/tournament";
-import PictureOverlayBase from "./PictureOverlayBase";
+import PictureOverlayCurrentMatch from "./PictureOverlayCurrentMatch";
 import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
 const RatingGainWithPicsOverlay: React.FC = () => {
@@ -28,7 +28,7 @@ const RatingGainWithPicsOverlay: React.FC = () => {
   );
 
   return (
-    <PictureOverlayBase
+    <PictureOverlayCurrentMatch
       title="Rating Gain Leaders"
       sortType="ratingDiff"
       renderPlayerContent={renderPlayerContent}
