@@ -52,11 +52,11 @@ const OverlaysPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">
+      <h1 className="text-3xl font-bold mb-8 text-center text-[#4A3728]">
         Tournament Overlays
       </h1>
 
-      <p className="text-lg mb-6 text-center text-gray-600">
+      <p className="text-lg mb-6 text-center text-[#6B5744]">
         These overlays work with both current match data and URL parameters
       </p>
 
@@ -65,24 +65,24 @@ const OverlaysPage: React.FC = () => {
           <Link
             key={overlay.path}
             to={overlay.path}
-            className="block p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200 hover:border-blue-300"
+            className="block p-6 bg-[#FAF1DB] rounded-lg shadow-md hover:shadow-lg transition-shadow border border-[#4A3728]/20 hover:border-[#4A3728]/40 hover:bg-[#4A3728]/5"
           >
-            <h3 className="text-xl font-semibold mb-2 text-blue-600">
+            <h3 className="text-xl font-semibold mb-2 text-[#4A3728]">
               {overlay.title}
             </h3>
-            <p className="text-gray-600 text-sm">
+            <p className="text-[#6B5744] text-sm">
               {overlay.description}
             </p>
-            <div className="mt-4 text-sm text-blue-500 hover:text-blue-700">
+            <div className="mt-4 text-sm text-[#4A3728] hover:text-[#4A3728]/80">
               Open overlay →
             </div>
           </Link>
         ))}
       </div>
 
-      <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-        <h3 className="font-semibold text-blue-800 mb-2">How it works:</h3>
-        <ul className="text-blue-700 text-sm space-y-1">
+      <div className="mt-8 p-4 bg-[#FFF8E7] border border-[#4A3728]/20 rounded-lg">
+        <h3 className="font-semibold text-[#4A3728] mb-2">How it works:</h3>
+        <ul className="text-[#6B5744] text-sm space-y-1">
           <li>• <strong>Default:</strong> Uses currently selected match in admin interface</li>
           <li>• <strong>With URL params:</strong> Most overlays support /tournamentId/divisionName for specific tournament data</li>
           <li>• <strong>Example:</strong> /overlay/standings/123/A shows standings for tournament 123, division A</li>
