@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import GameHistoryDisplay from "../shared/GameHistoryDisplay";
-import PointsDisplay from "./PointsDisplay";
+import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
+import PointsDisplay from "../../components/overlay/PointsDisplay";
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { fetchCurrentMatchWithPlayers } from "../../utils/matchApi";
 import { MatchWithPlayers } from "@shared/types/admin";

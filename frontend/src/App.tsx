@@ -15,7 +15,7 @@ import CurrentMatchStandingsWithPicsPage from "./pages/overlay/CurrentMatchStand
 import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
 import HomePage from "./pages/HomePage";
 import Navigation from "./components/common/Navigation";
-import OverlayPage from "./pages/overlay/OverlayPage";
+import MiscOverlayPage from "./pages/overlay/MiscOverlayPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RatingGainOverlayPage from "./pages/overlay/RatingGainOverlayPage";
 import RatingGainWithPicsOverlayPage from "./pages/overlay/RatingGainWithPicsOverlayPage";
@@ -43,7 +43,7 @@ const AppContent: React.FC = () => {
       {!isOverlay && <Navigation />}
       <Routes>
         <Route path="/login" element={<AdminLogin />} />
-        <Route path="/overlay/misc" element={<OverlayPage />} />
+        <Route path="/overlay/misc" element={<MiscOverlayPage />} />
         <Route
           path="/overlay/standings/:tournamentId/:divisionName"
           element={<StandingsOverlayPage />}

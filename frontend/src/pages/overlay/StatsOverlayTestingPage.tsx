@@ -1,8 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import StatsOverlay from "../../components/overlay/StatsOverlay";
+import MiscOverlayPage from "./MiscOverlayPage";
 
-const StatsOverlayTestingPage: React.FC = () => {
+const MiscOverlayTestingPage: React.FC = () => {
   const urlGroups = [
     {
       title: "Basic Player Info",
@@ -71,8 +71,8 @@ const StatsOverlayTestingPage: React.FC = () => {
 
   const baseUrl = window.location.origin;
 
-  // Component to render StatsOverlay with a specific source parameter
-  const StatsOverlayRenderer: React.FC<{ source: string }> = ({ source }) => {
+  // Component to render MiscOverlay with a specific source parameter
+  const MiscOverlayRenderer: React.FC<{ source: string }> = ({ source }) => {
     // Create a mock search params object
     const mockSearchParams = new URLSearchParams(`source=${source}`);
 
@@ -116,7 +116,7 @@ const StatsOverlayTestingPage: React.FC = () => {
 
                 {/* Rendered content */}
                 <div className="mt-3">
-                  <StatsOverlayRenderer source={url.source} />
+                  <MiscOverlayRenderer source={url.source} />
                 </div>
               </div>
             ))}
@@ -138,4 +138,4 @@ const StatsOverlayTestingPage: React.FC = () => {
   );
 };
 
-export default StatsOverlayTestingPage;
+export default MiscOverlayTestingPage;
