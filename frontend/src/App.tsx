@@ -27,7 +27,7 @@ import StandingsWithPicsOverlayPage from "./pages/overlay/StandingsWithPicsOverl
 import StatsOverlayTestingPage from "./pages/overlay/StatsOverlayTestingPage";
 import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentDivisionStatsOverlayPage from "./pages/overlay/TournamentDivisionStatsOverlayPage";
-import TournamentDivisionStatsFromUrlOverlayPage from "./pages/overlay/TournamentDivisionStatsFromUrlOverlayPage";
+import TournamentStatsFromUrlOverlayPage from "./pages/overlay/TournamentStatsFromUrlOverlayPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
 // Wrapper component to conditionally apply theme
 const AppContent: React.FC = () => {
@@ -53,8 +53,8 @@ const AppContent: React.FC = () => {
           element={<StandingsWithPicsOverlayPage />}
         />
         <Route
-          path="/overlay/tournament_division_stats/:tournamentId/:divisionName"
-          element={<TournamentDivisionStatsFromUrlOverlayPage />}
+          path="/overlay/tournament_division_stats/:tournamentId/:divisionName?"
+          element={<TournamentStatsFromUrlOverlayPage />}
         />
         <Route
           path="/overlay/rating_gain"

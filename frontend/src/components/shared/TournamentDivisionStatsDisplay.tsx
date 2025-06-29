@@ -4,7 +4,7 @@ import { DivisionStats } from "../../utils/tournamentStatsCalculators";
 
 interface TournamentDivisionStatsDisplayProps {
   tournament: ProcessedTournament;
-  divisionName: string;
+  divisionName?: string; // Optional for tournament-wide stats
   stats: DivisionStats;
 }
 
@@ -13,11 +13,14 @@ export const TournamentDivisionStatsDisplay: React.FC<TournamentDivisionStatsDis
   divisionName,
   stats
 }) => {
+  const title = divisionName
+    ? `${tournament.name} ${tournament.lexicon} Div ${divisionName} - Total Tournament Stats`
+    : `${tournament.name} ${tournament.lexicon} - Total Tournament Stats`;
+
   return (
     <div className="flex flex-col items-center pt-8 font-bold">
       <div className="text-black text-4xl font-bold text-center mb-8">
-        {tournament.name} {tournament.lexicon} Div{" "}
-        {divisionName} - Total Tournament Stats
+        {title}
       </div>
 
       <div className="flex justify-center gap-8 max-w-6xl overflow-x-auto">
