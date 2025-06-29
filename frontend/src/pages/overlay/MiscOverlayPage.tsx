@@ -70,6 +70,8 @@ const MiscOverlay: React.FC = () => {
       setLoading(true);
       setError(null);
 
+      console.log('🔄 MiscOverlay: Fetching full match data');
+
       const fullMatchData = await fetchCurrentMatchWithPlayers();
       setMatchWithPlayers(fullMatchData);
     } catch (err) {

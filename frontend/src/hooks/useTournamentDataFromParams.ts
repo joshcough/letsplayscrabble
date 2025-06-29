@@ -30,6 +30,8 @@ export const useTournamentDataFromParams = (rankCalculator?: (players: PlayerSta
       setLoading(true);
       setFetchError(null);
 
+      console.log('🔄 useTournamentDataFromParams: Fetching tournament data for ID:', tournamentId, 'division:', divisionName);
+
       const tournamentData = await fetchTournament(Number(tournamentId));
       setTournament(tournamentData);
 

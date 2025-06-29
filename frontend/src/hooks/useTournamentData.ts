@@ -29,6 +29,8 @@ export const useTournamentData = ({
       setLoading(true);
       setFetchError(null);
 
+      console.log('🔄 useTournamentData: Fetching tournament data for ID:', tournamentId, 'division:', divisionId);
+
       const tournamentData = await fetchTournament(tournamentId);
       setTournament(tournamentData);
 
