@@ -1,7 +1,6 @@
 import React from 'react';
 import { PlayerStats } from '@shared/types/tournament';
-import { useTournamentDataFromParams } from '../../hooks/useTournamentDataFromParams';
-import { LoadingErrorWrapper } from './LoadingErrorWrapper';
+import { BaseOverlay } from './BaseOverlay';
 import { TournamentTableOverlay } from './TournamentTableOverlay';
 
 interface Column {
@@ -9,7 +8,7 @@ interface Column {
   label: string;
 }
 
-interface BaseOverlayFromParamsProps {
+interface TableOverlayProps {
   columns: Column[];
   title: string;
   rankCalculator: (players: PlayerStats[]) => PlayerStats[];
@@ -17,21 +16,16 @@ interface BaseOverlayFromParamsProps {
   renderCell: (player: PlayerStats, columnKey: string) => React.ReactNode;
 }
 
-export const BaseOverlayFromParams: React.FC<BaseOverlayFromParamsProps> = ({
+export const TableOverlay: React.FC<TableOverlayProps> = ({
   columns,
   title,
   rankCalculator,
   renderPlayerName,
   renderCell
 }) => {
-  const { standings, tournament, loading, fetchError, divisionName } = useTournamentDataFromParams(rankCalculator);
-
   return (
-    <LoadingErrorWrapper
-      loading={loading}
-      error={fetchError}
-    >
-      {standings && tournament && divisionName ? (
+    <BaseOverlay rankCalculator={rankCalculator}>
+      {({ tournament, standings, divisionName }) => (
         <TournamentTableOverlay
           tournament={tournament}
           standings={standings}
@@ -41,9 +35,7 @@ export const BaseOverlayFromParams: React.FC<BaseOverlayFromParamsProps> = ({
           renderPlayerName={renderPlayerName}
           renderCell={renderCell}
         />
-      ) : (
-        <div className="text-black p-2">Loading...</div>
       )}
-    </LoadingErrorWrapper>
+    </BaseOverlay>
   );
 };

@@ -71,13 +71,6 @@ const PictureOverlayUrl: React.FC<PictureOverlayUrlProps> = ({
     fetchTournamentData();
   }, [tournamentId, divisionName]);
 
-  // Listen for games being added to this tournament
-  useGamesAdded(socket, (data: { tournamentId: number }) => {
-    if (data.tournamentId === Number(tournamentId)) {
-      fetchTournamentData();
-    }
-  });
-
   // Show loading state
   if (loading) {
     return <div className="text-black p-2">Loading...</div>;

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ProcessedTournament, PlayerStats } from '@shared/types/tournament';
+import { useSocketConnection } from './useSocketConnection';
+import { useGamesAdded } from '../utils/socketHelpers';
 import { fetchTournament } from '../utils/tournamentApi';
 
 interface UseTournamentDataProps {
@@ -13,6 +15,8 @@ export const useTournamentData = ({
   divisionId,
   rankCalculator
 }: UseTournamentDataProps) => {
+  const { socket } = useSocketConnection();
+
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
   const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -43,6 +47,13 @@ export const useTournamentData = ({
   useEffect(() => {
     fetchTournamentData();
   }, [tournamentId, divisionId]);
+
+  // Listen for games being added to this tournament
+  useGamesAdded(socket, (data: { tournamentId: number }) => {
+    if (data.tournamentId === tournamentId) {
+      fetchTournamentData();
+    }
+  });
 
   return {
     standings,

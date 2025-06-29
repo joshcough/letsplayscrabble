@@ -1,23 +1,20 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { PlayerStats } from '@shared/types/tournament';
+import { PlayerStats, ProcessedTournament } from '@shared/types/tournament';
 import { useCurrentMatch } from '../../hooks/useCurrentMatch';
 import { useTournamentData } from '../../hooks/useTournamentData';
 import { useTournamentDataFromParams } from '../../hooks/useTournamentDataFromParams';
 import { LoadingErrorWrapper } from './LoadingErrorWrapper';
-import { TournamentTableOverlay } from './TournamentTableOverlay';
 
-interface Column {
-  key: string;
-  label: string;
+interface BaseOverlayDataProps {
+  tournament: ProcessedTournament;
+  standings: PlayerStats[];
+  divisionName: string;
 }
 
 interface BaseOverlayProps {
-  columns: Column[];
-  title: string;
   rankCalculator: (players: PlayerStats[]) => PlayerStats[];
-  renderPlayerName: (player: PlayerStats) => React.ReactNode;
-  renderCell: (player: PlayerStats, columnKey: string) => React.ReactNode;
+  children: (props: BaseOverlayDataProps) => React.ReactNode;
 }
 
 type RouteParams = {
@@ -26,11 +23,8 @@ type RouteParams = {
 };
 
 export const BaseOverlay: React.FC<BaseOverlayProps> = ({
-  columns,
-  title,
   rankCalculator,
-  renderPlayerName,
-  renderCell
+  children
 }) => {
   const { tournamentId, divisionName } = useParams<RouteParams>();
   const shouldUseCurrentMatch = !tournamentId || !divisionName;
@@ -43,7 +37,7 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({
     rankCalculator
   });
 
-  // URL params approach
+  // URL params approach (already handles useGamesAdded internally)
   const urlParamsData = useTournamentDataFromParams(rankCalculator);
 
   // Choose which data to use
@@ -70,15 +64,11 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({
       error={fetchError}
     >
       {standings && tournament && finalDivisionName ? (
-        <TournamentTableOverlay
-          tournament={tournament}
-          standings={standings}
-          columns={columns}
-          title={title}
-          divisionName={finalDivisionName}
-          renderPlayerName={renderPlayerName}
-          renderCell={renderCell}
-        />
+        children({
+          tournament,
+          standings,
+          divisionName: finalDivisionName
+        })
       ) : (
         <div className="text-black p-2">Loading...</div>
       )}

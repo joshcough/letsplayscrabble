@@ -3,6 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
 import PointsDisplay from "../../components/overlay/PointsDisplay";
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
+import { useSocketConnection } from "../../hooks/useSocketConnection";
+import { useGamesAdded } from "../../utils/socketHelpers";
 import { fetchCurrentMatchWithPlayers } from "../../utils/matchApi";
 import { MatchWithPlayers } from "@shared/types/admin";
 import {
@@ -51,7 +53,7 @@ type SourceType =
   | "tournament-data"
   | null;
 
-const StatsOverlay: React.FC = () => {
+const MiscOverlay: React.FC = () => {
   const [searchParams] = useSearchParams();
   const source = searchParams.get("source") as SourceType;
 
@@ -60,6 +62,7 @@ const StatsOverlay: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const { currentMatch, loading: matchLoading, error: matchError } = useCurrentMatch();
+  const { socket } = useSocketConnection();
 
   // Fetch full match data when current match changes
   const fetchFullMatchData = async () => {
@@ -82,6 +85,13 @@ const StatsOverlay: React.FC = () => {
       fetchFullMatchData();
     }
   }, [currentMatch]);
+
+  // Listen for games being added to current tournament and refetch match data
+  useGamesAdded(socket, (data: { tournamentId: number }) => {
+    if (data.tournamentId === currentMatch?.tournament_id) {
+      fetchFullMatchData();
+    }
+  });
 
   // Early return with error display
   if (matchError || error) {
@@ -205,4 +215,4 @@ const StatsOverlay: React.FC = () => {
   return <div className="text-black p-2">No source parameter provided</div>;
 };
 
-export default StatsOverlay;
+export default MiscOverlay;
