@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const CurrentMatchOverlaysPage: React.FC = () => {
+const OverlaysPage: React.FC = () => {
   const overlays = [
     {
       title: "Misc Overlay",
@@ -44,20 +44,20 @@ const CurrentMatchOverlaysPage: React.FC = () => {
       description: "Scoring leaders with player photos"
     },
     {
-      title: "Tournament Division Stats",
+      title: "Tournament Stats",
       path: "/overlay/tournament_stats",
-      description: "Overall tournament statistics"
+      description: "Tournament statistics and analytics"
     }
   ];
 
   return (
     <div className="container mx-auto p-8">
       <h1 className="text-3xl font-bold mb-8 text-center">
-        Current Match Overlay Pages
+        Tournament Overlays
       </h1>
 
       <p className="text-lg mb-6 text-center text-gray-600">
-        These overlays automatically use the currently selected match data
+        These overlays work with both current match data and URL parameters
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -81,14 +81,16 @@ const CurrentMatchOverlaysPage: React.FC = () => {
       </div>
 
       <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-        <h3 className="font-semibold text-blue-800 mb-2">Note:</h3>
-        <p className="text-blue-700 text-sm">
-          These overlays use the current match selected in the admin interface.
-          Make sure to set a current match before using these overlays.
-        </p>
+        <h3 className="font-semibold text-blue-800 mb-2">How it works:</h3>
+        <ul className="text-blue-700 text-sm space-y-1">
+          <li>• <strong>Default:</strong> Uses currently selected match in admin interface</li>
+          <li>• <strong>With URL params:</strong> Most overlays support /tournamentId/divisionName for specific tournament data</li>
+          <li>• <strong>Example:</strong> /overlay/standings/123/A shows standings for tournament 123, division A</li>
+          <li>• <strong>Note:</strong> Misc overlay only works with current match (requires specific round/pairing data)</li>
+        </ul>
       </div>
     </div>
   );
 };
 
-export default CurrentMatchOverlaysPage;
+export default OverlaysPage;

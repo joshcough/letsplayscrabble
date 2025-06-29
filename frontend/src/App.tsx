@@ -9,12 +9,12 @@ import { AuthProvider } from "./context/AuthContext";
 import AddTournament from "./components/tournaments/AddTournament";
 import AdminLogin from "./components/AdminLogin";
 import AdminPage from "./pages/admin/AdminPage";
-import CurrentMatchOverlaysPage from "./pages/overlay/CurrentMatchOverlaysPage";
 import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
 import HomePage from "./pages/HomePage";
 import Navigation from "./components/common/Navigation";
 import MiscOverlayPage from "./pages/overlay/MiscOverlayPage";
 import MiscOverlayTestingPage from "./pages/overlay/MiscOverlayTestingPage";
+import OverlaysPage from "./pages/overlay/OverlaysPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RatingGainOverlayPage from "./pages/overlay/RatingGainOverlayPage";
 import RatingGainWithPicsOverlayPage from "./pages/overlay/RatingGainWithPicsOverlayPage";
@@ -73,8 +73,8 @@ const AppContent: React.FC = () => {
           element={<TournamentStatsOverlayPage />}
         />
         <Route
-          path="/overlay/current_match_overlays"
-          element={<CurrentMatchOverlaysPage />}
+          path="/overlay/overlays"
+          element={<OverlaysPage />}
         />
         <Route
           path="/overlay/misc_testing"
