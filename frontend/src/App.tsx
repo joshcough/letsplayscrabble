@@ -7,26 +7,27 @@ import {
   useLocation,
 } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Navigation from "./components/common/Navigation";
-import HomePage from "./pages/HomePage";
+import AddTournament from "./components/tournaments/AddTournament";
+import AdminLogin from "./components/AdminLogin";
 import AdminPage from "./pages/admin/AdminPage";
+import CurrentMatchOverlaysPage from "./pages/overlay/CurrentMatchOverlaysPage";
+import CurrentMatchStandingsWithPicsPage from "./pages/overlay/CurrentMatchStandingsWithPicsPage";
+import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
+import HomePage from "./pages/HomePage";
+import Navigation from "./components/common/Navigation";
 import OverlayPage from "./pages/overlay/OverlayPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 import RatingGainOverlayPage from "./pages/overlay/RatingGainOverlayPage";
 import RatingGainWithPicsOverlayPage from "./pages/overlay/RatingGainWithPicsOverlayPage";
 import ScoringLeadersOverlayPage from "./pages/overlay/ScoringLeadersOverlayPage";
 import ScoringLeadersWithPicsOverlayPage from "./pages/overlay/ScoringLeadersWithPicsOverlayPage";
-import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
 import StandingsOverlayPage from "./pages/overlay/StandingsOverlayPage";
-import StandingsWithPicsOverlayPage from "./pages/overlay/StandingsWithPicsOverlayPage";
-import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
-import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
-import TournamentDivisionStatsOverlayPage from "./pages/overlay/TournamentDivisionStatsOverlayPage";
 import StandingsPage from "./pages/tournaments/StandingsPage";
-import AddTournament from "./components/tournaments/AddTournament";
-import AdminLogin from "./components/AdminLogin";
-import CurrentMatchOverlaysPage from "./pages/overlay/CurrentMatchOverlaysPage";
-
+import StandingsWithPicsOverlayPage from "./pages/overlay/StandingsWithPicsOverlayPage";
+import StatsOverlayTestingPage from "./pages/overlay/StatsOverlayTestingPage";
+import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
+import TournamentDivisionStatsOverlayPage from "./pages/overlay/TournamentDivisionStatsOverlayPage";
+import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
 // Wrapper component to conditionally apply theme
 const AppContent: React.FC = () => {
   const location = useLocation();
@@ -77,6 +78,14 @@ const AppContent: React.FC = () => {
         <Route
           path="/overlay/current_match_overlays"
           element={<CurrentMatchOverlaysPage />}
+        />
+        <Route
+          path="/overlay/current_match_standings"
+          element={<CurrentMatchStandingsWithPicsPage />}
+        />
+        <Route
+          path="/overlay/stats_testing"
+          element={<StatsOverlayTestingPage />}
         />
         {/* Protected Routes */}
         <Route

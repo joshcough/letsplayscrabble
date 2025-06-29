@@ -26,8 +26,8 @@ export const TournamentTableOverlay: React.FC<TournamentTableOverlayProps> = ({
   renderCell
 }) => {
   return (
-    <div className="flex flex-col items-center pt-8 font-bold">
-      <div className="text-black text-4xl font-bold text-center mb-4">
+    <div className="flex flex-col items-center pt-2 font-bold">
+      <div className="text-black text-4xl font-bold text-center mb-2">
         {tournament.name} {tournament.lexicon} Div {divisionName} {title}
       </div>
       <div className="overflow-x-auto">
@@ -37,7 +37,7 @@ export const TournamentTableOverlay: React.FC<TournamentTableOverlayProps> = ({
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`px-4 py-2 ${column.key === "name" ? "text-left" : "text-center"}`}
+                  className={`px-3 py-1 ${column.key === "name" ? "text-left" : "text-center"}`}
                   style={{
                     minWidth: column.key === "name" ? "200px" : "100px",
                   }}
@@ -53,7 +53,7 @@ export const TournamentTableOverlay: React.FC<TournamentTableOverlayProps> = ({
                 {columns.map((column) => (
                   <td
                     key={column.key}
-                    className={`px-4 py-2 ${column.key === "name" ? "" : "text-center"}`}
+                    className={`px-3 py-1 ${column.key === "name" ? "" : "text-center"}`}
                   >
                     {column.key === "name" ? renderPlayerName(player) : renderCell(player, column.key)}
                   </td>

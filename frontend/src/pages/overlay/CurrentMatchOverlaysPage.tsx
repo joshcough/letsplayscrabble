@@ -24,6 +24,11 @@ const CurrentMatchOverlaysPage: React.FC = () => {
       description: "High score leaders with player photos"
     },
     {
+      title: "Standings with Pictures",
+      path: "/overlay/current_match_standings",
+      description: "Player stats and game history"
+    },
+    {
       title: "Scoring Leaders",
       path: "/overlay/scoring_leaders",
       description: "Players ranked by average score"
