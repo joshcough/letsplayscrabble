@@ -8,9 +8,7 @@ const StandingsOverlayPage: React.FC = () => {
   const columns = [
     { key: "rank", label: "Rank" },
     { key: "name", label: "Name" },
-    { key: "wins", label: "Wins" },
-    { key: "losses", label: "Losses" },
-    { key: "ties", label: "Ties" },
+    { key: "record", label: "Record" },
     { key: "spread", label: "Spread" },
     { key: "highScore", label: "High" },
   ];
@@ -21,12 +19,11 @@ const StandingsOverlayPage: React.FC = () => {
     switch (columnKey) {
       case "rank":
         return player.rank;
-      case "wins":
-        return player.wins;
-      case "losses":
-        return player.losses;
-      case "ties":
-        return player.ties;
+      case "record":
+        if (player.ties == 0)
+          return player.wins + "-" + player.losses;
+        else
+          return player.wins + "-" + player.losses + "-" + player.ties;
       case "spread":
         return formatNumberWithSign(player.spread);
       case "highScore":
