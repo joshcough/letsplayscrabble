@@ -1,6 +1,6 @@
 import React from "react";
 import { PlayerStats } from "@shared/types/tournament";
-import { BaseOverlayFromParams } from "../../components/shared/BaseOverlayFromParams";
+import { BaseOverlay } from "../../components/shared/BaseOverlay";
 import { calculateStandingsRanks } from "../../utils/rankingCalculators";
 import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
@@ -37,7 +37,7 @@ const StandingsOverlayPage: React.FC = () => {
   };
 
   return (
-    <BaseOverlayFromParams
+    <BaseOverlay
       columns={columns}
       title="Standings"
       rankCalculator={calculateStandingsRanks}

@@ -4,9 +4,9 @@ import { Link } from "react-router-dom";
 const CurrentMatchOverlaysPage: React.FC = () => {
   const overlays = [
     {
-      title: "Stats Overlay (Misc)",
-      path: "/overlay/misc",
-      description: "Player stats and game history"
+      title: "Misc Overlay",
+      path: "/overlay/misc_testing",
+      description: "Lots of small things we use in OBS"
     },
     {
       title: "Rating Gain Leaders",
@@ -24,9 +24,14 @@ const CurrentMatchOverlaysPage: React.FC = () => {
       description: "High score leaders with player photos"
     },
     {
+      title: "Standings",
+      path: "/overlay/standings",
+      description: "Division standings in table"
+    },
+    {
       title: "Standings with Pictures",
-      path: "/overlay/current_match_standings",
-      description: "Player stats and game history"
+      path: "/overlay/standings_with_pics",
+      description: "Division standings with pictures"
     },
     {
       title: "Scoring Leaders",
@@ -40,7 +45,7 @@ const CurrentMatchOverlaysPage: React.FC = () => {
     },
     {
       title: "Tournament Division Stats",
-      path: "/overlay/tournament_division_stats",
+      path: "/overlay/tournament_stats",
       description: "Overall tournament statistics"
     }
   ];

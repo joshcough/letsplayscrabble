@@ -1,6 +1,6 @@
 import React from "react";
 import { PlayerStats } from "@shared/types/tournament";
-import { BaseOverlayCurrentMatch } from "../../components/shared/BaseOverlayCurrentMatch";
+import { BaseOverlay } from "../../components/shared/BaseOverlay";
 import { calculateRatingGainRanks } from "../../utils/rankingCalculators";
 import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
@@ -44,7 +44,7 @@ const RatingGainOverlayPage: React.FC = () => {
   };
 
   return (
-    <BaseOverlayCurrentMatch
+    <BaseOverlay
       columns={columns}
       title="Rating Gain Leaders"
       rankCalculator={calculateRatingGainRanks}
