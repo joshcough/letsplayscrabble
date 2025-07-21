@@ -1,4 +1,5 @@
 import { Pool, PoolConfig } from "pg";
+import knex from "knex";
 
 interface DatabaseConfig extends PoolConfig {
   ssl?: {
@@ -34,5 +35,21 @@ pool.on("error", (err: Error) => {
   process.exit(-1);
 });
 
-export const query = (text: string, params?: any[]) => pool.query(text, params);
-export { pool };
+// Knex configuration using the same connection settings
+const knexConfig = {
+  client: "postgresql",
+  connection: isDevelopment ? {
+    host: "localhost",
+    port: 5432,
+    user: "scrabble_user",
+    password: "scrabble_pass",
+    database: "scrabble_stats",
+  } : process.env.DATABASE_URL,
+  debug: isDevelopment, // Add query logging in development
+  ...(isDevelopment ? {} : { ssl: { rejectUnauthorized: false } })
+};
+
+const knexDb = knex(knexConfig);
+const query = (text: string, params?: any[]) => pool.query(text, params);
+
+export { pool, knexDb, query };
