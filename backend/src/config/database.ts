@@ -44,9 +44,11 @@ const knexConfig = {
     user: "scrabble_user",
     password: "scrabble_pass",
     database: "scrabble_stats",
-  } : process.env.DATABASE_URL,
-  debug: isDevelopment, // Add query logging in development
-  ...(isDevelopment ? {} : { ssl: { rejectUnauthorized: false } })
+  } : {
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  },
+  debug: isDevelopment,
 };
 
 const knexDb = knex(knexConfig);

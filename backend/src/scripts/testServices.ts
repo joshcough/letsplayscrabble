@@ -1,5 +1,5 @@
 // backend/src/scripts/testServices.ts
-import { knexDb, pool } from "../config/database";
+import { knexDb } from "../config/database";
 import { PlayerStats } from "@shared/types/tournament";
 import { TournamentDataService } from "../services/tournamentDataService";
 import { TournamentStatsService } from "../services/tournamentStatsService";
@@ -14,7 +14,7 @@ async function migrateExistingTournaments(limitToFirst = false) {
     ? 'SELECT * FROM tournaments ORDER BY id LIMIT 1'
     : 'SELECT * FROM tournaments ORDER BY id';
 
-  const result = await pool.query(query);
+  const result = await knexDb(query);
   const tournaments = result.rows;
 
   if (tournaments.length === 0) {
@@ -77,7 +77,7 @@ async function testServices() {
     await migrateExistingTournaments(true);
 
     // Get an existing tournament from your database
-    const result = await pool.query('SELECT * FROM tournaments ORDER BY id LIMIT 1');
+    const result = await knexDb('SELECT * FROM tournaments ORDER BY id LIMIT 1');
     if (result.rows.length === 0) {
       throw new Error("No tournaments found in database");
     }
