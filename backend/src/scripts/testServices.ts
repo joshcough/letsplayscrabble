@@ -1,5 +1,6 @@
 // backend/src/scripts/testServices.ts
 import { knexDb, pool } from "../config/database";
+import { PlayerStats } from "@shared/types/tournament";
 import { TournamentDataService } from "../services/tournamentDataService";
 import { TournamentStatsService } from "../services/tournamentStatsService";
 
@@ -92,14 +93,14 @@ async function testServices() {
     console.log(`   Found ${standings.length} divisions`);
 
     // Show division info
-    standings.forEach((divisionStandings, divIndex) => {
+    standings.forEach((divisionStandings: PlayerStats[], divIndex: number) => {
       console.log(`   Division ${divIndex + 1}: ${divisionStandings.length} players`);
     });
 
     // Test: Show top players from first division
     if (standings[0] && standings[0].length > 0) {
       console.log("\n2. Top 5 players in Division 1:");
-      standings[0].slice(0, 5).forEach((player, index) => {
+      standings[0].slice(0, 5).forEach((player: PlayerStats, index: number) => {
         console.log(`   ${index + 1}. ${player.firstLast}: ${player.wins}-${player.losses} (${player.spread > 0 ? '+' : ''}${player.spread}) avg: ${player.averageScoreRounded}`);
       });
     }

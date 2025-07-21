@@ -25,6 +25,19 @@ interface DatabaseGame {
 export class TournamentStatsService {
   constructor(private readonly knex: Knex) {}
 
+  // Simple method for scripts - uses the old approach
+  async calculateStandings(tournamentId: number): Promise<PlayerStats[][]> {
+    const divisions = await this.getDivisions(tournamentId);
+    const standings: PlayerStats[][] = [];
+
+    for (const division of divisions) {
+      const divisionStandings = await this.calculateDivisionStandings(division.id);
+      standings.push(divisionStandings);
+    }
+
+    return standings;
+  }
+
   async calculateStandingsWithData(tournamentId: number, divisionsWithPlayers: any[]): Promise<PlayerStats[][]> {
     // Group divisions and players from the data we already have
     const divisionsMap = new Map();
