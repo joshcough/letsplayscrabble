@@ -21,10 +21,13 @@ const config = {
 
   production: {
     client: "postgresql",
-    connection: process.env.DATABASE_URL,
+    connection: {
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }  // Add this for Heroku Postgres
+    },
     migrations: {
-      directory: "./migrations",  // Keep as source files
-      extension: "ts",             // Keep as TypeScript
+      directory: "./migrations",
+      extension: "ts",
     },
     seeds: {
       directory: "./seeds",
