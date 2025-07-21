@@ -1,8 +1,8 @@
 // backend/src/scripts/testServices.ts
 import { knexDb } from "../config/database";
-import { PlayerStats } from "@shared/types/tournament";
 import { TournamentDataService } from "../services/tournamentDataService";
 import { TournamentStatsService } from "../services/tournamentStatsService";
+import { PlayerStats } from "@shared/types/tournament";
 
 async function migrateExistingTournaments(limitToFirst = false) {
   console.log("🚀 Migrating existing tournament data to normalized tables...\n");
@@ -10,12 +10,9 @@ async function migrateExistingTournaments(limitToFirst = false) {
   const dataService = new TournamentDataService(knexDb);
 
   // Get existing tournaments
-  const query = limitToFirst
-    ? 'SELECT * FROM tournaments ORDER BY id LIMIT 1'
-    : 'SELECT * FROM tournaments ORDER BY id';
-
-  const result = await knexDb(query);
-  const tournaments = result.rows;
+  const tournaments = limitToFirst
+    ? await knexDb('tournaments').select('*').orderBy('id').limit(1)
+    : await knexDb('tournaments').select('*').orderBy('id');
 
   if (tournaments.length === 0) {
     console.log("No tournaments found in database");
@@ -77,12 +74,12 @@ async function testServices() {
     await migrateExistingTournaments(true);
 
     // Get an existing tournament from your database
-    const result = await knexDb('SELECT * FROM tournaments ORDER BY id LIMIT 1');
-    if (result.rows.length === 0) {
+    const tournaments = await knexDb('tournaments').select('*').orderBy('id').limit(1);
+    if (tournaments.length === 0) {
       throw new Error("No tournaments found in database");
     }
 
-    const tournament = result.rows[0];
+    const tournament = tournaments[0];
     const tournamentId = tournament.id;
     console.log(`\nTesting with tournament: "${tournament.name}" (ID: ${tournamentId})`);
 
