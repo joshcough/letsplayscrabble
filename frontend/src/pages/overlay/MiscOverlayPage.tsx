@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
-import PointsDisplay from "../../components/overlay/PointsDisplay";
+import PointsDisplay from "../../components/shared/PointsDisplay";
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { useSocketConnection } from "../../hooks/useSocketConnection";
 import { useGamesAdded } from "../../utils/socketHelpers";

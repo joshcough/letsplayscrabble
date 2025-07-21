@@ -2,7 +2,7 @@ import React from 'react';
 import { PlayerStats } from '@shared/types/tournament';
 import { BaseOverlay } from './BaseOverlay';
 import { SortType, calculateRanksBySortType } from '../../utils/pictureOverlayUtils';
-import PictureDisplay from '../overlay/PictureDisplay';
+import PictureDisplay from './PictureDisplay';
 
 interface PictureOverlayProps {
   title: string;
