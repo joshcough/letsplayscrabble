@@ -1,3 +1,11 @@
+// Register ts-node to handle TypeScript files
+require('ts-node').register({
+  transpileOnly: true,
+  compilerOptions: {
+    module: 'commonjs'
+  }
+});
+
 require('dotenv').config({ path: require('path').resolve(process.cwd(), `.env.${process.env.NODE_ENV || 'development'}`) });
 
 const config = {
@@ -23,7 +31,7 @@ const config = {
     client: "postgresql",
     connection: {
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }  // Add this for Heroku Postgres
+      ssl: { rejectUnauthorized: false }
     },
     migrations: {
       directory: "./migrations",
