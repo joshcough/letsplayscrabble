@@ -11,12 +11,11 @@ const config = {
       database: process.env.DB_NAME || "scrabble_stats",
     },
     migrations: {
-      directory: "./dist/migrations",
-      extension: "js",
+      directory: "./migrations",
+      extension: "ts",
     },
     seeds: {
-      directory: "./dist/seeds",
-      extension: "js",
+      directory: "./seeds",
     },
   },
 
@@ -24,12 +23,12 @@ const config = {
     client: "postgresql",
     connection: process.env.DATABASE_URL,
     migrations: {
-      directory: "./dist/migrations",
-      extension: "js",
+      directory: "./migrations",  // Keep as source files
+      extension: "ts",             // Keep as TypeScript
     },
     seeds: {
-      directory: "./dist/seeds",
-      extension: "js",
+      directory: "./seeds",
+      extension: "ts",
     },
     pool: {
       min: 2,
