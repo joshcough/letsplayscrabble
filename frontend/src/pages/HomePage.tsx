@@ -1,4 +1,3 @@
-// pages/HomePage.tsx
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -30,7 +29,7 @@ const HomePage: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <Link
             to="/tournaments/manager"
             className="group relative h-[200px] flex"
@@ -59,7 +58,22 @@ const HomePage: React.FC = () => {
                 Admin Interface
               </h2>
               <p className="text-[#6B5744]">
-                Administrative tools and settings
+                Choose the current live pairing
+              </p>
+            </div>
+          </Link>
+
+          <Link to="/overlays" className="group relative h-[200px] flex">
+            <div className="absolute inset-0 bg-green-600 opacity-10 group-hover:opacity-20 transition-opacity" />
+            <div
+              className="relative bg-[#FAF1DB] p-8 rounded border-2 border-[#4A3728] shadow-lg
+                          transform group-hover:-translate-y-1 transition-transform flex-1 flex flex-col"
+            >
+              <h2 className="text-xl font-bold text-[#4A3728] mb-3">
+                Tournament Overlays
+              </h2>
+              <p className="text-[#6B5744]">
+                OBS overlays for live streaming tournaments
               </p>
             </div>
           </Link>

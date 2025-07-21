@@ -277,7 +277,7 @@ const AdminInterface: React.FC = () => {
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .map((t) => (
                   <option key={t.id} value={t.id}>
-                    {t.name}
+                    {t.long_form_name}
                   </option>
                 ))}
             </select>

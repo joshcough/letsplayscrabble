@@ -57,7 +57,7 @@ const AddTournament: React.FC = () => {
                 className="block text-[#4A3728] font-medium mb-1"
               >
                 {key === "longFormName"
-                  ? "Long Form Name"
+                  ? "Display Name"
                   : key === "dataUrl"
                     ? "Data URL"
                     : key.charAt(0).toUpperCase() + key.slice(1)}

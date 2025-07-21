@@ -237,7 +237,7 @@ const TournamentDetails: React.FC = () => {
             </div>
             <div className="flex">
               <span className="text-gray-600 font-medium w-32">
-                Long Form Name:
+                Display Name:
               </span>
               {isEditing ? (
                 <input

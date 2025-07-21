@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-type NavPath = "/" | "/tournaments/manager" | "/admin";
+type NavPath = "/" | "/tournaments/manager" | "/admin" | "/overlays";
 
 const Navigation: React.FC = () => {
   const location = useLocation();
@@ -21,6 +21,8 @@ const Navigation: React.FC = () => {
         return "Tournament Manager";
       case "/admin":
         return "Admin";
+      case "/overlays":
+        return "Overlays";
     }
   };
 
@@ -29,7 +31,7 @@ const Navigation: React.FC = () => {
     navigate("/login");
   };
 
-  const paths: NavPath[] = ["/", "/tournaments/manager", "/admin"];
+  const paths: NavPath[] = ["/", "/tournaments/manager", "/admin", "/overlays"];
 
   return (
     <nav className="bg-[#E4C6A0] border-b-4 border-[#4A3728]">

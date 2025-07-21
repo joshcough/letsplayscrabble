@@ -1,4 +1,3 @@
-// App.tsx
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -7,33 +6,29 @@ import {
   useLocation,
 } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Navigation from "./components/common/Navigation";
-import HomePage from "./pages/HomePage";
+import AddTournament from "./components/tournaments/AddTournament";
+import AdminLogin from "./components/AdminLogin";
 import AdminPage from "./pages/admin/AdminPage";
-import OverlayPage from "./pages/overlay/OverlayPage";
+import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
+import HomePage from "./pages/HomePage";
+import Navigation from "./components/common/Navigation";
+import MiscOverlayPage from "./pages/overlay/MiscOverlayPage";
+import MiscOverlayTestingPage from "./pages/overlay/MiscOverlayTestingPage";
+import OverlaysPage from "./pages/overlay/OverlaysPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 import RatingGainOverlayPage from "./pages/overlay/RatingGainOverlayPage";
 import RatingGainWithPicsOverlayPage from "./pages/overlay/RatingGainWithPicsOverlayPage";
 import ScoringLeadersOverlayPage from "./pages/overlay/ScoringLeadersOverlayPage";
 import ScoringLeadersWithPicsOverlayPage from "./pages/overlay/ScoringLeadersWithPicsOverlayPage";
-import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
-import ElemScoringLeadersOverlayPage from "./pages/overlay/ElemScoringLeadersOverlayPage";
-import HSScoringLeadersOverlayPage from "./pages/overlay/HSScoringLeadersOverlayPage";
 import StandingsOverlayPage from "./pages/overlay/StandingsOverlayPage";
 import StandingsWithPicsOverlayPage from "./pages/overlay/StandingsWithPicsOverlayPage";
-import HSStandingsOverlayPage from "./pages/overlay/HSStandingsOverlayPage";
-import ElemStandingsOverlayPage from "./pages/overlay/ElemStandingsOverlayPage";
 import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
+import TournamentStatsOverlayPage from "./pages/overlay/TournamentStatsOverlayPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
-import TournamentDivisionStatsOverlayPage from "./pages/overlay/TournamentDivisionStatsOverlayPage";
-import StandingsPage from "./pages/tournaments/StandingsPage";
-import AddTournament from "./components/tournaments/AddTournament";
-import AdminLogin from "./components/AdminLogin";
-
 // Wrapper component to conditionally apply theme
 const AppContent: React.FC = () => {
   const location = useLocation();
-  const isOverlay = location.pathname.startsWith("/overlay");
+  const isOverlay = location.pathname.startsWith("/overlay/");
 
   return (
     <div
@@ -44,54 +39,46 @@ const AppContent: React.FC = () => {
       {!isOverlay && <Navigation />}
       <Routes>
         <Route path="/login" element={<AdminLogin />} />
-        <Route path="/overlay/misc" element={<OverlayPage />} />
+        <Route path="/overlay/misc" element={<MiscOverlayPage />} />
         <Route
-          path="/overlay/standings/:tournamentId/:divisionName"
+          path="/overlay/standings/:tournamentId?/:divisionName?"
           element={<StandingsOverlayPage />}
         />
         <Route
-          path="/overlay/standings_with_pics/:tournamentId/:divisionName"
+          path="/overlay/standings_with_pics/:tournamentId?/:divisionName?"
           element={<StandingsWithPicsOverlayPage />}
         />
         <Route
-          path="/overlay/hs_standings/:tournamentId/:divisionName"
-          element={<HSStandingsOverlayPage />}
-        />
-        <Route
-          path="/overlay/elem_standings/:tournamentId/:divisionName"
-          element={<ElemStandingsOverlayPage />}
-        />
-        <Route
-          path="/overlay/rating_gain"
+          path="/overlay/rating_gain/:tournamentId?/:divisionName?"
           element={<RatingGainOverlayPage />}
         />
         <Route
-          path="/overlay/rating_gain_with_pics"
+          path="/overlay/rating_gain_with_pics/:tournamentId?/:divisionName?"
           element={<RatingGainWithPicsOverlayPage />}
         />
         <Route
-          path="/overlay/high_scores_with_pics"
+          path="/overlay/high_scores_with_pics/:tournamentId?/:divisionName?"
           element={<HighScoresWithPicsOverlayPage />}
         />
         <Route
-          path="/overlay/scoring_leaders"
+          path="/overlay/scoring_leaders/:tournamentId?/:divisionName?"
           element={<ScoringLeadersOverlayPage />}
         />
         <Route
-          path="/overlay/scoring_leaders_with_pics"
+          path="/overlay/scoring_leaders_with_pics/:tournamentId?/:divisionName?"
           element={<ScoringLeadersWithPicsOverlayPage />}
         />
         <Route
-          path="/overlay/elem_scoring_leaders"
-          element={<ElemScoringLeadersOverlayPage />}
+          path="/overlay/tournament_stats/:tournamentId?/:divisionName?"
+          element={<TournamentStatsOverlayPage />}
         />
         <Route
-          path="/overlay/hs_scoring_leaders"
-          element={<HSScoringLeadersOverlayPage />}
+          path="/overlays"
+          element={<OverlaysPage />}
         />
         <Route
-          path="/overlay/tournament_division_stats"
-          element={<TournamentDivisionStatsOverlayPage />}
+          path="/overlay/misc_testing"
+          element={<MiscOverlayTestingPage />}
         />
         {/* Protected Routes */}
         <Route
@@ -131,14 +118,6 @@ const AppContent: React.FC = () => {
           element={
             <ProtectedRoute>
               <TournamentDetailsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/tournaments/:tournamentId/standings/:divisionName"
-          element={
-            <ProtectedRoute>
-              <StandingsWithPicsOverlayPage />
             </ProtectedRoute>
           }
         />

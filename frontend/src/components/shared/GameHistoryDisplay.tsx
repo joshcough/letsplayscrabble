@@ -1,22 +1,26 @@
-import { GameResult } from "@shared/types/tournament";
+import React from 'react';
+import { GameResult } from '@shared/types/tournament';
 
-const HSGameHistoryDisplay = ({
-  games,
-  side,
-}: {
+interface GameHistoryDisplayProps {
   games: GameResult[];
   side: "player1" | "player2";
+  opponentNameKey?: 'opponentName' | 'opponentElemName' | 'opponentHSName';
+}
+
+const GameHistoryDisplay: React.FC<GameHistoryDisplayProps> = ({
+  games,
+  side,
+  opponentNameKey = 'opponentName'
 }) => {
   if (!games || games.length === 0) {
     return null;
   }
 
   const reversedGames = [...games].reverse();
-  const headerText =
-    games.length === 1 ? "Last Game:" : `Last ${games.length} Games:`;
+  const headerText = games.length === 1 ? "Last Game:" : `Last ${games.length} Games:`;
 
   const getGameResult = (game: GameResult) => {
-    const isWin = game.playerScore > game.opponentScore
+    const isWin = game.playerScore > game.opponentScore;
     return isWin ? "Win" : "Loss";
   };
 
@@ -38,11 +42,13 @@ const HSGameHistoryDisplay = ({
                 {game.playerScore}-{game.opponentScore}
               </td>
               <td
-                className={`whitespace-nowrap font-extrabold ${getGameResult(game) === "Win" ? "text-red-600" : "text-blue-600"}`}
+                className={`whitespace-nowrap font-extrabold ${
+                  getGameResult(game) === "Win" ? "text-red-600" : "text-blue-600"
+                }`}
               >
                 {getGameResult(game)}
               </td>
-              <td>vs {game.opponentHSName}</td>
+              <td>vs {game[opponentNameKey]}</td>
             </tr>
           ))}
         </tbody>
@@ -51,4 +57,4 @@ const HSGameHistoryDisplay = ({
   );
 };
 
-export default HSGameHistoryDisplay;
+export default GameHistoryDisplay;
