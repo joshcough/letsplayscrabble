@@ -53,8 +53,8 @@ export class TournamentStatsService {
 
       if (row.player_id) {
         divisionsMap.get(row.division_id).players.push({
-          id: row.player_id, // This is the database ID
-          player_id: row.player_id,
+          id: row.player_db_id,
+          player_id: row.player_file_id,
           name: row.player_name,
           initial_rating: row.rating,
           photo: row.photo,
@@ -286,7 +286,7 @@ export class TournamentStatsService {
     }
 
     return {
-      id: player.player_id, // Use the file player ID for compatibility
+      id: player.player_id,
       name: player.name,
       firstLast: this.formatName(player.name),
       initialRating: player.initial_rating,

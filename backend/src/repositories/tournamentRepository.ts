@@ -83,6 +83,8 @@ export class TournamentRepository {
         'd.id as division_id',
         'd.name as division_name',
         'd.position as division_position',
+        'tp.id as player_db_id',           // ← Database ID
+        'tp.player_id as player_file_id',  // ← File ID
         'tp.player_id as player_id',
         'tp.name as player_name',
         'tp.initial_rating as rating',
@@ -106,7 +108,7 @@ export class TournamentRepository {
       // Only add player if they exist (leftJoin might return null players)
       if (row.player_id) {
         divisionsMap.get(row.division_id).players.push({
-          id: row.player_id,
+          id: row.player_db_id,
           name: row.player_name,
           rating: row.rating,
           photo: row.photo,
