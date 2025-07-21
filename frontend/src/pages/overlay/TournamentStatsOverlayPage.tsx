@@ -44,7 +44,10 @@ const TournamentStatsOverlayPage: React.FC = () => {
     if (!tournamentId) return;
 
     try {
-      setUrlLoading(true);
+      // Only show loading if we don't have data yet
+      if (!urlTournament) {
+        setUrlLoading(true);
+      }
       setUrlFetchError(null);
       const tournamentData = await fetchTournament(Number(tournamentId));
       setUrlTournament(tournamentData);
@@ -147,19 +150,25 @@ const TournamentStatsOverlayPage: React.FC = () => {
     divisionName
   ]);
 
+  // Check if we have complete data
+  const hasCompleteData = stats && finalTournament;
+
+  // Only show loading if we don't have data AND we're actually loading
+  const shouldShowLoading = !hasCompleteData && loading;
+
   return (
     <LoadingErrorWrapper
-      loading={loading}
+      loading={shouldShowLoading}
       error={error}
     >
-      {stats && finalTournament ? (
+      {hasCompleteData ? (
         <TournamentDivisionStatsDisplay
           tournament={finalTournament}
           divisionName={finalDivisionName}
           stats={stats}
         />
       ) : (
-        <div className="text-black p-2">Loading...</div>
+        shouldShowLoading && <div className="text-black p-2">Loading...</div>
       )}
     </LoadingErrorWrapper>
   );
