@@ -1,33 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { ProcessedTournament, PlayerStats } from "@shared/types/tournament";
+import { ProcessedTournament, PlayerStats, DivisionStats } from "@shared/types/tournament";
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { useTournamentData } from "../../hooks/useTournamentData";
-import { useSocketConnection } from "../../hooks/useSocketConnection";
-import { useGamesAdded } from "../../utils/socketHelpers";
-import { fetchTournament } from "../../utils/tournamentApi";
+import DisplaySourceManager from "../../hooks/DisplaySourceManager";
+import { fetchTournament, fetchDivisionStats, fetchTournamentStats } from "../../utils/tournamentApi";
 import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
 import { TournamentDivisionStatsDisplay } from "../../components/shared/TournamentDivisionStatsDisplay";
-import { calculateTournamentStats, calculateDivisionStats } from "../../utils/tournamentStatsCalculators";
 
 type RouteParams = {
+  userId?: string;
   tournamentId?: string;
   divisionName?: string;
 };
 
 const TournamentStatsOverlayPage: React.FC = () => {
-  const { tournamentId, divisionName } = useParams<RouteParams>();
+  const { userId, tournamentId, divisionName } = useParams<RouteParams>();
   const [searchParams] = useSearchParams();
   const showAllDivisions = searchParams.get("all_divisions") === "true";
 
-  const { socket } = useSocketConnection();
   const { currentMatch, loading: matchLoading, error: matchError } = useCurrentMatch();
 
   // Determine what to show based on URL params and query params
   const shouldUseCurrentMatch = !tournamentId;
   const shouldShowAllDivisions = showAllDivisions || (!divisionName && tournamentId);
 
-  // Current match data fetching
+  // Current match approach
   const statsCalculator = React.useCallback((standings: PlayerStats[]) => standings, []);
   const currentMatchData = useTournamentData({
     tournamentId: currentMatch?.tournament_id,
@@ -40,13 +38,21 @@ const TournamentStatsOverlayPage: React.FC = () => {
   const [urlLoading, setUrlLoading] = useState<boolean>(false);
   const [urlFetchError, setUrlFetchError] = useState<string | null>(null);
 
+  // Stats state
+  const [stats, setStats] = useState<DivisionStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
+
   const fetchTournamentData = async () => {
-    if (!tournamentId) return;
+    if (!userId || !tournamentId) return;
 
     try {
-      setUrlLoading(true);
+      // Only show loading if we don't have data yet
+      if (!urlTournament) {
+        setUrlLoading(true);
+      }
       setUrlFetchError(null);
-      const tournamentData = await fetchTournament(Number(tournamentId));
+      const tournamentData = await fetchTournament(parseInt(userId), Number(tournamentId));
       setUrlTournament(tournamentData);
     } catch (err) {
       console.error("Error fetching tournament data:", err);
@@ -57,109 +63,144 @@ const TournamentStatsOverlayPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (tournamentId) {
+    if (userId && tournamentId) {
       fetchTournamentData();
     }
-  }, [tournamentId]);
+  }, [userId, tournamentId]);
 
-  // Listen for games being added to URL-based tournament
-  useGamesAdded(socket, (data: { tournamentId: number }) => {
-    if (data.tournamentId === Number(tournamentId)) {
-      fetchTournamentData();
-    }
-  });
+  // Listen for games being added to URL-based tournament via broadcast channel
+  useEffect(() => {
+    if (!userId) return;
 
-  // Calculate stats based on the scenario
-  const { stats, tournament: finalTournament, finalDivisionName, loading, error } = React.useMemo(() => {
-    if (shouldUseCurrentMatch) {
-      // Scenario 1: Current match data
-      const { standings, tournament, loading, fetchError } = currentMatchData;
+    const displayManager = DisplaySourceManager.getInstance();
 
-      if (showAllDivisions) {
-        // Show all divisions for current tournament
-        return {
-          stats: tournament ? calculateTournamentStats(tournament) : null,
-          tournament,
-          finalDivisionName: undefined, // No division name = tournament-wide
-          loading: matchLoading || loading,
-          error: matchError || fetchError
-        };
-      } else {
-        // Show current division only
-        const stats = standings && tournament && currentMatch?.division_id !== undefined
-          ? calculateDivisionStats(standings, tournament, currentMatch.division_id)
-          : null;
-        const finalDivisionName = currentMatch?.division_id !== undefined && tournament
-          ? tournament.divisions[currentMatch.division_id].name
-          : undefined;
-
-        return {
-          stats,
-          tournament,
-          finalDivisionName,
-          loading: matchLoading || loading,
-          error: matchError || fetchError
-        };
+    const cleanup = displayManager.onGamesAdded((data: any) => {
+      console.log('📥 TournamentStatsOverlay received GamesAdded:', data);
+      if (data.userId === parseInt(userId) && data.tournamentId === Number(tournamentId)) {
+        fetchTournamentData();
       }
-    } else {
-      // Scenario 2 & 3: URL-based data
-      if (shouldShowAllDivisions) {
-        // Show all divisions for URL tournament
-        return {
-          stats: urlTournament ? calculateTournamentStats(urlTournament) : null,
-          tournament: urlTournament,
-          finalDivisionName: undefined,
-          loading: urlLoading,
-          error: urlFetchError
-        };
-      } else {
-        // Show specific division from URL
-        let stats = null;
-        if (urlTournament && divisionName) {
-          const divisionIndex = urlTournament.divisions.findIndex(
-            div => div.name.toUpperCase() === divisionName.toUpperCase()
-          );
-          if (divisionIndex !== -1) {
-            stats = calculateDivisionStats(urlTournament.standings[divisionIndex], urlTournament, divisionIndex);
-          }
+    });
+
+    return cleanup;
+  }, [userId, tournamentId]);
+
+  // Fetch stats based on current scenario
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!userId) {
+        setStatsError("User ID not found in URL");
+        return;
+      }
+
+      setStatsError(null);
+
+      if (shouldUseCurrentMatch) {
+        // Scenario 1: Current match data
+        if (!currentMatch?.tournament_id || currentMatch?.division_id === undefined) {
+          setStats(null);
+          return;
         }
 
-        return {
-          stats,
-          tournament: urlTournament,
-          finalDivisionName: divisionName,
-          loading: urlLoading,
-          error: urlFetchError
-        };
+        setStatsLoading(true);
+
+        try {
+          if (showAllDivisions) {
+            const tournamentStats = await fetchTournamentStats(parseInt(userId), currentMatch.tournament_id);
+            setStats(tournamentStats);
+          } else {
+            const divisionStats = await fetchDivisionStats(parseInt(userId), currentMatch.tournament_id, currentMatch.division_id);
+            setStats(divisionStats);
+          }
+        } catch (error) {
+          console.error('Error fetching current match stats:', error);
+          setStatsError(error instanceof Error ? error.message : 'Failed to fetch stats');
+        } finally {
+          setStatsLoading(false);
+        }
+      } else {
+        // Scenario 2 & 3: URL-based data
+        if (!urlTournament) {
+          setStats(null);
+          return;
+        }
+
+        setStatsLoading(true);
+
+        try {
+          if (shouldShowAllDivisions) {
+            const tournamentStats = await fetchTournamentStats(parseInt(userId), Number(tournamentId));
+            setStats(tournamentStats);
+          } else {
+            if (!divisionName) {
+              setStats(null);
+              return;
+            }
+
+            // Find division index by name
+            const divisionIndex = urlTournament.divisions.findIndex(
+              div => div.name.toUpperCase() === divisionName.toUpperCase()
+            );
+
+            if (divisionIndex === -1) {
+              setStatsError(`Division "${divisionName}" not found`);
+              return;
+            }
+
+            const divisionStats = await fetchDivisionStats(parseInt(userId), Number(tournamentId), divisionIndex);
+            setStats(divisionStats);
+          }
+        } catch (error) {
+          console.error('Error fetching URL-based stats:', error);
+          setStatsError(error instanceof Error ? error.message : 'Failed to fetch stats');
+        } finally {
+          setStatsLoading(false);
+        }
       }
-    }
+    };
+
+    fetchStats();
   }, [
+    userId,
     shouldUseCurrentMatch,
     showAllDivisions,
     shouldShowAllDivisions,
-    currentMatchData,
-    currentMatch,
-    matchLoading,
-    matchError,
+    currentMatch?.tournament_id,
+    currentMatch?.division_id,
     urlTournament,
-    urlLoading,
-    urlFetchError,
+    tournamentId,
     divisionName
   ]);
 
+  // Determine final values for rendering
+  const finalTournament = shouldUseCurrentMatch ? currentMatchData.tournament : urlTournament;
+  const finalDivisionName = shouldUseCurrentMatch
+    ? (currentMatch?.division_id !== undefined && currentMatchData.tournament
+        ? currentMatchData.tournament.divisions[currentMatch.division_id]?.name
+        : undefined)
+    : divisionName;
+
+  const loading = matchLoading || currentMatchData.loading || urlLoading || statsLoading;
+  const error = matchError || currentMatchData.fetchError || urlFetchError || statsError;
+
+  // Check if we have complete data
+  const hasCompleteData = stats && finalTournament;
+
+  // Only show loading if we don't have data AND we're actually loading
+  const shouldShowLoading = !hasCompleteData && loading;
+
   return (
     <LoadingErrorWrapper
-      loading={loading}
+      loading={shouldShowLoading}
       error={error}
     >
-      {stats && finalTournament ? (
+      {hasCompleteData ? (
         <TournamentDivisionStatsDisplay
           tournament={finalTournament}
           divisionName={finalDivisionName}
           stats={stats}
         />
       ) : (
-        <div className="text-black p-2">Loading...</div>
+        shouldShowLoading && <div className="text-black p-2">Loading...</div>
       )}
     </LoadingErrorWrapper>
   );

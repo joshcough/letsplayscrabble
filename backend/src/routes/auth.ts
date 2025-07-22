@@ -1,4 +1,3 @@
-// src/routes/auth.ts
 import express, {
   Request,
   Response,
@@ -17,11 +16,11 @@ interface LoginRequest {
 }
 
 interface AdminUser {
+  id: number;
   username: string;
   password_hash: string;
 }
 
-// Your database connection
 const db: Pool = require("../config/database").pool;
 
 const loginHandler: RequestHandler = async (
@@ -33,7 +32,7 @@ const loginHandler: RequestHandler = async (
 
   try {
     const result = await db.query<AdminUser>(
-      "SELECT * FROM admin_users WHERE username = $1",
+      "SELECT id, username, password_hash FROM users WHERE username = $1",  // Changed from admin_users to users
       [username],
     );
     const user = result.rows[0];
@@ -43,7 +42,10 @@ const loginHandler: RequestHandler = async (
       return;
     }
 
-    const token = jwt.sign({ username }, process.env.JWT_SECRET!, {
+    const token = jwt.sign({
+      id: user.id,           // Add this
+      username: user.username
+    }, process.env.JWT_SECRET!, {
       expiresIn: "24h",
     });
 

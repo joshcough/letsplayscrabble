@@ -1,7 +1,6 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
-import { ProcessedTournament } from "@shared/types/tournament";
-import { DivisionStats } from "../../utils/tournamentStatsCalculators";
+import { ProcessedTournament, DivisionStats, TournamentStats } from "@shared/types/tournament";
 
 interface TournamentDivisionStatsDisplayProps {
   tournament: ProcessedTournament;

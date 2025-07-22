@@ -1,8 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import MiscOverlayPage from "./MiscOverlayPage";
+import { useAuth } from "../../context/AuthContext";
 
 const MiscOverlayTestingPage: React.FC = () => {
+  const { userId } = useAuth();
+
   const urlGroups = [
     {
       title: "Basic Player Info",
@@ -71,16 +73,26 @@ const MiscOverlayTestingPage: React.FC = () => {
 
   const baseUrl = window.location.origin;
 
+  // If user is not authenticated, show error
+  if (!userId) {
+    return (
+      <div className="container mx-auto p-8">
+        <h1 className="text-3xl font-bold mb-8 text-center text-red-600">
+          Authentication Required
+        </h1>
+        <p className="text-center text-gray-600">
+          Please log in to test misc overlays.
+        </p>
+      </div>
+    );
+  }
+
   // Component to render MiscOverlay with a specific source parameter
   const MiscOverlayRenderer: React.FC<{ source: string }> = ({ source }) => {
-    // Create a mock search params object
-    const mockSearchParams = new URLSearchParams(`source=${source}`);
-
-    // We need to temporarily override useSearchParams for this component
     return (
       <div className="p-3 bg-gray-50 border rounded min-h-[60px] flex items-center">
         <iframe
-          src={`/overlay/misc?source=${source}`}
+          src={`/users/${userId}/overlay/misc?source=${source}`}
           className="w-full h-16 border-0"
           title={`Stats overlay: ${source}`}
         />
@@ -91,7 +103,7 @@ const MiscOverlayTestingPage: React.FC = () => {
   return (
     <div className="container mx-auto p-8">
       <h1 className="text-3xl font-bold mb-8 text-center">
-        Stats Overlay Testing Page
+        Misc Overlay Testing Page (User ID: {userId})
       </h1>
 
       {urlGroups.map((group, groupIndex) => (
@@ -107,11 +119,11 @@ const MiscOverlayTestingPage: React.FC = () => {
                   {url.description}
                 </h4>
                 <Link
-                  to={`/overlay/misc?source=${url.source}`}
+                  to={`/users/${userId}/overlay/misc?source=${url.source}`}
                   target="_blank"
                   className="text-blue-600 hover:text-blue-800 underline text-sm break-all block mb-3"
                 >
-                  {baseUrl}/overlay/misc?source={url.source}
+                  {baseUrl}/users/{userId}/overlay/misc?source={url.source}
                 </Link>
 
                 {/* Rendered content */}
@@ -131,7 +143,8 @@ const MiscOverlayTestingPage: React.FC = () => {
           <li>• Rendered content shows below each URL</li>
           <li>• Make sure to set a current match in the admin interface first</li>
           <li>• URLs will show "Loading..." or "No data" if no match is selected</li>
-          <li>• Total: 27 source-based URLs</li>
+          <li>• All URLs are scoped to your user account (ID: {userId})</li>
+          <li>• Total: {urlGroups.reduce((total, group) => total + group.urls.length, 0)} source-based URLs</li>
         </ul>
       </div>
     </div>

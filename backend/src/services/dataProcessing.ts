@@ -414,25 +414,6 @@ function calculateRanks(players: PlayerStats[]): PlayerStats[] {
   }
 }
 
-export function processTournament(tournament: Tournament): ProcessedTournament {
-  try {
-    return {
-      ...tournament,
-      divisions: tournament.data.divisions,
-      standings: tournament.data.divisions.map(calculateStandings),
-      divisionPairings: tournament.data.divisions.map(calculatePairings),
-    };
-  } catch (error) {
-    console.error("Error processing tournament:", error);
-    return {
-      ...tournament,
-      divisions: [],
-      standings: [],
-      divisionPairings: [],
-    };
-  }
-}
-
 export function getPlayerRecentGames(
   division: Division,
   playerId: number,

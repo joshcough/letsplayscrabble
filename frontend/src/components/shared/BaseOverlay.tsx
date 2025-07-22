@@ -58,19 +58,25 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({
     finalDivisionName = urlParamsData.divisionName;
   }
 
+  // Check if we have complete data
+  const hasCompleteData = standings && tournament && finalDivisionName;
+
+  // Only show loading if we don't have data AND we're actually loading
+  const shouldShowLoading = !hasCompleteData && loading;
+
   return (
     <LoadingErrorWrapper
-      loading={loading}
+      loading={shouldShowLoading}
       error={fetchError}
     >
-      {standings && tournament && finalDivisionName ? (
+      {hasCompleteData ? (
         children({
-          tournament,
-          standings,
-          divisionName: finalDivisionName
+          tournament: tournament!,
+          standings: standings!,
+          divisionName: finalDivisionName!
         })
       ) : (
-        <div className="text-black p-2">Loading...</div>
+        shouldShowLoading && <div className="text-black p-2">Loading...</div>
       )}
     </LoadingErrorWrapper>
   );

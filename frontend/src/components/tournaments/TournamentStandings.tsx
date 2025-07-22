@@ -23,6 +23,7 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({
   divisionName,
 }) => {
   const [standings, setStandings] = useState<PlayerStats[] | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "rank",
     direction: "asc",
@@ -99,6 +100,11 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({
   useEffect(() => {
     const fetchStandings = async () => {
       try {
+        // Only show loading if we don't have data yet
+        if (!standings) {
+          setIsLoading(true);
+        }
+
         const tournamentData: ProcessedTournament = await fetchWithAuth(
           `/api/tournaments/public/${tournamentId}`,
         );
@@ -120,6 +126,8 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({
         setStandings(divisionStandings);
       } catch (error) {
         console.error("Error fetching standings:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -128,8 +136,14 @@ const TournamentStandings: React.FC<TournamentStandingsProps> = ({
     }
   }, [tournamentId, divisionName]);
 
-  if (!standings) {
+  // Only show loading if we don't have data AND we're loading
+  if (!standings && isLoading) {
     return <div>Loading...</div>;
+  }
+
+  // If we still don't have standings after loading, show error or empty state
+  if (!standings) {
+    return <div>No standings available</div>;
   }
 
   return (

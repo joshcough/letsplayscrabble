@@ -2,6 +2,7 @@ import cron, { ScheduledTask } from "node-cron";
 import { TournamentRepository } from "../repositories/tournamentRepository";
 import { loadTournamentFile } from "./dataProcessing";
 import { Server as SocketIOServer } from "socket.io";
+import { GamesAddedMessage } from "@shared/types/websocket";
 
 export class TournamentPollingService {
   private isRunning: boolean;
@@ -53,7 +54,10 @@ export class TournamentPollingService {
         if (JSON.stringify(newData) !== JSON.stringify(tournament.data)) {
           await this.tournamentRepo.updateData(tournament.id, newData);
           console.log(`Updated tournament ${tournament.id} with new data`);
-          this.io.emit("GamesAdded", { tournamentId: tournament.id });
+          this.io.emit("GamesAdded", {
+            userId: tournament.user_id,
+            tournamentId: tournament.id
+          } as GamesAddedMessage);
         }
       } catch (error) {
         console.error(`Error polling tournament ${tournament.id}:`, error);
