@@ -27,7 +27,7 @@ const AddTournament: React.FC = () => {
         },
         body: JSON.stringify(tournament),
       });
-      navigate("/tournaments");
+      navigate("/tournaments/manager");
     } catch (error) {
       console.error("Error adding tournament:", error);
     }

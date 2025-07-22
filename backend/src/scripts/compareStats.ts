@@ -1,5 +1,5 @@
 // backend/src/scripts/compareStats.ts
-import { pool, knexDb } from "../config/database";
+import { knexDb } from "../config/database";
 import { TournamentRepository } from "../repositories/tournamentRepository";
 import { TournamentStatsService } from "../services/tournamentStatsService";
 import { PlayerStats } from "@shared/types/tournament";
@@ -21,7 +21,7 @@ interface StatsComparison {
 async function compareTournament(tournamentId: number): Promise<StatsComparison> {
   console.log(`\n🔍 Comparing tournament ID: ${tournamentId}`);
 
-  const tournamentRepo = new TournamentRepository(pool);
+  const tournamentRepo = new TournamentRepository();
   const statsService = new TournamentStatsService(knexDb);
 
   // Get tournament info
@@ -197,9 +197,8 @@ async function generateReport(comparisons: StatsComparison[]): Promise<string> {
 async function compareAllTournaments(): Promise<void> {
   console.log("🚀 Starting comprehensive stats comparison...\n");
 
-  // Get all tournaments
-  const result = await pool.query('SELECT id, name FROM tournaments ORDER BY id');
-  const tournaments = result.rows;
+  // Get all tournaments using Knex instead of pool
+  const tournaments = await knexDb('tournaments').select('id', 'name').orderBy('id');
 
   if (tournaments.length === 0) {
     console.log("No tournaments found");
@@ -234,12 +233,12 @@ async function compareSingleTournament(tournamentId?: number): Promise<void> {
   let targetId = tournamentId;
 
   if (!targetId) {
-    // Get first tournament if none specified
-    const result = await pool.query('SELECT id FROM tournaments ORDER BY id LIMIT 1');
-    if (result.rows.length === 0) {
+    // Get first tournament if none specified using Knex
+    const tournament = await knexDb('tournaments').select('id').orderBy('id').first();
+    if (!tournament) {
       throw new Error("No tournaments found");
     }
-    targetId = result.rows[0].id;
+    targetId = tournament.id;
   }
 
   const comparison = await compareTournament(targetId!);

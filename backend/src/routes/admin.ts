@@ -59,6 +59,27 @@ export default function createAdminRoutes(
     }
   };
 
+  const getCurrentMatch: RequestHandler = async (req, res) => {
+    try {
+      const userId = req.user!.id;
+
+      const currentMatch = await currentMatchRepository.getCurrentMatch(userId);
+
+      if (!currentMatch) {
+        res.status(404).json({ error: "No current match found" });
+        return;
+      }
+
+      res.json(currentMatch);
+    } catch (error) {
+      console.error("Error getting current match:", error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  };
+
+  router.get("/match/current", getCurrentMatch);
   router.post("/match/current", createMatch);
 
   return router;

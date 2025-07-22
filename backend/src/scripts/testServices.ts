@@ -1,13 +1,13 @@
 // backend/src/scripts/testServices.ts
 import { knexDb } from "../config/database";
-import { TournamentDataService } from "../services/tournamentDataService";
+import { TournamentRepository } from "../repositories/tournamentRepository";
 import { TournamentStatsService } from "../services/tournamentStatsService";
 import { PlayerStats } from "@shared/types/tournament";
 
 async function migrateExistingTournaments(limitToFirst = false) {
   console.log("🚀 Migrating existing tournament data to normalized tables...\n");
 
-  const dataService = new TournamentDataService(knexDb);
+  const tournamentRepo = new TournamentRepository();
 
   // Get existing tournaments
   const tournaments = limitToFirst
@@ -39,8 +39,9 @@ async function migrateExistingTournaments(limitToFirst = false) {
         continue;
       }
 
-      // Migrate this tournament
-      await dataService.storeTournamentData(tournament.id, tournament.data);
+      // Migrate this tournament using the repository's private method
+      // Since storeTournamentData is now private, we'll use updateData which does the same thing
+      await tournamentRepo.updateData(tournament.id, tournament.data);
 
       // Verify migration
       const divisionCount = await knexDb('divisions').where('tournament_id', tournament.id).count('* as count');
@@ -65,8 +66,9 @@ async function migrateExistingTournaments(limitToFirst = false) {
 }
 
 async function testServices() {
-  console.log("Testing TournamentDataService and TournamentStatsService with real data...\n");
+  console.log("Testing TournamentRepository and TournamentStatsService with real data...\n");
 
+  const tournamentRepo = new TournamentRepository();
   const statsService = new TournamentStatsService(knexDb);
 
   try {
@@ -124,6 +126,16 @@ async function testServices() {
                       game.playerScore < game.opponentScore ? "L" : "T";
         console.log(`   Round ${game.round}: ${result} vs ${game.opponentName} (${game.playerScore}-${game.opponentScore})`);
       });
+    }
+
+    // Test: Full tournament retrieval using new consolidated repository
+    console.log("\n4. Testing TournamentRepository.findById()...");
+    const processedTournament = await tournamentRepo.findById(tournamentId);
+    if (processedTournament) {
+      console.log(`✅ Successfully loaded tournament: ${processedTournament.name}`);
+      console.log(`   Divisions: ${processedTournament.divisions.length}`);
+      console.log(`   Standings calculated: ${processedTournament.standings.length} divisions`);
+      console.log(`   Pairings calculated: ${processedTournament.divisionPairings.length > 0 ? 'Yes' : 'No'}`);
     }
 
     console.log("\n✅ All tests completed successfully!");

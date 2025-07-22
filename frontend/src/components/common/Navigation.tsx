@@ -7,7 +7,7 @@ type NavPath = "/" | "/tournaments/manager" | "/admin" | "/overlays";
 const Navigation: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, username, userId } = useAuth();
 
   const isActive = (path: NavPath): string => {
     return location.pathname === path ? "bg-[#4A3728] text-[#FAF1DB]" : "";
@@ -51,7 +51,12 @@ const Navigation: React.FC = () => {
               </Link>
             ))}
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center space-x-4">
+            {username && userId && (
+              <span className="text-[#4A3728]/70 text-sm italic">
+                {username} (ID: {userId})
+              </span>
+            )}
             <button
               onClick={handleLogout}
               className="inline-flex items-center px-4 py-2

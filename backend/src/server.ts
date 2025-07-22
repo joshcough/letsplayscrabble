@@ -74,7 +74,7 @@ const io = new SocketIOServer(server, {
   pingInterval: 25000,
 });
 
-const tournamentRepository = new TournamentRepository(pool);
+const tournamentRepository = new TournamentRepository();
 const currentMatchRepository = new CurrentMatchRepository(pool);
 const pollingService = new TournamentPollingService(tournamentRepository, io);
 

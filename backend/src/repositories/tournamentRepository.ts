@@ -1,5 +1,3 @@
-// backend/src/repositories/tournamentRepository.ts (with user_id support)
-import { Pool } from "pg";
 import {
   Tournament,
   ProcessedTournament,
@@ -7,20 +5,20 @@ import {
   CreateTournamentParams,
   TwoPlayerStats,
   DivisionStats,
+  Division,
+  RawPlayer,
 } from "@shared/types/tournament";
 import { CurrentMatch } from "@shared/types/currentMatch";
 import { MatchWithPlayers } from "@shared/types/admin";
 import { loadTournamentFile } from "../services/dataProcessing";
-import { TournamentDataService } from "../services/tournamentDataService";
 import { TournamentStatsService } from "../services/tournamentStatsService";
 import { knexDb } from "../config/database";
+import { Knex } from "knex";
 
 export class TournamentRepository {
-  private dataService: TournamentDataService;
   private statsService: TournamentStatsService;
 
-  constructor(private readonly db: Pool) {
-    this.dataService = new TournamentDataService(knexDb);
+  constructor() {
     this.statsService = new TournamentStatsService(knexDb);
   }
 
@@ -34,49 +32,276 @@ export class TournamentRepository {
     rawData,
     userId,
   }: CreateTournamentParams & { userId: number }): Promise<ProcessedTournament> {
-    const client = await this.db.connect();
-
-    try {
-      await client.query('BEGIN');
-
+    return knexDb.transaction(async (trx) => {
       // Insert tournament record with user_id
-      const result = await client.query<Tournament>(
-        `INSERT INTO tournaments (
-          name, city, year, lexicon, long_form_name, data_url, data, user_id
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING *`,
-        [name, city, year, lexicon, longFormName, dataUrl, rawData, userId],
-      );
-
-      const tournament = result.rows[0];
+      const [tournament] = await trx('tournaments')
+        .insert({
+          name,
+          city,
+          year,
+          lexicon,
+          long_form_name: longFormName,
+          data_url: dataUrl,
+          data: rawData,
+          user_id: userId,
+        })
+        .returning('*');
 
       // Store data in normalized tables
-      await this.dataService.storeTournamentData(tournament.id, rawData);
+      await this.storeTournamentData(trx, tournament.id, rawData);
 
-      await client.query('COMMIT');
+      return tournament;
+    }).then(tournament => this.findById(tournament.id) as Promise<ProcessedTournament>);
+  }
 
-      // Return processed tournament using table-based method
-      return await this.findById(tournament.id) as ProcessedTournament;
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
+  private async storeTournamentData(trx: Knex.Transaction, tournamentId: number, data: TournamentData): Promise<void> {
+    // Clear existing data for this tournament
+    await this.clearTournamentData(trx, tournamentId);
+
+    // Insert divisions and their data
+    for (let divisionIndex = 0; divisionIndex < data.divisions.length; divisionIndex++) {
+      const division = data.divisions[divisionIndex];
+      await this.insertDivisionData(trx, tournamentId, division, divisionIndex);
+    }
+  }
+
+  private async clearTournamentData(trx: Knex.Transaction, tournamentId: number): Promise<void> {
+    // Delete in reverse order due to foreign key constraints
+    await trx('games')
+      .whereIn('round_id',
+        trx('rounds')
+          .select('id')
+          .whereIn('division_id',
+            trx('divisions').select('id').where('tournament_id', tournamentId)
+          )
+      )
+      .del();
+
+    await trx('rounds')
+      .whereIn('division_id',
+        trx('divisions').select('id').where('tournament_id', tournamentId)
+      )
+      .del();
+
+    await trx('tournament_players').where('tournament_id', tournamentId).del();
+    await trx('divisions').where('tournament_id', tournamentId).del();
+  }
+
+  private async insertDivisionData(
+    trx: Knex.Transaction,
+    tournamentId: number,
+    division: Division,
+    position: number
+  ): Promise<void> {
+    // Insert division
+    const [divisionRecord] = await trx('divisions')
+      .insert({
+        tournament_id: tournamentId,
+        name: division.name,
+        position: position
+      })
+      .returning('id');
+
+    const divisionId = divisionRecord.id;
+
+    // Insert players
+    const playerIdMap = new Map<number, number>(); // file player ID -> db player ID
+
+    for (const player of division.players) {
+      if (!player) continue;
+
+      const [playerRecord] = await trx('tournament_players')
+        .insert({
+          tournament_id: tournamentId,
+          division_id: divisionId,
+          player_id: player.id,
+          name: player.name,
+          initial_rating: player.rating,
+          photo: player.photo,
+          etc_data: JSON.stringify(player.etc)
+        })
+        .returning('id');
+
+      playerIdMap.set(player.id, playerRecord.id);
+    }
+
+    // Insert rounds and games
+    await this.insertRoundsAndGames(trx, divisionId, division, playerIdMap);
+  }
+
+  private async insertRoundsAndGames(
+    trx: Knex.Transaction,
+    divisionId: number,
+    division: Division,
+    playerIdMap: Map<number, number>
+  ): Promise<void> {
+    console.log(`\n=== DEBUG: insertRoundsAndGames for divisionId ${divisionId} ===`);
+    console.log(`Total players in division: ${division.players.length}`);
+
+    // Debug each player
+    division.players.forEach((player, index) => {
+      console.log(`Player ${index}:`, {
+        isNull: player === null,
+        isUndefined: player === undefined,
+        id: player?.id,
+        name: player?.name,
+        hasPairings: !!player?.pairings,
+        pairingsLength: player?.pairings?.length,
+        hasScores: !!player?.scores,
+        scoresLength: player?.scores?.length,
+        hasEtc: !!player?.etc,
+        playerKeys: player ? Object.keys(player) : 'N/A'
+      });
+
+      if (player && !player.pairings) {
+        console.log(`❌ PROBLEM PLAYER FOUND:`, JSON.stringify(player, null, 2));
+      }
+    });
+
+    // Determine the number of rounds from player data
+    const validPlayers = division.players.filter(p => p !== null && p !== undefined && p.pairings);
+
+    console.log(`Valid players with pairings: ${validPlayers.length}/${division.players.length}`);
+
+    if (validPlayers.length === 0) {
+      console.log('❌ ERROR: No valid players found with pairings data');
+      throw new Error('No valid players found with pairings data');
+    }
+
+    const pairingsLengths = validPlayers.map(p => p!.pairings.length);
+    console.log(`Pairings lengths:`, pairingsLengths);
+    const maxRounds = Math.max(...pairingsLengths);
+    console.log(`Max rounds calculated: ${maxRounds}`);
+
+    // Create rounds first
+    console.log(`Creating ${maxRounds} rounds...`);
+    const roundInserts = [];
+    for (let roundNum = 1; roundNum <= maxRounds; roundNum++) {
+      roundInserts.push({
+        division_id: divisionId,
+        round_number: roundNum
+      });
+    }
+
+    const roundRecords = await trx('rounds').insert(roundInserts).returning(['id', 'round_number']);
+    console.log(`Created rounds:`, roundRecords);
+    const roundIdMap = new Map<number, number>();
+    roundRecords.forEach(round => {
+      roundIdMap.set(round.round_number, round.id);
+    });
+
+    // Track processed pairings to avoid duplicates
+    const processedPairings = new Set<string>();
+    const gameInserts = [];
+
+    console.log(`\n=== Processing games for ${division.players.length} players ===`);
+    // Collect all games first
+    for (const player of division.players) {
+      if (!player || !player.pairings || !player.scores) {
+        console.log(`❌ Skipping invalid player:`, {
+          isNull: player === null,
+          isUndefined: player === undefined,
+          id: player?.id,
+          name: player?.name,
+          hasPairings: !!player?.pairings,
+          hasScores: !!player?.scores,
+          fullPlayer: player ? JSON.stringify(player, null, 2) : 'null/undefined'
+        });
+        continue;
+      }
+
+      console.log(`✅ Processing player ${player.id} (${player.name})`);
+      const dbPlayerId = playerIdMap.get(player.id);
+      if (!dbPlayerId) {
+        console.log(`❌ No database ID found for player ${player.id}`);
+        continue;
+      }
+
+      for (let roundIndex = 0; roundIndex < player.pairings.length; roundIndex++) {
+        const roundNum = roundIndex + 1;
+        const opponentId = player.pairings[roundIndex];
+        const playerScore = player.scores[roundIndex];
+
+        const roundId = roundIdMap.get(roundNum);
+        if (!roundId) continue;
+
+        // Handle bye
+        if (opponentId === 0) {
+          const pairingKey = `${roundNum}-${player.id}-bye`;
+          if (!processedPairings.has(pairingKey)) {
+            gameInserts.push({
+              round_id: roundId,
+              player1_id: dbPlayerId,
+              player2_id: dbPlayerId,
+              player1_score: playerScore,
+              player2_score: 0,
+              is_bye: true,
+              pairing_id: player.id
+            });
+            processedPairings.add(pairingKey);
+          }
+          continue;
+        }
+
+        // Regular game - avoid duplicate insertion
+        const opponent = division.players.find(p => p?.id === opponentId);
+        if (!opponent || !opponent.scores) {
+          console.log(`Opponent ${opponentId} not found or missing scores`);
+          continue;
+        }
+
+        const dbOpponentId = playerIdMap.get(opponentId);
+        if (!dbOpponentId) continue;
+
+        // Create a consistent pairing key (smaller ID first)
+        const pairingKey = `${roundNum}-${Math.min(player.id, opponentId)}-${Math.max(player.id, opponentId)}`;
+
+        if (!processedPairings.has(pairingKey)) {
+          const opponentScore = opponent.scores[roundIndex];
+
+          // Determine player order based on p12 values
+          const isPlayer1First = player.etc?.p12?.[roundIndex] === 1;
+
+          const [player1Id, player2Id, score1, score2] = isPlayer1First
+            ? [dbPlayerId, dbOpponentId, playerScore, opponentScore]
+            : [dbOpponentId, dbPlayerId, opponentScore, playerScore];
+
+          gameInserts.push({
+            round_id: roundId,
+            player1_id: player1Id,
+            player2_id: player2Id,
+            player1_score: score1,
+            player2_score: score2,
+            is_bye: false,
+            pairing_id: Math.min(player.id, opponentId)
+          });
+
+          processedPairings.add(pairingKey);
+        }
+      }
+    }
+
+    // Bulk insert all games
+    console.log(`\n=== Game insertion summary ===`);
+    console.log(`Games to insert: ${gameInserts.length}`);
+    if (gameInserts.length > 0) {
+      console.log(`Sample game:`, gameInserts[0]);
+      await trx('games').insert(gameInserts);
+      console.log(`✅ Successfully inserted ${gameInserts.length} games`);
+    } else {
+      console.log(`⚠️  No games to insert`);
     }
   }
 
   async findById(id: number): Promise<ProcessedTournament | null> {
-    const result = await this.db.query<Tournament>(
-      "SELECT * FROM tournaments WHERE id = $1",
-      [id],
-    );
+    const tournament = await knexDb('tournaments')
+      .select('*')
+      .where('id', id)
+      .first();
 
-    if (!result.rows[0]) {
+    if (!tournament) {
       return null;
     }
-
-    const tournament = result.rows[0];
 
     // Get all divisions and players in a single query
     const divisionsWithPlayers = await knexDb('divisions as d')
@@ -138,12 +363,13 @@ export class TournamentRepository {
 
   // User-scoped methods
   async findByIdForUser(id: number, userId: number): Promise<ProcessedTournament | null> {
-    const result = await this.db.query<Tournament>(
-      "SELECT * FROM tournaments WHERE id = $1 AND user_id = $2",
-      [id, userId],
-    );
+    const tournament = await knexDb('tournaments')
+      .select('*')
+      .where('id', id)
+      .where('user_id', userId)
+      .first();
 
-    if (!result.rows[0]) {
+    if (!tournament) {
       return null;
     }
 
@@ -151,52 +377,53 @@ export class TournamentRepository {
   }
 
   async findByNameForUser(name: string, userId: number): Promise<ProcessedTournament | null> {
-    const result = await this.db.query<Tournament>(
-      "SELECT * FROM tournaments WHERE name = $1 AND user_id = $2",
-      [name, userId],
-    );
-    return result.rows[0] ? await this.findById(result.rows[0].id) : null;
+    const tournament = await knexDb('tournaments')
+      .select('*')
+      .where('name', name)
+      .where('user_id', userId)
+      .first();
+
+    return tournament ? await this.findById(tournament.id) : null;
   }
 
   async findAllNamesForUser(userId: number): Promise<Array<{ id: number; name: string }>> {
-    const result = await this.db.query<{ id: number; name: string }>(
-      "SELECT id, name FROM tournaments WHERE user_id = $1 ORDER BY name ASC",
-      [userId],
-    );
-    return result.rows;
+    return knexDb('tournaments')
+      .select('id', 'name')
+      .where('user_id', userId)
+      .orderBy('name', 'asc');
   }
 
   async findAllForUser(userId: number): Promise<ProcessedTournament[]> {
-    const result = await this.db.query<Tournament>(
-      "SELECT * FROM tournaments WHERE user_id = $1",
-      [userId]
-    );
+    const tournaments = await knexDb('tournaments')
+      .select('*')
+      .where('user_id', userId);
+
     const processed = await Promise.all(
-      result.rows.map(async (t) => await this.findById(t.id))
+      tournaments.map(async (t) => await this.findById(t.id))
     );
     return processed.filter((t): t is ProcessedTournament => t !== null);
   }
 
   // Global methods (all users) - keep for admin/public access
   async findByName(name: string): Promise<ProcessedTournament | null> {
-    const result = await this.db.query<Tournament>(
-      "SELECT * FROM tournaments WHERE name = $1",
-      [name],
-    );
-    return result.rows[0] ? await this.findById(result.rows[0].id) : null;
+    const tournament = await knexDb('tournaments')
+      .select('*')
+      .where('name', name)
+      .first();
+
+    return tournament ? await this.findById(tournament.id) : null;
   }
 
   async findAllNames(): Promise<Array<{ id: number; name: string; user_id: number }>> {
-    const result = await this.db.query<{ id: number; name: string; user_id: number }>(
-      "SELECT id, name, user_id FROM tournaments ORDER BY name ASC",
-    );
-    return result.rows;
+    return knexDb('tournaments')
+      .select('id', 'name', 'user_id')
+      .orderBy('name', 'asc');
   }
 
   async findAll(): Promise<ProcessedTournament[]> {
-    const result = await this.db.query<Tournament>("SELECT * FROM tournaments");
+    const tournaments = await knexDb('tournaments').select('*');
     const processed = await Promise.all(
-      result.rows.map(async (t) => await this.findById(t.id))
+      tournaments.map(async (t) => await this.findById(t.id))
     );
     return processed.filter((t): t is ProcessedTournament => t !== null);
   }
@@ -309,79 +536,52 @@ export class TournamentRepository {
     };
   }
 
-  async updatePollUntil(
-    id: number,
-    pollUntil: Date | null,
-  ): Promise<Tournament> {
-    const result = await this.db.query<Tournament>(
-      "UPDATE tournaments SET poll_until = $1 WHERE id = $2 RETURNING *",
-      [pollUntil, id],
-    );
-    return result.rows[0];
+  async updatePollUntil(id: number, pollUntil: Date | null): Promise<Tournament> {
+    const [updated] = await knexDb('tournaments')
+      .where('id', id)
+      .update({ poll_until: pollUntil })
+      .returning('*');
+    return updated;
   }
 
   // Critical: Include user_id in polling results
   async findActivePollable(): Promise<(Tournament & { user_id: number })[]> {
-    const result = await this.db.query<Tournament & { user_id: number }>(`
-      SELECT *, user_id
-      FROM tournaments
-      WHERE poll_until IS NOT NULL
-      AND poll_until > NOW()
-    `);
-    return result.rows;
+    return knexDb('tournaments')
+      .select('*', 'user_id')
+      .whereNotNull('poll_until')
+      .where('poll_until', '>', knexDb.fn.now());
   }
 
   async endInactivePollable(): Promise<void> {
-    await this.db.query(`
-      UPDATE tournaments
-      SET poll_until = NULL
-      WHERE poll_until IS NOT NULL
-      AND poll_until <= NOW()
-    `);
+    await knexDb('tournaments')
+      .whereNotNull('poll_until')
+      .where('poll_until', '<=', knexDb.fn.now())
+      .update({ poll_until: null });
   }
 
-  async updateData(
-    id: number,
-    newData: TournamentData,
-  ): Promise<ProcessedTournament> {
-    const client = await this.db.connect();
-
-    try {
-      await client.query('BEGIN');
-
+  async updateData(id: number, newData: TournamentData): Promise<ProcessedTournament> {
+    return knexDb.transaction(async (trx) => {
       // Update tournament record
-      const result = await client.query<Tournament>(
-        `UPDATE tournaments
-         SET data = $1
-         WHERE id = $2
-         RETURNING *`,
-        [newData, id],
-      );
+      const [updated] = await trx('tournaments')
+        .where('id', id)
+        .update({ data: newData })
+        .returning('*');
 
-      if (!result.rows[0]) {
+      if (!updated) {
         throw new Error(`Tournament ${id} not found`);
       }
 
       // Update normalized tables
-      await this.dataService.updateTournamentData(id, newData);
+      await this.storeTournamentData(trx, id, newData);
 
-      await client.query('COMMIT');
-
-      // Return updated tournament using table-based method
-      return await this.findById(id) as ProcessedTournament;
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
+      return updated;
+    }).then(() => this.findById(id) as Promise<ProcessedTournament>);
   }
 
   async stopPolling(id: number): Promise<void> {
-    await this.db.query(
-      `UPDATE tournaments SET poll_until = NULL WHERE id = $1`,
-      [id],
-    );
+    await knexDb('tournaments')
+      .where('id', id)
+      .update({ poll_until: null });
   }
 
   // Helper method for initial tournament creation
@@ -474,41 +674,29 @@ export class TournamentRepository {
   ): Promise<ProcessedTournament> {
     const newData = await loadTournamentFile(dataUrl);
 
-    const client = await this.db.connect();
+    return knexDb.transaction(async (trx) => {
+      const [updated] = await trx('tournaments')
+        .where('id', id)
+        .update({
+          name,
+          city,
+          year,
+          lexicon,
+          long_form_name: longFormName,
+          data_url: dataUrl,
+          data: newData,
+        })
+        .returning('*');
 
-    try {
-      await client.query('BEGIN');
-
-      const result = await client.query<Tournament>(
-        `UPDATE tournaments
-         SET name = $1,
-             city = $2,
-             year = $3,
-             lexicon = $4,
-             long_form_name = $5,
-             data_url = $6,
-             data = $7
-         WHERE id = $8
-         RETURNING *`,
-        [name, city, year, lexicon, longFormName, dataUrl, newData, id],
-      );
-
-      if (!result.rows[0]) {
+      if (!updated) {
         throw new Error(`Tournament ${id} not found`);
       }
 
       // Update normalized tables
-      await this.dataService.updateTournamentData(id, newData);
+      await this.storeTournamentData(trx, id, newData);
 
-      await client.query('COMMIT');
-
-      return await this.findById(id) as ProcessedTournament;
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
+      return updated;
+    }).then(() => this.findById(id) as Promise<ProcessedTournament>);
   }
 
   async getDivisionStats(tournamentId: number, divisionId: number): Promise<DivisionStats> {

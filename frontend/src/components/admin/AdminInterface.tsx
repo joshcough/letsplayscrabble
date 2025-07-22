@@ -22,7 +22,7 @@ const AdminInterface: React.FC = () => {
   const [initializationStatus, setInitializationStatus] = useState<string>("Loading tournaments...");
 
   const loadTournaments = async (): Promise<ProcessedTournament[]> => {
-    const tournamentsData = await fetchWithAuth(`/api/tournaments/public`);
+    const tournamentsData = await fetchWithAuth(`/api/tournaments/admin`);
 
     if (!tournamentsData || !Array.isArray(tournamentsData)) {
       throw new Error("Invalid tournaments data received");
@@ -33,7 +33,7 @@ const AdminInterface: React.FC = () => {
 
   const loadCurrentMatch = async () => {
     try {
-      const match = await fetchWithAuth(`/api/overlay/match/current`);
+      const match = await fetchWithAuth(`/api/admin/match/current`);
       return match;
     } catch (error) {
       // Check if it's a "no current match" error vs a real error

@@ -185,7 +185,7 @@ const TournamentDetails: React.FC = () => {
             </button>
           )}
           <button
-            onClick={() => navigate("/tournaments")}
+            onClick={() => navigate("/tournaments/manager")}
             className="px-4 py-2 border rounded hover:bg-gray-50"
           >
             Back to List

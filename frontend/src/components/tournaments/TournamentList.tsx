@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchWithAuth } from "../../config/api";
+import { fetchAuthenticatedApiEndpoint } from "../../utils/api";
 import { ProcessedTournament } from "@shared/types/tournament";
 
 interface TournamentListProps {
@@ -14,12 +14,11 @@ const TournamentList: React.FC<TournamentListProps> = ({
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const data: ProcessedTournament[] = await fetchWithAuth(
-          `/api/tournaments/public`,
-        );
-        setTournaments(data);
+        const data = await fetchAuthenticatedApiEndpoint<ProcessedTournament[]>('/api/tournaments/admin', 'fetching user tournaments');
+        setTournaments(data || []); // Handle null case by defaulting to empty array
       } catch (error) {
         console.error("Error fetching tournaments:", error);
+        setTournaments([]); // Set empty array on error
       }
     };
     fetchTournaments();
