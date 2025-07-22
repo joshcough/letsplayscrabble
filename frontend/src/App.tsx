@@ -11,6 +11,7 @@ import AdminLogin from "./components/AdminLogin";
 import AdminPage from "./pages/admin/AdminPage";
 import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
 import HomePage from "./pages/HomePage";
+import WorkerPage from "./pages/WorkerPage";
 import Navigation from "./components/common/Navigation";
 import MiscOverlayPage from "./pages/overlay/MiscOverlayPage";
 import MiscOverlayTestingPage from "./pages/overlay/MiscOverlayTestingPage";
@@ -28,7 +29,7 @@ import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
 // Wrapper component to conditionally apply theme
 const AppContent: React.FC = () => {
   const location = useLocation();
-  const isOverlay = location.pathname.startsWith("/overlay/");
+  const isOverlay = location.pathname.startsWith("/overlay/") || location.pathname.startsWith("/worker");
 
   return (
     <div
@@ -80,6 +81,7 @@ const AppContent: React.FC = () => {
           path="/overlay/misc_testing"
           element={<MiscOverlayTestingPage />}
         />
+        <Route path="/worker" element={<WorkerPage />} />
         {/* Protected Routes */}
         <Route
           path="/"

@@ -3,8 +3,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { ProcessedTournament, PlayerStats, DivisionStats } from "@shared/types/tournament";
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { useTournamentData } from "../../hooks/useTournamentData";
-import { useSocketConnection } from "../../hooks/useSocketConnection";
-import { useGamesAdded } from "../../utils/socketHelpers";
+import DisplaySourceManager from "../../hooks/DisplaySourceManager";
 import { fetchTournament, fetchDivisionStats, fetchTournamentStats } from "../../utils/tournamentApi";
 import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
 import { TournamentDivisionStatsDisplay } from "../../components/shared/TournamentDivisionStatsDisplay";
@@ -19,7 +18,6 @@ const TournamentStatsOverlayPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const showAllDivisions = searchParams.get("all_divisions") === "true";
 
-  const { socket } = useSocketConnection();
   const { currentMatch, loading: matchLoading, error: matchError } = useCurrentMatch();
 
   // Determine what to show based on URL params and query params
@@ -69,12 +67,19 @@ const TournamentStatsOverlayPage: React.FC = () => {
     }
   }, [tournamentId]);
 
-  // Listen for games being added to URL-based tournament
-  useGamesAdded(socket, (data: { tournamentId: number }) => {
-    if (data.tournamentId === Number(tournamentId)) {
-      fetchTournamentData();
-    }
-  });
+  // Listen for games being added to URL-based tournament via broadcast channel
+  useEffect(() => {
+    const displayManager = DisplaySourceManager.getInstance();
+
+    const cleanup = displayManager.onGamesAdded((data: { tournamentId: number }) => {
+      console.log('📥 TournamentStatsOverlay received GamesAdded:', data);
+      if (data.tournamentId === Number(tournamentId)) {
+        fetchTournamentData();
+      }
+    });
+
+    return cleanup;
+  }, [tournamentId]);
 
   // Fetch stats based on current scenario
   useEffect(() => {

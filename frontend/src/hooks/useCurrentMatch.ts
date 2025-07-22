@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { CurrentMatch } from "@shared/types/currentMatch";
-import { useSocketConnection } from "./useSocketConnection";
-import { useAdminPanelUpdates } from "../utils/socketHelpers";
+import DisplaySourceManager from "./DisplaySourceManager";
 import { fetchCurrentMatch } from "../utils/matchApi";
 
 interface UseCurrentMatchReturn {
@@ -20,8 +19,6 @@ export const useCurrentMatch = (): UseCurrentMatchReturn => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { socket } = useSocketConnection();
-
   // Fetch initial current match data
   const fetchData = async () => {
     try {
@@ -37,11 +34,18 @@ export const useCurrentMatch = (): UseCurrentMatchReturn => {
     }
   };
 
-  // Listen for real-time updates
-  useAdminPanelUpdates(socket, (updatedMatch: CurrentMatch) => {
-    setCurrentMatch(updatedMatch);
-    setError(null); // Clear any previous errors when we get fresh data
-  });
+  // Listen for real-time updates via broadcast channel
+  useEffect(() => {
+    const displayManager = DisplaySourceManager.getInstance();
+
+    const cleanup = displayManager.onAdminPanelUpdate((updatedMatch: CurrentMatch) => {
+      console.log("📥 useCurrentMatch received AdminPanelUpdate:", updatedMatch);
+      setCurrentMatch(updatedMatch);
+      setError(null); // Clear any previous errors when we get fresh data
+    });
+
+    return cleanup;
+  }, []);
 
   // Fetch initial data on mount
   useEffect(() => {

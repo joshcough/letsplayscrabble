@@ -3,8 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
 import PointsDisplay from "../../components/shared/PointsDisplay";
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
-import { useSocketConnection } from "../../hooks/useSocketConnection";
-import { useGamesAdded } from "../../utils/socketHelpers";
+import DisplaySourceManager from "../../hooks/DisplaySourceManager";
 import { fetchCurrentMatchWithPlayers } from "../../utils/matchApi";
 import { MatchWithPlayers } from "@shared/types/admin";
 import {
@@ -62,7 +61,6 @@ const MiscOverlay: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const { currentMatch, loading: matchLoading, error: matchError } = useCurrentMatch();
-  const { socket } = useSocketConnection();
 
   // Fetch full match data when current match changes
   const fetchFullMatchData = async () => {
@@ -88,12 +86,19 @@ const MiscOverlay: React.FC = () => {
     }
   }, [currentMatch]);
 
-  // Listen for games being added to current tournament and refetch match data
-  useGamesAdded(socket, (data: { tournamentId: number }) => {
-    if (data.tournamentId === currentMatch?.tournament_id) {
-      fetchFullMatchData();
-    }
-  });
+  // Listen for games being added to current tournament and refetch match data via broadcast channel
+  useEffect(() => {
+    const displayManager = DisplaySourceManager.getInstance();
+
+    const cleanup = displayManager.onGamesAdded((data: { tournamentId: number }) => {
+      console.log('📥 MiscOverlay received GamesAdded:', data);
+      if (data.tournamentId === currentMatch?.tournament_id) {
+        fetchFullMatchData();
+      }
+    });
+
+    return cleanup;
+  }, [currentMatch?.tournament_id]);
 
   // Early return with error display
   if (matchError || error) {
