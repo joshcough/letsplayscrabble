@@ -6,6 +6,7 @@ import {
   TournamentData,
   CreateTournamentParams,
   TwoPlayerStats,
+  DivisionStats,
 } from "@shared/types/tournament";
 import { CurrentMatch } from "@shared/types/currentMatch";
 import { MatchWithPlayers } from "@shared/types/admin";
@@ -113,8 +114,8 @@ export class TournamentRepository {
           rating: row.rating,
           photo: row.photo,
           etc: row.etc,
-          scores: [], // Empty for now
-          pairings: [], // Empty for now
+//           scores: [], // Empty for now
+//           pairings: [], // Empty for now
         });
       }
     }
@@ -466,5 +467,105 @@ export class TournamentRepository {
     } finally {
       client.release();
     }
+  }
+
+  async getDivisionStats(tournamentId: number, divisionId: number): Promise<DivisionStats> {
+    const games = await this.getGameDataForStats(tournamentId, divisionId);
+    return this.calculateStatsFromGames(games);
+  }
+
+  async getTournamentStats(tournamentId: number): Promise<DivisionStats> {
+    const games = await this.getGameDataForStats(tournamentId); // No divisionId = all divisions
+    return this.calculateStatsFromGames(games);
+  }
+
+  private async getGameDataForStats(tournamentId: number, divisionId?: number) {
+    let query = knexDb('divisions as d')
+      .join('rounds as r', 'd.id', 'r.division_id')
+      .join('games as g', 'r.id', 'g.round_id')
+      .join('tournament_players as tp1', 'g.player1_id', 'tp1.id')
+      .join('tournament_players as tp2', 'g.player2_id', 'tp2.id')
+      .select(
+        'g.player1_score',
+        'g.player2_score',
+        'tp1.player_id as player1_file_id',
+        'tp2.player_id as player2_file_id',
+        'tp1.etc_data as player1_etc',
+        'r.round_number'
+      )
+      .where('d.tournament_id', tournamentId)
+      .where('g.is_bye', false)
+      .whereNotNull('g.player1_score')
+      .whereNotNull('g.player2_score');
+
+    // Add division filter if specified
+    if (divisionId !== undefined) {
+      query = query.where('d.position', divisionId);
+    }
+
+    return query;
+  }
+
+  private calculateStatsFromGames(games: any[]): DivisionStats {
+    let totalGamesPlayed = games.length;
+    let totalPoints = 0;
+    let winningScores: number[] = [];
+    let losingScores: number[] = [];
+    let higherSeedWins = 0;
+    let player1Wins = 0;
+
+    for (const game of games) {
+      const score1 = game.player1_score;
+      const score2 = game.player2_score;
+
+      totalPoints += score1 + score2;
+
+      if (score1 > score2) {
+        winningScores.push(score1);
+        losingScores.push(score2);
+      } else if (score2 > score1) {
+        winningScores.push(score2);
+        losingScores.push(score1);
+      }
+
+      // Calculate higher seed wins (lower file ID = higher seed)
+      const higherSeedPlayer = game.player1_file_id < game.player2_file_id ? 1 : 2;
+      const winner = score1 > score2 ? 1 : (score2 > score1 ? 2 : 0);
+      if (winner === higherSeedPlayer) {
+        higherSeedWins++;
+      }
+
+      // Calculate going first wins
+      const player1Etc = game.player1_etc;
+      if (player1Etc?.p12?.[game.round_number - 1] === 1 && score1 > score2) {
+        player1Wins++;
+      } else if (player1Etc?.p12?.[game.round_number - 1] === 2 && score2 > score1) {
+        player1Wins++;
+      }
+    }
+
+    const averageScore = totalPoints > 0 ? totalPoints / (totalGamesPlayed * 2) : 0;
+    const averageWinningScore = winningScores.length > 0
+      ? winningScores.reduce((sum, score) => sum + score, 0) / winningScores.length
+      : 0;
+    const averageLosingScore = losingScores.length > 0
+      ? losingScores.reduce((sum, score) => sum + score, 0) / losingScores.length
+      : 0;
+    const higherSeedWinPercentage = totalGamesPlayed > 0
+      ? (higherSeedWins / totalGamesPlayed) * 100
+      : 0;
+    const goingFirstWinPercentage = totalGamesPlayed > 0
+      ? (player1Wins / totalGamesPlayed) * 100
+      : 0;
+
+    return {
+      gamesPlayed: totalGamesPlayed,
+      pointsScored: totalPoints,
+      averageScore: Math.round(averageScore * 100) / 100,
+      averageWinningScore: Math.round(averageWinningScore),
+      averageLosingScore: Math.round(averageLosingScore),
+      higherSeedWinPercentage: Math.round(higherSeedWinPercentage * 10) / 10,
+      goingFirstWinPercentage: Math.round(goingFirstWinPercentage * 10) / 10,
+    };
   }
 }

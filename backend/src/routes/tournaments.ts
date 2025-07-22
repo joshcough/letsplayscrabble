@@ -256,9 +256,51 @@ export function unprotectedTournamentRoutes(
     }
   };
 
+  interface DivisionStatsParams {
+    tournamentId: string;
+    divisionId: string;
+  }
+
+  const getDivisionStats: RequestHandler<DivisionStatsParams> = async (req, res) => {
+    try {
+      const tournamentId = parseInt(req.params.tournamentId);
+      const divisionId = parseInt(req.params.divisionId);
+
+      if (isNaN(tournamentId) || isNaN(divisionId)) {
+        res.status(400).json({ error: 'Invalid tournament or division ID' });
+        return;  // Early return without value
+      }
+
+      const stats = await tournamentRepository.getDivisionStats(tournamentId, divisionId);
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching division stats:', error);
+      res.status(500).json({ error: 'Failed to fetch division stats' });
+    }
+  };
+
+  const getTournamentStats: RequestHandler<DivisionStatsParams> = async (req, res) => {
+    try {
+      const tournamentId = parseInt(req.params.tournamentId);
+
+      if (isNaN(tournamentId)) {
+        res.status(400).json({ error: 'Invalid tournament ID' });
+        return;  // Early return without value
+      }
+
+      const stats = await tournamentRepository.getTournamentStats(tournamentId);
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching division stats:', error);
+      res.status(500).json({ error: 'Failed to fetch division stats' });
+    }
+  };
+
   router.get("/", getAllTournaments);
   router.get("/:id", getTournamentById);
   router.get("/by-name/:name", getTournamentByName);
+  router.get('/:tournamentId/divisions/:divisionId/stats', getDivisionStats);
+  router.get('/:tournamentId/stats', getTournamentStats);
 
   return router;
 }

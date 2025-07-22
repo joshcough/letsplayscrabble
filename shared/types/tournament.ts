@@ -104,8 +104,21 @@ export interface GameResult {
   opponentScore: number;
 }
 
+export interface ProcessedPlayer {
+  id: number;
+  name: string;
+  rating: number;
+  photo: string;
+  etc: Etc;
+}
+
+export interface ProcessedDivision {
+  name: string;
+  players: ProcessedPlayer[];
+}
+
 export interface ProcessedTournament extends Omit<Tournament, "data"> {
-  divisions: Division[];
+  divisions: ProcessedDivision[];
   standings: PlayerStats[][]; // a PlayerStats[] per division.
   divisionPairings: RoundPairings[][]; // a RoundsPairing[] per division
   data_url: string;
@@ -128,4 +141,24 @@ export interface TwoPlayerStats {
   };
   player1: PlayerStats;
   player2: PlayerStats;
+}
+
+export interface DivisionStats {
+  gamesPlayed: number;
+  pointsScored: number;
+  averageScore: number;
+  averageWinningScore: number;
+  averageLosingScore: number;
+  higherSeedWinPercentage: number;
+  goingFirstWinPercentage: number;
+}
+
+export interface TournamentStats {
+  gamesPlayed: number;
+  pointsScored: number;
+  averageScore: number;
+  averageWinningScore: number;
+  averageLosingScore: number;
+  higherSeedWinPercentage: number;
+  goingFirstWinPercentage: number;
 }
