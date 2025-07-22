@@ -87,27 +87,6 @@ export function protectedTournamentRoutes(
     }
   };
 
-  // Get tournament by name (user-scoped)
-  const getTournamentByName: RequestHandler<TournamentNameParams> = async (
-    req,
-    res,
-  ) => {
-    try {
-      const userId = req.user!.id;
-      const t = await tournamentRepository.findByNameForUser(req.params.name, userId);
-      if (t === null) {
-        res.status(404).json({ message: "Tournament not found" });
-        return;
-      }
-      res.json(t);
-    } catch (error) {
-      console.error("Database error:", error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  };
-
   // Create tournament (automatically assigns to authenticated user)
   const createTournament: RequestHandler<
     {},
@@ -134,6 +113,32 @@ export function protectedTournamentRoutes(
     } catch (error) {
       console.error("Database error:", error);
       res.status(400).json({
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  };
+
+  const deleteTournament: RequestHandler<TournamentIdParams> = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const userId = req.user!.id;
+      // First verify user owns this tournament
+      const existingTournament = await tournamentRepository.findByIdForUser(
+        parseInt(id, 10),
+        userId
+      );
+
+      if (!existingTournament) {
+        res.status(404).json({ message: "Tournament not found" });
+        return;
+      }
+
+      await tournamentRepository.deleteByIdForUser(parseInt(id, 10), userId);
+      res.status(204).send(); // No content response for successful deletion
+    } catch (error) {
+      console.error("Database error:", error);
+      res.status(500).json({
         message: error instanceof Error ? error.message : "Unknown error",
       });
     }
@@ -239,11 +244,11 @@ export function protectedTournamentRoutes(
 
   router.get("/", getAllTournaments);
   router.get("/:id", getTournamentById);
-  router.get("/by-name/:name", getTournamentByName);
   router.post("/", createTournament);
   router.post("/:id/polling", startPolling);
   router.delete("/:id/polling", stopPolling);
   router.put("/:id", updateTournament);
+  router.delete("/:id", deleteTournament);
 
   return router;
 }

@@ -654,6 +654,55 @@ export class TournamentRepository {
     };
   }
 
+  async deleteByIdForUser(id: number, userId: number): Promise<void> {
+    return knexDb.transaction(async (trx) => {
+      // First verify the tournament belongs to the user
+      const tournament = await trx('tournaments')
+        .select('id')
+        .where('id', id)
+        .where('user_id', userId)
+        .first();
+
+      if (!tournament) {
+        throw new Error('Tournament not found or access denied');
+      }
+
+      // Delete in reverse order due to foreign key constraints
+      // 1. Delete games
+      await trx('games')
+        .whereIn('round_id',
+          trx('rounds')
+            .select('id')
+            .whereIn('division_id',
+              trx('divisions').select('id').where('tournament_id', id)
+            )
+        )
+        .del();
+
+      // 2. Delete rounds
+      await trx('rounds')
+        .whereIn('division_id',
+          trx('divisions').select('id').where('tournament_id', id)
+        )
+        .del();
+
+      // 3. Delete tournament players
+      await trx('tournament_players').where('tournament_id', id).del();
+
+      // 4. Delete divisions
+      await trx('divisions').where('tournament_id', id).del();
+
+      // 5. Delete current match if it exists for this tournament
+      await trx('current_matches')
+        .where('tournament_id', id)
+        .where('user_id', userId)
+        .del();
+
+      // 6. Finally delete the tournament itself
+      await trx('tournaments').where('id', id).where('user_id', userId).del();
+    });
+  }
+
   async update(
     id: number,
     {

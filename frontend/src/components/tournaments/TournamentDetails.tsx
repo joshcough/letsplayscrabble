@@ -26,6 +26,7 @@ const TournamentDetails: React.FC = () => {
   const [editedTournament, setEditedTournament] =
     useState<ProcessedTournament | null>(null);
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(Date.now());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
 
   useEffect(() => {
     if (tournament) {
@@ -63,6 +64,20 @@ const TournamentDetails: React.FC = () => {
       setPollUntil(null);
     } catch (error) {
       console.error("Error disabling polling:", error);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await fetchWithAuth(`/api/tournaments/admin/${params.id}`, {
+        method: "DELETE",
+      });
+
+      // Navigate back to tournament manager after successful deletion
+      navigate("/tournaments/manager");
+    } catch (error) {
+      console.error("Error deleting tournament:", error);
+      // You might want to show an error message to the user here
     }
   };
 
@@ -177,12 +192,37 @@ const TournamentDetails: React.FC = () => {
               </button>
             </>
           ) : (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200"
-            >
-              Edit
-            </button>
+            <>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200"
+              >
+                Edit
+              </button>
+              {!showDeleteConfirm ? (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="px-4 py-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                >
+                  Delete
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleDelete}
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    Confirm Delete
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="px-4 py-2 border rounded hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </>
           )}
           <button
             onClick={() => navigate("/tournaments/manager")}
