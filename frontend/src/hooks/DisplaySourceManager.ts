@@ -1,5 +1,10 @@
 // DisplaySourceManager.ts - Lightweight manager for display sources
-import { CurrentMatch } from "@shared/types/currentMatch";
+import {
+  AdminPanelUpdateMessage,
+  GamesAddedMessage,
+  TournamentDataMessage,
+  TournamentDataErrorMessage
+} from "@shared/types/websocket";
 
 type EventHandler = (data: any) => void;
 
@@ -36,12 +41,21 @@ class DisplaySourceManager {
       const handlers = this.eventHandlers.get(type);
       if (handlers) {
         handlers.forEach(handler => {
-          // For TOURNAMENT_DATA and TOURNAMENT_DATA_ERROR, pass the full message structure
-          if (type === 'TOURNAMENT_DATA' || type === 'TOURNAMENT_DATA_ERROR') {
-            handler({ tournamentId, data, error: event.data.error });
-          } else {
-            // For other events, pass just the data
-            handler(data);
+          switch (type) {
+            case 'TOURNAMENT_DATA':
+              handler(event.data as TournamentDataMessage);
+              break;
+            case 'TOURNAMENT_DATA_ERROR':
+              handler(event.data as TournamentDataErrorMessage);
+              break;
+            case 'AdminPanelUpdate':
+              handler(data as AdminPanelUpdateMessage);
+              break;
+            case 'GamesAdded':
+              handler(data as GamesAddedMessage);
+              break;
+            default:
+              handler(data);
           }
         });
       }
@@ -71,24 +85,23 @@ class DisplaySourceManager {
     console.log(`🗑️ Unregistered handler for ${eventType}`);
   }
 
-  // Convenience methods that mirror the socket helper patterns
-  onAdminPanelUpdate(handler: (data: CurrentMatch) => void) {
+  // Convenience methods with proper types and type assertions
+  onAdminPanelUpdate(handler: (data: AdminPanelUpdateMessage) => void) {
     this.on("AdminPanelUpdate", handler);
     return () => this.off("AdminPanelUpdate", handler);
   }
 
-  onGamesAdded(handler: (data: { tournamentId: number }) => void) {
+  onGamesAdded(handler: (data: GamesAddedMessage) => void) {
     this.on("GamesAdded", handler);
     return () => this.off("GamesAdded", handler);
   }
 
-  // New method for tournament data broadcasts
-  onTournamentData(handler: (data: { tournamentId: number, data: any }) => void) {
+  onTournamentData(handler: (data: TournamentDataMessage) => void) {
     this.on("TOURNAMENT_DATA", handler);
     return () => this.off("TOURNAMENT_DATA", handler);
   }
 
-  onTournamentDataError(handler: (data: { tournamentId: number, error: string }) => void) {
+  onTournamentDataError(handler: (data: TournamentDataErrorMessage) => void) {
     this.on("TOURNAMENT_DATA_ERROR", handler);
     return () => this.off("TOURNAMENT_DATA_ERROR", handler);
   }

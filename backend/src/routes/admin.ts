@@ -7,6 +7,7 @@ import { MatchWithPlayers } from "@shared/types/admin";
 import { CurrentMatch } from "@shared/types/currentMatch";
 import { PlayerStats } from "@shared/types/tournament";
 import { getPlayerRecentGames } from "../services/dataProcessing";
+import { AdminPanelUpdateMessage } from "@shared/types/websocket";
 
 export default function createAdminRoutes(
   tournamentRepository: TournamentRepository,
@@ -22,7 +23,11 @@ export default function createAdminRoutes(
     const { tournament_id, division_id, round, pairing_id } = req.body;
 
     try {
+      // Get userId from the authenticated user
+      const userId = req.user!.id;
+
       const match = await currentMatchRepository.create(
+        userId,
         tournament_id,
         division_id,
         round,
@@ -36,7 +41,8 @@ export default function createAdminRoutes(
         pairing_id: match.pairing_id
       };
 
-      io.emit("AdminPanelUpdate", adminUpdate);
+      // Broadcast with user context
+      io.emit("AdminPanelUpdate", { userId, ...adminUpdate } as AdminPanelUpdateMessage);
 
       // Still return the full data for the API response
       const update = await tournamentRepository.getMatchWithPlayers(match);

@@ -26,10 +26,11 @@ import StandingsWithPicsOverlayPage from "./pages/overlay/StandingsWithPicsOverl
 import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentStatsOverlayPage from "./pages/overlay/TournamentStatsOverlayPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
+
 // Wrapper component to conditionally apply theme
 const AppContent: React.FC = () => {
   const location = useLocation();
-  const isOverlay = location.pathname.startsWith("/overlay/") || location.pathname.startsWith("/worker");
+  const isOverlay = location.pathname.startsWith("/overlay/") || location.pathname.includes("/overlay/") || location.pathname.startsWith("/worker");
 
   return (
     <div
@@ -40,6 +41,43 @@ const AppContent: React.FC = () => {
       {!isOverlay && <Navigation />}
       <Routes>
         <Route path="/login" element={<AdminLogin />} />
+
+        {/* User-scoped overlay routes */}
+        <Route path="/users/:userId/overlay/misc" element={<MiscOverlayPage />} />
+        <Route
+          path="/users/:userId/overlay/standings/:tournamentId?/:divisionName?"
+          element={<StandingsOverlayPage />}
+        />
+        <Route
+          path="/users/:userId/overlay/standings_with_pics/:tournamentId?/:divisionName?"
+          element={<StandingsWithPicsOverlayPage />}
+        />
+        <Route
+          path="/users/:userId/overlay/rating_gain/:tournamentId?/:divisionName?"
+          element={<RatingGainOverlayPage />}
+        />
+        <Route
+          path="/users/:userId/overlay/rating_gain_with_pics/:tournamentId?/:divisionName?"
+          element={<RatingGainWithPicsOverlayPage />}
+        />
+        <Route
+          path="/users/:userId/overlay/high_scores_with_pics/:tournamentId?/:divisionName?"
+          element={<HighScoresWithPicsOverlayPage />}
+        />
+        <Route
+          path="/users/:userId/overlay/scoring_leaders/:tournamentId?/:divisionName?"
+          element={<ScoringLeadersOverlayPage />}
+        />
+        <Route
+          path="/users/:userId/overlay/scoring_leaders_with_pics/:tournamentId?/:divisionName?"
+          element={<ScoringLeadersWithPicsOverlayPage />}
+        />
+        <Route
+          path="/users/:userId/overlay/tournament_stats/:tournamentId?/:divisionName?"
+          element={<TournamentStatsOverlayPage />}
+        />
+
+        {/* Legacy overlay routes (backwards compatibility - optional) */}
         <Route path="/overlay/misc" element={<MiscOverlayPage />} />
         <Route
           path="/overlay/standings/:tournamentId?/:divisionName?"
@@ -73,6 +111,8 @@ const AppContent: React.FC = () => {
           path="/overlay/tournament_stats/:tournamentId?/:divisionName?"
           element={<TournamentStatsOverlayPage />}
         />
+
+        {/* Other routes */}
         <Route
           path="/overlays"
           element={<OverlaysPage />}
@@ -82,6 +122,7 @@ const AppContent: React.FC = () => {
           element={<MiscOverlayTestingPage />}
         />
         <Route path="/worker" element={<WorkerPage />} />
+
         {/* Protected Routes */}
         <Route
           path="/"

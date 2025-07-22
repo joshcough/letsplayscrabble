@@ -1,4 +1,4 @@
-// backend/src/repositories/tournamentRepository.ts (optimized version)
+// backend/src/repositories/tournamentRepository.ts (with user_id support)
 import { Pool } from "pg";
 import {
   Tournament,
@@ -32,20 +32,21 @@ export class TournamentRepository {
     longFormName,
     dataUrl,
     rawData,
-  }: CreateTournamentParams): Promise<ProcessedTournament> {
+    userId,
+  }: CreateTournamentParams & { userId: number }): Promise<ProcessedTournament> {
     const client = await this.db.connect();
 
     try {
       await client.query('BEGIN');
 
-      // Insert tournament record
+      // Insert tournament record with user_id
       const result = await client.query<Tournament>(
         `INSERT INTO tournaments (
-          name, city, year, lexicon, long_form_name, data_url, data
+          name, city, year, lexicon, long_form_name, data_url, data, user_id
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *`,
-        [name, city, year, lexicon, longFormName, dataUrl, rawData],
+        [name, city, year, lexicon, longFormName, dataUrl, rawData, userId],
       );
 
       const tournament = result.rows[0];
@@ -114,8 +115,6 @@ export class TournamentRepository {
           rating: row.rating,
           photo: row.photo,
           etc: row.etc,
-//           scores: [], // Empty for now
-//           pairings: [], // Empty for now
         });
       }
     }
@@ -135,6 +134,71 @@ export class TournamentRepository {
       standings,
       divisionPairings,
     };
+  }
+
+  // User-scoped methods
+  async findByIdForUser(id: number, userId: number): Promise<ProcessedTournament | null> {
+    const result = await this.db.query<Tournament>(
+      "SELECT * FROM tournaments WHERE id = $1 AND user_id = $2",
+      [id, userId],
+    );
+
+    if (!result.rows[0]) {
+      return null;
+    }
+
+    return await this.findById(id);
+  }
+
+  async findByNameForUser(name: string, userId: number): Promise<ProcessedTournament | null> {
+    const result = await this.db.query<Tournament>(
+      "SELECT * FROM tournaments WHERE name = $1 AND user_id = $2",
+      [name, userId],
+    );
+    return result.rows[0] ? await this.findById(result.rows[0].id) : null;
+  }
+
+  async findAllNamesForUser(userId: number): Promise<Array<{ id: number; name: string }>> {
+    const result = await this.db.query<{ id: number; name: string }>(
+      "SELECT id, name FROM tournaments WHERE user_id = $1 ORDER BY name ASC",
+      [userId],
+    );
+    return result.rows;
+  }
+
+  async findAllForUser(userId: number): Promise<ProcessedTournament[]> {
+    const result = await this.db.query<Tournament>(
+      "SELECT * FROM tournaments WHERE user_id = $1",
+      [userId]
+    );
+    const processed = await Promise.all(
+      result.rows.map(async (t) => await this.findById(t.id))
+    );
+    return processed.filter((t): t is ProcessedTournament => t !== null);
+  }
+
+  // Global methods (all users) - keep for admin/public access
+  async findByName(name: string): Promise<ProcessedTournament | null> {
+    const result = await this.db.query<Tournament>(
+      "SELECT * FROM tournaments WHERE name = $1",
+      [name],
+    );
+    return result.rows[0] ? await this.findById(result.rows[0].id) : null;
+  }
+
+  async findAllNames(): Promise<Array<{ id: number; name: string; user_id: number }>> {
+    const result = await this.db.query<{ id: number; name: string; user_id: number }>(
+      "SELECT id, name, user_id FROM tournaments ORDER BY name ASC",
+    );
+    return result.rows;
+  }
+
+  async findAll(): Promise<ProcessedTournament[]> {
+    const result = await this.db.query<Tournament>("SELECT * FROM tournaments");
+    const processed = await Promise.all(
+      result.rows.map(async (t) => await this.findById(t.id))
+    );
+    return processed.filter((t): t is ProcessedTournament => t !== null);
   }
 
   private async calculatePairingsFromTables(tournamentId: number) {
@@ -209,29 +273,6 @@ export class TournamentRepository {
     return `${first.charAt(0).toUpperCase() + first.slice(1)} ${last.charAt(0).toUpperCase() + last.slice(1)}`;
   }
 
-  async findByName(name: string): Promise<ProcessedTournament | null> {
-    const result = await this.db.query<Tournament>(
-      "SELECT * FROM tournaments WHERE name = $1",
-      [name],
-    );
-    return result.rows[0] ? await this.findById(result.rows[0].id) : null;
-  }
-
-  async findAllNames(): Promise<Array<{ id: number; name: string }>> {
-    const result = await this.db.query<{ id: number; name: string }>(
-      "SELECT id, name FROM tournaments ORDER BY name ASC",
-    );
-    return result.rows;
-  }
-
-  async findAll(): Promise<ProcessedTournament[]> {
-    const result = await this.db.query<Tournament>("SELECT * FROM tournaments");
-    const processed = await Promise.all(
-      result.rows.map(async (t) => await this.findById(t.id))
-    );
-    return processed.filter((t): t is ProcessedTournament => t !== null);
-  }
-
   async findTwoPlayerStats(
     tournamentId: number,
     divisionIndex: number,
@@ -279,9 +320,10 @@ export class TournamentRepository {
     return result.rows[0];
   }
 
-  async findActivePollable(): Promise<Tournament[]> {
-    const result = await this.db.query<Tournament>(`
-      SELECT *
+  // Critical: Include user_id in polling results
+  async findActivePollable(): Promise<(Tournament & { user_id: number })[]> {
+    const result = await this.db.query<Tournament & { user_id: number }>(`
+      SELECT *, user_id
       FROM tournaments
       WHERE poll_until IS NOT NULL
       AND poll_until > NOW()
@@ -344,7 +386,7 @@ export class TournamentRepository {
 
   // Helper method for initial tournament creation
   async createFromUrl(
-    params: Omit<CreateTournamentParams, "rawData">,
+    params: Omit<CreateTournamentParams, "rawData"> & { userId: number },
   ): Promise<ProcessedTournament> {
     const rawData = await loadTournamentFile(params.dataUrl);
     return this.create({ ...params, rawData });

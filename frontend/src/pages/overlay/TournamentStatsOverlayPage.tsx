@@ -9,12 +9,13 @@ import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper
 import { TournamentDivisionStatsDisplay } from "../../components/shared/TournamentDivisionStatsDisplay";
 
 type RouteParams = {
+  userId?: string;
   tournamentId?: string;
   divisionName?: string;
 };
 
 const TournamentStatsOverlayPage: React.FC = () => {
-  const { tournamentId, divisionName } = useParams<RouteParams>();
+  const { userId, tournamentId, divisionName } = useParams<RouteParams>();
   const [searchParams] = useSearchParams();
   const showAllDivisions = searchParams.get("all_divisions") === "true";
 
@@ -24,7 +25,7 @@ const TournamentStatsOverlayPage: React.FC = () => {
   const shouldUseCurrentMatch = !tournamentId;
   const shouldShowAllDivisions = showAllDivisions || (!divisionName && tournamentId);
 
-  // Current match data fetching
+  // Current match approach
   const statsCalculator = React.useCallback((standings: PlayerStats[]) => standings, []);
   const currentMatchData = useTournamentData({
     tournamentId: currentMatch?.tournament_id,
@@ -43,7 +44,7 @@ const TournamentStatsOverlayPage: React.FC = () => {
   const [statsError, setStatsError] = useState<string | null>(null);
 
   const fetchTournamentData = async () => {
-    if (!tournamentId) return;
+    if (!userId || !tournamentId) return;
 
     try {
       // Only show loading if we don't have data yet
@@ -51,7 +52,7 @@ const TournamentStatsOverlayPage: React.FC = () => {
         setUrlLoading(true);
       }
       setUrlFetchError(null);
-      const tournamentData = await fetchTournament(Number(tournamentId));
+      const tournamentData = await fetchTournament(parseInt(userId), Number(tournamentId));
       setUrlTournament(tournamentData);
     } catch (err) {
       console.error("Error fetching tournament data:", err);
@@ -62,28 +63,35 @@ const TournamentStatsOverlayPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (tournamentId) {
+    if (userId && tournamentId) {
       fetchTournamentData();
     }
-  }, [tournamentId]);
+  }, [userId, tournamentId]);
 
   // Listen for games being added to URL-based tournament via broadcast channel
   useEffect(() => {
+    if (!userId) return;
+
     const displayManager = DisplaySourceManager.getInstance();
 
-    const cleanup = displayManager.onGamesAdded((data: { tournamentId: number }) => {
+    const cleanup = displayManager.onGamesAdded((data: any) => {
       console.log('📥 TournamentStatsOverlay received GamesAdded:', data);
-      if (data.tournamentId === Number(tournamentId)) {
+      if (data.userId === parseInt(userId) && data.tournamentId === Number(tournamentId)) {
         fetchTournamentData();
       }
     });
 
     return cleanup;
-  }, [tournamentId]);
+  }, [userId, tournamentId]);
 
   // Fetch stats based on current scenario
   useEffect(() => {
     const fetchStats = async () => {
+      if (!userId) {
+        setStatsError("User ID not found in URL");
+        return;
+      }
+
       setStatsError(null);
 
       if (shouldUseCurrentMatch) {
@@ -97,10 +105,10 @@ const TournamentStatsOverlayPage: React.FC = () => {
 
         try {
           if (showAllDivisions) {
-            const tournamentStats = await fetchTournamentStats(currentMatch.tournament_id);
+            const tournamentStats = await fetchTournamentStats(parseInt(userId), currentMatch.tournament_id);
             setStats(tournamentStats);
           } else {
-            const divisionStats = await fetchDivisionStats(currentMatch.tournament_id, currentMatch.division_id);
+            const divisionStats = await fetchDivisionStats(parseInt(userId), currentMatch.tournament_id, currentMatch.division_id);
             setStats(divisionStats);
           }
         } catch (error) {
@@ -120,7 +128,7 @@ const TournamentStatsOverlayPage: React.FC = () => {
 
         try {
           if (shouldShowAllDivisions) {
-            const tournamentStats = await fetchTournamentStats(Number(tournamentId));
+            const tournamentStats = await fetchTournamentStats(parseInt(userId), Number(tournamentId));
             setStats(tournamentStats);
           } else {
             if (!divisionName) {
@@ -138,7 +146,7 @@ const TournamentStatsOverlayPage: React.FC = () => {
               return;
             }
 
-            const divisionStats = await fetchDivisionStats(Number(tournamentId), divisionIndex);
+            const divisionStats = await fetchDivisionStats(parseInt(userId), Number(tournamentId), divisionIndex);
             setStats(divisionStats);
           }
         } catch (error) {
@@ -152,6 +160,7 @@ const TournamentStatsOverlayPage: React.FC = () => {
 
     fetchStats();
   }, [
+    userId,
     shouldUseCurrentMatch,
     showAllDivisions,
     shouldShowAllDivisions,

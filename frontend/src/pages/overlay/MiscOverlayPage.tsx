@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useParams } from "react-router-dom";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
 import PointsDisplay from "../../components/shared/PointsDisplay";
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
@@ -54,6 +54,7 @@ type SourceType =
 
 const MiscOverlay: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const { userId } = useParams<{ userId: string }>();
   const source = searchParams.get("source") as SourceType;
 
   const [matchWithPlayers, setMatchWithPlayers] = useState<MatchWithPlayers | null>(null);
@@ -64,13 +65,18 @@ const MiscOverlay: React.FC = () => {
 
   // Fetch full match data when current match changes
   const fetchFullMatchData = async () => {
+    if (!userId) {
+      setError("User ID not found in URL");
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      console.log('🔄 MiscOverlay: Fetching full match data');
+      console.log('🔄 MiscOverlay: Fetching full match data for user:', userId);
 
-      const fullMatchData = await fetchCurrentMatchWithPlayers();
+      const fullMatchData = await fetchCurrentMatchWithPlayers(parseInt(userId));
       setMatchWithPlayers(fullMatchData);
     } catch (err) {
       console.error("Error fetching full match data:", err);
@@ -81,24 +87,26 @@ const MiscOverlay: React.FC = () => {
   };
 
   useEffect(() => {
-    if (currentMatch) {
+    if (currentMatch && userId) {
       fetchFullMatchData();
     }
-  }, [currentMatch]);
+  }, [currentMatch, userId]);
 
   // Listen for games being added to current tournament and refetch match data via broadcast channel
   useEffect(() => {
+    if (!userId) return;
+
     const displayManager = DisplaySourceManager.getInstance();
 
-    const cleanup = displayManager.onGamesAdded((data: { tournamentId: number }) => {
+    const cleanup = displayManager.onGamesAdded((data: any) => {
       console.log('📥 MiscOverlay received GamesAdded:', data);
-      if (data.tournamentId === currentMatch?.tournament_id) {
+      if (data.userId === parseInt(userId) && data.tournamentId === currentMatch?.tournament_id) {
         fetchFullMatchData();
       }
     });
 
     return cleanup;
-  }, [currentMatch?.tournament_id]);
+  }, [currentMatch?.tournament_id, userId]);
 
   // Early return with error display
   if (matchError || error) {
