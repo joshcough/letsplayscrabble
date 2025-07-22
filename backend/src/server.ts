@@ -97,7 +97,7 @@ io.engine.on("connection_error", (err: Error) => {
 const clientIntervals = new Map<string, NodeJS.Timeout>();
 
 io.on("connection", (socket) => {
-  console.log("Client connected", socket.id);
+  console.log(`🔌 Client connected: ${socket.id} (Total clients: ${io.engine.clientsCount})`);
 
   // Send ping every 30 seconds to keep connection alive
   const pingInterval = setInterval(() => {
@@ -112,7 +112,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", (reason: string) => {
-    console.log("Client disconnected", socket.id, "Reason:", reason);
+    console.log(`🔌 Client disconnected: ${socket.id} (Reason: ${reason}) (Remaining: ${io.engine.clientsCount - 1})`);
 
     // Clean up ping interval
     const interval = clientIntervals.get(socket.id);

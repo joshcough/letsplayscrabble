@@ -12,9 +12,24 @@ export default function createOverlayRoutes(
 ): Router {
   const router = express.Router();
 
-  const getCurrentMatchForStatsDeleteThisFunction: RequestHandler = async (_req, res) => {
+  // Helper to get userId from params and validate it
+  const getUserIdFromParams = (req: express.Request): number | null => {
+    const userId = parseInt(req.params.userId);
+    if (isNaN(userId)) {
+      return null;
+    }
+    return userId;
+  };
+
+  const getCurrentMatchForStatsDeleteThisFunction: RequestHandler = async (req, res) => {
     try {
-      const match = await currentMatchRepository.getCurrentMatch();
+      const userId = getUserIdFromParams(req);
+      if (userId === null) {
+        res.status(400).json({ error: "Invalid user ID" });
+        return;
+      }
+
+      const match = await currentMatchRepository.getCurrentMatch(userId);
 
       // If no match exists, return null matchData
       if (!match) {
@@ -34,10 +49,14 @@ export default function createOverlayRoutes(
     }
   };
 
-  const getCurrentMatch: RequestHandler = async (_req, res) => {
+  const getCurrentMatch: RequestHandler = async (req, res) => {
     try {
-      const currentMatch = await currentMatchRepository.getCurrentMatch();
-
+      const userId = getUserIdFromParams(req);
+      if (userId === null) {
+        res.status(400).json({ error: "Invalid user ID" });
+        return;
+      }
+      const currentMatch = await currentMatchRepository.getCurrentMatch(userId);
       if (!currentMatch) {
         res.status(404).json({ error: "No current match found" });
         return;
@@ -52,8 +71,7 @@ export default function createOverlayRoutes(
     }
   };
 
-  router.get("/match/current_match_for_stats_delete_this_route", getCurrentMatchForStatsDeleteThisFunction);
-  router.get("/match/current", getCurrentMatch);
-
+  router.get("/users/:userId/match/current_match_for_stats_delete_this_route", getCurrentMatchForStatsDeleteThisFunction);
+  router.get("/users/:userId/match/current", getCurrentMatch);
   return router;
 }
