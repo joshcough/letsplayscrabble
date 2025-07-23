@@ -66,15 +66,14 @@ export class TournamentStatsService {
 
     const standings: PlayerStats[][] = [];
 
-    // Get ALL games for ALL divisions in a single query
+    // Get ALL games for ALL divisions in a single query - NO ROUNDS JOIN!
     const allGames = await this.knex('games as g')
-      .join('rounds as r', 'g.round_id', 'r.id')
-      .join('divisions as d', 'r.division_id', 'd.id')
+      .join('divisions as d', 'g.division_id', 'd.id')  // Direct join to divisions
       .leftJoin('tournament_players as tp1', 'g.player1_id', 'tp1.id')
       .leftJoin('tournament_players as tp2', 'g.player2_id', 'tp2.id')
       .select(
         'd.id as division_id',
-        'r.round_number',
+        'g.round_number',        // Direct field from games
         'g.player1_id',
         'g.player2_id',
         'g.player1_score',
@@ -86,7 +85,7 @@ export class TournamentStatsService {
         'tp2.etc_data as p2_etc'
       )
       .where('d.tournament_id', tournamentId)
-      .orderBy('r.round_number');
+      .orderBy('g.round_number');
 
     // Group games by division and player
     const gamesByDivisionAndPlayer = new Map();
@@ -163,14 +162,13 @@ export class TournamentStatsService {
       .where('division_id', divisionId)
       .orderBy('player_id');
 
-    // Get ALL games for ALL players in the division in one query
+    // Get ALL games for ALL players in the division in one query - NO ROUNDS JOIN!
     const playerIds = players.map(p => p.id);
     const allGames = await this.knex('games as g')
-      .join('rounds as r', 'g.round_id', 'r.id')
       .leftJoin('tournament_players as tp1', 'g.player1_id', 'tp1.id')
       .leftJoin('tournament_players as tp2', 'g.player2_id', 'tp2.id')
       .select(
-        'r.round_number',
+        'g.round_number',        // Direct field from games
         'g.player1_id',
         'g.player2_id',
         'g.player1_score',
@@ -181,11 +179,11 @@ export class TournamentStatsService {
         'tp2.name as p2_name',
         'tp2.etc_data as p2_etc'
       )
-      .where('r.division_id', divisionId)
+      .where('g.division_id', divisionId)  // Direct field from games
       .where(function() {
         this.whereIn('g.player1_id', playerIds).orWhereIn('g.player2_id', playerIds);
       })
-      .orderBy('r.round_number');
+      .orderBy('g.round_number');
 
     // Group games by player
     const gamesByPlayer = new Map<number, DatabaseGame[]>();
@@ -252,24 +250,24 @@ export class TournamentStatsService {
       return p.id;
     });
 
+    // NO ROUNDS JOIN - direct query
     const games = await this.knex('games as g')
-      .join('rounds as r', 'g.round_id', 'r.id')
       .leftJoin('tournament_players as tp1', 'g.player1_id', 'tp1.id')
       .leftJoin('tournament_players as tp2', 'g.player2_id', 'tp2.id')
       .select(
-        'r.round_number',
+        'g.round_number',        // Direct field from games
         'g.player1_id', 'g.player2_id',
         'g.player1_score', 'g.player2_score',
         'g.is_bye',
         'tp1.name as p1_name', 'tp1.etc_data as p1_etc',
         'tp2.name as p2_name', 'tp2.etc_data as p2_etc'
       )
-      .where('r.division_id', divisionId)
+      .where('g.division_id', divisionId)  // Direct field from games
       .where(function() {
         this.whereIn('g.player1_id', dbIds).orWhereIn('g.player2_id', dbIds);
       })
       .where('g.is_bye', false)
-      .orderBy('r.round_number');
+      .orderBy('g.round_number');
 
     // Group games by player (using file player ID)
     const playerGamesMap = new Map();
@@ -284,8 +282,6 @@ export class TournamentStatsService {
         playerGamesMap.get(filePlayerId)?.push({
           round: game.round_number,
           opponentName: formatName(game.p2_name),
-          opponentHSName: `${opponentEtc.firstname1?.[0] || ''} ${opponentEtc.lastname1?.[0] || ''}`.trim(),
-          opponentElemName: `${opponentEtc.firstname1?.[0] || ''} & ${opponentEtc.firstname2?.[0] || ''}`.trim(),
           playerScore: game.player1_score || 0,
           opponentScore: game.player2_score || 0,
         });
@@ -299,8 +295,6 @@ export class TournamentStatsService {
         playerGamesMap.get(filePlayerId)?.push({
           round: game.round_number,
           opponentName: formatName(game.p1_name),
-          opponentHSName: `${opponentEtc.firstname1?.[0] || ''} ${opponentEtc.lastname1?.[0] || ''}`.trim(),
-          opponentElemName: `${opponentEtc.firstname1?.[0] || ''} & ${opponentEtc.firstname2?.[0] || ''}`.trim(),
           playerScore: game.player2_score || 0,
           opponentScore: game.player1_score || 0,
         });
@@ -333,13 +327,12 @@ export class TournamentStatsService {
 
     const dbPlayerId = playerResult.id;
 
-    // Get recent games
+    // Get recent games - NO ROUNDS JOIN!
     const games = await this.knex('games as g')
-      .join('rounds as r', 'g.round_id', 'r.id')
       .leftJoin('tournament_players as tp1', 'g.player1_id', 'tp1.id')
       .leftJoin('tournament_players as tp2', 'g.player2_id', 'tp2.id')
       .select(
-        'r.round_number',
+        'g.round_number',        // Direct field from games
         'g.player1_id',
         'g.player2_id',
         'g.player1_score',
@@ -358,12 +351,12 @@ export class TournamentStatsService {
           END as opponent_etc
         `, [dbPlayerId])
       )
-      .where('r.division_id', divisionId)
+      .where('g.division_id', divisionId)  // Direct field from games
       .where(function() {
         this.where('g.player1_id', dbPlayerId).orWhere('g.player2_id', dbPlayerId);
       })
       .where('g.is_bye', false)
-      .orderBy('r.round_number', 'desc')
+      .orderBy('g.round_number', 'desc')
       .limit(5);
 
     return games.map(game => {
@@ -375,8 +368,6 @@ export class TournamentStatsService {
       return {
         round: game.round_number,
         opponentName: formatName(game.opponent_name),
-        opponentHSName: `${opponentEtc.firstname1?.[0] || ''} ${opponentEtc.lastname1?.[0] || ''}`.trim(),
-        opponentElemName: `${opponentEtc.firstname1?.[0] || ''} & ${opponentEtc.firstname2?.[0] || ''}`.trim(),
         playerScore: playerScore || 0,
         opponentScore: opponentScore || 0,
       };

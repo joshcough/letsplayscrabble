@@ -4,7 +4,7 @@ import { GameResult } from '@shared/types/tournament';
 interface GameHistoryDisplayProps {
   games: GameResult[];
   side: "player1" | "player2";
-  opponentNameKey?: 'opponentName' | 'opponentElemName' | 'opponentHSName';
+  opponentNameKey?: 'opponentName';
 }
 
 const GameHistoryDisplay: React.FC<GameHistoryDisplayProps> = ({

@@ -67,18 +67,8 @@ export class TournamentRepository {
   }
 
   private async clearTournamentData(trx: Knex.Transaction, tournamentId: number): Promise<void> {
-    // Delete in reverse order due to foreign key constraints
+    // Much simpler now - just delete games, then players, then divisions
     await trx('games')
-      .whereIn('round_id',
-        trx('rounds')
-          .select('id')
-          .whereIn('division_id',
-            trx('divisions').select('id').where('tournament_id', tournamentId)
-          )
-      )
-      .del();
-
-    await trx('rounds')
       .whereIn('division_id',
         trx('divisions').select('id').where('tournament_id', tournamentId)
       )
@@ -126,17 +116,17 @@ export class TournamentRepository {
       playerIdMap.set(player.id, playerRecord.id);
     }
 
-    // Insert rounds and games
-    await this.insertRoundsAndGames(trx, divisionId, division, playerIdMap);
+    // Insert games directly (no more rounds table!)
+    await this.insertGames(trx, divisionId, division, playerIdMap);
   }
 
-  private async insertRoundsAndGames(
+  private async insertGames(
     trx: Knex.Transaction,
     divisionId: number,
     division: Division,
     playerIdMap: Map<number, number>
   ): Promise<void> {
-    console.log(`\n=== DEBUG: insertRoundsAndGames for divisionId ${divisionId} ===`);
+    console.log(`\n=== DEBUG: insertGames for divisionId ${divisionId} ===`);
     console.log(`Total players in division: ${division.players.length}`);
 
     // Debug each player
@@ -174,23 +164,6 @@ export class TournamentRepository {
     const maxRounds = Math.max(...pairingsLengths);
     console.log(`Max rounds calculated: ${maxRounds}`);
 
-    // Create rounds first
-    console.log(`Creating ${maxRounds} rounds...`);
-    const roundInserts = [];
-    for (let roundNum = 1; roundNum <= maxRounds; roundNum++) {
-      roundInserts.push({
-        division_id: divisionId,
-        round_number: roundNum
-      });
-    }
-
-    const roundRecords = await trx('rounds').insert(roundInserts).returning(['id', 'round_number']);
-    console.log(`Created rounds:`, roundRecords);
-    const roundIdMap = new Map<number, number>();
-    roundRecords.forEach(round => {
-      roundIdMap.set(round.round_number, round.id);
-    });
-
     // Track processed pairings to avoid duplicates
     const processedPairings = new Set<string>();
     const gameInserts = [];
@@ -223,15 +196,13 @@ export class TournamentRepository {
         const opponentId = player.pairings[roundIndex];
         const playerScore = player.scores[roundIndex];
 
-        const roundId = roundIdMap.get(roundNum);
-        if (!roundId) continue;
-
         // Handle bye
         if (opponentId === 0) {
           const pairingKey = `${roundNum}-${player.id}-bye`;
           if (!processedPairings.has(pairingKey)) {
             gameInserts.push({
-              round_id: roundId,
+              division_id: divisionId,  // Direct reference now!
+              round_number: roundNum,   // Direct field now!
               player1_id: dbPlayerId,
               player2_id: dbPlayerId,
               player1_score: playerScore,
@@ -268,7 +239,8 @@ export class TournamentRepository {
             : [dbOpponentId, dbPlayerId, opponentScore, playerScore];
 
           gameInserts.push({
-            round_id: roundId,
+            division_id: divisionId,  // Direct reference!
+            round_number: roundNum,   // Direct field!
             player1_id: player1Id,
             player2_id: player2Id,
             player1_score: score1,
@@ -430,23 +402,22 @@ export class TournamentRepository {
   }
 
   private async calculatePairingsFromTables(tournamentId: number) {
-    // Get all data in a single query
+    // Get all data in a single query - NO ROUNDS JOIN!
     const allPairings = await knexDb('divisions as d')
-      .join('rounds as r', 'd.id', 'r.division_id')
-      .join('games as g', 'r.id', 'g.round_id')
+      .join('games as g', 'd.id', 'g.division_id')  // Direct join now!
       .join('tournament_players as tp1', 'g.player1_id', 'tp1.id')
       .join('tournament_players as tp2', 'g.player2_id', 'tp2.id')
       .select(
         'd.position as division_position',
         'd.name as division_name',
-        'r.round_number',
+        'g.round_number',          // Direct field now!
         'g.pairing_id',
         'tp1.player_id as p1_file_id', 'tp1.name as p1_name', 'tp1.etc_data as p1_etc',
         'tp2.player_id as p2_file_id', 'tp2.name as p2_name', 'tp2.etc_data as p2_etc'
       )
       .where('d.tournament_id', tournamentId)
       .where('g.is_bye', false)
-      .orderBy(['d.position', 'r.round_number', 'g.pairing_id']);
+      .orderBy(['d.position', 'g.round_number', 'g.pairing_id']);
 
     // Group by division and round
     const divisionMap = new Map();
@@ -660,37 +631,21 @@ export class TournamentRepository {
       }
 
       // Delete in reverse order due to foreign key constraints
-      // 1. Delete games
+      // Much simpler deletion - no rounds table!
       await trx('games')
-        .whereIn('round_id',
-          trx('rounds')
-            .select('id')
-            .whereIn('division_id',
-              trx('divisions').select('id').where('tournament_id', id)
-            )
-        )
-        .del();
-
-      // 2. Delete rounds
-      await trx('rounds')
         .whereIn('division_id',
           trx('divisions').select('id').where('tournament_id', id)
         )
         .del();
 
-      // 3. Delete tournament players
       await trx('tournament_players').where('tournament_id', id).del();
-
-      // 4. Delete divisions
       await trx('divisions').where('tournament_id', id).del();
 
-      // 5. Delete current match if it exists for this tournament
       await trx('current_matches')
         .where('tournament_id', id)
         .where('user_id', userId)
         .del();
 
-      // 6. Finally delete the tournament itself
       await trx('tournaments').where('id', id).where('user_id', userId).del();
     });
   }
@@ -751,9 +706,9 @@ export class TournamentRepository {
   }
 
   private async getGameDataForStats(tournamentId: number, divisionId?: number) {
+    // Simplified query - no rounds join needed
     let query = knexDb('divisions as d')
-      .join('rounds as r', 'd.id', 'r.division_id')
-      .join('games as g', 'r.id', 'g.round_id')
+      .join('games as g', 'd.id', 'g.division_id')  // Direct join!
       .join('tournament_players as tp1', 'g.player1_id', 'tp1.id')
       .join('tournament_players as tp2', 'g.player2_id', 'tp2.id')
       .select(
@@ -762,7 +717,7 @@ export class TournamentRepository {
         'tp1.player_id as player1_file_id',
         'tp2.player_id as player2_file_id',
         'tp1.etc_data as player1_etc',
-        'r.round_number'
+        'g.round_number'          // Direct field!
       )
       .where('d.tournament_id', tournamentId)
       .where('g.is_bye', false)
