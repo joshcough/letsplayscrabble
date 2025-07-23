@@ -24,29 +24,16 @@ export interface Division {
 export interface Etc {
     newr: number[]; // Player ratings history
     p12: number[]; // 1 = player goes first, 2 = opponent goes first, 0 = bye
-    firstname1: string[];
-    firstname2: string[];
-    lastname1: string[];
-    lastname2: string[];
-    grade1: number[];
-    grade2: number[];
-    hometown1: string[];
-    hometown2: string[];
-    schoolname1: string[];
-    schoolname2: string[];
-    state1: string[];
-    state2: string[];
-    teamname: string[];
 }
 
 export interface RawPlayer {
-  id: number;
-  name: string;
+  id: number;  // player_id in db
+  name: string; // name in db
   scores: number[];
   pairings: number[];
-  rating: number;
-  etc: Etc;
-  photo: string;
+  rating: number; // initial_rating in db
+  etc: Etc; // etc_data in db
+  photo: string; // photo in db
 }
 
 export interface PlayerData {
@@ -98,8 +85,6 @@ export interface PlayerStats {
 export interface GameResult {
   round: number;
   opponentName: string;
-  opponentElemName: string;
-  opponentHSName: string;
   playerScore: number;
   opponentScore: number;
 }

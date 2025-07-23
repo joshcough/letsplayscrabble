@@ -12,6 +12,7 @@ import { CurrentMatch } from "@shared/types/currentMatch";
 import { MatchWithPlayers } from "@shared/types/admin";
 import { loadTournamentFile } from "../services/dataProcessing";
 import { TournamentStatsService } from "../services/tournamentStatsService";
+import { calculateStatsFromGames, formatName } from "../services/statsCalculations";
 import { knexDb } from "../config/database";
 import { Knex } from "knex";
 
@@ -469,13 +470,13 @@ export class TournamentRepository {
         player1: {
           id: row.p1_file_id,
           name: row.p1_name,
-          firstLast: this.formatName(row.p1_name),
+          firstLast: formatName(row.p1_name),
           etc: row.p1_etc,
         },
         player2: {
           id: row.p2_file_id,
           name: row.p2_name,
-          firstLast: this.formatName(row.p2_name),
+          firstLast: formatName(row.p2_name),
           etc: row.p2_etc,
         },
       });
@@ -489,15 +490,6 @@ export class TournamentRepository {
     }
 
     return divisionPairings;
-  }
-
-  private formatName(name: string): string {
-    if (!name || !name.includes(",")) return name || "Unknown Player";
-
-    const [last, first] = name.split(", ");
-    if (!first || !last) return name;
-
-    return `${first.charAt(0).toUpperCase() + first.slice(1)} ${last.charAt(0).toUpperCase() + last.slice(1)}`;
   }
 
   async findTwoPlayerStats(
@@ -750,12 +742,12 @@ export class TournamentRepository {
 
   async getDivisionStats(tournamentId: number, divisionId: number): Promise<DivisionStats> {
     const games = await this.getGameDataForStats(tournamentId, divisionId);
-    return this.calculateStatsFromGames(games);
+    return calculateStatsFromGames(games);
   }
 
   async getTournamentStats(tournamentId: number): Promise<DivisionStats> {
     const games = await this.getGameDataForStats(tournamentId); // No divisionId = all divisions
-    return this.calculateStatsFromGames(games);
+    return calculateStatsFromGames(games);
   }
 
   private async getGameDataForStats(tournamentId: number, divisionId?: number) {
@@ -783,68 +775,5 @@ export class TournamentRepository {
     }
 
     return query;
-  }
-
-  private calculateStatsFromGames(games: any[]): DivisionStats {
-    let totalGamesPlayed = games.length;
-    let totalPoints = 0;
-    let winningScores: number[] = [];
-    let losingScores: number[] = [];
-    let higherSeedWins = 0;
-    let player1Wins = 0;
-
-    for (const game of games) {
-      const score1 = game.player1_score;
-      const score2 = game.player2_score;
-
-      totalPoints += score1 + score2;
-
-      if (score1 > score2) {
-        winningScores.push(score1);
-        losingScores.push(score2);
-      } else if (score2 > score1) {
-        winningScores.push(score2);
-        losingScores.push(score1);
-      }
-
-      // Calculate higher seed wins (lower file ID = higher seed)
-      const higherSeedPlayer = game.player1_file_id < game.player2_file_id ? 1 : 2;
-      const winner = score1 > score2 ? 1 : (score2 > score1 ? 2 : 0);
-      if (winner === higherSeedPlayer) {
-        higherSeedWins++;
-      }
-
-      // Calculate going first wins
-      const player1Etc = game.player1_etc;
-      if (player1Etc?.p12?.[game.round_number - 1] === 1 && score1 > score2) {
-        player1Wins++;
-      } else if (player1Etc?.p12?.[game.round_number - 1] === 2 && score2 > score1) {
-        player1Wins++;
-      }
-    }
-
-    const averageScore = totalPoints > 0 ? totalPoints / (totalGamesPlayed * 2) : 0;
-    const averageWinningScore = winningScores.length > 0
-      ? winningScores.reduce((sum, score) => sum + score, 0) / winningScores.length
-      : 0;
-    const averageLosingScore = losingScores.length > 0
-      ? losingScores.reduce((sum, score) => sum + score, 0) / losingScores.length
-      : 0;
-    const higherSeedWinPercentage = totalGamesPlayed > 0
-      ? (higherSeedWins / totalGamesPlayed) * 100
-      : 0;
-    const goingFirstWinPercentage = totalGamesPlayed > 0
-      ? (player1Wins / totalGamesPlayed) * 100
-      : 0;
-
-    return {
-      gamesPlayed: totalGamesPlayed,
-      pointsScored: totalPoints,
-      averageScore: Math.round(averageScore * 100) / 100,
-      averageWinningScore: Math.round(averageWinningScore),
-      averageLosingScore: Math.round(averageLosingScore),
-      higherSeedWinPercentage: Math.round(higherSeedWinPercentage * 10) / 10,
-      goingFirstWinPercentage: Math.round(goingFirstWinPercentage * 10) / 10,
-    };
   }
 }
