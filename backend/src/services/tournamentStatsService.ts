@@ -1,6 +1,7 @@
 // backend/src/services/tournamentStatsService.ts
 import { Knex } from "knex";
 import { PlayerStats, GameResult } from "@shared/types/tournament";
+import { calculateAllRanks, formatName, getOrdinal, calculatePlayerStatsFromGames } from "./statsCalculations";
 
 interface DatabasePlayer {
   id: number;
@@ -138,11 +139,11 @@ export class TournamentStatsService {
 
       for (const player of division.players) {
         const playerGames = divisionGames.get(player.id) || [];
-        const stats = this.calculatePlayerStatsFromGames(player, playerGames);
+        const stats = calculatePlayerStatsFromGames(player, playerGames);
         playerStats.push(stats);
       }
 
-      standings.push(this.calculateAllRanks(playerStats));
+      standings.push(calculateAllRanks(playerStats));
     }
 
     return standings;
@@ -224,128 +225,12 @@ export class TournamentStatsService {
     const playerStats: PlayerStats[] = [];
     for (const player of players) {
       const playerGames = gamesByPlayer.get(player.id) || [];
-      const stats = this.calculatePlayerStatsFromGames(player, playerGames);
+      const stats = calculatePlayerStatsFromGames(player, playerGames);
       playerStats.push(stats);
     }
 
     // Calculate rankings
-    return this.calculateAllRanks(playerStats);
-  }
-
-  private calculatePlayerStatsFromGames(player: DatabasePlayer, games: DatabaseGame[]): PlayerStats {
-    let totalSpread = 0;
-    let totalScore = 0;
-    let totalOpponentScore = 0;
-    let highScore = 0;
-    let wins = 0;
-    let losses = 0;
-    let ties = 0;
-    let gamesPlayed = 0;
-
-    for (const game of games) {
-      if (game.is_bye) {
-        // Handle bye
-        const byeScore = game.player1_score; // Already flipped for player perspective
-        if (byeScore !== null) {
-          totalSpread += byeScore;
-          if (byeScore > 0) wins += 1;
-          else losses += 1;
-        }
-      } else {
-        // Regular game - already from player's perspective
-        const playerScore = game.player1_score;
-        const opponentScore = game.player2_score;
-
-        if (playerScore !== null && opponentScore !== null) {
-          const spread = playerScore - opponentScore;
-          totalSpread += spread;
-
-          if (playerScore > opponentScore) wins += 1;
-          else if (playerScore < opponentScore) losses += 1;
-          else ties += 1;
-
-          totalScore += playerScore;
-          totalOpponentScore += opponentScore;
-          highScore = Math.max(highScore, playerScore);
-          gamesPlayed += 1;
-        }
-      }
-    }
-
-    const averageScore = gamesPlayed > 0 ? totalScore / gamesPlayed : 0;
-    const averageOpponentScore = gamesPlayed > 0 ? (totalOpponentScore / gamesPlayed).toFixed(1) : "0";
-
-    // Calculate current rating and rating diff from etc_data
-    let currentRating = 0;
-    let ratingDiff = 0;
-    const etcData = player.etc_data;
-
-    if (etcData?.newr && Array.isArray(etcData.newr)) {
-      currentRating = etcData.newr[etcData.newr.length - 1] ?? 0;
-      ratingDiff = currentRating - player.initial_rating;
-    }
-
-    return {
-      id: player.player_id,
-      name: player.name,
-      firstLast: this.formatName(player.name),
-      initialRating: player.initial_rating,
-      currentRating,
-      ratingDiff,
-      seed: player.player_id,
-      seedOrdinal: this.getOrdinal(player.player_id),
-      wins,
-      losses,
-      ties,
-      spread: totalSpread,
-      averageScore,
-      averageScoreRounded: averageScore.toFixed(1),
-      averageOpponentScore,
-      highScore,
-      averageScoreRank: 0, // Will be calculated in calculateAllRanks
-      averageOpponentScoreRank: 0,
-      averageScoreRankOrdinal: "0th",
-      averageOpponentScoreRankOrdinal: "0th",
-      etc: etcData,
-      photo: player.photo,
-    };
-  }
-
-  private calculateAllRanks(players: PlayerStats[]): PlayerStats[] {
-    // Calculate win/loss/spread ranks
-    const playersByWins = [...players].sort((a, b) => {
-      if (a.wins !== b.wins) return b.wins - a.wins;
-      if (a.losses !== b.losses) return a.losses - b.losses;
-      return b.spread - a.spread;
-    });
-
-    // Calculate average score ranks
-    const playersByAvgScore = [...players].sort((a, b) => b.averageScore - a.averageScore);
-
-    // Calculate opponent score ranks
-    const playersByOpponentScore = [...players].sort((a, b) =>
-      parseFloat(a.averageOpponentScore) - parseFloat(b.averageOpponentScore)
-    );
-
-    // Create ranking maps
-    const rankMap = new Map<number, number>();
-    const avgScoreRankMap = new Map<number, number>();
-    const avgOpponentScoreRankMap = new Map<number, number>();
-
-    playersByWins.forEach((player, index) => rankMap.set(player.id, index + 1));
-    playersByAvgScore.forEach((player, index) => avgScoreRankMap.set(player.id, index + 1));
-    playersByOpponentScore.forEach((player, index) => avgOpponentScoreRankMap.set(player.id, index + 1));
-
-    // Apply rankings
-    return players.map(player => ({
-      ...player,
-      rank: rankMap.get(player.id) ?? 0,
-      rankOrdinal: this.getOrdinal(rankMap.get(player.id) ?? 0),
-      averageScoreRank: avgScoreRankMap.get(player.id) ?? 0,
-      averageScoreRankOrdinal: this.getOrdinal(avgScoreRankMap.get(player.id) ?? 0),
-      averageOpponentScoreRank: avgOpponentScoreRankMap.get(player.id) ?? 0,
-      averageOpponentScoreRankOrdinal: this.getOrdinal(avgOpponentScoreRankMap.get(player.id) ?? 0),
-    }));
+    return calculateAllRanks(playerStats);
   }
 
   // Add the batch method for getting multiple players' recent games
@@ -398,7 +283,7 @@ export class TournamentStatsService {
 
         playerGamesMap.get(filePlayerId)?.push({
           round: game.round_number,
-          opponentName: this.formatName(game.p2_name),
+          opponentName: formatName(game.p2_name),
           opponentHSName: `${opponentEtc.firstname1?.[0] || ''} ${opponentEtc.lastname1?.[0] || ''}`.trim(),
           opponentElemName: `${opponentEtc.firstname1?.[0] || ''} & ${opponentEtc.firstname2?.[0] || ''}`.trim(),
           playerScore: game.player1_score || 0,
@@ -413,7 +298,7 @@ export class TournamentStatsService {
 
         playerGamesMap.get(filePlayerId)?.push({
           round: game.round_number,
-          opponentName: this.formatName(game.p1_name),
+          opponentName: formatName(game.p1_name),
           opponentHSName: `${opponentEtc.firstname1?.[0] || ''} ${opponentEtc.lastname1?.[0] || ''}`.trim(),
           opponentElemName: `${opponentEtc.firstname1?.[0] || ''} & ${opponentEtc.firstname2?.[0] || ''}`.trim(),
           playerScore: game.player2_score || 0,
@@ -489,35 +374,12 @@ export class TournamentStatsService {
 
       return {
         round: game.round_number,
-        opponentName: this.formatName(game.opponent_name),
+        opponentName: formatName(game.opponent_name),
         opponentHSName: `${opponentEtc.firstname1?.[0] || ''} ${opponentEtc.lastname1?.[0] || ''}`.trim(),
         opponentElemName: `${opponentEtc.firstname1?.[0] || ''} & ${opponentEtc.firstname2?.[0] || ''}`.trim(),
         playerScore: playerScore || 0,
         opponentScore: opponentScore || 0,
       };
     }).reverse(); // Return in chronological order
-  }
-
-  private formatName(name: string): string {
-    if (!name || !name.includes(",")) return name || "Unknown Player";
-
-    const [last, first] = name.split(", ");
-    if (!first || !last) return name;
-
-    return `${first.charAt(0).toUpperCase() + first.slice(1)} ${last.charAt(0).toUpperCase() + last.slice(1)}`;
-  }
-
-  private getOrdinal(n: number): string {
-    const lastDigit = n % 10;
-    const lastTwoDigits = n % 100;
-
-    if (lastTwoDigits >= 11 && lastTwoDigits <= 13) return n + "th";
-
-    switch (lastDigit) {
-      case 1: return n + "st";
-      case 2: return n + "nd";
-      case 3: return n + "rd";
-      default: return n + "th";
-    }
   }
 }
