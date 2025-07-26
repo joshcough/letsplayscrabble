@@ -1,7 +1,9 @@
 import express, { Router, Request, Response } from "express";
 import { ParamsDictionary, RequestHandler } from "express-serve-static-core";
 import { TournamentRepository } from "../repositories/tournamentRepository";
+import { CleanTournamentRepository } from "../repositories/cleanTournamentRepository";
 import { loadTournamentFile } from "../services/dataProcessing";
+import { convertFileToDatabase } from "@shared/utils/conversions";
 
 // Request types
 interface CreateTournamentBody {
@@ -46,6 +48,7 @@ interface UpdateTournamentBody {
 
 export function protectedTournamentRoutes(
   tournamentRepository: TournamentRepository,
+  cleanTournamentRepository: CleanTournamentRepository
 ): Router {
   const router = express.Router();
 
@@ -97,17 +100,23 @@ export function protectedTournamentRoutes(
 
     try {
       const userId = req.user!.id;
+
+      // Load file data
       const rawData = await loadTournamentFile(dataUrl);
-      const tournament = await tournamentRepository.create({
+
+      // Convert to database format
+      const createTournamentData = convertFileToDatabase(rawData, {
         name,
         city,
         year,
         lexicon,
         longFormName,
         dataUrl,
-        rawData,
         userId,
       });
+
+      // Create tournament using clean repository
+      const tournament = await cleanTournamentRepository.create(createTournamentData);
 
       res.status(201).json(tournament);
     } catch (error) {
@@ -213,9 +222,11 @@ export function protectedTournamentRoutes(
 
     try {
       const userId = req.user!.id;
-      // First verify user owns this tournament
-      const existingTournament = await tournamentRepository.findByIdForUser(
-        parseInt(id, 10),
+      const tournamentId = parseInt(id, 10);
+
+      // Get existing tournament through repo (no direct DB access!)
+      const existingTournament = await cleanTournamentRepository.findByIdForUser(
+        tournamentId,
         userId
       );
 
@@ -224,16 +235,43 @@ export function protectedTournamentRoutes(
         return;
       }
 
-      const tournament = await tournamentRepository.update(parseInt(id, 10), {
-        name,
-        city,
-        year,
-        lexicon,
-        longFormName,
-        dataUrl,
-      });
+      const metadata = { name, city, year, lexicon, longFormName, dataUrl };
 
-      res.json(tournament);
+      // Check if dataUrl changed - if so, we need to reload and convert the data
+      if (dataUrl !== existingTournament.data_url) {
+        // Load new data from the URL
+        const newData = await loadTournamentFile(dataUrl);
+
+        // Convert to database format
+        const createTournamentData = convertFileToDatabase(newData, {
+          name,
+          city,
+          year,
+          lexicon,
+          longFormName,
+          dataUrl,
+          userId,
+        });
+
+        // Update everything in one transaction through repo
+        const tournament = await cleanTournamentRepository.updateTournamentWithNewData(
+          tournamentId,
+          userId,
+          metadata,
+          createTournamentData
+        );
+
+        res.json(tournament);
+      } else {
+        // Just update metadata fields through repo
+        const tournament = await cleanTournamentRepository.updateTournamentMetadata(
+          tournamentId,
+          userId,
+          metadata
+        );
+
+        res.json(tournament);
+      }
     } catch (error) {
       console.error("Database error:", error);
       res.status(400).json({

@@ -6,6 +6,7 @@ import path from "path";
 import dotenv from "dotenv";
 import { pool } from "./config/database";
 import { TournamentRepository } from "./repositories/tournamentRepository";
+import { CleanTournamentRepository } from "./repositories/cleanTournamentRepository";
 import { CurrentMatchRepository } from "./repositories/currentMatchRepository";
 import {
   protectedTournamentRoutes,
@@ -75,8 +76,10 @@ const io = new SocketIOServer(server, {
 });
 
 const tournamentRepository = new TournamentRepository();
+const cleanTournamentRepository = new CleanTournamentRepository();
 const currentMatchRepository = new CurrentMatchRepository(pool);
-const pollingService = new TournamentPollingService(tournamentRepository, io);
+const pollingService =
+  new TournamentPollingService(tournamentRepository, cleanTournamentRepository, io);
 
 app.use(
   cors({
@@ -143,7 +146,7 @@ app.use(
 app.use(
   "/api/tournaments/admin",
   requireAuth,
-  protectedTournamentRoutes(tournamentRepository),
+  protectedTournamentRoutes(tournamentRepository, cleanTournamentRepository),
 );
 app.use(
   "/api/admin",

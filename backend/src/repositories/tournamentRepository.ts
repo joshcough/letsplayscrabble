@@ -2,268 +2,20 @@ import {
   Tournament,
   ProcessedTournament,
   TournamentData,
-  CreateTournamentParams,
   TwoPlayerStats,
   DivisionStats,
-  Division,
-  RawPlayer,
 } from "@shared/types/tournament";
 import { CurrentMatch } from "@shared/types/currentMatch";
 import { MatchWithPlayers } from "@shared/types/admin";
-import { loadTournamentFile } from "../services/dataProcessing";
 import { TournamentStatsService } from "../services/tournamentStatsService";
 import { calculateStatsFromGames, formatName } from "../services/statsCalculations";
 import { knexDb } from "../config/database";
-import { Knex } from "knex";
 
 export class TournamentRepository {
   private statsService: TournamentStatsService;
 
   constructor() {
     this.statsService = new TournamentStatsService(knexDb);
-  }
-
-  async create({
-    name,
-    city,
-    year,
-    lexicon,
-    longFormName,
-    dataUrl,
-    rawData,
-    userId,
-  }: CreateTournamentParams & { userId: number }): Promise<ProcessedTournament> {
-    return knexDb.transaction(async (trx) => {
-      // Insert tournament record with user_id
-      const [tournament] = await trx('tournaments')
-        .insert({
-          name,
-          city,
-          year,
-          lexicon,
-          long_form_name: longFormName,
-          data_url: dataUrl,
-          data: rawData,
-          user_id: userId,
-        })
-        .returning('*');
-
-      // Store data in normalized tables
-      await this.storeTournamentData(trx, tournament.id, rawData);
-
-      return tournament;
-    }).then(tournament => this.findById(tournament.id) as Promise<ProcessedTournament>);
-  }
-
-  private async storeTournamentData(trx: Knex.Transaction, tournamentId: number, data: TournamentData): Promise<void> {
-    // Clear existing data for this tournament
-    await this.clearTournamentData(trx, tournamentId);
-
-    // Insert divisions and their data
-    for (let divisionIndex = 0; divisionIndex < data.divisions.length; divisionIndex++) {
-      const division = data.divisions[divisionIndex];
-      await this.insertDivisionData(trx, tournamentId, division, divisionIndex);
-    }
-  }
-
-  private async clearTournamentData(trx: Knex.Transaction, tournamentId: number): Promise<void> {
-    // Much simpler now - just delete games, then players, then divisions
-    await trx('games')
-      .whereIn('division_id',
-        trx('divisions').select('id').where('tournament_id', tournamentId)
-      )
-      .del();
-
-    await trx('tournament_players').where('tournament_id', tournamentId).del();
-    await trx('divisions').where('tournament_id', tournamentId).del();
-  }
-
-  private async insertDivisionData(
-    trx: Knex.Transaction,
-    tournamentId: number,
-    division: Division,
-    position: number
-  ): Promise<void> {
-    // Insert division
-    const [divisionRecord] = await trx('divisions')
-      .insert({
-        tournament_id: tournamentId,
-        name: division.name,
-        position: position
-      })
-      .returning('id');
-
-    const divisionId = divisionRecord.id;
-
-    // Insert players
-    const playerIdMap = new Map<number, number>(); // file player ID -> db player ID
-
-    for (const player of division.players) {
-      if (!player) continue;
-
-      const [playerRecord] = await trx('tournament_players')
-        .insert({
-          tournament_id: tournamentId,
-          division_id: divisionId,
-          player_id: player.id,
-          name: player.name,
-          initial_rating: player.rating,
-          photo: player.photo,
-          etc_data: JSON.stringify(player.etc)
-        })
-        .returning('id');
-
-      playerIdMap.set(player.id, playerRecord.id);
-    }
-
-    // Insert games directly (no more rounds table!)
-    await this.insertGames(trx, divisionId, division, playerIdMap);
-  }
-
-  private async insertGames(
-    trx: Knex.Transaction,
-    divisionId: number,
-    division: Division,
-    playerIdMap: Map<number, number>
-  ): Promise<void> {
-    console.log(`\n=== DEBUG: insertGames for divisionId ${divisionId} ===`);
-    console.log(`Total players in division: ${division.players.length}`);
-
-    // Debug each player
-    division.players.forEach((player, index) => {
-      console.log(`Player ${index}:`, {
-        isNull: player === null,
-        isUndefined: player === undefined,
-        id: player?.id,
-        name: player?.name,
-        hasPairings: !!player?.pairings,
-        pairingsLength: player?.pairings?.length,
-        hasScores: !!player?.scores,
-        scoresLength: player?.scores?.length,
-        hasEtc: !!player?.etc,
-        playerKeys: player ? Object.keys(player) : 'N/A'
-      });
-
-      if (player && !player.pairings) {
-        console.log(`❌ PROBLEM PLAYER FOUND:`, JSON.stringify(player, null, 2));
-      }
-    });
-
-    // Determine the number of rounds from player data
-    const validPlayers = division.players.filter(p => p !== null && p !== undefined && p.pairings);
-
-    console.log(`Valid players with pairings: ${validPlayers.length}/${division.players.length}`);
-
-    if (validPlayers.length === 0) {
-      console.log('❌ ERROR: No valid players found with pairings data');
-      throw new Error('No valid players found with pairings data');
-    }
-
-    const pairingsLengths = validPlayers.map(p => p!.pairings.length);
-    console.log(`Pairings lengths:`, pairingsLengths);
-    const maxRounds = Math.max(...pairingsLengths);
-    console.log(`Max rounds calculated: ${maxRounds}`);
-
-    // Track processed pairings to avoid duplicates
-    const processedPairings = new Set<string>();
-    const gameInserts = [];
-
-    console.log(`\n=== Processing games for ${division.players.length} players ===`);
-    // Collect all games first
-    for (const player of division.players) {
-      if (!player || !player.pairings || !player.scores) {
-        console.log(`❌ Skipping invalid player:`, {
-          isNull: player === null,
-          isUndefined: player === undefined,
-          id: player?.id,
-          name: player?.name,
-          hasPairings: !!player?.pairings,
-          hasScores: !!player?.scores,
-          fullPlayer: player ? JSON.stringify(player, null, 2) : 'null/undefined'
-        });
-        continue;
-      }
-
-      console.log(`✅ Processing player ${player.id} (${player.name})`);
-      const dbPlayerId = playerIdMap.get(player.id);
-      if (!dbPlayerId) {
-        console.log(`❌ No database ID found for player ${player.id}`);
-        continue;
-      }
-
-      for (let roundIndex = 0; roundIndex < player.pairings.length; roundIndex++) {
-        const roundNum = roundIndex + 1;
-        const opponentId = player.pairings[roundIndex];
-        const playerScore = player.scores[roundIndex];
-
-        // Handle bye
-        if (opponentId === 0) {
-          const pairingKey = `${roundNum}-${player.id}-bye`;
-          if (!processedPairings.has(pairingKey)) {
-            gameInserts.push({
-              division_id: divisionId,  // Direct reference now!
-              round_number: roundNum,   // Direct field now!
-              player1_id: dbPlayerId,
-              player2_id: dbPlayerId,
-              player1_score: playerScore,
-              player2_score: 0,
-              is_bye: true,
-              pairing_id: player.id
-            });
-            processedPairings.add(pairingKey);
-          }
-          continue;
-        }
-
-        // Regular game - avoid duplicate insertion
-        const opponent = division.players.find(p => p?.id === opponentId);
-        if (!opponent || !opponent.scores) {
-          console.log(`Opponent ${opponentId} not found or missing scores`);
-          continue;
-        }
-
-        const dbOpponentId = playerIdMap.get(opponentId);
-        if (!dbOpponentId) continue;
-
-        // Create a consistent pairing key (smaller ID first)
-        const pairingKey = `${roundNum}-${Math.min(player.id, opponentId)}-${Math.max(player.id, opponentId)}`;
-
-        if (!processedPairings.has(pairingKey)) {
-          const opponentScore = opponent.scores[roundIndex];
-
-          // Determine player order based on p12 values
-          const isPlayer1First = player.etc?.p12?.[roundIndex] === 1;
-
-          const [player1Id, player2Id, score1, score2] = isPlayer1First
-            ? [dbPlayerId, dbOpponentId, playerScore, opponentScore]
-            : [dbOpponentId, dbPlayerId, opponentScore, playerScore];
-
-          gameInserts.push({
-            division_id: divisionId,  // Direct reference!
-            round_number: roundNum,   // Direct field!
-            player1_id: player1Id,
-            player2_id: player2Id,
-            player1_score: score1,
-            player2_score: score2,
-            is_bye: false,
-            pairing_id: Math.min(player.id, opponentId)
-          });
-
-          processedPairings.add(pairingKey);
-        }
-      }
-    }
-
-    // Bulk insert all games
-    console.log(`\n=== Game insertion summary ===`);
-    console.log(`Games to insert: ${gameInserts.length}`);
-    if (gameInserts.length > 0) {
-      console.log(`Sample game:`, gameInserts[0]);
-      await trx('games').insert(gameInserts);
-      console.log(`✅ Successfully inserted ${gameInserts.length} games`);
-    } else {
-      console.log(`⚠️  No games to insert`);
-    }
   }
 
   async findById(id: number): Promise<ProcessedTournament | null> {
@@ -522,37 +274,10 @@ export class TournamentRepository {
       .update({ poll_until: null });
   }
 
-  async updateData(id: number, newData: TournamentData): Promise<ProcessedTournament> {
-    return knexDb.transaction(async (trx) => {
-      // Update tournament record
-      const [updated] = await trx('tournaments')
-        .where('id', id)
-        .update({ data: newData })
-        .returning('*');
-
-      if (!updated) {
-        throw new Error(`Tournament ${id} not found`);
-      }
-
-      // Update normalized tables
-      await this.storeTournamentData(trx, id, newData);
-
-      return updated;
-    }).then(() => this.findById(id) as Promise<ProcessedTournament>);
-  }
-
   async stopPolling(id: number): Promise<void> {
     await knexDb('tournaments')
       .where('id', id)
       .update({ poll_until: null });
-  }
-
-  // Helper method for initial tournament creation
-  async createFromUrl(
-    params: Omit<CreateTournamentParams, "rawData"> & { userId: number },
-  ): Promise<ProcessedTournament> {
-    const rawData = await loadTournamentFile(params.dataUrl);
-    return this.create({ ...params, rawData });
   }
 
   async getMatchWithPlayers(match: CurrentMatch): Promise<MatchWithPlayers> {
@@ -648,51 +373,6 @@ export class TournamentRepository {
 
       await trx('tournaments').where('id', id).where('user_id', userId).del();
     });
-  }
-
-  async update(
-    id: number,
-    {
-      name,
-      city,
-      year,
-      lexicon,
-      longFormName,
-      dataUrl,
-    }: {
-      name: string;
-      city: string;
-      year: number;
-      lexicon: string;
-      longFormName: string;
-      dataUrl: string;
-    },
-  ): Promise<ProcessedTournament> {
-    const newData = await loadTournamentFile(dataUrl);
-
-    return knexDb.transaction(async (trx) => {
-      const [updated] = await trx('tournaments')
-        .where('id', id)
-        .update({
-          name,
-          city,
-          year,
-          lexicon,
-          long_form_name: longFormName,
-          data_url: dataUrl,
-          data: newData,
-        })
-        .returning('*');
-
-      if (!updated) {
-        throw new Error(`Tournament ${id} not found`);
-      }
-
-      // Update normalized tables
-      await this.storeTournamentData(trx, id, newData);
-
-      return updated;
-    }).then(() => this.findById(id) as Promise<ProcessedTournament>);
   }
 
   async getDivisionStats(tournamentId: number, divisionId: number): Promise<DivisionStats> {

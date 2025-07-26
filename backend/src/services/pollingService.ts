@@ -1,8 +1,10 @@
 import cron, { ScheduledTask } from "node-cron";
 import { TournamentRepository } from "../repositories/tournamentRepository";
+import { CleanTournamentRepository } from "../repositories/cleanTournamentRepository";
 import { loadTournamentFile } from "./dataProcessing";
 import { Server as SocketIOServer } from "socket.io";
 import { GamesAddedMessage } from "@shared/types/websocket";
+import { convertFileToDatabase } from "@shared/utils/conversions";
 
 export class TournamentPollingService {
   private isRunning: boolean;
@@ -10,6 +12,7 @@ export class TournamentPollingService {
 
   constructor(
     private readonly tournamentRepo: TournamentRepository,
+    private readonly cleanTournamentRepo: CleanTournamentRepository,
     private readonly io: SocketIOServer  // Add this
   ) {
     this.isRunning = false;
@@ -52,7 +55,18 @@ export class TournamentPollingService {
 
         // Use a deep comparison of the data
         if (JSON.stringify(newData) !== JSON.stringify(tournament.data)) {
-          await this.tournamentRepo.updateData(tournament.id, newData);
+          // Convert file data to database format
+          const createTournamentData = convertFileToDatabase(newData, {
+            name: tournament.name,
+            city: tournament.city,
+            year: tournament.year,
+            lexicon: tournament.lexicon,
+            longFormName: tournament.long_form_name,
+            dataUrl: tournament.data_url,
+            userId: tournament.user_id,
+          });
+
+          await this.cleanTournamentRepo.updateData(tournament.id, createTournamentData);
           console.log(`Updated tournament ${tournament.id} with new data`);
           this.io.emit("GamesAdded", {
             userId: tournament.user_id,
