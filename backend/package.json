@@ -12,8 +12,7 @@
     "migrate:latest": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
     "seed:make": "knex seed:make",
-    "seed:run": "knex seed:run",
-    "migrate-data": "ts-node src/scripts/testServices.ts --migrate-all"
+    "seed:run": "knex seed:run"
   },
   "dependencies": {
     "@types/bcrypt": "^5.0.2",
