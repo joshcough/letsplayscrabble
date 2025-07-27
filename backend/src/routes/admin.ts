@@ -4,8 +4,7 @@ import { RequestHandler } from "express-serve-static-core";
 import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
 import { MatchWithPlayers } from "@shared/types/admin";
 import { CurrentMatch } from "@shared/types/currentMatch";
-import { PlayerStats } from "@shared/types/tournament";
-import { getPlayerRecentGames } from "../services/dataProcessing";
+// import { getPlayerRecentGames } from "../services/dataProcessing";
 import { AdminPanelUpdateMessage } from "@shared/types/websocket";
 
 export default function createAdminRoutes(

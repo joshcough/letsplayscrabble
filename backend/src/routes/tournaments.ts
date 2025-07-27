@@ -2,7 +2,7 @@
 import express, { Router, Request, Response } from "express";
 import { ParamsDictionary, RequestHandler } from "express-serve-static-core";
 import { TournamentRepository } from "../repositories/tournamentRepository";
-import { loadTournamentFile } from "../services/dataProcessing";
+import { loadTournamentFile } from "../services/loadTournamentFile";
 import { convertFileToDatabase } from "../services/fileToDatabaseConversions";
 import * as DB from "@shared/types/database";
 import * as Api from "@shared/types/api";
