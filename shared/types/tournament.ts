@@ -1,3 +1,5 @@
+// shared/types/tournament.ts
+// THIS FILE IS SLATED FOR DEATH AND WE SHOULD NOT USE IT.
 export interface Tournament {
   id: number;
   name: string;

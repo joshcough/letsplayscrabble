@@ -1,3 +1,4 @@
+// shared/types/scrabbleFileFormat.ts
 // Types for data that comes from downloaded tournament files
 
 export interface TournamentData {

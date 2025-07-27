@@ -16,7 +16,7 @@ import {
 } from "@shared/types/tournament";
 
 import { eqPairing } from "./tournamentInstances";
-import { calculateStandings, formatName } from "./statsCalculations";
+import { formatName } from "./statsCalculations";
 
 export async function loadTournamentFile(
   source: string,
@@ -130,8 +130,8 @@ function sortAndGroupByRound(items: Pairing[]): Map<number, Pairing[]> {
   return groupedByRound;
 }
 
-// Re-export calculateStandings from statsCalculations
-export { calculateStandings };
+// // Re-export calculateStandings from statsCalculations
+// export { calculateStandings };
 
 export function getPlayerRecentGames(
   division: Division,

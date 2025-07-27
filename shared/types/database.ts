@@ -28,11 +28,11 @@ export interface DivisionRow {
   updated_at: Date;
 }
 
-export interface TournamentPlayerRow {
+export interface PlayerRow {
   id: number;
   tournament_id: number;
   division_id: number;
-  player_id: number; // The ID from the file
+  seed: number;
   name: string;
   initial_rating: number;
   photo: string | null;
@@ -55,6 +55,15 @@ export interface GameRow {
   updated_at: Date;
 }
 
+export interface GameWithPlayers {
+  game: GameRow;
+  player1: PlayerRow;
+  player2: PlayerRow;
+  player1_score: number | null;
+  player2_score: number | null;
+  is_bye: boolean;
+}
+
 // Types for creating/inserting (before database IDs)
 export interface CreateTournamentRow {
   name: string;
@@ -73,9 +82,9 @@ export interface CreateDivisionRow {
   position: number;
 }
 
-export interface CreateTournamentPlayerRow {
+export interface CreatePlayerRow {
   division_position: number; // Reference by position, not ID
-  player_id: number;
+  seed: number;
   name: string;
   initial_rating: number;
   photo: string | null;
@@ -108,7 +117,7 @@ export interface CreateTournamentParams {
 export interface CreateTournament {
   tournament: CreateTournamentRow;
   divisions: CreateDivisionRow[];
-  players: CreateTournamentPlayerRow[];
+  players: CreatePlayerRow[];
   games: CreateGameRow[];
 }
 
@@ -116,7 +125,7 @@ export interface CreateTournament {
 export interface Tournament {
   tournament: TournamentRow;
   divisions: DivisionRow[];
-  players: TournamentPlayerRow[];
+  players: PlayerRow[];
   games: GameRow[];
 }
 
