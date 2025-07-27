@@ -5,7 +5,7 @@ console.log("Starting development server...");
 
 const nodemon: ChildProcess = spawn(
   "nodemon",
-  ["--exec", "ts-node", "src/server.ts"],
+  ["--exec", "ts-node -r tsconfig-paths/register", "src/server.ts"],
   {
     stdio: "inherit",
     env: {

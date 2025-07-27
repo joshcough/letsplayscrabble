@@ -1,6 +1,4 @@
-// shared/utils/conversions.ts
-// Pure functions to convert between type domains
-
+// backend/src/services/fileToDatabaseConversions.ts
 import * as File from '@shared/types/scrabbleFileFormat';
 import * as DB from '@shared/types/database';
 

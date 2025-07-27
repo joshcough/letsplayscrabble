@@ -1,18 +1,16 @@
 import cron, { ScheduledTask } from "node-cron";
 import { TournamentRepository } from "../repositories/tournamentRepository";
-import { CleanTournamentRepository } from "../repositories/cleanTournamentRepository";
 import { loadTournamentFile } from "./dataProcessing";
 import { Server as SocketIOServer } from "socket.io";
 import { GamesAddedMessage } from "@shared/types/websocket";
-import { convertFileToDatabase } from "@shared/utils/conversions";
+import { convertFileToDatabase } from "./fileToDatabaseConversions";
 
 export class TournamentPollingService {
   private isRunning: boolean;
   private job: ScheduledTask | null;
 
   constructor(
-    private readonly tournamentRepo: TournamentRepository,
-    private readonly cleanTournamentRepo: CleanTournamentRepository,
+    private readonly cleanTournamentRepo: TournamentRepository,
     private readonly io: SocketIOServer  // Add this
   ) {
     this.isRunning = false;
@@ -47,7 +45,7 @@ export class TournamentPollingService {
     console.log("Tournament polling service is polling...");
 
     await this.clearExpiredPolls();
-    const activeTournaments = await this.tournamentRepo.findActivePollable();
+    const activeTournaments = await this.cleanTournamentRepo.findActivePollable();
 
     for (const tournament of activeTournaments) {
       try {
@@ -80,6 +78,6 @@ export class TournamentPollingService {
   }
 
   private async clearExpiredPolls(): Promise<void> {
-    await this.tournamentRepo.endInactivePollable();
+    await this.cleanTournamentRepo.endInactivePollable();
   }
 }

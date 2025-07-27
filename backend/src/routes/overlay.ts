@@ -1,13 +1,11 @@
 import express, { Router } from "express";
 import { RequestHandler } from "express-serve-static-core";
-import { TournamentRepository } from "../repositories/tournamentRepository";
 import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
 import { MatchWithPlayers } from "@shared/types/admin";
 import { CurrentMatch } from "@shared/types/currentMatch";
 import { getPlayerRecentGames } from "../services/dataProcessing";
 
 export default function createOverlayRoutes(
-  tournamentRepository: TournamentRepository,
   currentMatchRepository: CurrentMatchRepository,
 ): Router {
   const router = express.Router();

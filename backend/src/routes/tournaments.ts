@@ -2,9 +2,8 @@
 import express, { Router, Request, Response } from "express";
 import { ParamsDictionary, RequestHandler } from "express-serve-static-core";
 import { TournamentRepository } from "../repositories/tournamentRepository";
-import { CleanTournamentRepository } from "../repositories/cleanTournamentRepository";
 import { loadTournamentFile } from "../services/dataProcessing";
-import { convertFileToDatabase } from "@shared/utils/conversions";
+import { convertFileToDatabase } from "../services/fileToDatabaseConversions";
 import * as DB from "@shared/types/database";
 import * as Api from "@shared/types/api";
 
@@ -51,12 +50,12 @@ interface UpdateTournamentBody {
 
 // Helper function for ownership verification
 const verifyTournamentOwnership = async (
-  cleanTournamentRepository: CleanTournamentRepository,
+  tournamentRepository: TournamentRepository,
   tournamentId: number,
   userId: number,
   res: Response
 ): Promise<boolean> => {
-  const isOwner = await cleanTournamentRepository.isOwner(tournamentId, userId);
+  const isOwner = await tournamentRepository.isOwner(tournamentId, userId);
   if (!isOwner) {
     res.status(404).json({ message: "Tournament not found" });
     return false;
@@ -65,8 +64,7 @@ const verifyTournamentOwnership = async (
 };
 
 export function protectedTournamentRoutes(
-  tournamentRepository: TournamentRepository,
-  cleanTournamentRepository: CleanTournamentRepository
+  tournamentRepository: TournamentRepository
 ): Router {
   const router = express.Router();
 
@@ -134,7 +132,7 @@ export function protectedTournamentRoutes(
       });
 
       // Create tournament using clean repository
-      const tournament = await cleanTournamentRepository.create(createTournamentData);
+      const tournament = await tournamentRepository.create(createTournamentData);
 
       res.status(201).json(tournament);
     } catch (error) {
@@ -153,7 +151,7 @@ export function protectedTournamentRoutes(
       const tournamentId = parseInt(id, 10);
 
       // Use helper for ownership check
-      if (!(await verifyTournamentOwnership(cleanTournamentRepository, tournamentId, userId, res))) return;
+      if (!(await verifyTournamentOwnership(tournamentRepository, tournamentId, userId, res))) return;
 
       await tournamentRepository.deleteByIdForUser(tournamentId, userId);
       res.status(204).send(); // No content response for successful deletion
@@ -179,7 +177,7 @@ export function protectedTournamentRoutes(
       const tournamentId = parseInt(id, 10);
 
       // Use helper for ownership check
-      if (!(await verifyTournamentOwnership(cleanTournamentRepository, tournamentId, userId, res))) return;
+      if (!(await verifyTournamentOwnership(tournamentRepository, tournamentId, userId, res))) return;
 
       const pollUntil = new Date();
       pollUntil.setDate(pollUntil.getDate() + days);
@@ -201,7 +199,7 @@ export function protectedTournamentRoutes(
       const tournamentId = parseInt(id, 10);
 
       // Use helper for ownership check
-      if (!(await verifyTournamentOwnership(cleanTournamentRepository, tournamentId, userId, res))) return;
+      if (!(await verifyTournamentOwnership(tournamentRepository, tournamentId, userId, res))) return;
 
       await tournamentRepository.stopPolling(tournamentId);
       res.json({ message: "Polling disabled" });
@@ -224,7 +222,7 @@ export function protectedTournamentRoutes(
       const userId = req.user!.id;
       const tournamentId = parseInt(id, 10);
 
-      const existingTournament = await cleanTournamentRepository.findByIdForUser(
+      const existingTournament = await tournamentRepository.findByIdForUser(
         tournamentId,
         userId
       );
@@ -253,7 +251,7 @@ export function protectedTournamentRoutes(
         });
 
         // Update everything in one transaction through repo
-        const tournament = await cleanTournamentRepository.updateTournamentWithNewData(
+        const tournament = await tournamentRepository.updateTournamentWithNewData(
           tournamentId,
           userId,
           metadata,
@@ -263,7 +261,7 @@ export function protectedTournamentRoutes(
         res.json(Api.success(tournament));
       } else {
         // Just update metadata fields through repo
-        const tournament = await cleanTournamentRepository.updateTournamentMetadata(
+        const tournament = await tournamentRepository.updateTournamentMetadata(
           tournamentId,
           userId,
           metadata
@@ -283,7 +281,7 @@ export function protectedTournamentRoutes(
   > = async (req, res) => {
    try {
      const userId = req.user!.id;
-     const result = await cleanTournamentRepository.findAllForUser(userId);
+     const result = await tournamentRepository.findAllForUser(userId);
      res.json(Api.success(result));
    } catch (error) {
      console.error("Database error:", error);
@@ -296,7 +294,7 @@ export function protectedTournamentRoutes(
       const userId = req.user!.id;
       const tournamentId = parseInt(req.params.id, 10);
 
-      const tournament = await cleanTournamentRepository.getCompleteTournamentForUser(tournamentId, userId);
+      const tournament = await tournamentRepository.getCompleteTournamentForUser(tournamentId, userId);
       if (!tournament) {
         res.status(404).json({ message: "Tournament not found" });
         return;
@@ -323,7 +321,6 @@ export function protectedTournamentRoutes(
 
 export function unprotectedTournamentRoutes(
   tournamentRepository: TournamentRepository,
-  cleanTournamentRepository: CleanTournamentRepository,
 ): Router {
   const router = express.Router();
 
@@ -372,7 +369,7 @@ export function unprotectedTournamentRoutes(
 
      console.log("🔄 Looking for tournament", req.params.id, "for user", userId);
 
-     const t = await cleanTournamentRepository.findByIdForUser(
+     const t = await tournamentRepository.findByIdForUser(
        parseInt(req.params.id, 10),
        userId
      );
@@ -453,9 +450,9 @@ export function unprotectedTournamentRoutes(
       }
 
       // Use helper for ownership check
-      if (!(await verifyTournamentOwnership(cleanTournamentRepository, tournamentId, userId, res))) return;
+      if (!(await verifyTournamentOwnership(tournamentRepository, tournamentId, userId, res))) return;
 
-      const stats = await cleanTournamentRepository.getDivisionStats(tournamentId, divisionId);
+      const stats = await tournamentRepository.getDivisionStats(tournamentId, divisionId);
       res.json(stats);
     } catch (error) {
       console.error('Error fetching division stats:', error);
@@ -479,9 +476,9 @@ export function unprotectedTournamentRoutes(
       }
 
       // Use helper for ownership check
-      if (!(await verifyTournamentOwnership(cleanTournamentRepository, tournamentId, userId, res))) return;
+      if (!(await verifyTournamentOwnership(tournamentRepository, tournamentId, userId, res))) return;
 
-      const stats = await cleanTournamentRepository.getTournamentStats(tournamentId);
+      const stats = await tournamentRepository.getTournamentStats(tournamentId);
       res.json(stats);
     } catch (error) {
       console.error('Error fetching tournament stats:', error);
@@ -500,7 +497,7 @@ export function unprotectedTournamentRoutes(
       const divisionId = parseInt(req.params.divisionId, 10);
       const playerId = parseInt(req.params.id, 10);
 
-      const data = await cleanTournamentRepository.getPlayerDisplayData(
+      const data = await tournamentRepository.getPlayerDisplayData(
         tournamentId,
         divisionId,
         playerId,
