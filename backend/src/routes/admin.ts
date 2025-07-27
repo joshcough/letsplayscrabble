@@ -1,7 +1,6 @@
 import express, { Router } from "express";
 import { Server as SocketIOServer } from "socket.io";
 import { RequestHandler } from "express-serve-static-core";
-import { TournamentRepository } from "../repositories/tournamentRepository";
 import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
 import { MatchWithPlayers } from "@shared/types/admin";
 import { CurrentMatch } from "@shared/types/currentMatch";
@@ -10,7 +9,6 @@ import { getPlayerRecentGames } from "../services/dataProcessing";
 import { AdminPanelUpdateMessage } from "@shared/types/websocket";
 
 export default function createAdminRoutes(
-  tournamentRepository: TournamentRepository,
   currentMatchRepository: CurrentMatchRepository,
   io: SocketIOServer,
 ): Router {

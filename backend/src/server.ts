@@ -6,7 +6,6 @@ import path from "path";
 import dotenv from "dotenv";
 import { pool } from "./config/database";
 import { TournamentRepository } from "./repositories/tournamentRepository";
-import { CleanTournamentRepository } from "./repositories/cleanTournamentRepository";
 import { CurrentMatchRepository } from "./repositories/currentMatchRepository";
 import {
   protectedTournamentRoutes,
@@ -76,10 +75,8 @@ const io = new SocketIOServer(server, {
 });
 
 const tournamentRepository = new TournamentRepository();
-const cleanTournamentRepository = new CleanTournamentRepository();
 const currentMatchRepository = new CurrentMatchRepository(pool);
-const pollingService =
-  new TournamentPollingService(tournamentRepository, cleanTournamentRepository, io);
+const pollingService = new TournamentPollingService(tournamentRepository, io);
 
 app.use(
   cors({
@@ -135,23 +132,23 @@ setInterval(() => {
 app.use("/api/auth", authRoutes);
 app.use(
   "/api/overlay",
-  createOverlayRoutes(tournamentRepository, currentMatchRepository),
+  createOverlayRoutes(currentMatchRepository),
 );
 app.use(
   "/api/tournaments/public",
-  unprotectedTournamentRoutes(tournamentRepository, cleanTournamentRepository),
+  unprotectedTournamentRoutes(tournamentRepository),
 );
 
 // Protected routes
 app.use(
   "/api/tournaments/admin",
   requireAuth,
-  protectedTournamentRoutes(tournamentRepository, cleanTournamentRepository),
+  protectedTournamentRoutes(tournamentRepository),
 );
 app.use(
   "/api/admin",
   requireAuth,
-  createAdminRoutes(tournamentRepository, currentMatchRepository, io),
+  createAdminRoutes(currentMatchRepository, io),
 );
 
 // Get the project root once
