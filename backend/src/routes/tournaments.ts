@@ -1,9 +1,12 @@
+// backend/src/routes/tournament.ts
 import express, { Router, Request, Response } from "express";
 import { ParamsDictionary, RequestHandler } from "express-serve-static-core";
 import { TournamentRepository } from "../repositories/tournamentRepository";
 import { CleanTournamentRepository } from "../repositories/cleanTournamentRepository";
 import { loadTournamentFile } from "../services/dataProcessing";
 import { convertFileToDatabase } from "@shared/utils/conversions";
+import * as DB from "@shared/types/database";
+import * as Api from "@shared/types/api";
 
 // Request types
 interface CreateTournamentBody {
@@ -46,49 +49,64 @@ interface UpdateTournamentBody {
   dataUrl: string;
 }
 
+// Helper function for ownership verification
+const verifyTournamentOwnership = async (
+  cleanTournamentRepository: CleanTournamentRepository,
+  tournamentId: number,
+  userId: number,
+  res: Response
+): Promise<boolean> => {
+  const isOwner = await cleanTournamentRepository.isOwner(tournamentId, userId);
+  if (!isOwner) {
+    res.status(404).json({ message: "Tournament not found" });
+    return false;
+  }
+  return true;
+};
+
 export function protectedTournamentRoutes(
   tournamentRepository: TournamentRepository,
   cleanTournamentRepository: CleanTournamentRepository
 ): Router {
   const router = express.Router();
 
-  // Get all tournaments for authenticated user
-  const getAllTournaments: RequestHandler = async (req, res) => {
-    try {
-      const userId = req.user!.id;
-      const result = await tournamentRepository.findAllForUser(userId);
-      res.json(result);
-    } catch (error) {
-      console.error("Database error:", error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  };
+//   // Get all tournaments for authenticated user
+//   const getAllTournaments: RequestHandler = async (req, res) => {
+//     try {
+//       const userId = req.user!.id;
+//       const result = await tournamentRepository.findAllForUser(userId);
+//       res.json(result);
+//     } catch (error) {
+//       console.error("Database error:", error);
+//       res.status(500).json({
+//         message: error instanceof Error ? error.message : "Unknown error",
+//       });
+//     }
+//   };
 
-  // Get tournament by ID (user-scoped)
-  const getTournamentById: RequestHandler<TournamentIdParams> = async (
-    req,
-    res,
-  ) => {
-    try {
-      const userId = req.user!.id;
-      const t = await tournamentRepository.findByIdForUser(
-        parseInt(req.params.id, 10),
-        userId
-      );
-      if (t === null) {
-        res.status(404).json({ message: "Tournament not found" });
-        return;
-      }
-      res.json(t);
-    } catch (error) {
-      console.error("Database error:", error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  };
+//   // Get tournament by ID (user-scoped)
+//   const getTournamentById: RequestHandler<TournamentIdParams> = async (
+//     req,
+//     res,
+//   ) => {
+//     try {
+//       const userId = req.user!.id;
+//       const t = await tournamentRepository.findByIdForUser(
+//         parseInt(req.params.id, 10),
+//         userId
+//       );
+//       if (t === null) {
+//         res.status(404).json({ message: "Tournament not found" });
+//         return;
+//       }
+//       res.json(t);
+//     } catch (error) {
+//       console.error("Database error:", error);
+//       res.status(500).json({
+//         message: error instanceof Error ? error.message : "Unknown error",
+//       });
+//     }
+//   };
 
   // Create tournament (automatically assigns to authenticated user)
   const createTournament: RequestHandler<
@@ -132,18 +150,12 @@ export function protectedTournamentRoutes(
 
     try {
       const userId = req.user!.id;
-      // First verify user owns this tournament
-      const existingTournament = await tournamentRepository.findByIdForUser(
-        parseInt(id, 10),
-        userId
-      );
+      const tournamentId = parseInt(id, 10);
 
-      if (!existingTournament) {
-        res.status(404).json({ message: "Tournament not found" });
-        return;
-      }
+      // Use helper for ownership check
+      if (!(await verifyTournamentOwnership(cleanTournamentRepository, tournamentId, userId, res))) return;
 
-      await tournamentRepository.deleteByIdForUser(parseInt(id, 10), userId);
+      await tournamentRepository.deleteByIdForUser(tournamentId, userId);
       res.status(204).send(); // No content response for successful deletion
     } catch (error) {
       console.error("Database error:", error);
@@ -164,20 +176,14 @@ export function protectedTournamentRoutes(
 
     try {
       const userId = req.user!.id;
-      // First verify user owns this tournament
-      const tournament = await tournamentRepository.findByIdForUser(
-        parseInt(id, 10),
-        userId
-      );
+      const tournamentId = parseInt(id, 10);
 
-      if (!tournament) {
-        res.status(404).json({ message: "Tournament not found" });
-        return;
-      }
+      // Use helper for ownership check
+      if (!(await verifyTournamentOwnership(cleanTournamentRepository, tournamentId, userId, res))) return;
 
       const pollUntil = new Date();
       pollUntil.setDate(pollUntil.getDate() + days);
-      await tournamentRepository.updatePollUntil(parseInt(id, 10), pollUntil);
+      await tournamentRepository.updatePollUntil(tournamentId, pollUntil);
       res.json({ message: "Polling enabled", pollUntil });
     } catch (error) {
       res.status(500).json({
@@ -192,18 +198,12 @@ export function protectedTournamentRoutes(
 
     try {
       const userId = req.user!.id;
-      // First verify user owns this tournament
-      const tournament = await tournamentRepository.findByIdForUser(
-        parseInt(id, 10),
-        userId
-      );
+      const tournamentId = parseInt(id, 10);
 
-      if (!tournament) {
-        res.status(404).json({ message: "Tournament not found" });
-        return;
-      }
+      // Use helper for ownership check
+      if (!(await verifyTournamentOwnership(cleanTournamentRepository, tournamentId, userId, res))) return;
 
-      await tournamentRepository.stopPolling(parseInt(id, 10));
+      await tournamentRepository.stopPolling(tournamentId);
       res.json({ message: "Polling disabled" });
     } catch (error) {
       res.status(500).json({
@@ -214,7 +214,7 @@ export function protectedTournamentRoutes(
 
   const updateTournament: RequestHandler<
     TournamentIdParams,
-    any,
+    Api.ApiResponse<DB.TournamentRow>,
     UpdateTournamentBody
   > = async (req, res) => {
     const { id } = req.params;
@@ -224,14 +224,13 @@ export function protectedTournamentRoutes(
       const userId = req.user!.id;
       const tournamentId = parseInt(id, 10);
 
-      // Get existing tournament through repo (no direct DB access!)
       const existingTournament = await cleanTournamentRepository.findByIdForUser(
         tournamentId,
         userId
       );
 
       if (!existingTournament) {
-        res.status(404).json({ message: "Tournament not found" });
+        res.status(404).json(Api.failure("Tournament not found" ));
         return;
       }
 
@@ -261,7 +260,7 @@ export function protectedTournamentRoutes(
           createTournamentData
         );
 
-        res.json(tournament);
+        res.json(Api.success(tournament));
       } else {
         // Just update metadata fields through repo
         const tournament = await cleanTournamentRepository.updateTournamentMetadata(
@@ -270,18 +269,49 @@ export function protectedTournamentRoutes(
           metadata
         );
 
-        res.json(tournament);
+        res.json(Api.success(tournament));
       }
     } catch (error) {
       console.error("Database error:", error);
-      res.status(400).json({
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
+      res.status(400).json(Api.failure(error instanceof Error ? error.message : "Unknown error"));
     }
   };
 
-  router.get("/", getAllTournaments);
-  router.get("/:id", getTournamentById);
+  const getTournamentListForUser: RequestHandler<
+   {},
+   Api.ApiResponse<DB.TournamentRow[]>
+  > = async (req, res) => {
+   try {
+     const userId = req.user!.id;
+     const result = await cleanTournamentRepository.findAllForUser(userId);
+     res.json(Api.success(result));
+   } catch (error) {
+     console.error("Database error:", error);
+     res.status(500).json(Api.failure(error instanceof Error ? error.message : "Unknown error"));
+   }
+  };
+
+  const getCompleteTournament: RequestHandler<TournamentIdParams> = async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const tournamentId = parseInt(req.params.id, 10);
+
+      const tournament = await cleanTournamentRepository.getCompleteTournamentForUser(tournamentId, userId);
+      if (!tournament) {
+        res.status(404).json({ message: "Tournament not found" });
+        return;
+      }
+      res.json(tournament);
+    } catch (error) {
+      console.error("Database error:", error);
+      res.status(500).json({ message: error instanceof Error ? error.message : "Unknown error" });
+    }
+  };
+
+//   router.get("/", getAllTournaments);
+  router.get("/list", getTournamentListForUser);
+//   router.get("/:id", getTournamentById);
+  router.get("/:id/complete", getCompleteTournament);
   router.post("/", createTournament);
   router.post("/:id/polling", startPolling);
   router.delete("/:id/polling", stopPolling);
@@ -293,6 +323,7 @@ export function protectedTournamentRoutes(
 
 export function unprotectedTournamentRoutes(
   tournamentRepository: TournamentRepository,
+  cleanTournamentRepository: CleanTournamentRepository,
 ): Router {
   const router = express.Router();
 
@@ -305,141 +336,94 @@ export function unprotectedTournamentRoutes(
     return userId;
   };
 
-  // Get all tournaments for specific user (public access)
-  const getAllTournamentsForUser: RequestHandler<{ userId: string }> = async (req, res) => {
-    try {
-      const userId = getUserIdFromParams(req);
-      if (userId === null) {
-        res.status(400).json({ error: "Invalid user ID" });
-        return;
-      }
-
-      const result = await tournamentRepository.findAllForUser(userId);
-      res.json(result);
-    } catch (error) {
-      console.error("Database error:", error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  };
+//   // Get all tournaments for specific user (public access)
+//   const getAllTournamentsForUser: RequestHandler<{ userId: string }> = async (req, res) => {
+//     try {
+//       const userId = getUserIdFromParams(req);
+//       if (userId === null) {
+//         res.status(400).json({ error: "Invalid user ID" });
+//         return;
+//       }
+//
+//       const result = await tournamentRepository.findAllForUser(userId);
+//       res.json(result);
+//     } catch (error) {
+//       console.error("Database error:", error);
+//       res.status(500).json({
+//         message: error instanceof Error ? error.message : "Unknown error",
+//       });
+//     }
+//   };
 
   // Get tournament by ID for specific user (public access)
-  const getTournamentByIdForUser: RequestHandler<UserTournamentParams> = async (
-    req,
-    res,
-  ) => {
-    console.log("🔍 getTournamentByIdForUser called:", req.params);
+  const getTournamentByIdForUser: RequestHandler<
+   UserTournamentParams,
+   Api.ApiResponse<any> // TODO: Replace 'any' with proper tournament type
+  > = async (req, res) => {
+   console.log("🔍 getTournamentByIdForUser called:", req.params);
 
-    try {
-      const userId = getUserIdFromParams(req);
-      if (userId === null) {
-        console.log("❌ Invalid user ID");
-        res.status(400).json({ error: "Invalid user ID" });
-        return;
-      }
+   try {
+     const userId = getUserIdFromParams(req);
+     if (userId === null) {
+       console.log("❌ Invalid user ID");
+       res.status(400).json(Api.failure("Invalid user ID"));
+       return;
+     }
 
-      console.log("🔄 Looking for tournament", req.params.id, "for user", userId);
+     console.log("🔄 Looking for tournament", req.params.id, "for user", userId);
 
-      const t = await tournamentRepository.findByIdForUser(
-        parseInt(req.params.id, 10),
-        userId
-      );
+     const t = await cleanTournamentRepository.findByIdForUser(
+       parseInt(req.params.id, 10),
+       userId
+     );
 
-      console.log("📊 Tournament query result:", t ? "found" : "not found");
+     console.log("📊 Tournament query result:", t ? "found" : "not found");
 
-      if (t === null) {
-        console.log("❌ Tournament not found");
-        res.status(404).json({ message: "Tournament not found" });
-        return;
-      }
-      res.json(t);
-    } catch (error) {
-      console.error("💥 Error in getTournamentByIdForUser:", error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
+     if (t === null) {
+       console.log("❌ Tournament not found");
+       res.status(404).json(Api.failure("Tournament not found"));
+       return;
+     }
+     res.json(Api.success(t));
+   } catch (error) {
+     console.error("💥 Error in getTournamentByIdForUser:", error);
+     res.status(500).json(Api.failure(error instanceof Error ? error.message : "Unknown error"));
+   }
   };
 
-  // Get tournament by name for specific user (public access)
-  const getTournamentByNameForUser: RequestHandler<UserTournamentNameParams> = async (
-    req,
-    res,
-  ) => {
-    try {
-      const userId = getUserIdFromParams(req);
-      if (userId === null) {
-        res.status(400).json({ error: "Invalid user ID" });
-        return;
-      }
+//   // Global methods (all users) - keep for backwards compatibility
+//   const getAllTournaments: RequestHandler = async (_req, res) => {
+//     try {
+//       const result = await tournamentRepository.findAll();
+//       res.json(result);
+//     } catch (error) {
+//       console.error("Database error:", error);
+//       res.status(500).json({
+//         message: error instanceof Error ? error.message : "Unknown error",
+//       });
+//     }
+//   };
 
-      const t = await tournamentRepository.findByNameForUser(req.params.name, userId);
-      if (t === null) {
-        res.status(404).json({ message: "Tournament not found" });
-        return;
-      }
-      res.json(t);
-    } catch (error) {
-      console.error("Database error:", error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  };
-
-  // Global methods (all users) - keep for backwards compatibility
-  const getAllTournaments: RequestHandler = async (_req, res) => {
-    try {
-      const result = await tournamentRepository.findAll();
-      res.json(result);
-    } catch (error) {
-      console.error("Database error:", error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  };
-
-  const getTournamentById: RequestHandler<TournamentIdParams> = async (
-    req,
-    res,
-  ) => {
-    try {
-      const t = await tournamentRepository.findById(
-        parseInt(req.params.id, 10),
-      );
-      if (t === null) {
-        res.status(404).json({ message: "Tournament not found" });
-        return;
-      }
-      res.json(t);
-    } catch (error) {
-      console.error("Database error:", error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  };
-
-  const getTournamentByName: RequestHandler<TournamentNameParams> = async (
-    req,
-    res,
-  ) => {
-    try {
-      const t = await tournamentRepository.findByName(req.params.name);
-      if (t === null) {
-        res.status(404).json({ message: "Tournament not found" });
-        return;
-      }
-      res.json(t);
-    } catch (error) {
-      console.error("Database error:", error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  };
+//   const getTournamentById: RequestHandler<TournamentIdParams> = async (
+//     req,
+//     res,
+//   ) => {
+//     try {
+//       const t = await tournamentRepository.findById(
+//         parseInt(req.params.id, 10),
+//       );
+//       if (t === null) {
+//         res.status(404).json({ message: "Tournament not found" });
+//         return;
+//       }
+//       res.json(t);
+//     } catch (error) {
+//       console.error("Database error:", error);
+//       res.status(500).json({
+//         message: error instanceof Error ? error.message : "Unknown error",
+//       });
+//     }
+//   };
 
   interface DivisionStatsParams {
     tournamentId: string;
@@ -451,41 +435,6 @@ export function unprotectedTournamentRoutes(
     tournamentId: string;
     divisionId: string;
   }
-
-  const getDivisionStats: RequestHandler<DivisionStatsParams> = async (req, res) => {
-    try {
-      const tournamentId = parseInt(req.params.tournamentId);
-      const divisionId = parseInt(req.params.divisionId);
-
-      if (isNaN(tournamentId) || isNaN(divisionId)) {
-        res.status(400).json({ error: 'Invalid tournament or division ID' });
-        return;
-      }
-
-      const stats = await tournamentRepository.getDivisionStats(tournamentId, divisionId);
-      res.json(stats);
-    } catch (error) {
-      console.error('Error fetching division stats:', error);
-      res.status(500).json({ error: 'Failed to fetch division stats' });
-    }
-  };
-
-  const getTournamentStats: RequestHandler<DivisionStatsParams> = async (req, res) => {
-    try {
-      const tournamentId = parseInt(req.params.tournamentId);
-
-      if (isNaN(tournamentId)) {
-        res.status(400).json({ error: 'Invalid tournament ID' });
-        return;
-      }
-
-      const stats = await tournamentRepository.getTournamentStats(tournamentId);
-      res.json(stats);
-    } catch (error) {
-      console.error('Error fetching tournament stats:', error);
-      res.status(500).json({ error: 'Failed to fetch tournament stats' });
-    }
-  };
 
   const getDivisionStatsForUser: RequestHandler<UserDivisionStatsParams> = async (req, res) => {
     try {
@@ -503,14 +452,10 @@ export function unprotectedTournamentRoutes(
         return;
       }
 
-      // Verify user has access to this tournament
-      const tournament = await tournamentRepository.findByIdForUser(tournamentId, userId);
-      if (!tournament) {
-        res.status(404).json({ message: "Tournament not found" });
-        return;
-      }
+      // Use helper for ownership check
+      if (!(await verifyTournamentOwnership(cleanTournamentRepository, tournamentId, userId, res))) return;
 
-      const stats = await tournamentRepository.getDivisionStats(tournamentId, divisionId);
+      const stats = await cleanTournamentRepository.getDivisionStats(tournamentId, divisionId);
       res.json(stats);
     } catch (error) {
       console.error('Error fetching division stats:', error);
@@ -533,14 +478,10 @@ export function unprotectedTournamentRoutes(
         return;
       }
 
-      // Verify user has access to this tournament
-      const tournament = await tournamentRepository.findByIdForUser(tournamentId, userId);
-      if (!tournament) {
-        res.status(404).json({ message: "Tournament not found" });
-        return;
-      }
+      // Use helper for ownership check
+      if (!(await verifyTournamentOwnership(cleanTournamentRepository, tournamentId, userId, res))) return;
 
-      const stats = await tournamentRepository.getTournamentStats(tournamentId);
+      const stats = await cleanTournamentRepository.getTournamentStats(tournamentId);
       res.json(stats);
     } catch (error) {
       console.error('Error fetching tournament stats:', error);
@@ -548,19 +489,45 @@ export function unprotectedTournamentRoutes(
     }
   };
 
+  const getPlayerDisplayData: RequestHandler<{
+    tournamentId: string;
+    divisionId: string;
+    id: string;
+  }> = async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const tournamentId = parseInt(req.params.tournamentId, 10);
+      const divisionId = parseInt(req.params.divisionId, 10);
+      const playerId = parseInt(req.params.id, 10);
+
+      const data = await cleanTournamentRepository.getPlayerDisplayData(
+        tournamentId,
+        divisionId,
+        playerId,
+        userId
+      );
+
+      res.json(data);
+    } catch (error) {
+      console.error("Error getting player display data:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  };
+
   // User-scoped routes (for overlays)
-  router.get("/users/:userId", getAllTournamentsForUser);
+//   router.get("/users/:userId", getAllTournamentsForUser);
   router.get("/users/:userId/tournaments/:id", getTournamentByIdForUser);
-  router.get("/users/:userId/tournaments/by-name/:name", getTournamentByNameForUser);
   router.get('/users/:userId/tournaments/:tournamentId/divisions/:divisionId/stats', getDivisionStatsForUser);
+  router.get("/users/:userId/tournaments/:tournamentId/divisions/:divisionId/players/:id/display-data", getPlayerDisplayData);
   router.get('/users/:userId/tournaments/:tournamentId/stats', getTournamentStatsForUser);
 
-  // Global routes (backwards compatibility)
-  router.get("/", getAllTournaments);
-  router.get("/:id", getTournamentById);
-  router.get("/by-name/:name", getTournamentByName);
-  router.get('/:tournamentId/divisions/:divisionId/stats', getDivisionStats);
-  router.get('/:tournamentId/stats', getTournamentStats);
+//   // Global routes (backwards compatibility)
+//   router.get("/", getAllTournaments);
+//   router.get("/:id", getTournamentById);
+//   router.get('/:tournamentId/divisions/:divisionId/stats', getDivisionStats);
+//   router.get('/:tournamentId/stats', getTournamentStats);
 
   return router;
 }

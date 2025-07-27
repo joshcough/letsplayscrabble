@@ -21,34 +21,6 @@ export default function createOverlayRoutes(
     return userId;
   };
 
-  const getCurrentMatchForStatsDeleteThisFunction: RequestHandler = async (req, res) => {
-    try {
-      const userId = getUserIdFromParams(req);
-      if (userId === null) {
-        res.status(400).json({ error: "Invalid user ID" });
-        return;
-      }
-
-      const match = await currentMatchRepository.getCurrentMatch(userId);
-
-      // If no match exists, return null matchData
-      if (!match) {
-        res.json({ matchData: null });
-        return;
-      }
-
-      // Get the complete match data with players and tournament info
-      const matchWithPlayers =
-        await tournamentRepository.getMatchWithPlayers(match);
-      res.json(matchWithPlayers); // This should now have matchData, tournament, and players
-    } catch (error) {
-      console.error("Error finding current match:", error);
-      res.status(500).json({
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  };
-
   const getCurrentMatch: RequestHandler = async (req, res) => {
     try {
       const userId = getUserIdFromParams(req);
@@ -71,7 +43,6 @@ export default function createOverlayRoutes(
     }
   };
 
-  router.get("/users/:userId/match/current_match_for_stats_delete_this_route", getCurrentMatchForStatsDeleteThisFunction);
   router.get("/users/:userId/match/current", getCurrentMatch);
   return router;
 }

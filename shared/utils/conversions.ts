@@ -37,14 +37,14 @@ export function convertFileToDatabase(
   }));
 
   // Convert players
-  const players: DB.CreateTournamentPlayerRow[] = [];
+  const players: DB.CreatePlayerRow[] = [];
   fileData.divisions.forEach((division, divisionIndex) => {
     division.players.forEach(player => {
       if (!player) return; // Skip null players
 
       players.push({
         division_position: divisionIndex,
-        player_id: player.id,
+        seed: player.id,
         name: player.name,
         initial_rating: player.rating,
         photo: player.photo,

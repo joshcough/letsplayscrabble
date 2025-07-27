@@ -139,7 +139,7 @@ app.use(
 );
 app.use(
   "/api/tournaments/public",
-  unprotectedTournamentRoutes(tournamentRepository),
+  unprotectedTournamentRoutes(tournamentRepository, cleanTournamentRepository),
 );
 
 // Protected routes

@@ -1,11 +1,19 @@
-import { GameResult, PlayerStats } from "./tournament";
+// shared/types/admin.ts
 import { CurrentMatch } from "./currentMatch";
+import { PlayerStats } from "./stats";
 
 export interface CreateMatchRequest {
   player1Id: number;
   player2Id: number;
   divisionId: number;
   tournamentId: number;
+}
+
+export interface GameResult {
+  round: number;
+  opponentName: string;
+  playerScore: number;
+  opponentScore: number;
 }
 
 export interface MatchWithPlayers {

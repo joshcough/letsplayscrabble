@@ -1,24 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { fetchAuthenticatedApiEndpoint } from "../../utils/api";
-import { ProcessedTournament } from "@shared/types/tournament";
+import { TournamentRow } from "@shared/types/database";
 
 interface TournamentListProps {
   onTournamentClick: (id: number) => void;
 }
 
-const TournamentList: React.FC<TournamentListProps> = ({
-  onTournamentClick,
-}) => {
-  const [tournaments, setTournaments] = useState<ProcessedTournament[]>([]);
+const TournamentList: React.FC<TournamentListProps> = ({ onTournamentClick }) => {
+  const [tournaments, setTournaments] = useState<TournamentRow[]>([]); // Change type
 
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const data = await fetchAuthenticatedApiEndpoint<ProcessedTournament[]>('/api/tournaments/admin', 'fetching user tournaments');
-        setTournaments(data || []); // Handle null case by defaulting to empty array
+        const data = await fetchAuthenticatedApiEndpoint<TournamentRow[]>('/api/tournaments/list', 'fetching user tournaments'); // Change endpoint
+        setTournaments(data || []);
       } catch (error) {
         console.error("Error fetching tournaments:", error);
-        setTournaments([]); // Set empty array on error
+        setTournaments([]);
       }
     };
     fetchTournaments();

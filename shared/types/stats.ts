@@ -64,3 +64,16 @@ export interface TwoPlayerStats {
   player1: PlayerStats;
   player2: PlayerStats;
 }
+
+export interface PlayerDisplayData {
+  firstLast: string;
+  averageScoreRounded: string;
+  highScore: number;
+  spread: number;
+  rank: number;
+  currentRating: number;
+  wins: number;
+  losses: number;
+  ties: number;
+  seed: number;
+}
