@@ -1,30 +1,29 @@
 // backend/src/services/tournamentStatsService.ts
-import { Knex } from "knex";
-import { PlayerStats, GameResult } from "@shared/types/tournament";
-import { formatName, getOrdinal } from "./statsCalculations";
-
-interface DatabasePlayer {
-  id: number;
-  player_id: number;
-  name: string;
-  initial_rating: number;
-  photo: string;
-  etc_data: any;
-}
-
-interface DatabaseGame {
-  round_number: number;
-  player1_id: number;
-  player2_id: number;
-  player1_score: number | null;
-  player2_score: number | null;
-  is_bye: boolean;
-  opponent_name: string;
-  opponent_etc: any;
-}
+// import { Knex } from "knex";
+// import { PlayerStats, GameResult } from "@shared/types/tournament";
+// import { formatName, getOrdinal } from "./statsCalculations";
+//
+// interface DatabasePlayer {
+//   id: number;
+//   player_id: number;
+//   name: string;
+//   initial_rating: number;
+//   photo: string;
+//   etc_data: any;
+// }
+//
+// interface DatabaseGame {
+//   round_number: number;
+//   player1_id: number;
+//   player2_id: number;
+//   player1_score: number | null;
+//   player2_score: number | null;
+//   is_bye: boolean;
+//   opponent_name: string;
+//   opponent_etc: any;
+// }
 
 export class TournamentStatsService {
-  constructor(private readonly knex: Knex) {}
 
 //   // Simple method for scripts - uses the old approach
 //   async calculateStandings(tournamentId: number): Promise<PlayerStats[][]> {

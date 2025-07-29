@@ -1,10 +1,10 @@
 import React from "react";
-import { PlayerStats } from "@shared/types/tournament";
-import { PictureOverlay } from "../../components/shared/PictureOverlay";
+import { UsePlayerStatsCalculation } from "../../hooks/usePlayerStatsCalculation";
+import PictureDisplay from "../../components/shared/PictureDisplay";
 import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
 const ScoringLeadersWithPicsOverlayPage: React.FC = () => {
-  const renderPlayerContent = (player: PlayerStats) => (
+  const renderPlayerContent = (player: any) => (
     <>
       <div className="text-black text-3xl font-bold text-center mb-2">
         {player.averageScoreRounded}
@@ -25,11 +25,17 @@ const ScoringLeadersWithPicsOverlayPage: React.FC = () => {
   );
 
   return (
-    <PictureOverlay
-      title="Scoring Leaders"
-      sortType="averageScore"
-      renderPlayerContent={renderPlayerContent}
-    />
+    <UsePlayerStatsCalculation sortType="averageScore">
+      {({ tournament, players, divisionName }) => (
+        <PictureDisplay
+          tournament={tournament}
+          standings={players.slice(0, 5)} // Top 5 scoring leaders
+          title="Scoring Leaders"
+          divisionName={divisionName}
+          renderPlayerContent={renderPlayerContent}
+        />
+      )}
+    </UsePlayerStatsCalculation>
   );
 };
 

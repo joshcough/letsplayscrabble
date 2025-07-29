@@ -1,4 +1,4 @@
-import { PlayerStats } from "@shared/types/tournament";
+import { PlayerStats } from "@shared/types/stats";
 
 // Helper to format spread with proper sign
 export const formatSpread = (spread: number | undefined): string => {

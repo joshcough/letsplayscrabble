@@ -1,7 +1,6 @@
 import React from "react";
-import { PlayerStats } from "@shared/types/tournament";
-import { TableOverlay } from "../../components/shared/TableOverlay";
-import { calculateStandingsRanks } from "../../utils/rankingCalculators";
+import { UsePlayerStatsCalculation, RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
+import { TournamentTableOverlay } from "../../components/shared/TournamentTableOverlay";
 import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
 const StandingsOverlayPage: React.FC = () => {
@@ -13,17 +12,17 @@ const StandingsOverlayPage: React.FC = () => {
     { key: "highScore", label: "High" },
   ];
 
-  const renderPlayerName = (player: PlayerStats) => player.name;
+  const renderPlayerName = (player: RankedPlayerStats) => player.name;
 
-  const renderCell = (player: PlayerStats, columnKey: string) => {
+  const renderCell = (player: RankedPlayerStats, columnKey: string) => {
     switch (columnKey) {
       case "rank":
         return player.rank;
       case "record":
-        if (player.ties == 0)
-          return player.wins + "-" + player.losses;
+        if (player.ties === 0)
+          return `${player.wins}-${player.losses}`;
         else
-          return player.wins + "-" + player.losses + "-" + player.ties;
+          return `${player.wins}-${player.losses}-${player.ties}`;
       case "spread":
         return formatNumberWithSign(player.spread);
       case "highScore":
@@ -34,13 +33,19 @@ const StandingsOverlayPage: React.FC = () => {
   };
 
   return (
-    <TableOverlay
-      columns={columns}
-      title="Standings"
-      rankCalculator={calculateStandingsRanks}
-      renderPlayerName={renderPlayerName}
-      renderCell={renderCell}
-    />
+    <UsePlayerStatsCalculation sortType="standings">
+      {({ tournament, players, divisionName }) => (
+        <TournamentTableOverlay
+          tournament={tournament}
+          standings={players} // All players
+          columns={columns}
+          title="Standings"
+          divisionName={divisionName}
+          renderPlayerName={renderPlayerName}
+          renderCell={renderCell}
+        />
+      )}
+    </UsePlayerStatsCalculation>
   );
 };
 

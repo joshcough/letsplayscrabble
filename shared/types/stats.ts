@@ -42,6 +42,7 @@ export interface DivisionStats {
   goingFirstWinPercentage: number;
 }
 
+// ZZZ is this used?
 export interface TournamentStats {
   tournamentId: number;
   divisionStats: DivisionStats[];
@@ -76,4 +77,14 @@ export interface PlayerDisplayData {
   losses: number;
   ties: number;
   seed: number;
+}
+
+export interface CumulativeStats {
+  gamesPlayed: number;
+  pointsScored: number;
+  averageScore: number;
+  averageWinningScore: number;
+  averageLosingScore: number;
+  higherSeedWinPercentage: number;
+  goingFirstWinPercentage: number;
 }

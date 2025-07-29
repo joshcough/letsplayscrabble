@@ -129,23 +129,3 @@ export interface TwoPlayerStats {
   player1: PlayerStats;
   player2: PlayerStats;
 }
-
-export interface DivisionStats {
-  gamesPlayed: number;
-  pointsScored: number;
-  averageScore: number;
-  averageWinningScore: number;
-  averageLosingScore: number;
-  higherSeedWinPercentage: number;
-  goingFirstWinPercentage: number;
-}
-
-export interface TournamentStats {
-  gamesPlayed: number;
-  pointsScored: number;
-  averageScore: number;
-  averageWinningScore: number;
-  averageLosingScore: number;
-  higherSeedWinPercentage: number;
-  goingFirstWinPercentage: number;
-}

@@ -1,4 +1,4 @@
-import { PlayerStats } from "@shared/types/tournament";
+import * as Stats from "@shared/types/stats";
 
 const baseUrl = "https://scrabbleplayers.org/directors/AA003954/";
 
@@ -22,7 +22,7 @@ export const formatPlayerName = (name: string): string => {
 
 export type SortType = 'highScore' | 'averageScore' | 'ratingDiff' | 'standings' ;
 
-export const calculateRanksBySortType = (players: PlayerStats[], sortType: SortType): PlayerStats[] => {
+export const calculateRanksBySortType = (players: Stats.PlayerStats[], sortType: SortType): Stats.PlayerStats[] => {
   const sortedPlayers = [...players].sort((a, b) => {
     switch (sortType) {
       case 'highScore':

@@ -1,19 +1,23 @@
 import React from 'react';
-import { ProcessedTournament, PlayerStats } from '@shared/types/tournament';
+import { TournamentDisplayData } from './BaseOverlay';
+import * as Stats from '@shared/types/stats';
 
 interface Column {
   key: string;
   label: string;
 }
 
+// Type for PlayerStats with rank added by ranking calculator
+type RankedPlayerStats = Stats.PlayerStats & { rank: number };
+
 interface TournamentTableOverlayProps {
-  tournament: ProcessedTournament;
-  standings: PlayerStats[];
+  tournament: TournamentDisplayData;
+  standings: RankedPlayerStats[];
   columns: Column[];
   title: string;
   divisionName: string;
-  renderPlayerName: (player: PlayerStats) => React.ReactNode;
-  renderCell: (player: PlayerStats, columnKey: string) => React.ReactNode;
+  renderPlayerName: (player: RankedPlayerStats) => React.ReactNode;
+  renderCell: (player: RankedPlayerStats, columnKey: string) => React.ReactNode;
 }
 
 export const TournamentTableOverlay: React.FC<TournamentTableOverlayProps> = ({
