@@ -121,12 +121,13 @@ export interface CreateTournament {
   games: CreateGameRow[];
 }
 
-// For reading/using - complete tournament with actual database records
 export interface Tournament {
   tournament: TournamentRow;
-  divisions: DivisionRow[];
-  players: PlayerRow[];
-  games: GameRow[];
+  divisions: {
+    division: DivisionRow;
+    players: PlayerRow[];
+    games: GameRow[];
+  }[];
 }
 
 export interface UpdateTournamentMetadata {

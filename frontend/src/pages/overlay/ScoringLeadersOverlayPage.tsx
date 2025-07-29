@@ -1,7 +1,6 @@
 import React from "react";
-import { PlayerStats } from "@shared/types/tournament";
-import { TableOverlay } from "../../components/shared/TableOverlay";
-import { calculateScoringRanks } from "../../utils/rankingCalculators";
+import { UsePlayerStatsCalculation, RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
+import { TournamentTableOverlay } from "../../components/shared/TournamentTableOverlay";
 import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
 const ScoringLeadersOverlayPage: React.FC = () => {
@@ -14,9 +13,9 @@ const ScoringLeadersOverlayPage: React.FC = () => {
     { key: "highScore", label: "High" },
   ];
 
-  const renderPlayerName = (player: PlayerStats) => player.name;
+  const renderPlayerName = (player: RankedPlayerStats) => player.name;
 
-  const renderCell = (player: PlayerStats, columnKey: string) => {
+  const renderCell = (player: RankedPlayerStats, columnKey: string) => {
     switch (columnKey) {
       case "rank":
         return player.rank;
@@ -38,13 +37,19 @@ const ScoringLeadersOverlayPage: React.FC = () => {
   };
 
   return (
-    <TableOverlay
-      columns={columns}
-      title="Scoring Leaders"
-      rankCalculator={calculateScoringRanks}
-      renderPlayerName={renderPlayerName}
-      renderCell={renderCell}
-    />
+    <UsePlayerStatsCalculation sortType="averageScore">
+      {({ tournament, players, divisionName }) => (
+        <TournamentTableOverlay
+          tournament={tournament}
+          standings={players}
+          columns={columns}
+          title="Scoring Leaders"
+          divisionName={divisionName}
+          renderPlayerName={renderPlayerName}
+          renderCell={renderCell}
+        />
+      )}
+    </UsePlayerStatsCalculation>
   );
 };
 

@@ -1,16 +1,17 @@
 import React from "react";
-import { ProcessedTournament, PlayerStats } from "@shared/types/tournament";
+import * as Stats from '@shared/types/stats';
+import { TournamentDisplayData } from '../shared/BaseOverlay';
 import {
   getPlayerImageUrl,
   formatPlayerName,
 } from "../../utils/pictureOverlayUtils";
 
 interface PictureDisplayProps {
-  tournament: ProcessedTournament;
-  standings: PlayerStats[];
+  tournament: TournamentDisplayData;
+  standings: Stats.PlayerStats[];
   title: string;
   divisionName: string;
-  renderPlayerContent: (player: PlayerStats) => React.ReactNode;
+  renderPlayerContent: (player: Stats.PlayerStats) => React.ReactNode;
 }
 
 const PictureDisplay: React.FC<PictureDisplayProps> = ({

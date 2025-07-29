@@ -1,8 +1,11 @@
-import { PlayerStats } from '@shared/types/tournament';
-import { calculateRanks } from './tournamentHelpers';
+import * as Stats from '@shared/types/stats';
 
-export const calculateStandingsRanks = (players: PlayerStats[]): PlayerStats[] => {
+// Add rank to PlayerStats (since it's needed for display)
+type RankedPlayerStats = Stats.PlayerStats & { rank: number };
+
+export const calculateStandingsRanks = (players: Stats.PlayerStats[]): RankedPlayerStats[] => {
   const sortedPlayers = [...players].sort((a, b) => {
+    // Sort by wins (descending), then losses (ascending), then spread (descending)
     if (a.wins !== b.wins) return b.wins - a.wins;
     if (a.losses !== b.losses) return a.losses - b.losses;
     return b.spread - a.spread;
@@ -14,7 +17,7 @@ export const calculateStandingsRanks = (players: PlayerStats[]): PlayerStats[] =
   }));
 };
 
-export const calculateRatingGainRanks = (players: PlayerStats[]): PlayerStats[] => {
+export const calculateRatingGainRanks = (players: Stats.PlayerStats[]): RankedPlayerStats[] => {
   const sortedPlayers = [...players].sort((a, b) => b.ratingDiff - a.ratingDiff);
 
   return sortedPlayers.map((player, index) => ({
@@ -23,5 +26,20 @@ export const calculateRatingGainRanks = (players: PlayerStats[]): PlayerStats[] 
   }));
 };
 
-// Re-export existing calculateRanks for scoring leaders
-export { calculateRanks as calculateScoringRanks } from './tournamentHelpers';
+export const calculateScoringRanks = (players: Stats.PlayerStats[]): RankedPlayerStats[] => {
+  const sortedPlayers = [...players].sort((a, b) => b.averageScore - a.averageScore);
+
+  return sortedPlayers.map((player, index) => ({
+    ...player,
+    rank: index + 1,
+  }));
+};
+
+export const calculateHighScoreRanks = (players: Stats.PlayerStats[]): RankedPlayerStats[] => {
+  const sortedPlayers = [...players].sort((a, b) => b.highScore - a.highScore);
+
+  return sortedPlayers.map((player, index) => ({
+    ...player,
+    rank: index + 1,
+  }));
+};

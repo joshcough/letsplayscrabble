@@ -1,122 +1,127 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { ProcessedTournament, PlayerStats } from '@shared/types/tournament';
+import * as DB from '@shared/types/database';
 import DisplaySourceManager from './DisplaySourceManager';
-import { fetchTournament } from '../utils/tournamentApi';
+import { fetchTournament, fetchTournamentDivision } from '../utils/api';
 
 interface UseTournamentDataProps {
   tournamentId?: number;
   divisionId?: number;
-  rankCalculator?: (players: PlayerStats[]) => PlayerStats[];
+  useUrlParams?: boolean;
 }
 
+type RouteParams = {
+  [key: string]: string | undefined;
+  userId: string;
+  tournamentId?: string;
+  divisionName?: string;
+};
+
 export const useTournamentData = ({
-  tournamentId,
-  divisionId,
-  rankCalculator
+  tournamentId: propTournamentId,
+  divisionId: propDivisionId,
+  useUrlParams = false
 }: UseTournamentDataProps) => {
-  const { userId } = useParams<{ userId: string }>();
-  const [standings, setStandings] = useState<PlayerStats[] | null>(null);
-  const [tournament, setTournament] = useState<ProcessedTournament | null>(null);
+  const { userId, tournamentId: urlTournamentId, divisionName } = useParams<RouteParams>();
+
+  const [tournamentData, setTournamentData] = useState<DB.Tournament | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [selectedDivisionId, setSelectedDivisionId] = useState<number | null>(null);
 
-  const processTournamentData = (tournamentData: ProcessedTournament) => {
-    setTournament(tournamentData);
-
-    if (divisionId !== undefined) {
-      const divisionStandings = rankCalculator
-        ? rankCalculator(tournamentData.standings[divisionId])
-        : tournamentData.standings[divisionId];
-      setStandings(divisionStandings);
-    }
-  };
+  const shouldUseUrlParams = useUrlParams && urlTournamentId && divisionName;
+  const effectiveTournamentId = shouldUseUrlParams ? Number(urlTournamentId) : propTournamentId;
 
   const fetchTournamentData = async () => {
-    if (!userId) {
-      setFetchError("User ID not found in URL");
+    if (!userId || !effectiveTournamentId) {
+      setFetchError("Missing required parameters");
       return;
     }
-
-    if (tournamentId === undefined || divisionId === undefined) return;
 
     try {
       setLoading(true);
       setFetchError(null);
 
-      console.log('🔄 useTournamentData: Fetching tournament data for user:', userId, 'tournament ID:', tournamentId, 'division:', divisionId);
+      let tournament: DB.Tournament;
+      let finalDivisionId: number | null = null;
 
-      const tournamentData = await fetchTournament(parseInt(userId), tournamentId);
-      processTournamentData(tournamentData);
+      if (shouldUseUrlParams) {
+        tournament = await fetchTournament(parseInt(userId), effectiveTournamentId);
+      } else if (propDivisionId) {
+        tournament = await fetchTournamentDivision(
+          parseInt(userId),
+          effectiveTournamentId,
+          propDivisionId
+        );
+        finalDivisionId = propDivisionId;
+      } else {
+        tournament = await fetchTournament(parseInt(userId), effectiveTournamentId);
+      }
+
+      if (shouldUseUrlParams && divisionName) {
+        const divisionData = tournament.divisions.find(d =>
+          d.division.name.toUpperCase() === divisionName.toUpperCase()
+        );
+        if (!divisionData) {
+          throw new Error(`Division "${divisionName}" not found`);
+        }
+        finalDivisionId = divisionData.division.id;
+      }
+
+      setTournamentData(tournament);
+      setSelectedDivisionId(finalDivisionId);
+
     } catch (err) {
-      console.error("Error fetching tournament data:", err);
       setFetchError(err instanceof Error ? err.message : "Failed to fetch tournament data");
     } finally {
       setLoading(false);
     }
   };
 
-  // Initial fetch when userId and tournament info are available
   useEffect(() => {
-    if (userId) {
-      fetchTournamentData();
+    if (userId && effectiveTournamentId) {
+      if (shouldUseUrlParams || propTournamentId) {
+        fetchTournamentData();
+      }
     }
-  }, [userId, tournamentId, divisionId]);
+  }, [userId, effectiveTournamentId, propDivisionId, divisionName, shouldUseUrlParams]);
 
-  // Listen for tournament data broadcasts
   useEffect(() => {
-    if (!userId || !tournamentId) return;
+    if (!userId || !effectiveTournamentId) return;
 
     const displayManager = DisplaySourceManager.getInstance();
-
-    const cleanupTournamentData = displayManager.onTournamentData((broadcastData: any) => {
-      console.log('📥 useTournamentData received TOURNAMENT_DATA:', broadcastData);
-
-      const { tournamentId: broadcastTournamentId, data, userId: broadcastUserId } = broadcastData;
-
-      // Only process if this broadcast is for our user AND tournament
-      if (broadcastUserId === parseInt(userId) && broadcastTournamentId === tournamentId) {
-        console.log('✅ Tournament data matches our user and tournament ID, processing...');
-        processTournamentData(data);
-        setFetchError(null); // Clear any previous errors
-      } else {
-        console.log('❌ Tournament data is for different user or tournament, ignoring');
-      }
-    });
-
-    const cleanupTournamentError = displayManager.onTournamentDataError((broadcastData: any) => {
-      console.log('📥 useTournamentData received TOURNAMENT_DATA_ERROR:', broadcastData);
-
-      const { tournamentId: broadcastTournamentId, error, userId: broadcastUserId } = broadcastData;
-
-      // Only process error if it's for our user AND tournament
-      if (broadcastUserId === parseInt(userId) && broadcastTournamentId === tournamentId) {
-        console.log('❌ Tournament data error matches our user and tournament ID');
-        setFetchError(error);
-      }
-    });
-
-    // Listen for GamesAdded for fallback (in case worker isn't running)
     const cleanupGamesAdded = displayManager.onGamesAdded((data: any) => {
-      console.log('📥 useTournamentData received GamesAdded (fallback):', data);
-
-      // Only process if it's for our user AND tournament
-      if (data.userId === parseInt(userId) && data.tournamentId === tournamentId) {
-        console.log('⚠️ Falling back to direct API fetch (worker may not be running)');
+      console.log('🎮 useTournamentData received GamesAdded broadcast:', data);
+      if (data.userId === parseInt(userId) && data.tournamentId === effectiveTournamentId) {
+        console.log('✅ Matching tournament - refetching data!');
         fetchTournamentData();
+      } else {
+        console.log('⏭️ Different tournament - ignoring');
       }
     });
 
     return () => {
-      cleanupTournamentData();
-      cleanupTournamentError();
       cleanupGamesAdded();
     };
-  }, [userId, tournamentId]);
+  }, [userId, effectiveTournamentId]);
+
+  const getDivisionData = (divisionId?: number) => {
+    if (!tournamentData) return null;
+    const targetDivisionId = divisionId || selectedDivisionId;
+    if (!targetDivisionId) return null;
+    return tournamentData.divisions.find(d => d.division.id === targetDivisionId) || null;
+  };
+
+  const getDivisionName = (divisionId?: number) => {
+    const divisionData = getDivisionData(divisionId);
+    return divisionData?.division.name || (shouldUseUrlParams ? divisionName : undefined);
+  };
 
   return {
-    standings,
-    tournament,
+    tournamentData,
+    getDivisionData,
+    selectedDivisionId,
+    divisionName: getDivisionName(),
     loading,
     fetchError,
     refetch: fetchTournamentData

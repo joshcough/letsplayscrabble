@@ -29,9 +29,10 @@ export class CurrentMatchRepository {
   async getCurrentMatch(userId: number): Promise<CurrentMatch | null> {
     try {
       const res = await this.db.query<CurrentMatch>(
-        `SELECT tournament_id, division_id, round, pairing_id, updated_at
-         FROM current_matches
-         WHERE user_id = $1`,
+        `SELECT cm.tournament_id, cm.division_id, cm.round, cm.pairing_id, cm.updated_at, d.name as division_name
+         FROM current_matches cm
+         JOIN divisions d ON cm.division_id = d.id
+         WHERE cm.user_id = $1`,
         [userId]
       );
 
@@ -44,22 +45,5 @@ export class CurrentMatchRepository {
       console.error("Error fetching current match for user:", userId, error);
       throw error;
     }
-  }
-
-  async deleteCurrentMatch(userId: number): Promise<void> {
-    await this.db.query(
-      `DELETE FROM current_matches WHERE user_id = $1`,
-      [userId]
-    );
-  }
-
-  // Helper method to get all active current matches (for admin/debugging)
-  async getAllCurrentMatches(): Promise<(CurrentMatch & { user_id: number })[]> {
-    const res = await this.db.query<CurrentMatch & { user_id: number }>(
-      `SELECT user_id, tournament_id, division_id, round, pairing_id, updated_at
-       FROM current_matches
-       ORDER BY updated_at DESC`
-    );
-    return res.rows;
   }
 }

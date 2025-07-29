@@ -1,10 +1,6 @@
 import * as DB from "@shared/types/database";
-import * as Stats from "@shared/types/stats";
-import { calculatePlayerDisplayDataWithRank } from "../services/statsCalculations";
 import { knexDb } from "../config/database";
 import { Knex } from "knex";
-import { calculateStatsFromGames } from "../services/statsCalculations";
-import { DivisionStats } from "@shared/types/stats";
 
 export class TournamentRepository {
 
@@ -116,6 +112,150 @@ export class TournamentRepository {
     return updated;
   }
 
+  // NEW: The main method for getting hierarchical tournament data
+  async getHierarchicalTournamentForUser(
+    tournamentId: number,
+    userId: number,
+    divisionId?: number
+  ): Promise<DB.Tournament | null> {
+    console.log("🔍 getHierarchicalTournamentForUser:", { tournamentId, userId, divisionId });
+
+    // First verify ownership and get tournament
+    const tournament = await this.findByIdForUser(tournamentId, userId);
+    if (!tournament) {
+      console.log("❌ Tournament not found or access denied");
+      return null;
+    }
+
+    // Get divisions (all or filtered)
+    let divisions: DB.DivisionRow[];
+    if (divisionId !== undefined) {
+      const division = await knexDb('divisions')
+        .select('*')
+        .where('tournament_id', tournamentId)
+        .where('id', divisionId)
+        .first();
+
+      if (!division) {
+        console.log("❌ Division not found");
+        return null;
+      }
+      divisions = [division];
+    } else {
+      divisions = await knexDb('divisions')
+        .select('*')
+        .where('tournament_id', tournamentId)
+        .orderBy('position');
+    }
+
+    console.log("📊 Found divisions:", divisions.map(d => ({ id: d.id, name: d.name })));
+
+    // Build hierarchical structure
+    const hierarchicalDivisions = await Promise.all(
+      divisions.map(async (division) => {
+        // Get players for this division
+        const players = await knexDb('players')
+          .select('*')
+          .where('tournament_id', tournamentId)
+          .where('division_id', division.id)
+          .orderBy('seed');
+
+        // Get games for this division
+        const games = await knexDb('games')
+          .select('*')
+          .where('division_id', division.id)
+          .orderBy(['round_number', 'pairing_id']);
+
+        console.log(`📊 Division ${division.name}:`, {
+          players: players.length,
+          games: games.length
+        });
+
+        return {
+          division,
+          players,
+          games
+        };
+      })
+    );
+
+    return {
+      tournament,
+      divisions: hierarchicalDivisions
+    };
+  }
+
+  async isOwner(id: number, userId: number): Promise<boolean> {
+    const tournament = await knexDb('tournaments')
+      .select('id')
+      .where('id', id)
+      .where('user_id', userId)
+      .first();
+    return !!tournament;
+  }
+
+  async deleteByIdForUser(id: number, userId: number): Promise<void> {
+    return knexDb.transaction(async (trx) => {
+      // First verify the tournament belongs to the user
+      const tournament = await trx('tournaments')
+        .select('id')
+        .where('id', id)
+        .where('user_id', userId)
+        .first();
+
+      if (!tournament) {
+        throw new Error('Tournament not found or access denied');
+      }
+
+      // Delete in reverse order due to foreign key constraints
+      await trx('games')
+        .whereIn('division_id',
+          trx('divisions').select('id').where('tournament_id', id)
+        )
+        .del();
+
+      await trx('players').where('tournament_id', id).del();
+      await trx('divisions').where('tournament_id', id).del();
+
+      await trx('current_matches')
+        .where('tournament_id', id)
+        .where('user_id', userId)
+        .del();
+
+      await trx('tournaments').where('id', id).where('user_id', userId).del();
+    });
+  }
+
+  // Polling methods - keep these as they're used for tournament updates
+  async updatePollUntil(id: number, pollUntil: Date | null): Promise<DB.TournamentRow> {
+    const [updated] = await knexDb('tournaments')
+      .where('id', id)
+      .update({ poll_until: pollUntil })
+      .returning('*');
+    return updated;
+  }
+
+  async findActivePollable(): Promise<DB.TournamentRow[]> {
+    return knexDb('tournaments')
+      .select('*')
+      .whereNotNull('poll_until')
+      .where('poll_until', '>', knexDb.fn.now());
+  }
+
+  async endInactivePollable(): Promise<void> {
+    await knexDb('tournaments')
+      .whereNotNull('poll_until')
+      .where('poll_until', '<=', knexDb.fn.now())
+      .update({ poll_until: null });
+  }
+
+  async stopPolling(id: number): Promise<void> {
+    await knexDb('tournaments')
+      .where('id', id)
+      .update({ poll_until: null });
+  }
+
+  // PRIVATE: Internal methods for data storage
   private async storeTournamentData(trx: Knex.Transaction, tournamentId: number, data: DB.CreateTournament): Promise<void> {
     // Clear existing data for this tournament
     await this.clearTournamentData(trx, tournamentId);
@@ -180,15 +320,6 @@ export class TournamentRepository {
     }
   }
 
-  async isOwner(id: number, userId: number): Promise<boolean> {
-    const tournament = await knexDb('tournaments')
-      .select('id')
-      .where('id', id)
-      .where('user_id', userId)
-      .first();
-    return !!tournament;
-  }
-
   private async clearTournamentData(trx: Knex.Transaction, tournamentId: number): Promise<void> {
     // Delete in reverse order due to foreign key constraints
     await trx('games')
@@ -200,192 +331,4 @@ export class TournamentRepository {
     await trx('players').where('tournament_id', tournamentId).del();
     await trx('divisions').where('tournament_id', tournamentId).del();
   }
-
-  async getCompleteTournamentForUser(id: number, userId: number): Promise<DB.Tournament | null> {
-    const tournament = await this.findByIdForUser(id, userId);
-    if (!tournament) return null;
-
-    const [divisions, players, games] = await Promise.all([
-      this.getDivisions(id),
-      this.getPlayers(id),
-      this.getGames(id),
-    ]);
-
-    return {
-      tournament,
-      divisions,
-      players,
-      games,
-    };
-  }
-
-  async getDivisions(tournamentId: number): Promise<DB.DivisionRow[]> {
-    return knexDb('divisions')
-      .select('*')
-      .where('tournament_id', tournamentId)
-      .orderBy('name');
-  }
-
-  async getPlayers(tournamentId: number): Promise<DB.PlayerRow[]> {
-    return knexDb('players')
-      .select('*')
-      .where('tournament_id', tournamentId)
-      .orderBy(['division_id', 'seed']);
-  }
-
-  async getGames(tournamentId: number): Promise<DB.GameRow[]> {
-    return knexDb('games as g')
-      .join('divisions as d', 'g.division_id', 'd.id')
-      .select('g.*')
-      .where('d.tournament_id', tournamentId)
-      .orderBy(['g.division_id', 'g.round_number', 'g.pairing_id']);
-  }
-
-  async getPlayerDisplayData(tournamentId: number, divisionId: number, playerId: number, userId: number): Promise<Stats.PlayerDisplayData> {
-    // Get the target player with ownership check via join
-    const player: DB.PlayerRow = await knexDb('players as p')
-      .join('tournaments as t', 'p.tournament_id', 't.id')
-      .select('p.*')
-      .where('p.tournament_id', tournamentId)
-      .where('p.division_id', divisionId)
-      .where('p.id', playerId)
-      .where('t.user_id', userId)
-      .first();
-
-    if (!player) {
-      throw new Error("Player not found");
-    }
-
-    // Get all players in division
-    const allPlayers: DB.PlayerRow[] = await knexDb('players')
-      .select('*')
-      .where('tournament_id', tournamentId)
-      .where('division_id', divisionId);
-
-    // Get all games for this division
-    const allGames: DB.GameRow[] = await knexDb('games')
-      .select('*')
-      .where('division_id', divisionId);
-
-    // Calculate everything using pure functions
-    return calculatePlayerDisplayDataWithRank(player, allGames, allPlayers);
-  }
-
-  async getDivisionStats(tournamentId: number, divisionId: number): Promise<DivisionStats> {
-    const gamesWithPlayers = await this.getGamesWithPlayersForStats(tournamentId, divisionId);
-    return calculateStatsFromGames(gamesWithPlayers, divisionId);
-  }
-
-  async getTournamentStats(tournamentId: number): Promise<DivisionStats> {
-    const gamesWithPlayers = await this.getGamesWithPlayersForStats(tournamentId);
-    return calculateStatsFromGames(gamesWithPlayers, 0); // Pass 0 for tournament-wide
-  }
-
-  private async getGamesWithPlayersForStats(tournamentId: number, divisionId?: number): Promise<DB.GameWithPlayers[]> {
-    // Get games query
-    let gamesQuery = knexDb('games as g')
-      .join('divisions as d', 'g.division_id', 'd.id')
-      .select('g.*')
-      .where('d.tournament_id', tournamentId)
-      .where('g.is_bye', false)
-      .whereNotNull('g.player1_score')
-      .whereNotNull('g.player2_score');
-
-    // Add division filter if specified
-    if (divisionId !== undefined) {
-      gamesQuery = gamesQuery.where('d.position', divisionId);
-    }
-
-    const games = await gamesQuery;
-
-    // Get all players involved
-    const playerIds = new Set<number>();
-    games.forEach(game => {
-      playerIds.add(game.player1_id);
-      playerIds.add(game.player2_id);
-    });
-
-    const players = await knexDb('players')
-      .select('*')
-      .whereIn('id', Array.from(playerIds));
-
-    const playerMap = new Map(players.map(p => [p.id, p]));
-
-    // Combine games with players
-    return games.map(game => {
-      const player1 = playerMap.get(game.player1_id)!;
-      const player2 = playerMap.get(game.player2_id)!;
-
-      return {
-        game,
-        player1,
-        player2,
-        player1_score: game.player1_score,
-        player2_score: game.player2_score,
-        is_bye: game.is_bye
-      };
-    });
-  }
-
-  async deleteByIdForUser(id: number, userId: number): Promise<void> {
-    return knexDb.transaction(async (trx) => {
-      // First verify the tournament belongs to the user
-      const tournament = await trx('tournaments')
-        .select('id')
-        .where('id', id)
-        .where('user_id', userId)
-        .first();
-
-      if (!tournament) {
-        throw new Error('Tournament not found or access denied');
-      }
-
-      // Delete in reverse order due to foreign key constraints
-      await trx('games')
-        .whereIn('division_id',
-          trx('divisions').select('id').where('tournament_id', id)
-        )
-        .del();
-
-      await trx('players').where('tournament_id', id).del();
-      await trx('divisions').where('tournament_id', id).del();
-
-      await trx('current_matches')
-        .where('tournament_id', id)
-        .where('user_id', userId)
-        .del();
-
-      await trx('tournaments').where('id', id).where('user_id', userId).del();
-    });
-  }
-
-  async updatePollUntil(id: number, pollUntil: Date | null): Promise<DB.TournamentRow> {
-    const [updated] = await knexDb('tournaments')
-      .where('id', id)
-      .update({ poll_until: pollUntil })
-      .returning('*');
-    return updated;
-  }
-
-
-  async findActivePollable(): Promise<DB.TournamentRow[]> {
-    return knexDb('tournaments')
-      .select('*')
-      .whereNotNull('poll_until')
-      .where('poll_until', '>', knexDb.fn.now());
-  }
-
-  async endInactivePollable(): Promise<void> {
-    await knexDb('tournaments')
-      .whereNotNull('poll_until')
-      .where('poll_until', '<=', knexDb.fn.now())
-      .update({ poll_until: null });
-  }
-
-  async stopPolling(id: number): Promise<void> {
-    await knexDb('tournaments')
-      .where('id', id)
-      .update({ poll_until: null });
-  }
-
 }

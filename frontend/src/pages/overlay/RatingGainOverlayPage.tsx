@@ -1,7 +1,6 @@
 import React from "react";
-import { PlayerStats } from "@shared/types/tournament";
-import { TableOverlay } from "../../components/shared/TableOverlay";
-import { calculateRatingGainRanks } from "../../utils/rankingCalculators";
+import { UsePlayerStatsCalculation, RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
+import { TournamentTableOverlay } from "../../components/shared/TournamentTableOverlay";
 import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
 const RatingGainOverlayPage: React.FC = () => {
@@ -16,9 +15,9 @@ const RatingGainOverlayPage: React.FC = () => {
     { key: "ties", label: "Ties" },
   ];
 
-  const renderPlayerName = (player: PlayerStats) => player.name;
+  const renderPlayerName = (player: RankedPlayerStats) => player.name;
 
-  const renderCell = (player: PlayerStats, columnKey: string) => {
+  const renderCell = (player: RankedPlayerStats, columnKey: string) => {
     switch (columnKey) {
       case "rank":
         return player.rank;
@@ -44,13 +43,19 @@ const RatingGainOverlayPage: React.FC = () => {
   };
 
   return (
-    <TableOverlay
-      columns={columns}
-      title="Rating Gain Leaders"
-      rankCalculator={calculateRatingGainRanks}
-      renderPlayerName={renderPlayerName}
-      renderCell={renderCell}
-    />
+    <UsePlayerStatsCalculation sortType="ratingGain">
+      {({ tournament, players, divisionName }) => (
+        <TournamentTableOverlay
+          tournament={tournament}
+          standings={players}
+          columns={columns}
+          title="Rating Gain Leaders"
+          divisionName={divisionName}
+          renderPlayerName={renderPlayerName}
+          renderCell={renderCell}
+        />
+      )}
+    </UsePlayerStatsCalculation>
   );
 };
 

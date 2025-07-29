@@ -1,22 +1,28 @@
 import React from "react";
-import { PlayerStats } from "@shared/types/tournament";
-import { PictureOverlay } from "../../components/shared/PictureOverlay";
+import { UsePlayerStatsCalculation } from "../../hooks/usePlayerStatsCalculation";
+import PictureDisplay from "../../components/shared/PictureDisplay";
 import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
-const StandingsWithPicsOverlay: React.FC = () => {
-  const renderPlayerContent = (player: PlayerStats) => (
+const StandingsWithPicsOverlayPage: React.FC = () => {
+  const renderPlayerContent = (player: any) => (
     <div className="text-black text-2xl font-bold text-center mb-2">
       {player.wins}-{player.losses}{player.ties > 0 ? `-${player.ties}` : ""} {formatNumberWithSign(player.spread)}
     </div>
   );
 
   return (
-    <PictureOverlay
-      title="Standings"
-      sortType="standings"
-      renderPlayerContent={renderPlayerContent}
-    />
+    <UsePlayerStatsCalculation sortType="standings">
+      {({ tournament, players, divisionName }) => (
+        <PictureDisplay
+          tournament={tournament}
+          standings={players.slice(0, 5)} // Top 5 only
+          title="Standings"
+          divisionName={divisionName}
+          renderPlayerContent={renderPlayerContent}
+        />
+      )}
+    </UsePlayerStatsCalculation>
   );
 };
 
-export default StandingsWithPicsOverlay;
+export default StandingsWithPicsOverlayPage;

@@ -1,4 +1,4 @@
-import { PlayerStats } from "@shared/types/tournament";
+import { PlayerStats } from "@shared/types/stats";
 
 const PointsDisplay = ({
   stats,

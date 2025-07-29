@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { fetchWithAuth } from "../../config/api";
 import TournamentStandings from "./TournamentStandings";
-import { ProcessedTournament } from "@shared/types/tournament";
+import { TournamentRow } from "@shared/types/database";
 
 type RouteParams = {
   id: string;
@@ -16,15 +16,12 @@ interface PollingResponse {
 const TournamentDetails: React.FC = () => {
   const params = useParams<RouteParams>();
   const navigate = useNavigate();
-  const [tournament, setTournament] = useState<ProcessedTournament | null>(
-    null,
-  );
+  const [tournament, setTournament] = useState<TournamentRow | null>(null);
   const [pollingDays, setPollingDays] = useState<number>(1);
   const [isPolling, setIsPolling] = useState<boolean>(false);
   const [pollUntil, setPollUntil] = useState<Date | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [editedTournament, setEditedTournament] =
-    useState<ProcessedTournament | null>(null);
+  const [editedTournament, setEditedTournament] = useState<TournamentRow | null>(null);
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(Date.now());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
 
@@ -105,12 +102,7 @@ const TournamentDetails: React.FC = () => {
       // Trigger a refresh by updating lastUpdateTime
       setLastUpdateTime(Date.now());
 
-      // After successful update, fetch fresh tournament data
-      const endpoint = params.id
-        ? `/api/tournaments/public/${params.id}`
-        : `/api/tournaments/public/by-name/${editableFields.name}`;
-
-      const freshTournamentData = await fetchWithAuth(endpoint);
+      const freshTournamentData = await fetchWithAuth<TournamentRow>(`/api/tournaments/public/${params.id}`);
       setTournament(freshTournamentData);
       setIsEditing(false);
     } catch (error) {
@@ -134,7 +126,7 @@ const TournamentDetails: React.FC = () => {
           ? `/api/tournaments/public/${params.id}`
           : `/api/tournaments/public/by-name/${params.name}`;
 
-        const tournamentData: ProcessedTournament =
+        const tournamentData: TournamentRow =
           await fetchWithAuth(endpoint);
         setTournament(tournamentData);
 
@@ -346,31 +338,6 @@ const TournamentDetails: React.FC = () => {
                 )}
               </div>
             </div>
-          </div>
-        </div>
-        <div>
-          <h3 className="font-semibold mt-6">Standings</h3>
-          <div>
-            {tournament.divisions.map((division) => (
-              <div key={division.name} className="mt-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xl font-semibold">{division.name}</h4>
-                  <Link
-                    to={`/overlay/standings/${params.id}/${encodeURIComponent(
-                      division.name,
-                    )}`}
-                    className="text-blue-600 hover:text-blue-800 text-sm"
-                  >
-                    Standings Overlay →
-                  </Link>
-                </div>
-                <TournamentStandings
-                  tournamentId={params.id}
-                  divisionName={division.name}
-                  key={`${division.name}-${lastUpdateTime}`}
-                />
-              </div>
-            ))}
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@
 import io, { Socket } from "socket.io-client";
 import { API_BASE } from "../config/api";
 import { CurrentMatch } from "@shared/types/currentMatch";
-import { fetchTournament } from "../utils/tournamentApi";
+import { fetchTournament } from "../utils/api";
 
 class WorkerSocketManager {
   private static instance: WorkerSocketManager;

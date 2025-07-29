@@ -7,10 +7,8 @@ import dotenv from "dotenv";
 import { pool } from "./config/database";
 import { TournamentRepository } from "./repositories/tournamentRepository";
 import { CurrentMatchRepository } from "./repositories/currentMatchRepository";
-import {
-  protectedTournamentRoutes,
-  unprotectedTournamentRoutes,
-} from "./routes/tournaments";
+import { protectedTournamentRoutes } from "./routes/tournament/protected";
+import { unprotectedTournamentRoutes } from "./routes/tournament/unprotected";
 import createAdminRoutes from "./routes/admin";
 import createOverlayRoutes from "./routes/overlay";
 import authRoutes from "./routes/auth";
@@ -134,17 +132,19 @@ app.use(
   "/api/overlay",
   createOverlayRoutes(currentMatchRepository),
 );
+
 app.use(
-  "/api/tournaments/public",
+  "/api/public",
   unprotectedTournamentRoutes(tournamentRepository),
 );
 
 // Protected routes
 app.use(
-  "/api/tournaments/admin",
+  "/api/private",
   requireAuth,
   protectedTournamentRoutes(tournamentRepository),
 );
+
 app.use(
   "/api/admin",
   requireAuth,
