@@ -48,13 +48,13 @@ export const useCurrentMatch = (): UseCurrentMatchReturn => {
   useEffect(() => {
     if (!userId) return;
 
-    const displayManager = BroadcastManager.getInstance();
+    const broadcastManager = BroadcastManager.getInstance();
 
-    displayManager.onPing((pingData) => {
+    broadcastManager.onPing((pingData) => {
       console.log(`Overlay received ping!`, pingData);
     });
 
-    const cleanup = displayManager.onAdminPanelUpdate((data: any) => {
+    const cleanup = broadcastManager.onAdminPanelUpdate((data: any) => {
       console.log("📥 useCurrentMatch received AdminPanelUpdate:", data);
       // Only process if this update is for our user
       if (data.userId === parseInt(userId)) {

@@ -5,9 +5,13 @@ export interface WebSocketMessage {
   messageId: number;
 }
 
-// WebSocket broadcast message types with user context
-export interface AdminPanelUpdateMessage extends CurrentMatch, WebSocketMessage {
+export interface AdminPanelUpdateMessage extends WebSocketMessage {
   userId: number;
+  tournamentId: number;
+  divisionId: number;
+  divisionName: string;
+  round: number;
+  pairingId: number;
 }
 
 export interface GamesAddedMessage extends WebSocketMessage {
@@ -15,14 +19,14 @@ export interface GamesAddedMessage extends WebSocketMessage {
   tournamentId: number;
 }
 
+export interface Ping extends WebSocketMessage{
+  timestamp: number;
+}
+
 export interface TournamentDataMessage {
   userId: number;
   tournamentId: number;
   data: Tournament;
-}
-
-export interface Ping extends WebSocketMessage{
-  timestamp: number;
 }
 
 export interface TournamentDataErrorMessage {

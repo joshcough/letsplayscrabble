@@ -33,7 +33,11 @@ export default function createAdminRoutes(
     const adminPanelUpdate: AdminPanelUpdateMessage = {
       userId,
       messageId: messageCounter.getNextId(),
-      ...match,
+      tournamentId: match.tournament_id,
+      divisionId: match.division_id,
+      divisionName: match.division_name,
+      round: match.round,
+      pairingId: match.pairing_id,
     };
 
     io.emit("AdminPanelUpdate", adminPanelUpdate);
