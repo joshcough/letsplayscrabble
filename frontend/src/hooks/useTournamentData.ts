@@ -112,18 +112,23 @@ export const useTournamentData = ({
   useEffect(() => {
     if (!userId || !effectiveTournamentId) return;
 
-    const cleanupGamesAdded = BroadcastManager.getInstance().onGamesAdded((data: any) => {
-      console.log("🎮 useTournamentData received GamesAdded broadcast:", data);
-      if (
-        data.userId === parseInt(userId) &&
-        data.tournamentId === effectiveTournamentId
-      ) {
-        console.log("✅ Matching tournament - refetching data!");
-        fetchTournamentData();
-      } else {
-        console.log("⏭️ Different tournament - ignoring");
-      }
-    });
+    const cleanupGamesAdded = BroadcastManager.getInstance().onGamesAdded(
+      (data: any) => {
+        console.log(
+          "🎮 useTournamentData received GamesAdded broadcast:",
+          data,
+        );
+        if (
+          data.userId === parseInt(userId) &&
+          data.tournamentId === effectiveTournamentId
+        ) {
+          console.log("✅ Matching tournament - refetching data!");
+          fetchTournamentData();
+        } else {
+          console.log("⏭️ Different tournament - ignoring");
+        }
+      },
+    );
 
     return () => {
       cleanupGamesAdded();

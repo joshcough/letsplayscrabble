@@ -1,7 +1,6 @@
 import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Tournament } from "@shared/types/database";
-import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { useTournamentData } from "../../hooks/useTournamentData";
 import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
 import {
@@ -9,6 +8,7 @@ import {
   calculateAllTournamentStats,
   TournamentStats,
 } from "../../utils/calculateStandings";
+import { BaseOverlay } from "../../components/shared/BaseOverlay";
 
 type RouteParams = {
   userId?: string;
@@ -21,118 +21,86 @@ const TournamentStatsOverlayPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const showAllDivisions = searchParams.get("all_divisions") === "true";
 
-  const {
-    currentMatch,
-    loading: matchLoading,
-    error: matchError,
-  } = useCurrentMatch();
-
   // Determine what data to calculate stats from
   const shouldUseCurrentMatch = !tournamentId;
-  const hasDivisionSpecified =
-    divisionName ||
-    (shouldUseCurrentMatch && currentMatch?.division_id !== undefined);
+  const hasDivisionSpecified = divisionName !== undefined;
 
-  // Determine tournament and division IDs for useTournamentData
-  const finalTournamentId = shouldUseCurrentMatch
-    ? currentMatch?.tournament_id
-    : Number(tournamentId);
-
-  let finalDivisionId: number | undefined = undefined;
-  if (hasDivisionSpecified && shouldUseCurrentMatch) {
-    finalDivisionId = currentMatch?.division_id;
+  // If we're using current match, use BaseOverlay, otherwise use direct useTournamentData
+  if (shouldUseCurrentMatch) {
+    return (
+      <BaseOverlay>
+        {({
+          tournament,
+          divisionData,
+          divisionName: currentDivisionName,
+          currentMatch,
+        }) => {
+          // Calculate stats for current division
+          const stats = calculateTournamentStats(
+            divisionData.games,
+            divisionData.players,
+          );
+          const title = `${tournament.name} Div ${currentDivisionName} - Total Tournament Stats`;
+          return (
+            <StatsDisplay
+              stats={stats}
+              title={title}
+              tournamentName={tournament.name}
+            />
+          );
+        }}
+      </BaseOverlay>
+    );
+  } else {
+    // URL-based approach (no current match dependency)
+    return (
+      <URLBasedStatsDisplay
+        tournamentId={Number(tournamentId)}
+        divisionName={divisionName}
+      />
+    );
   }
+};
 
-  // Use the unified hook for all data fetching
+// Component for URL-based stats (no current match)
+const URLBasedStatsDisplay: React.FC<{
+  tournamentId: number;
+  divisionName?: string;
+}> = ({ tournamentId, divisionName }) => {
   const {
     tournamentData,
     getDivisionData,
     loading: dataLoading,
     fetchError,
   } = useTournamentData({
-    tournamentId: finalTournamentId,
-    divisionId: hasDivisionSpecified ? finalDivisionId : undefined,
+    useUrlParams: true,
   });
 
   // Calculate stats based on whether we have a specific division or all divisions
   const stats = React.useMemo((): TournamentStats | null => {
     if (!tournamentData) return null;
 
-    if (!hasDivisionSpecified) {
+    if (!divisionName) {
       // No division specified - calculate across all divisions
       return calculateAllTournamentStats(tournamentData);
     }
 
-    if (shouldUseCurrentMatch) {
-      // Use current match division
-      const divisionData = getDivisionData(currentMatch?.division_id);
-      return divisionData
-        ? calculateTournamentStats(divisionData.games, divisionData.players)
-        : null;
-    }
-
     // Use URL-specified division
-    if (!divisionName) return null;
     const targetDivision = tournamentData.divisions.find(
       (div) => div.division.name.toUpperCase() === divisionName.toUpperCase(),
     );
     return targetDivision
       ? calculateTournamentStats(targetDivision.games, targetDivision.players)
       : null;
-  }, [
-    tournamentData,
-    hasDivisionSpecified,
-    shouldUseCurrentMatch,
-    currentMatch?.division_id,
-    divisionName,
-    getDivisionData,
-  ]);
-
-  // Determine division name for display (undefined = tournament-wide)
-  const finalDivisionName = React.useMemo(() => {
-    if (!hasDivisionSpecified) return undefined;
-    if (shouldUseCurrentMatch && currentMatch?.division_id && tournamentData) {
-      return tournamentData.divisions.find(
-        (div) => div.division.id === currentMatch.division_id,
-      )?.division.name;
-    }
-    return divisionName;
-  }, [
-    hasDivisionSpecified,
-    shouldUseCurrentMatch,
-    currentMatch?.division_id,
-    tournamentData,
-    divisionName,
-  ]);
-
-  const loading = matchLoading || dataLoading;
-  const error = matchError || fetchError;
+  }, [tournamentData, divisionName]);
 
   // Create title
-  const title = finalDivisionName
-    ? `${tournamentData?.tournament?.name || "Tournament"} Div ${finalDivisionName} - Total Tournament Stats`
+  const title = divisionName
+    ? `${tournamentData?.tournament?.name || "Tournament"} Div ${divisionName} - Total Tournament Stats`
     : `${tournamentData?.tournament?.name || "Tournament"} - Total Tournament Stats`;
 
-  // StatItem component for displaying individual stats
-  const StatItem: React.FC<{ label: string; value: string | number }> = ({
-    label,
-    value,
-  }) => {
-    return (
-      <div className="flex flex-col items-center">
-        <div className="text-black text-lg font-bold mb-2">{label}</div>
-        <div className="text-4xl font-bold text-black text-center">{value}</div>
-      </div>
-    );
-  };
-
   // Validation for URL-based division access
-  if (
-    !shouldUseCurrentMatch &&
-    hasDivisionSpecified &&
-    divisionName &&
-    tournamentData
-  ) {
+  if (divisionName && tournamentData) {
     const divisionExists = tournamentData.divisions.some(
       (div) => div.division.name.toUpperCase() === divisionName.toUpperCase(),
     );
@@ -149,34 +117,62 @@ const TournamentStatsOverlayPage: React.FC = () => {
   }
 
   return (
-    <LoadingErrorWrapper loading={loading} error={error}>
+    <LoadingErrorWrapper loading={dataLoading} error={fetchError}>
       {stats && tournamentData ? (
-        <div className="flex flex-col items-center pt-8 font-bold">
-          <div className="text-black text-4xl font-bold text-center mb-8">
-            {title}
-          </div>
-
-          <div className="flex justify-center gap-8 max-w-6xl overflow-x-auto">
-            <StatItem label="Games Played" value={stats.gamesPlayed} />
-            <StatItem
-              label="Points Scored"
-              value={stats.pointsScored.toLocaleString()}
-            />
-            <StatItem label="Average Score" value={stats.averageScore} />
-            <StatItem
-              label="Higher Rated Win%"
-              value={`${stats.higherRatedWinPercent.toFixed(1)}%`}
-            />
-            <StatItem
-              label="Going First Win%"
-              value={`${stats.goingFirstWinPercent.toFixed(1)}%`}
-            />
-          </div>
-        </div>
+        <StatsDisplay
+          stats={stats}
+          title={title}
+          tournamentName={tournamentData.tournament.name}
+        />
       ) : (
         <div className="text-black p-2">Loading...</div>
       )}
     </LoadingErrorWrapper>
+  );
+};
+
+// Shared component for displaying stats
+const StatsDisplay: React.FC<{
+  stats: TournamentStats;
+  title: string;
+  tournamentName: string;
+}> = ({ stats, title }) => {
+  // StatItem component for displaying individual stats
+  const StatItem: React.FC<{ label: string; value: string | number }> = ({
+    label,
+    value,
+  }) => {
+    return (
+      <div className="flex flex-col items-center">
+        <div className="text-black text-lg font-bold mb-2">{label}</div>
+        <div className="text-4xl font-bold text-black text-center">{value}</div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col items-center pt-8 font-bold">
+      <div className="text-black text-4xl font-bold text-center mb-8">
+        {title}
+      </div>
+
+      <div className="flex justify-center gap-8 max-w-6xl overflow-x-auto">
+        <StatItem label="Games Played" value={stats.gamesPlayed} />
+        <StatItem
+          label="Points Scored"
+          value={stats.pointsScored.toLocaleString()}
+        />
+        <StatItem label="Average Score" value={stats.averageScore} />
+        <StatItem
+          label="Higher Rated Win%"
+          value={`${stats.higherRatedWinPercent.toFixed(1)}%`}
+        />
+        <StatItem
+          label="Going First Win%"
+          value={`${stats.goingFirstWinPercent.toFixed(1)}%`}
+        />
+      </div>
+    </div>
   );
 };
 
