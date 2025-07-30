@@ -1,5 +1,5 @@
 import { CurrentMatch } from "./currentMatch";
-import { ProcessedTournament } from "./tournament";
+import { Tournament } from "./database";
 
 // WebSocket broadcast message types with user context
 export interface AdminPanelUpdateMessage extends CurrentMatch {
@@ -14,7 +14,7 @@ export interface GamesAddedMessage {
 export interface TournamentDataMessage {
   userId: number;
   tournamentId: number;
-  data: ProcessedTournament;
+  data: Tournament;
 }
 
 export interface TournamentDataErrorMessage {

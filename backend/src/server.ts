@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import { pool } from "./config/database";
 import { TournamentRepository } from "./repositories/tournamentRepository";
 import { CurrentMatchRepository } from "./repositories/currentMatchRepository";
+import { protectedPollingRoutes } from "./routes/tournament/polling";
 import { protectedTournamentRoutes } from "./routes/tournament/protected";
 import { unprotectedTournamentRoutes } from "./routes/tournament/unprotected";
 import createAdminRoutes from "./routes/admin";
@@ -140,10 +141,17 @@ app.use(
 
 // Protected routes
 app.use(
-  "/api/private",
+  "/api/private/tournaments",
   requireAuth,
   protectedTournamentRoutes(tournamentRepository),
 );
+
+app.use(
+  "/api/private/tournaments",
+  requireAuth,
+  protectedPollingRoutes(tournamentRepository),
+);
+
 
 app.use(
   "/api/admin",

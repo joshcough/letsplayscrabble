@@ -1,4 +1,4 @@
-import { PlayerStats } from "@shared/types/tournament";
+import { PlayerStats } from "@shared/types/stats";
 
 /**
  * Calculate ranks for players based on average score

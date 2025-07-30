@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchAuthenticatedApiEndpoint } from "../../utils/api";
 import { TournamentRow } from "@shared/types/database";
+import { ProtectedPage } from "../ProtectedPage";
 
 interface TournamentListProps {
   onTournamentClick: (id: number) => void;
@@ -12,7 +13,7 @@ const TournamentList: React.FC<TournamentListProps> = ({ onTournamentClick }) =>
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const data = await fetchAuthenticatedApiEndpoint<TournamentRow[]>('/api/tournaments/list', 'fetching user tournaments'); // Change endpoint
+        const data = await fetchAuthenticatedApiEndpoint<TournamentRow[]>('/api/private/tournaments/list', 'fetching user tournaments'); // Change endpoint
         setTournaments(data || []);
       } catch (error) {
         console.error("Error fetching tournaments:", error);
@@ -23,6 +24,7 @@ const TournamentList: React.FC<TournamentListProps> = ({ onTournamentClick }) =>
   }, []);
 
   return (
+    <ProtectedPage>
     <div className="bg-[#FAF1DB] rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-bold mb-6 text-[#4A3728]">Tournaments</h2>
       <div className="space-y-4">
@@ -43,6 +45,7 @@ const TournamentList: React.FC<TournamentListProps> = ({ onTournamentClick }) =>
         ))}
       </div>
     </div>
+    </ProtectedPage>
   );
 };
 

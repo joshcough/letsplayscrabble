@@ -6,7 +6,13 @@ import * as Api from "@shared/types/apiTypes";
 interface UserTournamentParams {
   userId: string;
   tournamentId: string;
-  divisionId?: string; // Now optional
+  divisionId?: string;
+}
+
+interface ParsedParams {
+  userId: number;
+  tournamentId: number;
+  divisionId?: number;
 }
 
 export function unprotectedTournamentRoutes(
@@ -14,16 +20,33 @@ export function unprotectedTournamentRoutes(
 ): Router {
   const router = express.Router();
 
-  // Helper to get userId from params and validate it
-  const getUserIdFromParams = (req: any): number | null => {
+  // Shared validation logic
+  const parseAndValidateParams = (req: any): { success: true; params: ParsedParams } | { success: false; error: string } => {
     const userId = parseInt(req.params.userId);
     if (isNaN(userId)) {
-      return null;
+      return { success: false, error: "Invalid user ID" };
     }
-    return userId;
+
+    const tournamentId = parseInt(req.params.tournamentId);
+    if (isNaN(tournamentId)) {
+      return { success: false, error: "Invalid tournament ID" };
+    }
+
+    let divisionId: number | undefined = undefined;
+    if (req.params.divisionId) {
+      divisionId = parseInt(req.params.divisionId);
+      if (isNaN(divisionId)) {
+        return { success: false, error: "Invalid division ID" };
+      }
+    }
+
+    return {
+      success: true,
+      params: { userId, tournamentId, divisionId }
+    };
   };
 
-  // Get tournament data for user (optionally filtered to specific division)
+  // Get full tournament data for user (optionally filtered to specific division)
   const getTournamentForUser: RequestHandler<
     UserTournamentParams,
     Api.ApiResponse<DB.Tournament>
@@ -31,30 +54,14 @@ export function unprotectedTournamentRoutes(
     console.log("🔍 getTournamentForUser called:", req.params);
 
     try {
-      const userId = getUserIdFromParams(req);
-      if (userId === null) {
-        console.log("❌ Invalid user ID");
-        res.status(400).json(Api.failure("Invalid user ID"));
+      const validation = parseAndValidateParams(req);
+      if (!validation.success) {
+        console.log("❌", validation.error);
+        res.status(400).json(Api.failure(validation.error));
         return;
       }
 
-      const tournamentId = parseInt(req.params.tournamentId, 10);
-      if (isNaN(tournamentId)) {
-        console.log("❌ Invalid tournament ID");
-        res.status(400).json(Api.failure("Invalid tournament ID"));
-        return;
-      }
-
-      // Division ID is optional - if provided, validate it
-      let divisionId: number | undefined = undefined;
-      if (req.params.divisionId) {
-        divisionId = parseInt(req.params.divisionId, 10);
-        if (isNaN(divisionId)) {
-          console.log("❌ Invalid division ID");
-          res.status(400).json(Api.failure("Invalid division ID"));
-          return;
-        }
-      }
+      const { userId, tournamentId, divisionId } = validation.params;
 
       const logContext = divisionId !== undefined
         ? `division ${divisionId} in tournament ${tournamentId}`
@@ -63,7 +70,11 @@ export function unprotectedTournamentRoutes(
       console.log(`🔄 Looking for ${logContext} for user ${userId}`);
 
       // Get hierarchical tournament data (with optional division filter)
-      const tournament = await tournamentRepository.getHierarchicalTournamentForUser(tournamentId, userId, divisionId);
+      const tournament = await tournamentRepository.getHierarchicalTournamentForUser(
+        tournamentId,
+        userId,
+        divisionId
+      );
 
       console.log("📊 Tournament query result:", tournament ? "found" : "not found");
       if (tournament) {
@@ -90,11 +101,51 @@ export function unprotectedTournamentRoutes(
     }
   };
 
-  // Single route that handles both cases
+  // Get just the tournament row data (metadata only)
+  const getTournamentRowForUser: RequestHandler<
+    UserTournamentParams,
+    Api.ApiResponse<DB.TournamentRow>
+  > = async (req, res) => {
+    console.log("🔍 getTournamentRowForUser called:", req.params);
+
+    try {
+      const validation = parseAndValidateParams(req);
+      if (!validation.success) {
+        console.log("❌", validation.error);
+        res.status(400).json(Api.failure(validation.error));
+        return;
+      }
+
+      const { userId, tournamentId } = validation.params;
+
+      console.log(`🔄 Looking for tournament row ${tournamentId} for user ${userId}`);
+
+      // Get just the tournament metadata
+      const tournamentRow = await tournamentRepository.findByIdForUser(tournamentId, userId);
+
+      console.log("📊 Tournament row query result:", tournamentRow ? "found" : "not found");
+
+      if (tournamentRow === null) {
+        console.log("❌ Tournament not found");
+        res.status(404).json(Api.failure("Tournament not found"));
+        return;
+      }
+
+      res.json(Api.success(tournamentRow));
+    } catch (error) {
+      console.error("💥 Error in getTournamentRowForUser:", error);
+      res.status(500).json(Api.failure(error instanceof Error ? error.message : "Unknown error"));
+    }
+  };
+
+  // Routes
   // /users/:userId/tournaments/:tournamentId - gets complete tournament
   // /users/:userId/tournaments/:tournamentId/divisions/:divisionId - gets filtered tournament
   router.get("/users/:userId/tournaments/:tournamentId", getTournamentForUser);
   router.get("/users/:userId/tournaments/:tournamentId/divisions/:divisionId", getTournamentForUser);
+
+  // /users/:userId/tournaments/:tournamentId/row - gets just tournament metadata
+  router.get("/users/:userId/tournaments/:tournamentId/row", getTournamentRowForUser);
 
   return router;
 }
