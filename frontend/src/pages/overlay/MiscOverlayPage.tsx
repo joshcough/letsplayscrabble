@@ -3,7 +3,7 @@ import { useSearchParams, useParams } from "react-router-dom";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
 import PointsDisplay from "../../components/shared/PointsDisplay";
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
-import DisplaySourceManager from "../../hooks/DisplaySourceManager";
+import BroadcastManager from "../../hooks/BroadcastManager";
 import { fetchCurrentMatchWithPlayers } from "../../utils/matchApi";
 import { MatchWithPlayers } from "@shared/types/admin";
 import {
@@ -105,7 +105,7 @@ const MiscOverlay: React.FC = () => {
   useEffect(() => {
     if (!userId) return;
 
-    const displayManager = DisplaySourceManager.getInstance();
+    const displayManager = BroadcastManager.getInstance();
 
     const cleanup = displayManager.onGamesAdded((data: any) => {
       console.log("📥 MiscOverlay received GamesAdded:", data);

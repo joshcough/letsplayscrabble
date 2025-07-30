@@ -15,6 +15,8 @@ import createOverlayRoutes from "./routes/overlay";
 import authRoutes from "./routes/auth";
 import { requireAuth } from "./middleware/auth";
 import { TournamentPollingService } from "./services/pollingService";
+import { PingService } from "./services/pingService";
+import { GlobalMessageCounter } from "./services/GlobalMessageCounter";
 
 // Helper function to determine project root path
 function getProjectRoot(): string {
@@ -73,9 +75,15 @@ const io = new SocketIOServer(server, {
   pingInterval: 25000,
 });
 
+const globalMessageCounter = new GlobalMessageCounter();
 const tournamentRepository = new TournamentRepository();
 const currentMatchRepository = new CurrentMatchRepository(pool);
-const pollingService = new TournamentPollingService(tournamentRepository, io);
+const pollingService = new TournamentPollingService(
+  tournamentRepository,
+  io,
+  globalMessageCounter,
+);
+const pingService = new PingService(io, globalMessageCounter);
 
 app.use(
   cors({
@@ -153,7 +161,7 @@ app.use(
 app.use(
   "/api/admin",
   requireAuth,
-  createAdminRoutes(currentMatchRepository, io),
+  createAdminRoutes(currentMatchRepository, io, globalMessageCounter),
 );
 
 // Get the project root once
@@ -169,6 +177,7 @@ app.get("*", (_req: Request, res: Response) => {
 
 // start the polling service
 pollingService.start();
+pingService.start();
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
@@ -187,6 +196,7 @@ process.on("SIGTERM", () => {
   clientIntervals.clear();
 
   pollingService.stop();
+  pingService.stop();
   server.close(() => {
     console.log("Server closed");
     process.exit(0);

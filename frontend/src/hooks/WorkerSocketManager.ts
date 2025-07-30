@@ -2,6 +2,7 @@
 import io, { Socket } from "socket.io-client";
 import { API_BASE } from "../config/api";
 import { CurrentMatch } from "@shared/types/currentMatch";
+import { Ping } from "@shared/types/websocket";
 import { fetchTournament } from "../utils/api";
 
 class WorkerSocketManager {
@@ -12,7 +13,6 @@ class WorkerSocketManager {
   private lastDataUpdate: number = Date.now();
   private listeners: Set<(data: any) => void> = new Set();
 
-  // Broadcast channel for communicating with display sources
   private broadcastChannel: BroadcastChannel;
 
   private constructor() {
@@ -82,7 +82,14 @@ class WorkerSocketManager {
       });
 
       this.socket.on("ping", () => {
+        console.log("got a ping!");
         this.lastDataUpdate = Date.now();
+      });
+
+      this.socket.on("Ping", (data: Ping) => {
+        console.log(`🏓 Worker received ping`, data);
+        this.lastDataUpdate = Date.now();
+        this.broadcastToDisplayOverlays("Ping", data);
       });
 
       // Set up tournament event handlers
@@ -103,7 +110,7 @@ class WorkerSocketManager {
       "AdminPanelUpdate",
       (data: CurrentMatch & { userId: number }) => {
         console.log("📡 Worker received AdminPanelUpdate:", data);
-        this.broadcastToDisplaySources("AdminPanelUpdate", data);
+        this.broadcastToDisplayOverlays("AdminPanelUpdate", data);
         // Also fetch and broadcast tournament data for the current match
         this.fetchAndBroadcastTournamentData(data.tournament_id, data.userId);
       },
@@ -114,14 +121,14 @@ class WorkerSocketManager {
       "GamesAdded",
       (data: { userId: number; tournamentId: number }) => {
         console.log("📡 Worker received GamesAdded:", data);
-        this.broadcastToDisplaySources("GamesAdded", data);
+        this.broadcastToDisplayOverlays("GamesAdded", data);
         // Fetch and broadcast updated tournament data
         this.fetchAndBroadcastTournamentData(data.tournamentId, data.userId);
       },
     );
   }
 
-  private broadcastToDisplaySources(eventType: string, data: any) {
+  private broadcastToDisplayOverlays(eventType: string, data: any) {
     const message = {
       type: eventType,
       data: data,

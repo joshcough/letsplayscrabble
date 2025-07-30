@@ -16,6 +16,7 @@ import Navigation from "./components/common/Navigation";
 import MiscOverlayPage from "./pages/overlay/MiscOverlayPage";
 import MiscOverlayTestingPage from "./pages/overlay/MiscOverlayTestingPage";
 import OverlaysPage from "./pages/overlay/OverlaysPage";
+import PingOverlayPage from "./pages/overlay/PingOverlayPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RatingGainOverlayPage from "./pages/overlay/RatingGainOverlayPage";
 import RatingGainWithPicsOverlayPage from "./pages/overlay/RatingGainWithPicsOverlayPage";
@@ -44,8 +45,9 @@ const AppContent: React.FC = () => {
       {!isOverlay && <Navigation />}
       <Routes>
         <Route path="/login" element={<AdminLogin />} />
-
         {/* User-scoped overlay routes */}
+        PingOverlayPage
+        <Route path="/users/:userId/ping" element={<PingOverlayPage />} />
         <Route
           path="/users/:userId/overlay/misc"
           element={<MiscOverlayPage />}
@@ -82,7 +84,6 @@ const AppContent: React.FC = () => {
           path="/users/:userId/overlay/tournament_stats/:tournamentId?/:divisionName?"
           element={<TournamentStatsOverlayPage />}
         />
-
         {/* Legacy overlay routes (backwards compatibility - optional) */}
         <Route path="/overlay/misc" element={<MiscOverlayPage />} />
         <Route
@@ -117,7 +118,6 @@ const AppContent: React.FC = () => {
           path="/overlay/tournament_stats/:tournamentId?/:divisionName?"
           element={<TournamentStatsOverlayPage />}
         />
-
         {/* Other routes */}
         <Route path="/overlays" element={<OverlaysPage />} />
         <Route
@@ -125,7 +125,6 @@ const AppContent: React.FC = () => {
           element={<MiscOverlayTestingPage />}
         />
         <Route path="/worker" element={<WorkerPage />} />
-
         {/* Protected Routes */}
         <Route
           path="/"
