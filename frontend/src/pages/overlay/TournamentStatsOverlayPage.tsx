@@ -16,7 +16,6 @@ const TournamentStatsOverlayPage: React.FC = () => {
   const { userId, tournamentId, divisionName } = useParams<RouteParams>();
   const [searchParams] = useSearchParams();
   const showAllDivisions = searchParams.get("all_divisions") === "true";
-  const renderBubbles = searchParams.get("render_bubbles") !== "false";
 
   const { currentMatch, loading: matchLoading, error: matchError } = useCurrentMatch();
 
@@ -85,23 +84,12 @@ const TournamentStatsOverlayPage: React.FC = () => {
 
   // StatItem component for displaying individual stats
   const StatItem: React.FC<{ label: string; value: string | number }> = ({ label, value }) => {
-    if (renderBubbles) {
-      return (
-        <div className="flex flex-col items-center">
-          <div className="text-black text-lg font-bold mb-2">{label}</div>
-          <div className="bg-white rounded-full px-8 py-6 shadow-lg border-4 border-black">
-            <div className="text-4xl font-bold text-black text-center">{value}</div>
-          </div>
-        </div>
-      );
-    } else {
-      return (
-        <div className="flex flex-col items-center">
-          <div className="text-black text-lg font-bold mb-2">{label}</div>
-          <div className="text-4xl font-bold text-black text-center">{value}</div>
-        </div>
-      );
-    }
+    return (
+      <div className="flex flex-col items-center">
+        <div className="text-black text-lg font-bold mb-2">{label}</div>
+        <div className="text-4xl font-bold text-black text-center">{value}</div>
+      </div>
+    );
   };
 
   // Validation for URL-based division access
