@@ -16,10 +16,6 @@ interface CreateTournamentBody {
   dataUrl: string;
 }
 
-interface EnablePollingBody {
-  days: number;
-}
-
 interface TournamentIdParams extends ParamsDictionary {
   id: string;
 }
@@ -88,61 +84,6 @@ export function protectedTournamentRoutes(
       console.error("Database error:", error);
       res.status(500).json({
         message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  };
-
-  // Start or update polling for a tournament (user must own the tournament)
-  const startPolling: RequestHandler<
-    TournamentIdParams,
-    any,
-    EnablePollingBody
-  > = async (req, res) => {
-    const { id } = req.params;
-    const { days } = req.body;
-
-    try {
-      const userId = req.user!.id;
-      const tournamentId = parseInt(id, 10);
-
-      // Check ownership
-      const isOwner = await tournamentRepository.isOwner(tournamentId, userId);
-      if (!isOwner) {
-        res.status(404).json({ message: "Tournament not found" });
-        return;
-      }
-
-      const pollUntil = new Date();
-      pollUntil.setDate(pollUntil.getDate() + days);
-      await tournamentRepository.updatePollUntil(tournamentId, pollUntil);
-      res.json({ message: "Polling enabled", pollUntil });
-    } catch (error) {
-      res.status(500).json({
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  };
-
-  // Stop polling for a tournament (user must own the tournament)
-  const stopPolling: RequestHandler<TournamentIdParams> = async (req, res) => {
-    const { id } = req.params;
-
-    try {
-      const userId = req.user!.id;
-      const tournamentId = parseInt(id, 10);
-
-      // Check ownership
-      const isOwner = await tournamentRepository.isOwner(tournamentId, userId);
-      if (!isOwner) {
-        res.status(404).json({ message: "Tournament not found" });
-        return;
-      }
-
-      await tournamentRepository.stopPolling(tournamentId);
-      res.json({ message: "Polling disabled" });
-    } catch (error) {
-      res.status(500).json({
-        error: error instanceof Error ? error.message : "Unknown error",
       });
     }
   };
@@ -226,43 +167,8 @@ export function protectedTournamentRoutes(
     }
   };
 
-  // FIXED: Now uses hierarchical tournament data
-  const getHierarchicalTournament: RequestHandler<
-    TournamentIdParams,
-    Api.ApiResponse<DB.Tournament>
-  > = async (req, res) => {
-    console.log("🔍 getHierarchicalTournament called:", req.params);
-
-    try {
-      const userId = req.user!.id;
-      const tournamentId = parseInt(req.params.id, 10);
-
-      const tournament = await tournamentRepository.getHierarchicalTournamentForUser(tournamentId, userId);
-      if (!tournament) {
-        console.log("❌ Tournament not found");
-        res.status(404).json(Api.failure("Tournament not found"));
-        return;
-      }
-
-      console.log("📊 Returning hierarchical tournament:", {
-        name: tournament.tournament.name,
-        divisions: tournament.divisions.length,
-        totalPlayers: tournament.divisions.reduce((sum, d) => sum + d.players.length, 0),
-        totalGames: tournament.divisions.reduce((sum, d) => sum + d.games.length, 0)
-      });
-
-      res.json(Api.success(tournament));
-    } catch (error) {
-      console.error("💥 Database error:", error);
-      res.status(500).json(Api.failure(error instanceof Error ? error.message : "Unknown error"));
-    }
-  };
-
   router.get("/list", getTournamentListForUser);
-  router.get("/:id/hierarchical", getHierarchicalTournament);
   router.post("/", createTournament);
-  router.post("/:id/polling", startPolling);
-  router.delete("/:id/polling", stopPolling);
   router.put("/:id", updateTournament);
   router.delete("/:id", deleteTournament);
 

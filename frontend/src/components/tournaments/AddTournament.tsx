@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchWithAuth } from "../../config/api";
 import { CreateTournamentParams } from "@shared/types/tournament";
+import { ProtectedPage } from "../ProtectedPage";
 
 const AddTournament: React.FC = () => {
   const navigate = useNavigate();
@@ -42,6 +43,7 @@ const AddTournament: React.FC = () => {
   };
 
   return (
+    <ProtectedPage>
     <div className="bg-[#FAF1DB] p-6 rounded-lg shadow-md">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-[#4A3728]">
@@ -86,6 +88,7 @@ const AddTournament: React.FC = () => {
         </button>
       </form>
     </div>
+    </ProtectedPage>
   );
 };
 

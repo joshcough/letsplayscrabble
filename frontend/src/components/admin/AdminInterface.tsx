@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { fetchApiResponseWithAuth, fetchWithAuth } from "../../config/api";
+import { fetchTournament } from "../../utils/api";
 import { CreateCurrentMatch, CurrentMatch } from "@shared/types/currentMatch";
 import { TournamentRow, DivisionRow, PlayerRow, GameRow, Tournament } from "@shared/types/database";
+import { ProtectedPage } from "../ProtectedPage";
+import { useAuth } from "../../context/AuthContext";
 
 // UI types for transformed dropdown data
 interface PairingOption {
@@ -11,6 +14,9 @@ interface PairingOption {
 }
 
 const AdminInterface: React.FC = () => {
+  const { userId } = useAuth(); // Get userId from auth context
+  const user_id = userId!;
+
   // State for dropdown options
   const [tournaments, setTournaments] = useState<TournamentRow[]>([]);
   const [hierarchicalTournament, setHierarchicalTournament] = useState<Tournament | null>(null);
@@ -33,12 +39,7 @@ const AdminInterface: React.FC = () => {
   const [initializationStatus, setInitializationStatus] = useState<string>("Loading tournaments...");
 
   const loadTournaments = async (): Promise<TournamentRow[]> => {
-    return await fetchWithAuth<TournamentRow[]>(`/api/private/list`);
-  };
-
-  // UPDATED: Now uses hierarchical endpoint
-  const loadHierarchicalTournament = async (tournamentId: number): Promise<Tournament> => {
-    return await fetchWithAuth<Tournament>(`/api/private/${tournamentId}/hierarchical`);
+    return await fetchWithAuth<TournamentRow[]>(`/api/private/tournaments/list`);
   };
 
   const loadCurrentMatch = async (): Promise<CurrentMatch | null> => {
@@ -95,7 +96,8 @@ const AdminInterface: React.FC = () => {
 
     // Load the hierarchical tournament data for this match
     try {
-      const tournament = await loadHierarchicalTournament(match.tournament_id);
+      const tournament = await fetchTournament(user_id, match.tournament_id);
+
       setHierarchicalTournament(tournament);
 
       // Find the division in hierarchical structure
@@ -123,6 +125,9 @@ const AdminInterface: React.FC = () => {
   };
 
   useEffect(() => {
+    // Don't initialize if userId is not available yet
+    if (!userId) return;
+
     const initializeData = async () => {
       setIsLoading(true);
       setError(null);
@@ -163,7 +168,7 @@ const AdminInterface: React.FC = () => {
     };
 
     initializeData();
-  }, []);
+  }, [userId]); // Add userId as dependency
 
   const handleTournamentChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newTournamentId = e.target.value;
@@ -180,7 +185,7 @@ const AdminInterface: React.FC = () => {
     if (newTournamentId) {
       try {
         setIsLoading(true);
-        const tournament = await loadHierarchicalTournament(parseInt(newTournamentId));
+        const tournament = await fetchTournament(user_id, parseInt(newTournamentId));
         setHierarchicalTournament(tournament);
         updateDropdownData(tournament);
       } catch (error) {
@@ -267,143 +272,147 @@ const AdminInterface: React.FC = () => {
   // Show loading state during initialization
   if (isLoading && tournaments.length === 0) {
     return (
+      <ProtectedPage>
+        <div className="p-8 max-w-4xl mx-auto">
+          <div className="bg-[#FAF1DB] shadow-md rounded-lg p-6">
+            <h1 className="text-2xl font-bold mb-6 text-[#4A3728]">
+              Tournament Admin Panel
+            </h1>
+            <div className="flex items-center justify-center py-8">
+              <div className="text-[#4A3728]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4A3728] mx-auto mb-4"></div>
+                <p>{initializationStatus}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ProtectedPage>
+    );
+  }
+
+  return (
+    <ProtectedPage>
       <div className="p-8 max-w-4xl mx-auto">
         <div className="bg-[#FAF1DB] shadow-md rounded-lg p-6">
           <h1 className="text-2xl font-bold mb-6 text-[#4A3728]">
             Tournament Admin Panel
           </h1>
-          <div className="flex items-center justify-center py-8">
-            <div className="text-[#4A3728]">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4A3728] mx-auto mb-4"></div>
-              <p>{initializationStatus}</p>
+
+          {error && (
+            <div className="border-2 border-red-700/20 bg-red-700/10 text-red-700 px-4 py-3 rounded mb-4">
+              {error}
             </div>
+          )}
+
+          {success && (
+            <div className="border-2 border-green-700/20 bg-green-700/10 text-green-700 px-4 py-3 rounded mb-4">
+              {success}
+            </div>
+          )}
+
+          {initializationStatus && (
+            <div className="border-2 border-blue-700/20 bg-blue-700/10 text-blue-700 px-4 py-3 rounded mb-4">
+              {initializationStatus}
+            </div>
+          )}
+
+          <div className="space-y-6">
+            <div>
+              <label className="block text-[#4A3728] font-medium mb-2">
+                Tournament ({tournaments.length} available)
+              </label>
+              <select
+                value={selectedTournament}
+                onChange={handleTournamentChange}
+                className={inputStyles}
+                disabled={isLoading}
+              >
+                <option value="">Select Tournament</option>
+                {[...tournaments]
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.long_form_name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[#4A3728] font-medium mb-2">
+                Division ({availableDivisions.length} available)
+              </label>
+              <select
+                value={selectedDivision}
+                onChange={handleDivisionChange}
+                className={inputStyles}
+                disabled={!selectedTournament || isLoading}
+              >
+                <option value="">Select Division</option>
+                {availableDivisions.map((div) => (
+                  <option key={div.id} value={div.id}>
+                    {div.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[#4A3728] font-medium mb-2">
+                Round ({availableRounds.length} available)
+              </label>
+              <select
+                value={selectedRound}
+                onChange={handleRoundChange}
+                className={inputStyles}
+                disabled={!selectedDivision || isLoading}
+              >
+                <option value="">Select Round</option>
+                {availableRounds.map((round) => (
+                  <option key={round} value={round}>
+                    Round {round}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[#4A3728] font-medium mb-2">
+                Pairing ({availablePairings.length} available)
+              </label>
+              <select
+                value={selectedPairing !== null ? selectedPairing.toString() : ""}
+                onChange={handlePairingChange}
+                className={inputStyles}
+                disabled={!selectedRound || isLoading}
+              >
+                <option value="">Select Pairing</option>
+                {availablePairings
+                  .sort((a, b) => a.player1Name.localeCompare(b.player1Name))
+                  .map((pairing) => (
+                    <option key={pairing.pairingId} value={pairing.pairingId}>
+                      {pairing.player1Name} vs {pairing.player2Name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <button
+              onClick={updateCurrentMatch}
+              disabled={isLoading || selectedPairing === null}
+              className={`w-full py-2 px-4 rounded-md transition-colors
+                ${
+                  isLoading || selectedPairing === null
+                    ? "bg-[#4A3728]/40 text-[#4A3728]/60 cursor-not-allowed"
+                    : "bg-[#4A3728] hover:bg-[#6B5744] text-[#FAF1DB] shadow-md border-2 border-[#4A3728]"
+                }`}
+            >
+              {isLoading ? "Updating..." : "Update Match"}
+            </button>
           </div>
         </div>
       </div>
-    );
-  }
-
-  return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <div className="bg-[#FAF1DB] shadow-md rounded-lg p-6">
-        <h1 className="text-2xl font-bold mb-6 text-[#4A3728]">
-          Tournament Admin Panel
-        </h1>
-
-        {error && (
-          <div className="border-2 border-red-700/20 bg-red-700/10 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="border-2 border-green-700/20 bg-green-700/10 text-green-700 px-4 py-3 rounded mb-4">
-            {success}
-          </div>
-        )}
-
-        {initializationStatus && (
-          <div className="border-2 border-blue-700/20 bg-blue-700/10 text-blue-700 px-4 py-3 rounded mb-4">
-            {initializationStatus}
-          </div>
-        )}
-
-        <div className="space-y-6">
-          <div>
-            <label className="block text-[#4A3728] font-medium mb-2">
-              Tournament ({tournaments.length} available)
-            </label>
-            <select
-              value={selectedTournament}
-              onChange={handleTournamentChange}
-              className={inputStyles}
-              disabled={isLoading}
-            >
-              <option value="">Select Tournament</option>
-              {[...tournaments]
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.long_form_name}
-                  </option>
-                ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-[#4A3728] font-medium mb-2">
-              Division ({availableDivisions.length} available)
-            </label>
-            <select
-              value={selectedDivision}
-              onChange={handleDivisionChange}
-              className={inputStyles}
-              disabled={!selectedTournament || isLoading}
-            >
-              <option value="">Select Division</option>
-              {availableDivisions.map((div) => (
-                <option key={div.id} value={div.id}>
-                  {div.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-[#4A3728] font-medium mb-2">
-              Round ({availableRounds.length} available)
-            </label>
-            <select
-              value={selectedRound}
-              onChange={handleRoundChange}
-              className={inputStyles}
-              disabled={!selectedDivision || isLoading}
-            >
-              <option value="">Select Round</option>
-              {availableRounds.map((round) => (
-                <option key={round} value={round}>
-                  Round {round}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-[#4A3728] font-medium mb-2">
-              Pairing ({availablePairings.length} available)
-            </label>
-            <select
-              value={selectedPairing !== null ? selectedPairing.toString() : ""}
-              onChange={handlePairingChange}
-              className={inputStyles}
-              disabled={!selectedRound || isLoading}
-            >
-              <option value="">Select Pairing</option>
-              {availablePairings
-                .sort((a, b) => a.player1Name.localeCompare(b.player1Name))
-                .map((pairing) => (
-                  <option key={pairing.pairingId} value={pairing.pairingId}>
-                    {pairing.player1Name} vs {pairing.player2Name}
-                  </option>
-                ))}
-            </select>
-          </div>
-
-          <button
-            onClick={updateCurrentMatch}
-            disabled={isLoading || selectedPairing === null}
-            className={`w-full py-2 px-4 rounded-md transition-colors
-              ${
-                isLoading || selectedPairing === null
-                  ? "bg-[#4A3728]/40 text-[#4A3728]/60 cursor-not-allowed"
-                  : "bg-[#4A3728] hover:bg-[#6B5744] text-[#FAF1DB] shadow-md border-2 border-[#4A3728]"
-              }`}
-          >
-            {isLoading ? "Updating..." : "Update Match"}
-          </button>
-        </div>
-      </div>
-    </div>
+    </ProtectedPage>
   );
 };
 
