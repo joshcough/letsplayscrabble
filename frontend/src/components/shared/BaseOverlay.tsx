@@ -1,6 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import * as DB from "@shared/types/database";
+import { CurrentMatch } from "@shared/types/currentMatch";
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { useTournamentData } from "../../hooks/useTournamentData";
 import { LoadingErrorWrapper } from "./LoadingErrorWrapper";
@@ -23,6 +24,7 @@ export interface BaseOverlayDataProps {
   tournament: TournamentDisplayData;
   divisionData: DivisionData;
   divisionName: string;
+  currentMatch: CurrentMatch | null;
 }
 
 interface BaseOverlayProps {
@@ -149,6 +151,7 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({ children }) => {
             tournament: tournament!,
             divisionData: divisionData!,
             divisionName: finalDivisionName!,
+            currentMatch,
           })
         : shouldShowLoading && <div className="text-black p-2">Loading...</div>}
     </LoadingErrorWrapper>

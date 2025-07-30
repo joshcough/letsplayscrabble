@@ -1,4 +1,4 @@
-// BroadcastManager.t
+// BroadcastManager.ts - Lightweight manager for display sources with deduplication
 import {
   AdminPanelUpdateMessage,
   GamesAddedMessage,
@@ -14,6 +14,9 @@ class BroadcastManager {
   private broadcastChannel: BroadcastChannel;
   private eventHandlers: Map<string, Set<EventHandler>> = new Map();
 
+  // Message deduplication - track highest messageId seen
+  private lastSeenMessageId: number = 0;
+
   private constructor() {
     console.log("📺 BroadcastManager initializing...");
     this.broadcastChannel = new BroadcastChannel("tournament-updates");
@@ -27,22 +30,57 @@ class BroadcastManager {
     return BroadcastManager.instance;
   }
 
+  // Check and skip duplicate messages
+  private shouldSkipDuplicateMessage(
+    data: { messageId?: number },
+    eventType: string,
+  ): boolean {
+    if (!data.messageId) {
+      console.warn(`⚠️ ${eventType} message missing messageId`);
+      return false; // Process messages without messageId
+    }
+
+    if (data.messageId <= this.lastSeenMessageId) {
+      console.log(
+        `⏭️ BroadcastManager skipping duplicate ${eventType}: messageId ${data.messageId} (last seen: ${this.lastSeenMessageId})`,
+      );
+      return true;
+    }
+
+    // Update highest seen messageId
+    this.lastSeenMessageId = data.messageId;
+    console.log(
+      `✅ BroadcastManager processing ${eventType}: messageId ${data.messageId}`,
+    );
+    return false;
+  }
+
   private setupBroadcastListener() {
     this.broadcastChannel.onmessage = (event) => {
       const { type, data, timestamp, tournamentId } = event.data;
 
-      // Handle different logging based on event type
+      // Only log tournament data events, and only show tournamentId for relevant events
       if (type === "TOURNAMENT_DATA" || type === "TOURNAMENT_DATA_ERROR") {
         console.log(`📥 BroadcastManager received ${type}:`, {
           tournamentId,
           timestamp,
         });
-      } else if (type === "Ping") {
-        console.log(
-          `🏓 BroadcastManager received ping #${data.ping} (random: ${data.random}) at ${new Date(data.timestamp).toLocaleTimeString()}`,
-        );
       } else {
         console.log(`📥 BroadcastManager received ${type}:`, { timestamp });
+      }
+
+      // Check for duplicates based on message type
+      let shouldSkip = false;
+      if (type === "Ping" && data?.messageId) {
+        shouldSkip = this.shouldSkipDuplicateMessage(data, "Ping");
+      } else if (type === "AdminPanelUpdate" && data?.messageId) {
+        shouldSkip = this.shouldSkipDuplicateMessage(data, "AdminPanelUpdate");
+      } else if (type === "GamesAdded" && data?.messageId) {
+        shouldSkip = this.shouldSkipDuplicateMessage(data, "GamesAdded");
+      }
+
+      if (shouldSkip) {
+        return; // Skip duplicate message
       }
 
       // Notify registered handlers for this event type
@@ -80,7 +118,7 @@ class BroadcastManager {
     }
     this.eventHandlers.get(eventType)!.add(handler);
 
-    console.log(`📝 Registered handler for ${eventType}`);
+    console.log(`📝 BroadcastManager registered handler for ${eventType}`);
   }
 
   // Unregister a handler
@@ -93,7 +131,7 @@ class BroadcastManager {
       }
     }
 
-    console.log(`🗑️ Unregistered handler for ${eventType}`);
+    console.log(`🗑️ BroadcastManager unregistered handler for ${eventType}`);
   }
 
   // Convenience methods with proper types and type assertions
@@ -117,7 +155,6 @@ class BroadcastManager {
     return () => this.off("TOURNAMENT_DATA_ERROR", handler);
   }
 
-  // Add ping handler convenience method
   onPing(handler: (data: Ping) => void) {
     this.on("Ping", handler);
     return () => this.off("Ping", handler);
@@ -138,12 +175,23 @@ class BroadcastManager {
 
   addListener(listener: (data: any) => void) {
     // For compatibility - could be used for status updates
-    console.log("📝 Added general listener");
+    console.log("📝 BroadcastManager added general listener");
   }
 
   removeListener(listener: (data: any) => void) {
     // For compatibility
-    console.log("🗑️ Removed general listener");
+    console.log("🗑️ BroadcastManager removed general listener");
+  }
+
+  // Method to get last seen messageId (useful for debugging)
+  getLastSeenMessageId(): number {
+    return this.lastSeenMessageId;
+  }
+
+  // Method to reset messageId counter (useful for testing)
+  resetMessageIdCounter(): void {
+    this.lastSeenMessageId = 0;
+    console.log("🔄 BroadcastManager manually reset lastSeenMessageId");
   }
 
   // Cleanup method
@@ -151,6 +199,7 @@ class BroadcastManager {
     console.log("🧹 BroadcastManager cleaning up...");
     this.broadcastChannel.close();
     this.eventHandlers.clear();
+    this.lastSeenMessageId = 0;
   }
 }
 
