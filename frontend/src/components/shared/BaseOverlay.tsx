@@ -19,7 +19,7 @@ export interface DivisionData {
   games: DB.GameRow[];
 }
 
-interface BaseOverlayDataProps {
+export interface BaseOverlayDataProps {
   tournament: TournamentDisplayData;
   divisionData: DivisionData;
   divisionName: string;

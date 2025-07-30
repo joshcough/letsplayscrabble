@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import * as DB from "@shared/types/database";
-import DisplaySourceManager from "./DisplaySourceManager";
+import BroadcastManager from "./BroadcastManager";
 import { fetchTournament, fetchTournamentDivision } from "../utils/api";
 
 interface UseTournamentDataProps {
@@ -112,7 +112,7 @@ export const useTournamentData = ({
   useEffect(() => {
     if (!userId || !effectiveTournamentId) return;
 
-    const displayManager = DisplaySourceManager.getInstance();
+    const displayManager = BroadcastManager.getInstance();
     const cleanupGamesAdded = displayManager.onGamesAdded((data: any) => {
       console.log("🎮 useTournamentData received GamesAdded broadcast:", data);
       if (

@@ -1,43 +1,48 @@
-// DisplaySourceManager.ts - Lightweight manager for display sources
+// BroadcastManager.t
 import {
   AdminPanelUpdateMessage,
   GamesAddedMessage,
   TournamentDataMessage,
   TournamentDataErrorMessage,
+  Ping,
 } from "@shared/types/websocket";
 
 type EventHandler = (data: any) => void;
 
-class DisplaySourceManager {
-  private static instance: DisplaySourceManager;
+class BroadcastManager {
+  private static instance: BroadcastManager;
   private broadcastChannel: BroadcastChannel;
   private eventHandlers: Map<string, Set<EventHandler>> = new Map();
 
   private constructor() {
-    console.log("📺 DisplaySourceManager initializing...");
+    console.log("📺 BroadcastManager initializing...");
     this.broadcastChannel = new BroadcastChannel("tournament-updates");
     this.setupBroadcastListener();
   }
 
-  static getInstance(): DisplaySourceManager {
-    if (!DisplaySourceManager.instance) {
-      DisplaySourceManager.instance = new DisplaySourceManager();
+  static getInstance(): BroadcastManager {
+    if (!BroadcastManager.instance) {
+      BroadcastManager.instance = new BroadcastManager();
     }
-    return DisplaySourceManager.instance;
+    return BroadcastManager.instance;
   }
 
   private setupBroadcastListener() {
     this.broadcastChannel.onmessage = (event) => {
       const { type, data, timestamp, tournamentId } = event.data;
 
-      // Only log tournament data events, and only show tournamentId for relevant events
+      // Handle different logging based on event type
       if (type === "TOURNAMENT_DATA" || type === "TOURNAMENT_DATA_ERROR") {
-        console.log(`📥 Display source received ${type}:`, {
+        console.log(`📥 BroadcastManager received ${type}:`, {
           tournamentId,
           timestamp,
         });
+      } else if (type === "Ping") {
+        console.log(
+          `🏓 BroadcastManager received ping #${data.ping} (random: ${data.random}) at ${new Date(data.timestamp).toLocaleTimeString()}`,
+        );
       } else {
-        console.log(`📥 Display source received ${type}:`, { timestamp });
+        console.log(`📥 BroadcastManager received ${type}:`, { timestamp });
       }
 
       // Notify registered handlers for this event type
@@ -56,6 +61,9 @@ class DisplaySourceManager {
               break;
             case "GamesAdded":
               handler(data as GamesAddedMessage);
+              break;
+            case "Ping":
+              handler(data as Ping);
               break;
             default:
               handler(data);
@@ -109,6 +117,12 @@ class DisplaySourceManager {
     return () => this.off("TOURNAMENT_DATA_ERROR", handler);
   }
 
+  // Add ping handler convenience method
+  onPing(handler: (data: Ping) => void) {
+    this.on("Ping", handler);
+    return () => this.off("Ping", handler);
+  }
+
   // Mock methods to maintain compatibility with existing SocketManager interface
   getConnectionStatus(): string {
     return "Listening to broadcast channel";
@@ -134,7 +148,7 @@ class DisplaySourceManager {
 
   // Cleanup method
   cleanup() {
-    console.log("🧹 Display source cleaning up...");
+    console.log("🧹 BroadcastManager cleaning up...");
     this.broadcastChannel.close();
     this.eventHandlers.clear();
   }
@@ -142,7 +156,7 @@ class DisplaySourceManager {
 
 // Cleanup on page unload
 window.addEventListener("beforeunload", () => {
-  DisplaySourceManager.getInstance().cleanup();
+  BroadcastManager.getInstance().cleanup();
 });
 
-export default DisplaySourceManager;
+export default BroadcastManager;

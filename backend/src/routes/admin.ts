@@ -6,10 +6,12 @@ import { CreateCurrentMatch, CurrentMatch } from "@shared/types/currentMatch";
 import { AdminPanelUpdateMessage } from "@shared/types/websocket";
 import * as Api from "@shared/types/apiTypes";
 import { withDataOr404, withErrorHandling } from "../utils/apiHelpers";
+import { GlobalMessageCounter } from "../services/GlobalMessageCounter";
 
 export default function createAdminRoutes(
   repo: CurrentMatchRepository,
   io: SocketIOServer,
+  messageCounter: GlobalMessageCounter,
 ): Router {
   const router = express.Router();
 
@@ -27,10 +29,14 @@ export default function createAdminRoutes(
       round,
       pairing_id,
     );
-    io.emit("AdminPanelUpdate", {
+
+    const adminPanelUpdate: AdminPanelUpdateMessage = {
       userId,
+      messageId: messageCounter.getNextId(),
       ...match,
-    } as AdminPanelUpdateMessage);
+    };
+
+    io.emit("AdminPanelUpdate", adminPanelUpdate);
     res.json(Api.success(match));
   });
 

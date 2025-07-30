@@ -4,6 +4,7 @@ import { loadTournamentFile } from "./loadTournamentFile";
 import { Server as SocketIOServer } from "socket.io";
 import { GamesAddedMessage } from "@shared/types/websocket";
 import { convertFileToDatabase } from "./fileToDatabaseConversions";
+import { GlobalMessageCounter } from "./GlobalMessageCounter";
 
 export class TournamentPollingService {
   private isRunning: boolean;
@@ -12,6 +13,7 @@ export class TournamentPollingService {
   constructor(
     private readonly tournamentRepo: TournamentRepository,
     private readonly io: SocketIOServer,
+    private readonly messageCounter: GlobalMessageCounter,
   ) {
     this.isRunning = false;
     this.job = null;
@@ -69,10 +71,12 @@ export class TournamentPollingService {
             createTournamentData,
           );
           console.log(`Updated tournament ${tournament.id} with new data`);
-          this.io.emit("GamesAdded", {
+          const gamesAddedMessage: GamesAddedMessage = {
             userId: tournament.user_id,
             tournamentId: tournament.id,
-          } as GamesAddedMessage);
+            messageId: this.messageCounter.getNextId(),
+          };
+          this.io.emit("GamesAdded", gamesAddedMessage);
         }
       } catch (error) {
         console.error(`Error polling tournament ${tournament.id}:`, error);

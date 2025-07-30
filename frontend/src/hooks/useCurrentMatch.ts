@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { CurrentMatch } from "@shared/types/currentMatch";
-import DisplaySourceManager from "./DisplaySourceManager";
+import BroadcastManager from "./BroadcastManager";
 import { fetchCurrentMatch } from "../utils/matchApi";
 
 interface UseCurrentMatchReturn {
@@ -48,7 +48,11 @@ export const useCurrentMatch = (): UseCurrentMatchReturn => {
   useEffect(() => {
     if (!userId) return;
 
-    const displayManager = DisplaySourceManager.getInstance();
+    const displayManager = BroadcastManager.getInstance();
+
+    displayManager.onPing((pingData) => {
+      console.log(`Overlay received ping!`, pingData);
+    });
 
     const cleanup = displayManager.onAdminPanelUpdate((data: any) => {
       console.log("📥 useCurrentMatch received AdminPanelUpdate:", data);
