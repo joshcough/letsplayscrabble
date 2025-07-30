@@ -112,8 +112,7 @@ export const useTournamentData = ({
   useEffect(() => {
     if (!userId || !effectiveTournamentId) return;
 
-    const displayManager = BroadcastManager.getInstance();
-    const cleanupGamesAdded = displayManager.onGamesAdded((data: any) => {
+    const cleanupGamesAdded = BroadcastManager.getInstance().onGamesAdded((data: any) => {
       console.log("🎮 useTournamentData received GamesAdded broadcast:", data);
       if (
         data.userId === parseInt(userId) &&

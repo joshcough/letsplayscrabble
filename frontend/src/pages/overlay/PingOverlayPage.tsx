@@ -12,9 +12,7 @@ const PingOverlayPage: React.FC = () => {
   const [missedMessages, setMissedMessages] = useState<number>(0);
 
   useEffect(() => {
-    const displayManager = BroadcastManager.getInstance();
-
-    const cleanup = displayManager.onPing((data: Ping) => {
+    const cleanup = BroadcastManager.getInstance().onPing((data: Ping) => {
       console.log(`🏓 PingOverlayPage received messageId: ${data.messageId}`);
 
       // Check for missed messages

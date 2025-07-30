@@ -1,8 +1,7 @@
 // WorkerSocketManager.ts - Enhanced SocketManager for the worker thread
 import io, { Socket } from "socket.io-client";
 import { API_BASE } from "../config/api";
-import { CurrentMatch } from "@shared/types/currentMatch";
-import { Ping } from "@shared/types/websocket";
+import { AdminPanelUpdateMessage, GamesAddedMessage, Ping } from "@shared/types/websocket";
 import { fetchTournament } from "../utils/api";
 
 class WorkerSocketManager {
@@ -14,6 +13,9 @@ class WorkerSocketManager {
   private listeners: Set<(data: any) => void> = new Set();
 
   private broadcastChannel: BroadcastChannel;
+
+  // Message deduplication - track highest messageId seen
+  private lastSeenMessageId: number = 0;
 
   private constructor() {
     console.log(
@@ -28,6 +30,38 @@ class WorkerSocketManager {
       WorkerSocketManager.instance = new WorkerSocketManager();
     }
     return WorkerSocketManager.instance;
+  }
+
+  private withDeduplication<T extends { messageId?: number }>(
+    eventType: string,
+    handler: (data: T) => void
+  ): void {
+    if (!this.socket) return;
+
+    this.socket.on(eventType, (data: T) => {
+      if (this.shouldSkipDuplicateMessage(data, eventType)) {
+        return;
+      }
+      handler(data);
+    });
+  }
+
+  // Check and skip duplicate WebSocket messages
+  private shouldSkipDuplicateMessage(data: { messageId?: number }, eventType: string): boolean {
+    if (!data.messageId) {
+      console.warn(`⚠️ ${eventType} message missing messageId`);
+      return false; // Process messages without messageId
+    }
+
+    if (data.messageId <= this.lastSeenMessageId) {
+      console.log(`⏭️ Skipping duplicate/old ${eventType} message: messageId ${data.messageId} (last seen: ${this.lastSeenMessageId})`);
+      return true;
+    }
+
+    // Update highest seen messageId
+    this.lastSeenMessageId = data.messageId;
+    console.log(`✅ Processing ${eventType} message: messageId ${data.messageId}`);
+    return false;
   }
 
   private connectSocket() {
@@ -69,6 +103,9 @@ class WorkerSocketManager {
       this.socket.on("disconnect", (reason: string) => {
         console.log("🟡 Worker Socket disconnected:", reason);
         this.connectionStatus = `Disconnected from server: ${reason}`;
+        // Reset messageId counter on disconnect to handle reconnection cleanly
+        this.lastSeenMessageId = 0;
+        console.log("🔄 Reset lastSeenMessageId on disconnect");
         this.notifyListeners({
           type: "statusChange",
           status: this.connectionStatus,
@@ -82,11 +119,11 @@ class WorkerSocketManager {
       });
 
       this.socket.on("ping", () => {
-        console.log("got a ping!");
+        console.log("got a ping!")
         this.lastDataUpdate = Date.now();
       });
 
-      this.socket.on("Ping", (data: Ping) => {
+      this.withDeduplication("Ping", (data: Ping) => {
         console.log(`🏓 Worker received ping`, data);
         this.lastDataUpdate = Date.now();
         this.broadcastToDisplayOverlays("Ping", data);
@@ -105,27 +142,17 @@ class WorkerSocketManager {
   private setupTournamentEventHandlers() {
     if (!this.socket) return;
 
-    // Listen for AdminPanelUpdate and broadcast to display sources
-    this.socket.on(
-      "AdminPanelUpdate",
-      (data: CurrentMatch & { userId: number }) => {
-        console.log("📡 Worker received AdminPanelUpdate:", data);
-        this.broadcastToDisplayOverlays("AdminPanelUpdate", data);
-        // Also fetch and broadcast tournament data for the current match
-        this.fetchAndBroadcastTournamentData(data.tournament_id, data.userId);
-      },
-    );
+    this.withDeduplication("AdminPanelUpdate", (data: AdminPanelUpdateMessage) => {
+      console.log("📡 Worker received AdminPanelUpdate:", data);
+      this.broadcastToDisplayOverlays("AdminPanelUpdate", data);
+      this.fetchAndBroadcastTournamentData(data.tournamentId, data.userId);
+    });
 
-    // Listen for GamesAdded and broadcast to display sources
-    this.socket.on(
-      "GamesAdded",
-      (data: { userId: number; tournamentId: number }) => {
-        console.log("📡 Worker received GamesAdded:", data);
-        this.broadcastToDisplayOverlays("GamesAdded", data);
-        // Fetch and broadcast updated tournament data
-        this.fetchAndBroadcastTournamentData(data.tournamentId, data.userId);
-      },
-    );
+    this.withDeduplication("GamesAdded", (data: GamesAddedMessage) => {
+      console.log("📡 Worker received GamesAdded:", data);
+      this.broadcastToDisplayOverlays("GamesAdded", data);
+      this.fetchAndBroadcastTournamentData(data.tournamentId, data.userId);
+    });
   }
 
   private broadcastToDisplayOverlays(eventType: string, data: any) {
@@ -213,6 +240,17 @@ class WorkerSocketManager {
     return this.lastDataUpdate;
   }
 
+  // Method to get last seen messageId (useful for debugging)
+  getLastSeenMessageId(): number {
+    return this.lastSeenMessageId;
+  }
+
+  // Method to reset messageId counter (useful for testing)
+  resetMessageIdCounter(): void {
+    this.lastSeenMessageId = 0;
+    console.log("🔄 Manually reset lastSeenMessageId");
+  }
+
   // Cleanup method
   cleanup() {
     console.log("🧹 Worker cleaning up...");
@@ -220,6 +258,7 @@ class WorkerSocketManager {
       this.socket.disconnect();
     }
     this.broadcastChannel.close();
+    this.lastSeenMessageId = 0;
   }
 }
 
