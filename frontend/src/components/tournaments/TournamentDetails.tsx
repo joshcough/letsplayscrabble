@@ -29,7 +29,8 @@ const TournamentDetails: React.FC = () => {
   const [isPolling, setIsPolling] = useState<boolean>(false);
   const [pollUntil, setPollUntil] = useState<Date | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [editedTournament, setEditedTournament] = useState<TournamentRow | null>(null);
+  const [editedTournament, setEditedTournament] =
+    useState<TournamentRow | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
 
   useEffect(() => {
@@ -104,7 +105,10 @@ const TournamentDetails: React.FC = () => {
         body: JSON.stringify(editableFields),
       });
 
-      const freshTournamentData = await fetchTournamentRow(user_id, tournamentId);
+      const freshTournamentData = await fetchTournamentRow(
+        user_id,
+        tournamentId,
+      );
       setTournament(freshTournamentData);
       setIsEditing(false);
     } catch (error) {
@@ -124,7 +128,10 @@ const TournamentDetails: React.FC = () => {
   useEffect(() => {
     const fetchTournamentData = async () => {
       try {
-        const tournamentData: TournamentRow = await fetchTournamentRow(user_id, tournamentId);
+        const tournamentData: TournamentRow = await fetchTournamentRow(
+          user_id,
+          tournamentId,
+        );
         setTournament(tournamentData);
 
         if (tournamentData.poll_until) {
@@ -262,7 +269,9 @@ const TournamentDetails: React.FC = () => {
                   <input
                     type="text"
                     value={editedTournament.lexicon || ""}
-                    onChange={(e) => handleInputChange("lexicon", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("lexicon", e.target.value)
+                    }
                     className="px-2 py-1 border rounded"
                   />
                 ) : (
@@ -287,7 +296,9 @@ const TournamentDetails: React.FC = () => {
                 )}
               </div>
               <div className="flex">
-                <span className="text-gray-600 font-medium w-32">Data URL:</span>
+                <span className="text-gray-600 font-medium w-32">
+                  Data URL:
+                </span>
                 {isEditing ? (
                   <input
                     type="text"
@@ -326,7 +337,9 @@ const TournamentDetails: React.FC = () => {
                         min="1"
                         max="30"
                         value={pollingDays}
-                        onChange={(e) => setPollingDays(parseInt(e.target.value))}
+                        onChange={(e) =>
+                          setPollingDays(parseInt(e.target.value))
+                        }
                         className="w-16 px-2 py-1 border rounded"
                       />
                       <span className="text-gray-600">days</span>

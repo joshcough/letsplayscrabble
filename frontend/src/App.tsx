@@ -30,7 +30,10 @@ import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
 // Wrapper component to conditionally apply theme
 const AppContent: React.FC = () => {
   const location = useLocation();
-  const isOverlay = location.pathname.startsWith("/overlay/") || location.pathname.includes("/overlay/") || location.pathname.startsWith("/worker");
+  const isOverlay =
+    location.pathname.startsWith("/overlay/") ||
+    location.pathname.includes("/overlay/") ||
+    location.pathname.startsWith("/worker");
 
   return (
     <div
@@ -43,7 +46,10 @@ const AppContent: React.FC = () => {
         <Route path="/login" element={<AdminLogin />} />
 
         {/* User-scoped overlay routes */}
-        <Route path="/users/:userId/overlay/misc" element={<MiscOverlayPage />} />
+        <Route
+          path="/users/:userId/overlay/misc"
+          element={<MiscOverlayPage />}
+        />
         <Route
           path="/users/:userId/overlay/standings/:tournamentId?/:divisionName?"
           element={<StandingsOverlayPage />}
@@ -113,10 +119,7 @@ const AppContent: React.FC = () => {
         />
 
         {/* Other routes */}
-        <Route
-          path="/overlays"
-          element={<OverlaysPage />}
-        />
+        <Route path="/overlays" element={<OverlaysPage />} />
         <Route
           path="/overlay/misc_testing"
           element={<MiscOverlayTestingPage />}

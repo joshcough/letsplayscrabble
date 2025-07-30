@@ -7,7 +7,7 @@ export const withDataOr404 = async <T>(
   fetchPromise: Promise<T | null>,
   res: Response,
   notFoundMessage: string,
-  successFn: (data: T) => void | Promise<void>
+  successFn: (data: T) => void | Promise<void>,
 ): Promise<void> => {
   const data = await fetchPromise;
   if (!data) {
@@ -18,16 +18,21 @@ export const withDataOr404 = async <T>(
 };
 
 export const withErrorHandling = <P = {}, ReqBody = any, ResBody = any>(
-  handler: (req: Request<P, any, ReqBody>, res: Response<Api.ApiResponse<ResBody>>) => Promise<void>
+  handler: (
+    req: Request<P, any, ReqBody>,
+    res: Response<Api.ApiResponse<ResBody>>,
+  ) => Promise<void>,
 ): RequestHandler<P, Api.ApiResponse<ResBody>, ReqBody> => {
   return async (req, res, next) => {
     try {
       await handler(req, res);
     } catch (error) {
       console.error("Request handler error:", error);
-      res.status(500).json(Api.failure(
-        error instanceof Error ? error.message : "Unknown error"
-      ));
+      res
+        .status(500)
+        .json(
+          Api.failure(error instanceof Error ? error.message : "Unknown error"),
+        );
     }
   };
 };

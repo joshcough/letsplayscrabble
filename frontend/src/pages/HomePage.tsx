@@ -57,9 +57,7 @@ const HomePage: React.FC = () => {
               <h2 className="text-xl font-bold text-[#4A3728] mb-3">
                 Admin Interface
               </h2>
-              <p className="text-[#6B5744]">
-                Choose the current live pairing
-              </p>
+              <p className="text-[#6B5744]">Choose the current live pairing</p>
             </div>
           </Link>
 

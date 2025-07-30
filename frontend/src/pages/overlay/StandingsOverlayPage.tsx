@@ -1,5 +1,8 @@
 import React from "react";
-import { UsePlayerStatsCalculation, RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
+import {
+  UsePlayerStatsCalculation,
+  RankedPlayerStats,
+} from "../../hooks/usePlayerStatsCalculation";
 import { TournamentTableOverlay } from "../../components/shared/TournamentTableOverlay";
 import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
@@ -19,10 +22,8 @@ const StandingsOverlayPage: React.FC = () => {
       case "rank":
         return player.rank;
       case "record":
-        if (player.ties === 0)
-          return `${player.wins}-${player.losses}`;
-        else
-          return `${player.wins}-${player.losses}-${player.ties}`;
+        if (player.ties === 0) return `${player.wins}-${player.losses}`;
+        else return `${player.wins}-${player.losses}-${player.ties}`;
       case "spread":
         return formatNumberWithSign(player.spread);
       case "highScore":

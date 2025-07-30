@@ -11,7 +11,7 @@ export class TournamentPollingService {
 
   constructor(
     private readonly tournamentRepo: TournamentRepository,
-    private readonly io: SocketIOServer
+    private readonly io: SocketIOServer,
   ) {
     this.isRunning = false;
     this.job = null;
@@ -64,11 +64,14 @@ export class TournamentPollingService {
             userId: tournament.user_id,
           });
 
-          await this.tournamentRepo.updateData(tournament.id, createTournamentData);
+          await this.tournamentRepo.updateData(
+            tournament.id,
+            createTournamentData,
+          );
           console.log(`Updated tournament ${tournament.id} with new data`);
           this.io.emit("GamesAdded", {
             userId: tournament.user_id,
-            tournamentId: tournament.id
+            tournamentId: tournament.id,
           } as GamesAddedMessage);
         }
       } catch (error) {

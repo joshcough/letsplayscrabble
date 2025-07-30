@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 import * as path from "path";
 
 // Load environment-specific config
-const env = process.env.NODE_ENV || 'development';
+const env = process.env.NODE_ENV || "development";
 dotenv.config({ path: path.resolve(process.cwd(), `.env.${env}`) });
 
 const config: { [key: string]: Knex.Config } = {
@@ -29,7 +29,7 @@ const config: { [key: string]: Knex.Config } = {
     client: "postgresql",
     connection: {
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }
+      ssl: { rejectUnauthorized: false },
     },
     migrations: {
       directory: "./migrations",

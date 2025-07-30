@@ -1,5 +1,8 @@
 import React from "react";
-import { UsePlayerStatsCalculation, RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
+import {
+  UsePlayerStatsCalculation,
+  RankedPlayerStats,
+} from "../../hooks/usePlayerStatsCalculation";
 import { TournamentTableOverlay } from "../../components/shared/TournamentTableOverlay";
 import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
@@ -23,7 +26,9 @@ const RatingGainOverlayPage: React.FC = () => {
         return player.rank;
       case "ratingDiff":
         return (
-          <span className={player.ratingDiff > 0 ? "text-red-600" : "text-blue-600"}>
+          <span
+            className={player.ratingDiff > 0 ? "text-red-600" : "text-blue-600"}
+          >
             {formatNumberWithSign(player.ratingDiff)}
           </span>
         );

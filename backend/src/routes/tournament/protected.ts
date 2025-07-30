@@ -30,7 +30,7 @@ interface UpdateTournamentBody {
 }
 
 export function protectedTournamentRoutes(
-  tournamentRepository: TournamentRepository
+  tournamentRepository: TournamentRepository,
 ): Router {
   const router = express.Router();
 
@@ -60,7 +60,8 @@ export function protectedTournamentRoutes(
       });
 
       // Create tournament using clean repository
-      const tournament = await tournamentRepository.create(createTournamentData);
+      const tournament =
+        await tournamentRepository.create(createTournamentData);
 
       res.status(201).json(tournament);
     } catch (error) {
@@ -71,7 +72,10 @@ export function protectedTournamentRoutes(
     }
   };
 
-  const deleteTournament: RequestHandler<TournamentIdParams> = async (req, res) => {
+  const deleteTournament: RequestHandler<TournamentIdParams> = async (
+    req,
+    res,
+  ) => {
     const { id } = req.params;
 
     try {
@@ -102,7 +106,7 @@ export function protectedTournamentRoutes(
 
       const existingTournament = await tournamentRepository.findByIdForUser(
         tournamentId,
-        userId
+        userId,
       );
 
       if (!existingTournament) {
@@ -129,12 +133,13 @@ export function protectedTournamentRoutes(
         });
 
         // Update everything in one transaction through repo
-        const tournament = await tournamentRepository.updateTournamentWithNewData(
-          tournamentId,
-          userId,
-          metadata,
-          createTournamentData
-        );
+        const tournament =
+          await tournamentRepository.updateTournamentWithNewData(
+            tournamentId,
+            userId,
+            metadata,
+            createTournamentData,
+          );
 
         res.json(Api.success(tournament));
       } else {
@@ -142,14 +147,18 @@ export function protectedTournamentRoutes(
         const tournament = await tournamentRepository.updateTournamentMetadata(
           tournamentId,
           userId,
-          metadata
+          metadata,
         );
 
         res.json(Api.success(tournament));
       }
     } catch (error) {
       console.error("Database error:", error);
-      res.status(400).json(Api.failure(error instanceof Error ? error.message : "Unknown error"));
+      res
+        .status(400)
+        .json(
+          Api.failure(error instanceof Error ? error.message : "Unknown error"),
+        );
     }
   };
 
@@ -163,7 +172,11 @@ export function protectedTournamentRoutes(
       res.json(Api.success(result));
     } catch (error) {
       console.error("Database error:", error);
-      res.status(500).json(Api.failure(error instanceof Error ? error.message : "Unknown error"));
+      res
+        .status(500)
+        .json(
+          Api.failure(error instanceof Error ? error.message : "Unknown error"),
+        );
     }
   };
 

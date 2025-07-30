@@ -11,17 +11,20 @@ export type ApiResponse<T> =
   | { success: false; error: string };
 
 // Base fetch function with error handling
-const baseFetch = async (endpoint: string, options: RequestInit = {}): Promise<Response> => {
+const baseFetch = async (
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<Response> => {
   const url = `${API_BASE}${endpoint}`;
-  console.log('🌐 API Request:', url);
+  console.log("🌐 API Request:", url);
 
   const response = await fetch(url, options);
 
-  console.log('📡 API Response:', {
+  console.log("📡 API Response:", {
     url,
     status: response.status,
     statusText: response.statusText,
-    ok: response.ok
+    ok: response.ok,
   });
 
   return response;
@@ -51,7 +54,7 @@ const parseApiResponse = async <T>(response: Response): Promise<T> => {
   const data = await response.json();
 
   // If it's wrapped in ApiResponse format, unwrap it
-  if (data && typeof data === 'object' && 'success' in data) {
+  if (data && typeof data === "object" && "success" in data) {
     const apiResponse = data as ApiResponse<T>;
     if (apiResponse.success) {
       return apiResponse.data;
@@ -69,12 +72,13 @@ const parseApiResponse = async <T>(response: Response): Promise<T> => {
 export const fetchTournament = async (
   userId: number,
   tournamentId: number,
-  divisionId?: number
+  divisionId?: number,
 ): Promise<Tournament> => {
   // Choose endpoint based on whether division is specified
-  const endpoint = divisionId !== undefined
-    ? `/api/public/users/${userId}/tournaments/${tournamentId}/divisions/${divisionId}`
-    : `/api/public/users/${userId}/tournaments/${tournamentId}`;
+  const endpoint =
+    divisionId !== undefined
+      ? `/api/public/users/${userId}/tournaments/${tournamentId}/divisions/${divisionId}`
+      : `/api/public/users/${userId}/tournaments/${tournamentId}`;
 
   const response = await baseFetch(endpoint);
   return parseApiResponse<Tournament>(response);
@@ -83,9 +87,11 @@ export const fetchTournament = async (
 export const fetchTournamentRow = async (
   userId: number,
   tournamentId: number,
-  divisionId?: number
+  divisionId?: number,
 ): Promise<TournamentRow> => {
-  const response = await baseFetch(`/api/public/users/${userId}/tournaments/${tournamentId}/row`);
+  const response = await baseFetch(
+    `/api/public/users/${userId}/tournaments/${tournamentId}/row`,
+  );
   return parseApiResponse<TournamentRow>(response);
 };
 
@@ -93,7 +99,7 @@ export const fetchTournamentRow = async (
 export const fetchTournamentDivision = async (
   userId: number,
   tournamentId: number,
-  divisionId: number
+  divisionId: number,
 ): Promise<Tournament> => {
   // This now just calls the updated fetchTournament
   return fetchTournament(userId, tournamentId, divisionId);
@@ -103,44 +109,53 @@ export const fetchTournamentDivision = async (
 const getAuthHeaders = (): HeadersInit => {
   const token = localStorage.getItem("token");
   return {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
   };
 };
 
-export const fetchWithAuth = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
+export const fetchWithAuth = async <T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<T> => {
   const response = await baseFetch(endpoint, {
     ...options,
     headers: {
       ...getAuthHeaders(),
-      ...options.headers
-    }
+      ...options.headers,
+    },
   });
   return parseApiResponse<T>(response);
 };
 
-export const postWithAuth = async <T>(endpoint: string, body: any): Promise<T> => {
+export const postWithAuth = async <T>(
+  endpoint: string,
+  body: any,
+): Promise<T> => {
   const response = await baseFetch(endpoint, {
-    method: 'POST',
+    method: "POST",
     headers: getAuthHeaders(),
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   });
   return parseApiResponse<T>(response);
 };
 
-export const putWithAuth = async <T>(endpoint: string, body: any): Promise<T> => {
+export const putWithAuth = async <T>(
+  endpoint: string,
+  body: any,
+): Promise<T> => {
   const response = await baseFetch(endpoint, {
-    method: 'PUT',
+    method: "PUT",
     headers: getAuthHeaders(),
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   });
   return parseApiResponse<T>(response);
 };
 
 export const deleteWithAuth = async <T>(endpoint: string): Promise<T> => {
   const response = await baseFetch(endpoint, {
-    method: 'DELETE',
-    headers: getAuthHeaders()
+    method: "DELETE",
+    headers: getAuthHeaders(),
   });
   return parseApiResponse<T>(response);
 };
@@ -149,7 +164,7 @@ export const deleteWithAuth = async <T>(endpoint: string): Promise<T> => {
 export const fetchAuthenticatedApiEndpoint = async <T>(
   endpoint: string,
   errorContext: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T | null> => {
   try {
     return await fetchWithAuth<T>(endpoint, options);
@@ -162,7 +177,7 @@ export const fetchAuthenticatedApiEndpoint = async <T>(
 export const fetchUserOverlayEndpoint = async <T>(
   userId: number,
   endpoint: string,
-  errorContext: string
+  errorContext: string,
 ): Promise<T | null> => {
   try {
     const userScopedEndpoint = `/api/overlay/users/${userId}${endpoint}`;
@@ -176,7 +191,7 @@ export const fetchUserOverlayEndpoint = async <T>(
 export const fetchUserTournamentEndpoint = async <T>(
   userId: number,
   endpoint: string,
-  errorContext: string
+  errorContext: string,
 ): Promise<T | null> => {
   try {
     const userScopedEndpoint = `/api/tournaments/public/users/${userId}${endpoint}`;
@@ -191,7 +206,7 @@ export const fetchUserTournamentEndpoint = async <T>(
 export const postAuthenticatedApiEndpoint = async <T, B = any>(
   endpoint: string,
   body: B,
-  errorContext: string
+  errorContext: string,
 ): Promise<T | null> => {
   try {
     return await postWithAuth<T>(endpoint, body);
@@ -201,12 +216,18 @@ export const postAuthenticatedApiEndpoint = async <T, B = any>(
   }
 };
 
-export const fetchApiResponseWithAuth = async <T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> => {
+export const fetchApiResponseWithAuth = async <T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<ApiResponse<T>> => {
   try {
     const data = await fetchWithAuth<T>(endpoint, options);
     return { success: true, data };
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 };
 

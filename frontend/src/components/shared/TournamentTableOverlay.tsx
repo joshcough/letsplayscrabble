@@ -1,6 +1,6 @@
-import React from 'react';
-import { TournamentDisplayData } from './BaseOverlay';
-import * as Stats from '@shared/types/stats';
+import React from "react";
+import { TournamentDisplayData } from "./BaseOverlay";
+import * as Stats from "@shared/types/stats";
 
 interface Column {
   key: string;
@@ -27,7 +27,7 @@ export const TournamentTableOverlay: React.FC<TournamentTableOverlayProps> = ({
   title,
   divisionName,
   renderPlayerName,
-  renderCell
+  renderCell,
 }) => {
   return (
     <div className="flex flex-col items-center pt-2 font-bold">
@@ -59,7 +59,9 @@ export const TournamentTableOverlay: React.FC<TournamentTableOverlayProps> = ({
                     key={column.key}
                     className={`px-3 py-1 ${column.key === "name" ? "" : "text-center"}`}
                   >
-                    {column.key === "name" ? renderPlayerName(player) : renderCell(player, column.key)}
+                    {column.key === "name"
+                      ? renderPlayerName(player)
+                      : renderCell(player, column.key)}
                   </td>
                 ))}
               </tr>

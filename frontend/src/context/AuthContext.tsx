@@ -28,7 +28,9 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const validateToken = (token: string | null): { isValid: boolean; payload?: JWTPayload } => {
+  const validateToken = (
+    token: string | null,
+  ): { isValid: boolean; payload?: JWTPayload } => {
     if (!token) return { isValid: false };
 
     try {
@@ -37,7 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       return {
         isValid: decoded.exp > currentTime,
-        payload: decoded
+        payload: decoded,
       };
     } catch {
       return { isValid: false };
@@ -55,7 +57,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return {
       isAuthenticated: isValid,
       userId: payload?.id || null,
-      username: payload?.username || null
+      username: payload?.username || null,
     };
   });
 
@@ -67,12 +69,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (!isValid && authState.isAuthenticated) {
         logout();
-      } else if (isValid && (!authState.isAuthenticated || authState.userId !== payload?.id)) {
+      } else if (
+        isValid &&
+        (!authState.isAuthenticated || authState.userId !== payload?.id)
+      ) {
         // Update state if token is valid but state is out of sync
         setAuthState({
           isAuthenticated: true,
           userId: payload?.id || null,
-          username: payload?.username || null
+          username: payload?.username || null,
         });
       }
     };
@@ -89,7 +94,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setAuthState({
         isAuthenticated: true,
         userId: payload.id,
-        username: payload.username
+        username: payload.username,
       });
     }
   };
@@ -99,18 +104,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAuthState({
       isAuthenticated: false,
       userId: null,
-      username: null
+      username: null,
     });
   };
 
   return (
-    <AuthContext.Provider value={{
-      isAuthenticated: authState.isAuthenticated,
-      userId: authState.userId,
-      username: authState.username,
-      login,
-      logout
-    }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated: authState.isAuthenticated,
+        userId: authState.userId,
+        username: authState.username,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

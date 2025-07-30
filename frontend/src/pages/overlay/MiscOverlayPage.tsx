@@ -13,7 +13,7 @@ import {
   formatFullUnderCam,
   formatUnderCamNoSeed,
   formatFullUnderCamWithRating,
-  formatBestOf7
+  formatBestOf7,
 } from "../../utils/statsOverlayHelpers";
 
 type SourceType =
@@ -57,11 +57,16 @@ const MiscOverlay: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const source = searchParams.get("source") as SourceType;
 
-  const [matchWithPlayers, setMatchWithPlayers] = useState<MatchWithPlayers | null>(null);
+  const [matchWithPlayers, setMatchWithPlayers] =
+    useState<MatchWithPlayers | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { currentMatch, loading: matchLoading, error: matchError } = useCurrentMatch();
+  const {
+    currentMatch,
+    loading: matchLoading,
+    error: matchError,
+  } = useCurrentMatch();
 
   // Fetch full match data when current match changes
   const fetchFullMatchData = async () => {
@@ -74,13 +79,17 @@ const MiscOverlay: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      console.log('🔄 MiscOverlay: Fetching full match data for user:', userId);
+      console.log("🔄 MiscOverlay: Fetching full match data for user:", userId);
 
-      const fullMatchData = await fetchCurrentMatchWithPlayers(parseInt(userId));
+      const fullMatchData = await fetchCurrentMatchWithPlayers(
+        parseInt(userId),
+      );
       setMatchWithPlayers(fullMatchData);
     } catch (err) {
       console.error("Error fetching full match data:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch match data");
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch match data",
+      );
     } finally {
       setLoading(false);
     }
@@ -99,8 +108,11 @@ const MiscOverlay: React.FC = () => {
     const displayManager = DisplaySourceManager.getInstance();
 
     const cleanup = displayManager.onGamesAdded((data: any) => {
-      console.log('📥 MiscOverlay received GamesAdded:', data);
-      if (data.userId === parseInt(userId) && data.tournamentId === currentMatch?.tournament_id) {
+      console.log("📥 MiscOverlay received GamesAdded:", data);
+      if (
+        data.userId === parseInt(userId) &&
+        data.tournamentId === currentMatch?.tournament_id
+      ) {
         fetchFullMatchData();
       }
     });
@@ -133,35 +145,59 @@ const MiscOverlay: React.FC = () => {
       switch (source) {
         case "player1-name":
         case "player2-name":
-          return <div className="text-black">{player?.firstLast || "Player"}</div>;
+          return (
+            <div className="text-black">{player?.firstLast || "Player"}</div>
+          );
 
         case "player1-record":
         case "player2-record":
-          return <div className="text-black">Record: {formatRecord(player)}</div>;
+          return (
+            <div className="text-black">Record: {formatRecord(player)}</div>
+          );
 
         case "player1-average-score":
         case "player2-average-score":
-          return <div className="text-black">Average Score: {player?.averageScoreRounded || "N/A"}</div>;
+          return (
+            <div className="text-black">
+              Average Score: {player?.averageScoreRounded || "N/A"}
+            </div>
+          );
 
         case "player1-high-score":
         case "player2-high-score":
-          return <div className="text-black">High Score: {player?.highScore || "N/A"}</div>;
+          return (
+            <div className="text-black">
+              High Score: {player?.highScore || "N/A"}
+            </div>
+          );
 
         case "player1-spread":
         case "player2-spread":
-          return <div className="text-black">Spread: {formatSpread(player?.spread)}</div>;
+          return (
+            <div className="text-black">
+              Spread: {formatSpread(player?.spread)}
+            </div>
+          );
 
         case "player1-rank":
         case "player2-rank":
-          return <div className="text-black">Rank: {player?.rank || "N/A"}</div>;
+          return (
+            <div className="text-black">Rank: {player?.rank || "N/A"}</div>
+          );
 
         case "player1-rank-ordinal":
         case "player2-rank-ordinal":
-          return <div className="text-black">{player?.rankOrdinal || "N/A"}</div>;
+          return (
+            <div className="text-black">{player?.rankOrdinal || "N/A"}</div>
+          );
 
         case "player1-rating":
         case "player2-rating":
-          return <div className="text-black">Rating: {player?.currentRating || "N/A"}</div>;
+          return (
+            <div className="text-black">
+              Rating: {player?.currentRating || "N/A"}
+            </div>
+          );
 
         case "player1-under-cam":
         case "player2-under-cam":
@@ -169,15 +205,23 @@ const MiscOverlay: React.FC = () => {
 
         case "player1-under-cam-no-seed":
         case "player2-under-cam-no-seed":
-          return <div className="text-black">{formatUnderCamNoSeed(player)}</div>;
+          return (
+            <div className="text-black">{formatUnderCamNoSeed(player)}</div>
+          );
 
         case "player1-under-cam-small":
         case "player2-under-cam-small":
-          return <div className="text-black">{formatUnderCamRecord(player)}</div>;
+          return (
+            <div className="text-black">{formatUnderCamRecord(player)}</div>
+          );
 
         case "player1-under-cam-with-rating":
         case "player2-under-cam-with-rating":
-          return <div className="text-black">{formatFullUnderCamWithRating(player)}</div>;
+          return (
+            <div className="text-black">
+              {formatFullUnderCamWithRating(player)}
+            </div>
+          );
 
         case "player1-bo7":
         case "player2-bo7":
@@ -194,7 +238,11 @@ const MiscOverlay: React.FC = () => {
               </div>
               <div className="text-black">
                 <GameHistoryDisplay
-                  games={matchWithPlayers.last5?.[source.startsWith("player1") ? 0 : 1] || []}
+                  games={
+                    matchWithPlayers.last5?.[
+                      source.startsWith("player1") ? 0 : 1
+                    ] || []
+                  }
                   side={side}
                 />
               </div>
@@ -204,7 +252,11 @@ const MiscOverlay: React.FC = () => {
         case "player2-game-history-small":
           return (
             <GameHistoryDisplay
-              games={matchWithPlayers.last5?.[source.startsWith("player1") ? 0 : 1] || []}
+              games={
+                matchWithPlayers.last5?.[
+                  source.startsWith("player1") ? 0 : 1
+                ] || []
+              }
               side={side}
             />
           );

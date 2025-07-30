@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface LoadingErrorWrapperProps {
   loading: boolean;
@@ -11,7 +11,7 @@ export const LoadingErrorWrapper: React.FC<LoadingErrorWrapperProps> = ({
   loading,
   error,
   children,
-  noDataMessage = "No data available"
+  noDataMessage = "No data available",
 }) => {
   if (loading) {
     return <div className="text-black p-2">Loading...</div>;

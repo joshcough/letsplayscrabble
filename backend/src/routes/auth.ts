@@ -32,7 +32,7 @@ const loginHandler: RequestHandler = async (
 
   try {
     const result = await db.query<AdminUser>(
-      "SELECT id, username, password_hash FROM users WHERE username = $1",  // Changed from admin_users to users
+      "SELECT id, username, password_hash FROM users WHERE username = $1", // Changed from admin_users to users
       [username],
     );
     const user = result.rows[0];
@@ -42,12 +42,16 @@ const loginHandler: RequestHandler = async (
       return;
     }
 
-    const token = jwt.sign({
-      id: user.id,           // Add this
-      username: user.username
-    }, process.env.JWT_SECRET!, {
-      expiresIn: "24h",
-    });
+    const token = jwt.sign(
+      {
+        id: user.id, // Add this
+        username: user.username,
+      },
+      process.env.JWT_SECRET!,
+      {
+        expiresIn: "24h",
+      },
+    );
 
     res.json({ token });
     return;

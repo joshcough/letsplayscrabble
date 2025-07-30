@@ -6,7 +6,9 @@ import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 const StandingsWithPicsOverlayPage: React.FC = () => {
   const renderPlayerContent = (player: any) => (
     <div className="text-black text-2xl font-bold text-center mb-2">
-      {player.wins}-{player.losses}{player.ties > 0 ? `-${player.ties}` : ""} {formatNumberWithSign(player.spread)}
+      {player.wins}-{player.losses}
+      {player.ties > 0 ? `-${player.ties}` : ""}{" "}
+      {formatNumberWithSign(player.spread)}
     </div>
   );
 

@@ -36,7 +36,9 @@ export const useCurrentMatch = (): UseCurrentMatchReturn => {
       setCurrentMatch(match);
     } catch (err) {
       console.error("Error fetching current match:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch current match");
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch current match",
+      );
     } finally {
       setLoading(false);
     }

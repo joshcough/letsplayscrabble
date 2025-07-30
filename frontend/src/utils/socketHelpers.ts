@@ -7,7 +7,7 @@ import { CurrentMatch } from "@shared/types/currentMatch";
  */
 export const useAdminPanelUpdates = (
   socket: Socket | null,
-  onUpdate: (data: CurrentMatch) => void
+  onUpdate: (data: CurrentMatch) => void,
 ) => {
   useEffect(() => {
     if (!socket) return;
@@ -30,7 +30,7 @@ export const useAdminPanelUpdates = (
  */
 export const useGamesAdded = (
   socket: Socket | null,
-  onGamesAdded: (data: { tournamentId: number }) => void
+  onGamesAdded: (data: { tournamentId: number }) => void,
 ) => {
   useEffect(() => {
     if (!socket) return;
@@ -53,7 +53,7 @@ export const useGamesAdded = (
  */
 export const useSocketEvents = (
   socket: Socket | null,
-  events: Record<string, (data: any) => void>
+  events: Record<string, (data: any) => void>,
 ) => {
   useEffect(() => {
     if (!socket) return;
@@ -71,7 +71,7 @@ export const useSocketEvents = (
     });
 
     return () => {
-      cleanupFunctions.forEach(cleanup => cleanup());
+      cleanupFunctions.forEach((cleanup) => cleanup());
     };
   }, [socket, events]);
 };
