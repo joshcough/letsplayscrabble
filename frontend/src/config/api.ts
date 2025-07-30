@@ -9,16 +9,19 @@ export type ApiResponse<T> =
 
 export const success = <T>(data: T): ApiResponse<T> => ({
   success: true,
-  data
+  data,
 });
 
 export const failure = <T>(error: string): ApiResponse<T> => ({
   success: false,
-  error
+  error,
 });
 
 // Core function that preserves the ApiResponse
-const fetchApiResponseWithAuth = async <T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> => {
+const fetchApiResponseWithAuth = async <T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<ApiResponse<T>> => {
   const token = localStorage.getItem("token");
 
   const headers = {
@@ -31,14 +34,18 @@ const fetchApiResponseWithAuth = async <T>(endpoint: string, options: RequestIni
     headers,
   });
 
-  console.log("response", response)
+  console.log("response", response);
 
   // For non-2xx responses, still try to parse the ApiResponse
   if (!response.ok) {
     try {
       const errorResponse = await response.json();
       // If it's already an ApiResponse failure, return it
-      if (errorResponse && 'success' in errorResponse && !errorResponse.success) {
+      if (
+        errorResponse &&
+        "success" in errorResponse &&
+        !errorResponse.success
+      ) {
         return errorResponse as ApiResponse<T>;
       }
       // Otherwise create a failure response
@@ -55,7 +62,7 @@ const fetchApiResponseWithAuth = async <T>(endpoint: string, options: RequestIni
   const data = await response.json();
 
   // If already an ApiResponse, return as-is
-  if (data && 'success' in data) {
+  if (data && "success" in data) {
     return data as ApiResponse<T>;
   }
 
@@ -64,7 +71,10 @@ const fetchApiResponseWithAuth = async <T>(endpoint: string, options: RequestIni
 };
 
 // Convenience function that throws on failure (existing behavior)
-const fetchWithAuth = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
+const fetchWithAuth = async <T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<T> => {
   const response = await fetchApiResponseWithAuth<T>(endpoint, options);
   if (response.success) {
     return response.data;

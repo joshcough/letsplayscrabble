@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import * as DB from '@shared/types/database';
-import DisplaySourceManager from './DisplaySourceManager';
-import { fetchTournament, fetchTournamentDivision } from '../utils/api';
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import * as DB from "@shared/types/database";
+import DisplaySourceManager from "./DisplaySourceManager";
+import { fetchTournament, fetchTournamentDivision } from "../utils/api";
 
 interface UseTournamentDataProps {
   tournamentId?: number;
@@ -20,17 +20,27 @@ type RouteParams = {
 export const useTournamentData = ({
   tournamentId: propTournamentId,
   divisionId: propDivisionId,
-  useUrlParams = false
+  useUrlParams = false,
 }: UseTournamentDataProps) => {
-  const { userId, tournamentId: urlTournamentId, divisionName } = useParams<RouteParams>();
+  const {
+    userId,
+    tournamentId: urlTournamentId,
+    divisionName,
+  } = useParams<RouteParams>();
 
-  const [tournamentData, setTournamentData] = useState<DB.Tournament | null>(null);
+  const [tournamentData, setTournamentData] = useState<DB.Tournament | null>(
+    null,
+  );
   const [loading, setLoading] = useState<boolean>(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [selectedDivisionId, setSelectedDivisionId] = useState<number | null>(null);
+  const [selectedDivisionId, setSelectedDivisionId] = useState<number | null>(
+    null,
+  );
 
   const shouldUseUrlParams = useUrlParams && urlTournamentId && divisionName;
-  const effectiveTournamentId = shouldUseUrlParams ? Number(urlTournamentId) : propTournamentId;
+  const effectiveTournamentId = shouldUseUrlParams
+    ? Number(urlTournamentId)
+    : propTournamentId;
 
   const fetchTournamentData = async () => {
     if (!userId || !effectiveTournamentId) {
@@ -46,21 +56,27 @@ export const useTournamentData = ({
       let finalDivisionId: number | null = null;
 
       if (shouldUseUrlParams) {
-        tournament = await fetchTournament(parseInt(userId), effectiveTournamentId);
+        tournament = await fetchTournament(
+          parseInt(userId),
+          effectiveTournamentId,
+        );
       } else if (propDivisionId) {
         tournament = await fetchTournamentDivision(
           parseInt(userId),
           effectiveTournamentId,
-          propDivisionId
+          propDivisionId,
         );
         finalDivisionId = propDivisionId;
       } else {
-        tournament = await fetchTournament(parseInt(userId), effectiveTournamentId);
+        tournament = await fetchTournament(
+          parseInt(userId),
+          effectiveTournamentId,
+        );
       }
 
       if (shouldUseUrlParams && divisionName) {
-        const divisionData = tournament.divisions.find(d =>
-          d.division.name.toUpperCase() === divisionName.toUpperCase()
+        const divisionData = tournament.divisions.find(
+          (d) => d.division.name.toUpperCase() === divisionName.toUpperCase(),
         );
         if (!divisionData) {
           throw new Error(`Division "${divisionName}" not found`);
@@ -70,9 +86,10 @@ export const useTournamentData = ({
 
       setTournamentData(tournament);
       setSelectedDivisionId(finalDivisionId);
-
     } catch (err) {
-      setFetchError(err instanceof Error ? err.message : "Failed to fetch tournament data");
+      setFetchError(
+        err instanceof Error ? err.message : "Failed to fetch tournament data",
+      );
     } finally {
       setLoading(false);
     }
@@ -84,19 +101,28 @@ export const useTournamentData = ({
         fetchTournamentData();
       }
     }
-  }, [userId, effectiveTournamentId, propDivisionId, divisionName, shouldUseUrlParams]);
+  }, [
+    userId,
+    effectiveTournamentId,
+    propDivisionId,
+    divisionName,
+    shouldUseUrlParams,
+  ]);
 
   useEffect(() => {
     if (!userId || !effectiveTournamentId) return;
 
     const displayManager = DisplaySourceManager.getInstance();
     const cleanupGamesAdded = displayManager.onGamesAdded((data: any) => {
-      console.log('🎮 useTournamentData received GamesAdded broadcast:', data);
-      if (data.userId === parseInt(userId) && data.tournamentId === effectiveTournamentId) {
-        console.log('✅ Matching tournament - refetching data!');
+      console.log("🎮 useTournamentData received GamesAdded broadcast:", data);
+      if (
+        data.userId === parseInt(userId) &&
+        data.tournamentId === effectiveTournamentId
+      ) {
+        console.log("✅ Matching tournament - refetching data!");
         fetchTournamentData();
       } else {
-        console.log('⏭️ Different tournament - ignoring');
+        console.log("⏭️ Different tournament - ignoring");
       }
     });
 
@@ -109,12 +135,19 @@ export const useTournamentData = ({
     if (!tournamentData) return null;
     const targetDivisionId = divisionId || selectedDivisionId;
     if (!targetDivisionId) return null;
-    return tournamentData.divisions.find(d => d.division.id === targetDivisionId) || null;
+    return (
+      tournamentData.divisions.find(
+        (d) => d.division.id === targetDivisionId,
+      ) || null
+    );
   };
 
   const getDivisionName = (divisionId?: number) => {
     const divisionData = getDivisionData(divisionId);
-    return divisionData?.division.name || (shouldUseUrlParams ? divisionName : undefined);
+    return (
+      divisionData?.division.name ||
+      (shouldUseUrlParams ? divisionName : undefined)
+    );
   };
 
   return {
@@ -124,6 +157,6 @@ export const useTournamentData = ({
     divisionName: getDivisionName(),
     loading,
     fetchError,
-    refetch: fetchTournamentData
+    refetch: fetchTournamentData,
   };
 };

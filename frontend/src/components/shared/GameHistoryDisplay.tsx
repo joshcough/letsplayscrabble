@@ -1,23 +1,24 @@
-import React from 'react';
-import { GameResult } from '@shared/types/tournament';
+import React from "react";
+import { GameResult } from "@shared/types/tournament";
 
 interface GameHistoryDisplayProps {
   games: GameResult[];
   side: "player1" | "player2";
-  opponentNameKey?: 'opponentName';
+  opponentNameKey?: "opponentName";
 }
 
 const GameHistoryDisplay: React.FC<GameHistoryDisplayProps> = ({
   games,
   side,
-  opponentNameKey = 'opponentName'
+  opponentNameKey = "opponentName",
 }) => {
   if (!games || games.length === 0) {
     return null;
   }
 
   const reversedGames = [...games].reverse();
-  const headerText = games.length === 1 ? "Last Game:" : `Last ${games.length} Games:`;
+  const headerText =
+    games.length === 1 ? "Last Game:" : `Last ${games.length} Games:`;
 
   const getGameResult = (game: GameResult) => {
     const isWin = game.playerScore > game.opponentScore;
@@ -43,7 +44,9 @@ const GameHistoryDisplay: React.FC<GameHistoryDisplayProps> = ({
               </td>
               <td
                 className={`whitespace-nowrap font-extrabold ${
-                  getGameResult(game) === "Win" ? "text-red-600" : "text-blue-600"
+                  getGameResult(game) === "Win"
+                    ? "text-red-600"
+                    : "text-blue-600"
                 }`}
               >
                 {getGameResult(game)}

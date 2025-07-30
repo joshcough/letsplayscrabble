@@ -36,7 +36,7 @@ export default function createOverlayRoutes(
     } catch (error) {
       console.error("Error fetching current match basic data:", error);
       res.status(500).json({
-        error: error instanceof Error ? error.message : "Unknown error"
+        error: error instanceof Error ? error.message : "Unknown error",
       });
     }
   };

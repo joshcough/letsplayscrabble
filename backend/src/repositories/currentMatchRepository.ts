@@ -33,7 +33,7 @@ export class CurrentMatchRepository {
          FROM current_matches cm
          JOIN divisions d ON cm.division_id = d.id
          WHERE cm.user_id = $1`,
-        [userId]
+        [userId],
       );
 
       if (!res.rows.length) {

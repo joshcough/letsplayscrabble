@@ -1,12 +1,17 @@
 // Register ts-node to handle TypeScript files
-require('ts-node').register({
+require("ts-node").register({
   transpileOnly: true,
   compilerOptions: {
-    module: 'commonjs'
-  }
+    module: "commonjs",
+  },
 });
 
-require('dotenv').config({ path: require('path').resolve(process.cwd(), `.env.${process.env.NODE_ENV || 'development'}`) });
+require("dotenv").config({
+  path: require("path").resolve(
+    process.cwd(),
+    `.env.${process.env.NODE_ENV || "development"}`,
+  ),
+});
 
 const config = {
   development: {
@@ -31,7 +36,7 @@ const config = {
     client: "postgresql",
     connection: {
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }
+      ssl: { rejectUnauthorized: false },
     },
     migrations: {
       directory: "./migrations",
@@ -48,4 +53,4 @@ const config = {
   },
 };
 
-module.exports = config[process.env.NODE_ENV || 'development'];
+module.exports = config[process.env.NODE_ENV || "development"];

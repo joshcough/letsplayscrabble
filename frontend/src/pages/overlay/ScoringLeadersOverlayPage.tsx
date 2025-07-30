@@ -1,5 +1,8 @@
 import React from "react";
-import { UsePlayerStatsCalculation, RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
+import {
+  UsePlayerStatsCalculation,
+  RankedPlayerStats,
+} from "../../hooks/usePlayerStatsCalculation";
 import { TournamentTableOverlay } from "../../components/shared/TournamentTableOverlay";
 import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
@@ -25,7 +28,9 @@ const ScoringLeadersOverlayPage: React.FC = () => {
         return player.averageOpponentScore;
       case "spread":
         return (
-          <span className={player.spread > 0 ? "text-red-600" : "text-blue-600"}>
+          <span
+            className={player.spread > 0 ? "text-red-600" : "text-blue-600"}
+          >
             {formatNumberWithSign(player.spread)}
           </span>
         );

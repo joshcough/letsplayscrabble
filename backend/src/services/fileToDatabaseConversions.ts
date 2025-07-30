@@ -1,6 +1,6 @@
 // backend/src/services/fileToDatabaseConversions.ts
-import * as File from '@shared/types/scrabbleFileFormat';
-import * as DB from '@shared/types/database';
+import * as File from "@shared/types/scrabbleFileFormat";
+import * as DB from "@shared/types/database";
 
 // File Format → Database (complete conversion)
 export function convertFileToDatabase(
@@ -13,7 +13,7 @@ export function convertFileToDatabase(
     longFormName: string;
     dataUrl: string;
     userId: number;
-  }
+  },
 ): DB.CreateTournament {
   // Convert tournament metadata
   const tournament: DB.CreateTournamentRow = {
@@ -29,15 +29,17 @@ export function convertFileToDatabase(
   };
 
   // Convert divisions
-  const divisions: DB.CreateDivisionRow[] = fileData.divisions.map((division, index) => ({
-    name: division.name,
-    position: index,
-  }));
+  const divisions: DB.CreateDivisionRow[] = fileData.divisions.map(
+    (division, index) => ({
+      name: division.name,
+      position: index,
+    }),
+  );
 
   // Convert players
   const players: DB.CreatePlayerRow[] = [];
   fileData.divisions.forEach((division, divisionIndex) => {
-    division.players.forEach(player => {
+    division.players.forEach((player) => {
       if (!player) return; // Skip null players
 
       players.push({
@@ -57,13 +59,19 @@ export function convertFileToDatabase(
 
   fileData.divisions.forEach((division, divisionIndex) => {
     // Determine max rounds from player data
-    const validPlayers = division.players.filter(p => p !== null && p.pairings);
+    const validPlayers = division.players.filter(
+      (p) => p !== null && p.pairings,
+    );
     if (validPlayers.length === 0) return;
 
-    division.players.forEach(player => {
+    division.players.forEach((player) => {
       if (!player || !player.pairings || !player.scores) return;
 
-      for (let roundIndex = 0; roundIndex < player.pairings.length; roundIndex++) {
+      for (
+        let roundIndex = 0;
+        roundIndex < player.pairings.length;
+        roundIndex++
+      ) {
         const roundNum = roundIndex + 1;
         const opponentId = player.pairings[roundIndex];
         const playerScore = player.scores[roundIndex];
@@ -88,7 +96,7 @@ export function convertFileToDatabase(
         }
 
         // Regular game - avoid duplicate insertion
-        const opponent = division.players.find(p => p?.id === opponentId);
+        const opponent = division.players.find((p) => p?.id === opponentId);
         if (!opponent || !opponent.scores) continue;
 
         // Create a consistent pairing key (smaller ID first)
@@ -133,12 +141,16 @@ export function convertFileToDatabase(
 export function convertEtcFromFile(etc: File.Etc) {
   return {
     ratingHistory: etc.newr,
-    goingFirstHistory: etc.p12.map(val => {
+    goingFirstHistory: etc.p12.map((val) => {
       switch (val) {
-        case 0: return 'bye' as const;
-        case 1: return 'first' as const;
-        case 2: return 'second' as const;
-        default: return 'bye' as const;
+        case 0:
+          return "bye" as const;
+        case 1:
+          return "first" as const;
+        case 2:
+          return "second" as const;
+        default:
+          return "bye" as const;
       }
     }),
   };
@@ -146,9 +158,9 @@ export function convertEtcFromFile(etc: File.Etc) {
 
 // Helper: Format player name
 export function formatName(name: string): string {
-  const parts = name.split(' ');
+  const parts = name.split(" ");
   if (parts.length >= 2) {
-    return `${parts[parts.length - 1]}, ${parts.slice(0, -1).join(' ')}`;
+    return `${parts[parts.length - 1]}, ${parts.slice(0, -1).join(" ")}`;
   }
   return name;
 }

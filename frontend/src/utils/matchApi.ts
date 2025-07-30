@@ -2,19 +2,23 @@ import { CurrentMatch } from "@shared/types/currentMatch";
 import { MatchWithPlayers } from "@shared/types/admin";
 import { fetchUserOverlayEndpoint, postAuthenticatedApiEndpoint } from "./api";
 
-export const fetchCurrentMatch = async (userId: number): Promise<CurrentMatch | null> => {
+export const fetchCurrentMatch = async (
+  userId: number,
+): Promise<CurrentMatch | null> => {
   return fetchUserOverlayEndpoint<CurrentMatch>(
     userId,
     "/match/current",
-    "Failed to fetch current match"
+    "Failed to fetch current match",
   );
 };
 
-export const fetchCurrentMatchWithPlayers = async (userId: number): Promise<MatchWithPlayers | null> => {
+export const fetchCurrentMatchWithPlayers = async (
+  userId: number,
+): Promise<MatchWithPlayers | null> => {
   return fetchUserOverlayEndpoint<MatchWithPlayers>(
     userId,
     "/match/current_match_for_stats_delete_this_route",
-    "Failed to fetch match with players"
+    "Failed to fetch match with players",
   );
 };
 
@@ -30,6 +34,6 @@ export const setCurrentMatch = async (matchData: {
   return postAuthenticatedApiEndpoint<MatchWithPlayers>(
     "/api/admin/match/current",
     matchData,
-    "Failed to set current match"
+    "Failed to set current match",
   );
 };

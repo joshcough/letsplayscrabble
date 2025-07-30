@@ -13,7 +13,7 @@ interface EnablePollingBody {
 }
 
 export function protectedPollingRoutes(
-  tournamentRepository: TournamentRepository
+  tournamentRepository: TournamentRepository,
 ): Router {
   const router = express.Router();
 

@@ -38,16 +38,18 @@ pool.on("error", (err: Error) => {
 // Knex configuration using the same connection settings
 const knexConfig = {
   client: "postgresql",
-  connection: isDevelopment ? {
-    host: "localhost",
-    port: 5432,
-    user: "scrabble_user",
-    password: "scrabble_pass",
-    database: "scrabble_stats",
-  } : {
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-  },
+  connection: isDevelopment
+    ? {
+        host: "localhost",
+        port: 5432,
+        user: "scrabble_user",
+        password: "scrabble_pass",
+        database: "scrabble_stats",
+      }
+    : {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
+      },
   debug: isDevelopment,
 };
 

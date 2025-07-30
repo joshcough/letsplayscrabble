@@ -41,31 +41,39 @@ class SocketManager {
         this.connectionStatus = "Connected to server";
         this.error = null;
         this.lastDataUpdate = Date.now();
-        this.notifyListeners({ type: 'statusChange', status: this.connectionStatus });
+        this.notifyListeners({
+          type: "statusChange",
+          status: this.connectionStatus,
+        });
       });
 
       this.socket.on("connect_error", (error: Error) => {
         console.error("Socket connect error:", error);
         this.connectionStatus = `Connection error: ${error.message}`;
-        this.notifyListeners({ type: 'statusChange', status: this.connectionStatus });
+        this.notifyListeners({
+          type: "statusChange",
+          status: this.connectionStatus,
+        });
       });
 
       this.socket.on("disconnect", (reason: string) => {
         console.log("Socket disconnected:", reason);
         this.connectionStatus = `Disconnected from server: ${reason}`;
-        this.notifyListeners({ type: 'statusChange', status: this.connectionStatus });
+        this.notifyListeners({
+          type: "statusChange",
+          status: this.connectionStatus,
+        });
       });
 
       this.socket.on("error", (error: Error) => {
         console.error("Socket error:", error);
         this.error = `Socket error: ${error.message}`;
-        this.notifyListeners({ type: 'error', error: this.error });
+        this.notifyListeners({ type: "error", error: this.error });
       });
 
       this.socket.on("ping", () => {
         this.lastDataUpdate = Date.now();
       });
-
     } catch (error) {
       const err = error as Error;
       console.error("Socket initialization error:", err);
@@ -75,7 +83,7 @@ class SocketManager {
   }
 
   private notifyListeners(data: any) {
-    this.listeners.forEach(listener => listener(data));
+    this.listeners.forEach((listener) => listener(data));
   }
 
   addListener(listener: (data: any) => void) {

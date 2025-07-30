@@ -1,6 +1,6 @@
 import React from "react";
-import * as Stats from '@shared/types/stats';
-import { TournamentDisplayData } from '../shared/BaseOverlay';
+import * as Stats from "@shared/types/stats";
+import { TournamentDisplayData } from "../shared/BaseOverlay";
 import {
   getPlayerImageUrl,
   formatPlayerName,
@@ -19,7 +19,7 @@ const PictureDisplay: React.FC<PictureDisplayProps> = ({
   standings,
   title,
   divisionName,
-  renderPlayerContent
+  renderPlayerContent,
 }) => {
   // Get top 5 players
   const top5Players = standings.slice(0, 5);

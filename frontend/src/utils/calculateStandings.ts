@@ -1,5 +1,5 @@
-import * as Stats from '@shared/types/stats';
-import * as DB from '@shared/types/database';
+import * as Stats from "@shared/types/stats";
+import * as DB from "@shared/types/database";
 
 export interface TournamentStats {
   gamesPlayed: number;
@@ -10,21 +10,28 @@ export interface TournamentStats {
   totalPlayers: number;
 }
 
-export function calculateTournamentStats(games: DB.GameRow[], players: DB.PlayerRow[]): TournamentStats {
-  const completedGames = games.filter(game =>
-    game.player1_score !== null &&
-    game.player2_score !== null &&
-    !game.is_bye
+export function calculateTournamentStats(
+  games: DB.GameRow[],
+  players: DB.PlayerRow[],
+): TournamentStats {
+  const completedGames = games.filter(
+    (game) =>
+      game.player1_score !== null &&
+      game.player2_score !== null &&
+      !game.is_bye,
   );
 
   const gamesPlayed = completedGames.length;
-  const totalPoints = completedGames.reduce((sum, game) => sum + (game.player1_score || 0) + (game.player2_score || 0), 0);
+  const totalPoints = completedGames.reduce(
+    (sum, game) => sum + (game.player1_score || 0) + (game.player2_score || 0),
+    0,
+  );
 
   // Calculate average scores (winning vs losing)
   const winningScores: number[] = [];
   const losingScores: number[] = [];
 
-  completedGames.forEach(game => {
+  completedGames.forEach((game) => {
     const score1 = game.player1_score || 0;
     const score2 = game.player2_score || 0;
 
@@ -38,24 +45,40 @@ export function calculateTournamentStats(games: DB.GameRow[], players: DB.Player
     // Skip ties for average calculation
   });
 
-  const avgWinningScore = winningScores.length > 0 ? Math.round(winningScores.reduce((sum, score) => sum + score, 0) / winningScores.length) : 0;
-  const avgLosingScore = losingScores.length > 0 ? Math.round(losingScores.reduce((sum, score) => sum + score, 0) / losingScores.length) : 0;
+  const avgWinningScore =
+    winningScores.length > 0
+      ? Math.round(
+          winningScores.reduce((sum, score) => sum + score, 0) /
+            winningScores.length,
+        )
+      : 0;
+  const avgLosingScore =
+    losingScores.length > 0
+      ? Math.round(
+          losingScores.reduce((sum, score) => sum + score, 0) /
+            losingScores.length,
+        )
+      : 0;
 
   // Calculate going first win percentage
-  const goingFirstWins = completedGames.filter(game =>
-    (game.player1_score || 0) > (game.player2_score || 0)
+  const goingFirstWins = completedGames.filter(
+    (game) => (game.player1_score || 0) > (game.player2_score || 0),
   ).length;
-  const goingFirstWinPercent = gamesPlayed > 0 ? (goingFirstWins / gamesPlayed) * 100 : 0;
+  const goingFirstWinPercent =
+    gamesPlayed > 0 ? (goingFirstWins / gamesPlayed) * 100 : 0;
 
   // Calculate higher rated win percentage
   let higherRatedWinPercent = 0;
   if (players.length > 0) {
     const playerMap = new Map<number, DB.PlayerRow>();
-    players.forEach(player => {
+    players.forEach((player) => {
       playerMap.set(player.id, player);
     });
 
-    const getPlayerRatingBeforeRound = (player: DB.PlayerRow, roundNumber: number): number => {
+    const getPlayerRatingBeforeRound = (
+      player: DB.PlayerRow,
+      roundNumber: number,
+    ): number => {
       if (roundNumber === 1) {
         return player.initial_rating;
       } else {
@@ -64,23 +87,31 @@ export function calculateTournamentStats(games: DB.GameRow[], players: DB.Player
       }
     };
 
-    const gamesWithRatings = completedGames.filter(game =>
-      playerMap.has(game.player1_id) && playerMap.has(game.player2_id)
+    const gamesWithRatings = completedGames.filter(
+      (game) =>
+        playerMap.has(game.player1_id) && playerMap.has(game.player2_id),
     );
 
     if (gamesWithRatings.length > 0) {
-      const higherRatedWins = gamesWithRatings.filter(game => {
+      const higherRatedWins = gamesWithRatings.filter((game) => {
         const player1 = playerMap.get(game.player1_id);
         const player2 = playerMap.get(game.player2_id);
 
         // Skip if either player not found (shouldn't happen due to filter above)
         if (!player1 || !player2) return false;
 
-        const player1Rating = getPlayerRatingBeforeRound(player1, game.round_number);
-        const player2Rating = getPlayerRatingBeforeRound(player2, game.round_number);
+        const player1Rating = getPlayerRatingBeforeRound(
+          player1,
+          game.round_number,
+        );
+        const player2Rating = getPlayerRatingBeforeRound(
+          player2,
+          game.round_number,
+        );
 
         const player1Higher = player1Rating > player2Rating;
-        const player1Won = (game.player1_score || 0) > (game.player2_score || 0);
+        const player1Won =
+          (game.player1_score || 0) > (game.player2_score || 0);
 
         return (player1Higher && player1Won) || (!player1Higher && !player1Won);
       }).length;
@@ -95,15 +126,17 @@ export function calculateTournamentStats(games: DB.GameRow[], players: DB.Player
     averageScore: `${avgWinningScore}-${avgLosingScore}`,
     higherRatedWinPercent: Math.round(higherRatedWinPercent * 10) / 10,
     goingFirstWinPercent: Math.round(goingFirstWinPercent * 10) / 10,
-    totalPlayers: players.length
+    totalPlayers: players.length,
   };
 }
 
-export function calculateAllTournamentStats(tournament: DB.Tournament): TournamentStats {
+export function calculateAllTournamentStats(
+  tournament: DB.Tournament,
+): TournamentStats {
   let allGames: DB.GameRow[] = [];
   let allPlayers: DB.PlayerRow[] = [];
 
-  tournament.divisions.forEach(divisionData => {
+  tournament.divisions.forEach((divisionData) => {
     allGames = [...allGames, ...divisionData.games];
     allPlayers = [...allPlayers, ...divisionData.players];
   });
@@ -111,10 +144,9 @@ export function calculateAllTournamentStats(tournament: DB.Tournament): Tourname
   return calculateTournamentStats(allGames, allPlayers);
 }
 
-
 // Helper function to format player names (assuming this exists somewhere)
 const formatName = (name: string): string => {
-  const parts = name.split(',');
+  const parts = name.split(",");
   if (parts.length === 2) {
     return `${parts[1].trim()} ${parts[0].trim()}`;
   }
@@ -123,13 +155,16 @@ const formatName = (name: string): string => {
 
 // Helper function to get ordinal (1st, 2nd, 3rd, etc.)
 const getOrdinal = (num: number): string => {
-  const suffixes = ['th', 'st', 'nd', 'rd'];
+  const suffixes = ["th", "st", "nd", "rd"];
   const v = num % 100;
   return num + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
 };
 
 // Calculate stats for a single player from their games
-function calculatePlayerStatsFromGames(player: DB.PlayerRow, playerGames: DB.GameRow[]): Stats.PlayerStats {
+function calculatePlayerStatsFromGames(
+  player: DB.PlayerRow,
+  playerGames: DB.GameRow[],
+): Stats.PlayerStats {
   let totalSpread = 0;
   let totalScore = 0;
   let totalOpponentScore = 0;
@@ -139,7 +174,9 @@ function calculatePlayerStatsFromGames(player: DB.PlayerRow, playerGames: DB.Gam
   let ties = 0;
   let gamesPlayed = 0;
 
-  console.log(`🔢 Calculating stats for player ${player.name}, ${playerGames.length} games`);
+  console.log(
+    `🔢 Calculating stats for player ${player.name}, ${playerGames.length} games`,
+  );
 
   for (const game of playerGames) {
     if (game.is_bye) {
@@ -187,7 +224,8 @@ function calculatePlayerStatsFromGames(player: DB.PlayerRow, playerGames: DB.Gam
   }
 
   const averageScore = gamesPlayed > 0 ? totalScore / gamesPlayed : 0;
-  const averageOpponentScore = gamesPlayed > 0 ? (totalOpponentScore / gamesPlayed).toFixed(1) : "0";
+  const averageOpponentScore =
+    gamesPlayed > 0 ? (totalOpponentScore / gamesPlayed).toFixed(1) : "0";
 
   // Calculate current rating and rating diff from etc_data
   let currentRating = 0;
@@ -196,7 +234,10 @@ function calculatePlayerStatsFromGames(player: DB.PlayerRow, playerGames: DB.Gam
   // Parse etc_data if it's a string (since it might be JSON stringified)
   let etcData: any = null;
   try {
-    etcData = typeof player.etc_data === 'string' ? JSON.parse(player.etc_data) : player.etc_data;
+    etcData =
+      typeof player.etc_data === "string"
+        ? JSON.parse(player.etc_data)
+        : player.etc_data;
   } catch (e) {
     console.warn(`Failed to parse etc_data for player ${player.name}:`, e);
     etcData = player.etc_data;
@@ -229,26 +270,26 @@ function calculatePlayerStatsFromGames(player: DB.PlayerRow, playerGames: DB.Gam
     averageScoreRankOrdinal: "0th",
     averageOpponentScoreRankOrdinal: "0th",
     etc: etcData,
-    photo: player.photo || '', // Convert null to empty string
+    photo: player.photo || "", // Convert null to empty string
   };
 }
 
 // Main function to calculate all player stats from division data
 export const calculateStandingsFromGames = (
   games: DB.GameRow[],
-  players: DB.PlayerRow[]
+  players: DB.PlayerRow[],
 ): Stats.PlayerStats[] => {
-  console.log('🔢 calculateStandingsFromGames:', {
+  console.log("🔢 calculateStandingsFromGames:", {
     games: games.length,
-    players: players.length
+    players: players.length,
   });
 
   const playerStats: Stats.PlayerStats[] = [];
 
   for (const player of players) {
     // Find all games this player participated in
-    const playerGames = games.filter(game =>
-      game.player1_id === player.id || game.player2_id === player.id
+    const playerGames = games.filter(
+      (game) => game.player1_id === player.id || game.player2_id === player.id,
     );
 
     console.log(`📊 Player ${player.name}: ${playerGames.length} games found`);
@@ -258,6 +299,10 @@ export const calculateStandingsFromGames = (
     playerStats.push(stats);
   }
 
-  console.log('✅ calculateStandingsFromGames complete:', playerStats.length, 'players processed');
+  console.log(
+    "✅ calculateStandingsFromGames complete:",
+    playerStats.length,
+    "players processed",
+  );
   return playerStats;
 };

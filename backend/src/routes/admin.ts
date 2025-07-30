@@ -13,21 +13,38 @@ export default function createAdminRoutes(
 ): Router {
   const router = express.Router();
 
-  const createMatch: RequestHandler<{}, Api.ApiResponse<CurrentMatch>, CreateCurrentMatch> =
-    withErrorHandling(async (req, res) => {
-      const { tournament_id, division_id, round, pairing_id } = req.body;
-      const userId = req.user!.id;
-      const match = await repo.create(userId, tournament_id, division_id, round, pairing_id);
-      io.emit("AdminPanelUpdate", { userId, ...match } as AdminPanelUpdateMessage);
-      res.json(Api.success(match));
-    });
+  const createMatch: RequestHandler<
+    {},
+    Api.ApiResponse<CurrentMatch>,
+    CreateCurrentMatch
+  > = withErrorHandling(async (req, res) => {
+    const { tournament_id, division_id, round, pairing_id } = req.body;
+    const userId = req.user!.id;
+    const match = await repo.create(
+      userId,
+      tournament_id,
+      division_id,
+      round,
+      pairing_id,
+    );
+    io.emit("AdminPanelUpdate", {
+      userId,
+      ...match,
+    } as AdminPanelUpdateMessage);
+    res.json(Api.success(match));
+  });
 
-  const getCurrentMatch: RequestHandler<{}, Api.ApiResponse<CurrentMatch>> = async (req, res) => {
+  const getCurrentMatch: RequestHandler<
+    {},
+    Api.ApiResponse<CurrentMatch>
+  > = async (req, res) => {
     await withDataOr404(
       repo.getCurrentMatch(req.user!.id),
       res,
       "No current match found",
-      (currentMatch) => { res.json(Api.success(currentMatch)); }
+      (currentMatch) => {
+        res.json(Api.success(currentMatch));
+      },
     );
   };
 

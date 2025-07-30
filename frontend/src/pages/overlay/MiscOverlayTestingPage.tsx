@@ -13,62 +13,119 @@ const MiscOverlayTestingPage: React.FC = () => {
         { source: "player2-name", description: "Player 2 Name" },
         { source: "player1-record", description: "Player 1 Record (W-L-T)" },
         { source: "player2-record", description: "Player 2 Record (W-L-T)" },
-        { source: "player1-average-score", description: "Player 1 Average Score" },
-        { source: "player2-average-score", description: "Player 2 Average Score" },
+        {
+          source: "player1-average-score",
+          description: "Player 1 Average Score",
+        },
+        {
+          source: "player2-average-score",
+          description: "Player 2 Average Score",
+        },
         { source: "player1-high-score", description: "Player 1 High Score" },
         { source: "player2-high-score", description: "Player 2 High Score" },
         { source: "player1-spread", description: "Player 1 Spread" },
         { source: "player2-spread", description: "Player 2 Spread" },
-      ]
+      ],
     },
     {
       title: "Rankings",
       urls: [
         { source: "player1-rank", description: "Player 1 Rank (number)" },
         { source: "player2-rank", description: "Player 2 Rank (number)" },
-        { source: "player1-rank-ordinal", description: "Player 1 Rank (1st, 2nd, etc.)" },
-        { source: "player2-rank-ordinal", description: "Player 2 Rank (1st, 2nd, etc.)" },
-      ]
+        {
+          source: "player1-rank-ordinal",
+          description: "Player 1 Rank (1st, 2nd, etc.)",
+        },
+        {
+          source: "player2-rank-ordinal",
+          description: "Player 2 Rank (1st, 2nd, etc.)",
+        },
+      ],
     },
     {
       title: "Ratings",
       urls: [
         { source: "player1-rating", description: "Player 1 Rating" },
         { source: "player2-rating", description: "Player 2 Rating" },
-      ]
+      ],
     },
     {
       title: "Under Camera Displays",
       urls: [
-        { source: "player1-under-cam", description: "Player 1 Under Cam (full with seed)" },
-        { source: "player2-under-cam", description: "Player 2 Under Cam (full with seed)" },
-        { source: "player1-under-cam-no-seed", description: "Player 1 Under Cam (no seed)" },
-        { source: "player2-under-cam-no-seed", description: "Player 2 Under Cam (no seed)" },
-        { source: "player1-under-cam-small", description: "Player 1 Under Cam (small)" },
-        { source: "player2-under-cam-small", description: "Player 2 Under Cam (small)" },
-        { source: "player1-under-cam-with-rating", description: "Player 1 Under Cam (with rating)" },
-        { source: "player2-under-cam-with-rating", description: "Player 2 Under Cam (with rating)" },
-      ]
+        {
+          source: "player1-under-cam",
+          description: "Player 1 Under Cam (full with seed)",
+        },
+        {
+          source: "player2-under-cam",
+          description: "Player 2 Under Cam (full with seed)",
+        },
+        {
+          source: "player1-under-cam-no-seed",
+          description: "Player 1 Under Cam (no seed)",
+        },
+        {
+          source: "player2-under-cam-no-seed",
+          description: "Player 2 Under Cam (no seed)",
+        },
+        {
+          source: "player1-under-cam-small",
+          description: "Player 1 Under Cam (small)",
+        },
+        {
+          source: "player2-under-cam-small",
+          description: "Player 2 Under Cam (small)",
+        },
+        {
+          source: "player1-under-cam-with-rating",
+          description: "Player 1 Under Cam (with rating)",
+        },
+        {
+          source: "player2-under-cam-with-rating",
+          description: "Player 2 Under Cam (with rating)",
+        },
+      ],
     },
     {
       title: "Game Data",
       urls: [
-        { source: "player1-points", description: "Player 1 Points + Game History" },
-        { source: "player2-points", description: "Player 2 Points + Game History" },
-        { source: "player1-game-history", description: "Player 1 Game History" },
-        { source: "player2-game-history", description: "Player 2 Game History" },
-        { source: "player1-game-history-small", description: "Player 1 Game History Small" },
-        { source: "player2-game-history-small", description: "Player 2 Game History Small" },
-      ]
+        {
+          source: "player1-points",
+          description: "Player 1 Points + Game History",
+        },
+        {
+          source: "player2-points",
+          description: "Player 2 Points + Game History",
+        },
+        {
+          source: "player1-game-history",
+          description: "Player 1 Game History",
+        },
+        {
+          source: "player2-game-history",
+          description: "Player 2 Game History",
+        },
+        {
+          source: "player1-game-history-small",
+          description: "Player 1 Game History Small",
+        },
+        {
+          source: "player2-game-history-small",
+          description: "Player 2 Game History Small",
+        },
+      ],
     },
     {
       title: "Best of 7 & Tournament",
       urls: [
         { source: "player1-bo7", description: "Player 1 Best of 7 Record" },
         { source: "player2-bo7", description: "Player 2 Best of 7 Record" },
-        { source: "tournament-data", description: "Tournament Name, Lexicon, Round" },
-      ]
-    }
+        {
+          source: "tournament-data",
+          description: "Tournament Name, Lexicon, Round",
+        },
+      ],
+    },
   ];
 
   const baseUrl = window.location.origin;
@@ -114,7 +171,10 @@ const MiscOverlayTestingPage: React.FC = () => {
 
           <div className="space-y-4">
             {group.urls.map((url, urlIndex) => (
-              <div key={urlIndex} className="p-4 bg-white rounded-lg shadow border">
+              <div
+                key={urlIndex}
+                className="p-4 bg-white rounded-lg shadow border"
+              >
                 <h4 className="font-semibold text-gray-700 mb-2">
                   {url.description}
                 </h4>
@@ -141,10 +201,18 @@ const MiscOverlayTestingPage: React.FC = () => {
         <ul className="text-sm text-gray-700 space-y-1">
           <li>• All links open in new tabs for easy testing</li>
           <li>• Rendered content shows below each URL</li>
-          <li>• Make sure to set a current match in the admin interface first</li>
-          <li>• URLs will show "Loading..." or "No data" if no match is selected</li>
+          <li>
+            • Make sure to set a current match in the admin interface first
+          </li>
+          <li>
+            • URLs will show "Loading..." or "No data" if no match is selected
+          </li>
           <li>• All URLs are scoped to your user account (ID: {userId})</li>
-          <li>• Total: {urlGroups.reduce((total, group) => total + group.urls.length, 0)} source-based URLs</li>
+          <li>
+            • Total:{" "}
+            {urlGroups.reduce((total, group) => total + group.urls.length, 0)}{" "}
+            source-based URLs
+          </li>
         </ul>
       </div>
     </div>

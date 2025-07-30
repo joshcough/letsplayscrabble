@@ -3,7 +3,7 @@ import {
   AdminPanelUpdateMessage,
   GamesAddedMessage,
   TournamentDataMessage,
-  TournamentDataErrorMessage
+  TournamentDataErrorMessage,
 } from "@shared/types/websocket";
 
 type EventHandler = (data: any) => void;
@@ -15,7 +15,7 @@ class DisplaySourceManager {
 
   private constructor() {
     console.log("📺 DisplaySourceManager initializing...");
-    this.broadcastChannel = new BroadcastChannel('tournament-updates');
+    this.broadcastChannel = new BroadcastChannel("tournament-updates");
     this.setupBroadcastListener();
   }
 
@@ -31,8 +31,11 @@ class DisplaySourceManager {
       const { type, data, timestamp, tournamentId } = event.data;
 
       // Only log tournament data events, and only show tournamentId for relevant events
-      if (type === 'TOURNAMENT_DATA' || type === 'TOURNAMENT_DATA_ERROR') {
-        console.log(`📥 Display source received ${type}:`, { tournamentId, timestamp });
+      if (type === "TOURNAMENT_DATA" || type === "TOURNAMENT_DATA_ERROR") {
+        console.log(`📥 Display source received ${type}:`, {
+          tournamentId,
+          timestamp,
+        });
       } else {
         console.log(`📥 Display source received ${type}:`, { timestamp });
       }
@@ -40,18 +43,18 @@ class DisplaySourceManager {
       // Notify registered handlers for this event type
       const handlers = this.eventHandlers.get(type);
       if (handlers) {
-        handlers.forEach(handler => {
+        handlers.forEach((handler) => {
           switch (type) {
-            case 'TOURNAMENT_DATA':
+            case "TOURNAMENT_DATA":
               handler(event.data as TournamentDataMessage);
               break;
-            case 'TOURNAMENT_DATA_ERROR':
+            case "TOURNAMENT_DATA_ERROR":
               handler(event.data as TournamentDataErrorMessage);
               break;
-            case 'AdminPanelUpdate':
+            case "AdminPanelUpdate":
               handler(data as AdminPanelUpdateMessage);
               break;
-            case 'GamesAdded':
+            case "GamesAdded":
               handler(data as GamesAddedMessage);
               break;
             default:
@@ -138,7 +141,7 @@ class DisplaySourceManager {
 }
 
 // Cleanup on page unload
-window.addEventListener('beforeunload', () => {
+window.addEventListener("beforeunload", () => {
   DisplaySourceManager.getInstance().cleanup();
 });
 
