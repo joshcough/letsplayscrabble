@@ -76,10 +76,7 @@ const io = new SocketIOServer(server, {
 
 const tournamentRepository = new TournamentRepository();
 const currentMatchRepository = new CurrentMatchRepository(pool);
-const pollingService = new TournamentPollingService(
-  tournamentRepository,
-  io,
-);
+const pollingService = new TournamentPollingService(tournamentRepository, io);
 const pingService = new PingService(io);
 
 app.use(

@@ -60,7 +60,7 @@ export function convertFileToDatabase(
   fileData.divisions.forEach((division, divisionIndex) => {
     // Determine max rounds from player data
     const validPlayers = division.players.filter(
-      (p) => p !== null && p.pairings,
+      (p) => p != null && p.pairings,
     );
     if (validPlayers.length === 0) return;
 

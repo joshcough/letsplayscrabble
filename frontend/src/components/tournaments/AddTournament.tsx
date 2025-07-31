@@ -21,7 +21,7 @@ const AddTournament: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await fetchWithAuth(`/api/tournaments/admin`, {
+      await fetchWithAuth(`/api/private/tournaments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

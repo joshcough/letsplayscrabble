@@ -73,12 +73,15 @@ const URLBasedStatsDisplay: React.FC<{
     loading: dataLoading,
     fetchError,
   } = useTournamentData({
-    useUrlParams: true,
+    tournamentId: tournamentId,
+    useUrlParams: false,
   });
 
   // Calculate stats based on whether we have a specific division or all divisions
   const stats = React.useMemo((): TournamentStats | null => {
-    if (!tournamentData) return null;
+    if (!tournamentData) {
+      return null;
+    }
 
     if (!divisionName) {
       // No division specified - calculate across all divisions

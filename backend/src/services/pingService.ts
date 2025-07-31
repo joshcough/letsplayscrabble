@@ -10,9 +10,7 @@ export class PingService {
   private job: ScheduledTask | null;
   private count: number;
 
-  constructor(
-    private readonly io: SocketIOServer,
-  ) {
+  constructor(private readonly io: SocketIOServer) {
     this.isRunning = false;
     this.job = null;
     this.count = 0;

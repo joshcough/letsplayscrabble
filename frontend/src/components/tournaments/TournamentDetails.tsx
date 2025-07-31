@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { fetchWithAuth } from "../../config/api";
-import { fetchTournamentRow } from "../../utils/api";
-import { TournamentRow } from "@shared/types/database";
+import { fetchTournamentRow, fetchDivisions } from "../../utils/api";
+import { TournamentRow, DivisionRow } from "@shared/types/database";
 import { ProtectedPage } from "../ProtectedPage";
 import { useAuth } from "../../context/AuthContext";
 
@@ -25,6 +25,7 @@ const TournamentDetails: React.FC = () => {
   const tournamentId = parseInt(params.id!);
 
   const [tournament, setTournament] = useState<TournamentRow | null>(null);
+  const [divisions, setDivisions] = useState<DivisionRow[]>([]);
   const [pollingDays, setPollingDays] = useState<number>(1);
   const [isPolling, setIsPolling] = useState<boolean>(false);
   const [pollUntil, setPollUntil] = useState<Date | null>(null);
@@ -38,6 +39,49 @@ const TournamentDetails: React.FC = () => {
       setEditedTournament(tournament);
     }
   }, [tournament]);
+
+  const overlayTypes = [
+    {
+      title: "Rating Gain Leaders",
+      path: "rating_gain",
+      description: "Players ranked by rating change",
+    },
+    {
+      title: "Rating Gain with Pictures",
+      path: "rating_gain_with_pics",
+      description: "Rating gain leaders with player photos",
+    },
+    {
+      title: "High Scores with Pictures",
+      path: "high_scores_with_pics",
+      description: "High score leaders with player photos",
+    },
+    {
+      title: "Standings",
+      path: "standings",
+      description: "Division standings in table",
+    },
+    {
+      title: "Standings with Pictures",
+      path: "standings_with_pics",
+      description: "Division standings with pictures",
+    },
+    {
+      title: "Scoring Leaders",
+      path: "scoring_leaders",
+      description: "Players ranked by average score",
+    },
+    {
+      title: "Scoring Leaders with Pictures",
+      path: "scoring_leaders_with_pics",
+      description: "Scoring leaders with player photos",
+    },
+    {
+      title: "Division Stats",
+      path: "tournament_stats",
+      description: "Division statistics and analytics",
+    },
+  ];
 
   const handleEnablePolling = async () => {
     try {
@@ -146,7 +190,18 @@ const TournamentDetails: React.FC = () => {
         console.error("Error fetching tournament details:", error);
       }
     };
+
+    const fetchDivisionsData = async () => {
+      try {
+        const divisionsData = await fetchDivisions(user_id, tournamentId);
+        setDivisions(divisionsData);
+      } catch (error) {
+        console.error("Error fetching divisions:", error);
+      }
+    };
+
     fetchTournamentData();
+    fetchDivisionsData();
   }, [user_id, tournamentId]);
 
   if (!tournament || !editedTournament) {
@@ -356,15 +411,63 @@ const TournamentDetails: React.FC = () => {
             </div>
           </div>
 
+          {/* Overlay Links Section */}
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-semibold text-blue-800 mb-2">Overlay Links</h4>
-            <Link
-              to={`/overlay/${user_id}/tournaments/${tournamentId}`}
-              className="text-blue-600 hover:text-blue-800 underline"
-              target="_blank"
-            >
-              View Tournament Overlays →
-            </Link>
+            <h4 className="font-semibold text-blue-800 mb-4">
+              Tournament Overlay Links
+            </h4>
+
+            {/* Tournament-wide overlay */}
+            <div className="bg-white p-4 rounded border mb-4">
+              <h5 className="font-semibold text-gray-800 mb-3">
+                Tournament-wide
+              </h5>
+              <Link
+                to={`/users/${user_id}/overlay/tournament_stats/${tournamentId}`}
+                className="text-blue-600 hover:text-blue-800 underline text-sm"
+                target="_blank"
+                title="Tournament statistics and analytics"
+              >
+                Tournament Stats →
+              </Link>
+            </div>
+
+            {divisions.length === 0 ? (
+              <p className="text-blue-600">
+                No divisions found for this tournament.
+              </p>
+            ) : (
+              <div className="space-y-6">
+                {divisions.map((division) => (
+                  <div
+                    key={division.id}
+                    className="bg-white p-4 rounded border"
+                  >
+                    <h5 className="font-semibold text-gray-800 mb-3">
+                      Division {division.name}
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {overlayTypes.map((overlay) => (
+                        <Link
+                          key={overlay.path}
+                          to={`/users/${user_id}/overlay/${overlay.path}/${tournamentId}/${division.name}`}
+                          className="text-blue-600 hover:text-blue-800 underline text-sm"
+                          target="_blank"
+                          title={overlay.description}
+                        >
+                          {overlay.title} →
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-4 p-3 bg-blue-100 rounded text-sm text-blue-700">
+              <strong>Note:</strong> Remember to add the Worker Page as a
+              Browser Source in OBS for real-time updates.
+            </div>
           </div>
         </div>
       </div>

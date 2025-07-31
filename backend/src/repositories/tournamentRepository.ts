@@ -355,4 +355,16 @@ export class TournamentRepository {
     await trx("players").where("tournament_id", tournamentId).del();
     await trx("divisions").where("tournament_id", tournamentId).del();
   }
+
+  async getDivisions(
+    tournamentId: number,
+    userId: number,
+  ): Promise<Array<DB.DivisionRow>> {
+    return knexDb("divisions")
+      .select("divisions.*")
+      .join("tournaments", "divisions.tournament_id", "tournaments.id")
+      .where("divisions.tournament_id", tournamentId)
+      .where("tournaments.user_id", userId)
+      .orderBy("divisions.name", "asc");
+  }
 }

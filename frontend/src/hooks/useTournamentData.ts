@@ -3,7 +3,10 @@ import { useParams } from "react-router-dom";
 import * as DB from "@shared/types/database";
 import BroadcastManager from "./BroadcastManager";
 import { fetchTournament, fetchTournamentDivision } from "../utils/api";
-import { GamesAddedMessage, TournamentDataMessage } from "@shared/types/websocket";
+import {
+  GamesAddedMessage,
+  TournamentDataMessage,
+} from "@shared/types/websocket";
 
 interface UseTournamentDataProps {
   tournamentId?: number;
@@ -115,18 +118,23 @@ export const useTournamentData = ({
   useEffect(() => {
     if (!userId || !effectiveTournamentId) return;
 
-    const cleanupGamesAdded = BroadcastManager.getInstance().onGamesAdded((data: GamesAddedMessage) => {
-      console.log("🎮 useTournamentData received GamesAdded broadcast:", data);
-      if (
-        data.userId === parseInt(userId) &&
-        data.tournamentId === effectiveTournamentId
-      ) {
-        console.log("✅ Matching tournament - refetching data!");
-        fetchTournamentData();
-      } else {
-        console.log("⏭️ Different tournament - ignoring");
-      }
-    });
+    const cleanupGamesAdded = BroadcastManager.getInstance().onGamesAdded(
+      (data: GamesAddedMessage) => {
+        console.log(
+          "🎮 useTournamentData received GamesAdded broadcast:",
+          data,
+        );
+        if (
+          data.userId === parseInt(userId) &&
+          data.tournamentId === effectiveTournamentId
+        ) {
+          console.log("✅ Matching tournament - refetching data!");
+          fetchTournamentData();
+        } else {
+          console.log("⏭️ Different tournament - ignoring");
+        }
+      },
+    );
 
     return () => {
       cleanupGamesAdded();
@@ -137,42 +145,57 @@ export const useTournamentData = ({
   useEffect(() => {
     if (!userId || !effectiveTournamentId) return;
 
-    const cleanupTournamentData = BroadcastManager.getInstance().onTournamentData((data: TournamentDataMessage) => {
-      console.log("🎮 useTournamentData received TOURNAMENT_DATA broadcast:", data);
-      if (
-        data.userId === parseInt(userId) &&
-        data.tournamentId === effectiveTournamentId
-      ) {
-        console.log("✅ Using worker's tournament data - no API call needed!");
-
-        // Process the tournament data (same logic as fetchTournamentData)
-        const tournament = data.data;
-        let finalDivisionId: number | null = null;
-
-        if (propDivisionId) {
-          finalDivisionId = propDivisionId;
-        } else if (shouldUseUrlParams && divisionName) {
-          const divisionData = tournament.divisions.find(
-            (d) => d.division.name.toUpperCase() === divisionName.toUpperCase(),
+    const cleanupTournamentData =
+      BroadcastManager.getInstance().onTournamentData(
+        (data: TournamentDataMessage) => {
+          console.log(
+            "🎮 useTournamentData received TOURNAMENT_DATA broadcast:",
+            data,
           );
-          if (divisionData) {
-            finalDivisionId = divisionData.division.id;
-          }
-        }
+          if (
+            data.userId === parseInt(userId) &&
+            data.tournamentId === effectiveTournamentId
+          ) {
+            console.log(
+              "✅ Using worker's tournament data - no API call needed!",
+            );
 
-        setTournamentData(tournament);
-        setSelectedDivisionId(finalDivisionId);
-        setFetchError(null);
-        setLoading(false);
-      } else {
-        console.log("⏭️ Different tournament - ignoring");
-      }
-    });
+            // Process the tournament data (same logic as fetchTournamentData)
+            const tournament = data.data;
+            let finalDivisionId: number | null = null;
+
+            if (propDivisionId) {
+              finalDivisionId = propDivisionId;
+            } else if (shouldUseUrlParams && divisionName) {
+              const divisionData = tournament.divisions.find(
+                (d) =>
+                  d.division.name.toUpperCase() === divisionName.toUpperCase(),
+              );
+              if (divisionData) {
+                finalDivisionId = divisionData.division.id;
+              }
+            }
+
+            setTournamentData(tournament);
+            setSelectedDivisionId(finalDivisionId);
+            setFetchError(null);
+            setLoading(false);
+          } else {
+            console.log("⏭️ Different tournament - ignoring");
+          }
+        },
+      );
 
     return () => {
       cleanupTournamentData();
     };
-  }, [userId, effectiveTournamentId, propDivisionId, divisionName, shouldUseUrlParams]);
+  }, [
+    userId,
+    effectiveTournamentId,
+    propDivisionId,
+    divisionName,
+    shouldUseUrlParams,
+  ]);
 
   const getDivisionData = (divisionId?: number) => {
     if (!tournamentData) return null;

@@ -1,5 +1,5 @@
 // utils/api.ts - Clean API utilities for the new backend structure
-import { Tournament, TournamentRow } from "@shared/types/database";
+import { Tournament, TournamentRow, DivisionRow } from "@shared/types/database";
 
 const API_BASE: string =
   process.env.NODE_ENV === "production"
@@ -103,6 +103,16 @@ export const fetchTournamentDivision = async (
 ): Promise<Tournament> => {
   // This now just calls the updated fetchTournament
   return fetchTournament(userId, tournamentId, divisionId);
+};
+
+export const fetchDivisions = async (
+  userId: number,
+  tournamentId: number,
+): Promise<DivisionRow[]> => {
+  const response = await baseFetch(
+    `/api/public/users/${userId}/tournaments/${tournamentId}/divisions`,
+  );
+  return parseApiResponse<DivisionRow[]>(response);
 };
 
 // Authenticated endpoints (require Bearer token)
