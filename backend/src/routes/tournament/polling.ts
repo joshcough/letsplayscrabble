@@ -2,7 +2,7 @@ import express, { Router, RequestHandler } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { TournamentRepository } from "../../repositories/tournamentRepository";
 import * as DB from "@shared/types/database";
-import * as Api from "@shared/types/apiTypes";
+import * as Api from "../../utils/apiHelpers";
 
 interface TournamentIdParams extends ParamsDictionary {
   id: string;

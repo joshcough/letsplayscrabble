@@ -1,7 +1,7 @@
 import express, { Router, Response, RequestHandler } from "express";
 import { TournamentRepository } from "../../repositories/tournamentRepository";
 import * as DB from "@shared/types/database";
-import * as Api from "@shared/types/apiTypes";
+import * as Api from "../../utils/apiHelpers";
 
 interface UserTournamentParams {
   userId: string;

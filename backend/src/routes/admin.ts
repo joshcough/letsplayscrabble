@@ -4,7 +4,7 @@ import { RequestHandler } from "express-serve-static-core";
 import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
 import { CreateCurrentMatch, CurrentMatch } from "@shared/types/currentMatch";
 import { AdminPanelUpdateMessage } from "@shared/types/websocket";
-import * as Api from "@shared/types/apiTypes";
+import * as Api from "../utils/apiHelpers";
 import { withDataOr404, withErrorHandling } from "../utils/apiHelpers";
 
 export default function createAdminRoutes(

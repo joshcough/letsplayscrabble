@@ -4,7 +4,7 @@ import { TournamentRepository } from "../../repositories/tournamentRepository";
 import { loadTournamentFile } from "../../services/loadTournamentFile";
 import { convertFileToDatabase } from "../../services/fileToDatabaseConversions";
 import * as DB from "@shared/types/database";
-import * as Api from "@shared/types/apiTypes";
+import * as Api from "../../utils/apiHelpers";
 
 // Request types
 interface CreateTournamentBody {
