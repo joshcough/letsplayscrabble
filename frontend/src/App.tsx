@@ -47,7 +47,7 @@ const AppContent: React.FC = () => {
         <Route path="/login" element={<AdminLogin />} />
         {/* User-scoped overlay routes */}
         PingOverlayPage
-        <Route path="/users/:userId/ping" element={<PingOverlayPage />} />
+        <Route path="/users/:userId/overlay/ping" element={<PingOverlayPage />} />
         <Route
           path="/users/:userId/overlay/misc"
           element={<MiscOverlayPage />}
