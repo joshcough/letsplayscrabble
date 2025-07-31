@@ -112,26 +112,42 @@ export const useTournamentData = ({
   useEffect(() => {
     if (!userId || !effectiveTournamentId) return;
 
-    const cleanupGamesAdded = BroadcastManager.getInstance().onGamesAdded(
-      (data: any) => {
-        console.log(
-          "🎮 useTournamentData received GamesAdded broadcast:",
-          data,
-        );
-        if (
-          data.userId === parseInt(userId) &&
-          data.tournamentId === effectiveTournamentId
-        ) {
-          console.log("✅ Matching tournament - refetching data!");
-          fetchTournamentData();
-        } else {
-          console.log("⏭️ Different tournament - ignoring");
-        }
-      },
-    );
+    const cleanupGamesAdded = BroadcastManager.getInstance().onGamesAdded((data: any) => {
+      console.log("🎮 useTournamentData received GamesAdded broadcast:", data);
+      if (
+        data.userId === parseInt(userId) &&
+        data.tournamentId === effectiveTournamentId
+      ) {
+        console.log("✅ Matching tournament - refetching data!");
+        fetchTournamentData();
+      } else {
+        console.log("⏭️ Different tournament - ignoring");
+      }
+    });
 
     return () => {
       cleanupGamesAdded();
+    };
+  }, [userId, effectiveTournamentId]);
+
+  useEffect(() => {
+    if (!userId || !effectiveTournamentId) return;
+
+    const cleanupAdminUpdate = BroadcastManager.getInstance().onAdminPanelUpdate((data: any) => {
+      console.log("🎮 useTournamentData received AdminPanelUpdate broadcast:", data);
+      if (
+        data.userId === parseInt(userId) &&
+        data.tournamentId === effectiveTournamentId
+      ) {
+        console.log("✅ Matching tournament - refetching data!");
+        fetchTournamentData();
+      } else {
+        console.log("⏭️ Different tournament - ignoring");
+      }
+    });
+
+    return () => {
+      cleanupAdminUpdate();
     };
   }, [userId, effectiveTournamentId]);
 

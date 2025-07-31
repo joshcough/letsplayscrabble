@@ -76,6 +76,12 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({ children }) => {
     fetchError = matchError || currentMatchData.fetchError;
     finalDivisionName = currentMatch?.division_name;
     selectedDivisionId = currentMatch?.division_id || null;
+    console.log("🔧 BaseOverlay: Raw tournament data", {
+      currentMatchData_tournamentData: currentMatchData.tournamentData,
+      currentMatchData_loading: currentMatchData.loading,
+      currentMatch_divisionId: currentMatch?.division_id,
+      selectedDivisionId,
+    });
   } else {
     console.log("🔄 BaseOverlay: Using URL params data");
     tournamentData = urlParamsData.tournamentData;

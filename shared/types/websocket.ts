@@ -2,7 +2,7 @@ import { CurrentMatch } from "./currentMatch";
 import { Tournament } from "./database";
 
 export interface WebSocketMessage {
-  messageId: number;
+  timestamp: number;
 }
 
 export interface AdminPanelUpdateMessage extends WebSocketMessage {
@@ -19,8 +19,8 @@ export interface GamesAddedMessage extends WebSocketMessage {
   tournamentId: number;
 }
 
-export interface Ping extends WebSocketMessage{
-  timestamp: number;
+export interface Ping extends WebSocketMessage {
+  messageId: number;
 }
 
 export interface TournamentDataMessage {

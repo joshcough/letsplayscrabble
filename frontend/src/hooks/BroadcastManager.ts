@@ -14,8 +14,8 @@ class BroadcastManager {
   private broadcastChannel: BroadcastChannel;
   private eventHandlers: Map<string, Set<EventHandler>> = new Map();
 
-  // Message deduplication - track highest messageId seen
-  private lastSeenMessageId: number = 0;
+  // Message deduplication - track highest timestamp seen
+  private lastSeenTimestamp: number = 0;
 
   private constructor() {
     console.log("📺 BroadcastManager initializing...");
@@ -32,25 +32,25 @@ class BroadcastManager {
 
   // Check and skip duplicate messages
   private shouldSkipDuplicateMessage(
-    data: { messageId?: number },
+    data: { timestamp?: number },
     eventType: string,
   ): boolean {
-    if (!data.messageId) {
-      console.warn(`⚠️ ${eventType} message missing messageId`);
-      return false; // Process messages without messageId
+    if (!data.timestamp) {
+      console.warn(`⚠️ ${eventType} message missing timestamp`);
+      return false; // Process messages without timestamp
     }
 
-    if (data.messageId <= this.lastSeenMessageId) {
+    if (data.timestamp <= this.lastSeenTimestamp) {
       console.log(
-        `⏭️ BroadcastManager skipping duplicate ${eventType}: messageId ${data.messageId} (last seen: ${this.lastSeenMessageId})`,
+        `⏭️ BroadcastManager skipping duplicate ${eventType}: timestamp ${data.timestamp} (last seen: ${this.lastSeenTimestamp})`,
       );
       return true;
     }
 
-    // Update highest seen messageId
-    this.lastSeenMessageId = data.messageId;
+    // Update highest seen timestamp
+    this.lastSeenTimestamp = data.timestamp;
     console.log(
-      `✅ BroadcastManager processing ${eventType}: messageId ${data.messageId}`,
+      `✅ BroadcastManager processing ${eventType}: timestamp ${data.timestamp}`,
     );
     return false;
   }
@@ -71,11 +71,11 @@ class BroadcastManager {
 
       // Check for duplicates based on message type
       let shouldSkip = false;
-      if (type === "Ping" && data?.messageId) {
+      if (type === "Ping" && data?.timestamp) {
         shouldSkip = this.shouldSkipDuplicateMessage(data, "Ping");
-      } else if (type === "AdminPanelUpdate" && data?.messageId) {
+      } else if (type === "AdminPanelUpdate" && data?.timestamp) {
         shouldSkip = this.shouldSkipDuplicateMessage(data, "AdminPanelUpdate");
-      } else if (type === "GamesAdded" && data?.messageId) {
+      } else if (type === "GamesAdded" && data?.timestamp) {
         shouldSkip = this.shouldSkipDuplicateMessage(data, "GamesAdded");
       }
 
@@ -183,15 +183,15 @@ class BroadcastManager {
     console.log("🗑️ BroadcastManager removed general listener");
   }
 
-  // Method to get last seen messageId (useful for debugging)
-  getLastSeenMessageId(): number {
-    return this.lastSeenMessageId;
+  // Method to get last seen timestamp (useful for debugging)
+  getLastSeenTimestamp(): number {
+    return this.lastSeenTimestamp;
   }
 
-  // Method to reset messageId counter (useful for testing)
-  resetMessageIdCounter(): void {
-    this.lastSeenMessageId = 0;
-    console.log("🔄 BroadcastManager manually reset lastSeenMessageId");
+  // Method to reset timestamp counter (useful for testing)
+  resetTimestampCounter(): void {
+    this.lastSeenTimestamp = 0;
+    console.log("🔄 BroadcastManager manually reset lastSeenTimestamp");
   }
 
   // Cleanup method
@@ -199,7 +199,7 @@ class BroadcastManager {
     console.log("🧹 BroadcastManager cleaning up...");
     this.broadcastChannel.close();
     this.eventHandlers.clear();
-    this.lastSeenMessageId = 0;
+    this.lastSeenTimestamp = 0;
   }
 }
 

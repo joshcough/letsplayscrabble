@@ -58,8 +58,16 @@ export const useCurrentMatch = (): UseCurrentMatchReturn => {
       console.log("📥 useCurrentMatch received AdminPanelUpdate:", data);
       // Only process if this update is for our user
       if (data.userId === parseInt(userId)) {
-        const { userId: _, ...matchData } = data;
-        setCurrentMatch(matchData as CurrentMatch);
+      const currentMatchData = {
+        tournament_id: data.tournamentId,
+        division_id: data.divisionId,
+        division_name: data.divisionName,
+        round: data.round,
+        pairing_id: data.pairingId,
+        timestamp: data.timestamp,
+        updated_at: new Date()
+      };
+      setCurrentMatch(currentMatchData as CurrentMatch);
         setError(null); // Clear any previous errors when we get fresh data
       } else {
         console.log("❌ AdminPanelUpdate is for different user, ignoring");

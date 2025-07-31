@@ -18,8 +18,8 @@ class WorkerSocketManager {
 
   private broadcastChannel: BroadcastChannel;
 
-  // Message deduplication - track highest messageId seen
-  private lastSeenMessageId: number = 0;
+  // Message deduplication - track highest timestamp seen
+  private lastSeenTimestamp: number = 0;
 
   private constructor() {
     console.log(
@@ -36,7 +36,7 @@ class WorkerSocketManager {
     return WorkerSocketManager.instance;
   }
 
-  private withDeduplication<T extends { messageId?: number }>(
+  private withDeduplication<T extends { timestamp?: number }>(
     eventType: string,
     handler: (data: T) => void,
   ): void {
@@ -52,25 +52,25 @@ class WorkerSocketManager {
 
   // Check and skip duplicate WebSocket messages
   private shouldSkipDuplicateMessage(
-    data: { messageId?: number },
+    data: { timestamp?: number },
     eventType: string,
   ): boolean {
-    if (!data.messageId) {
-      console.warn(`⚠️ ${eventType} message missing messageId`);
-      return false; // Process messages without messageId
+    if (!data.timestamp) {
+      console.warn(`⚠️ ${eventType} message missing timestamp`);
+      return false; // Process messages without timestamp
     }
 
-    if (data.messageId <= this.lastSeenMessageId) {
+    if (data.timestamp <= this.lastSeenTimestamp) {
       console.log(
-        `⏭️ Skipping duplicate/old ${eventType} message: messageId ${data.messageId} (last seen: ${this.lastSeenMessageId})`,
+        `⏭️ Skipping duplicate/old ${eventType} message: timestamp ${data.timestamp} (last seen: ${this.lastSeenTimestamp})`,
       );
       return true;
     }
 
-    // Update highest seen messageId
-    this.lastSeenMessageId = data.messageId;
+    // Update highest seen timestamp
+    this.lastSeenTimestamp = data.timestamp;
     console.log(
-      `✅ Processing ${eventType} message: messageId ${data.messageId}`,
+      `✅ Processing ${eventType} message: timestamp ${data.timestamp}`,
     );
     return false;
   }
@@ -114,9 +114,9 @@ class WorkerSocketManager {
       this.socket.on("disconnect", (reason: string) => {
         console.log("🟡 Worker Socket disconnected:", reason);
         this.connectionStatus = `Disconnected from server: ${reason}`;
-        // Reset messageId counter on disconnect to handle reconnection cleanly
-        this.lastSeenMessageId = 0;
-        console.log("🔄 Reset lastSeenMessageId on disconnect");
+        // Reset timestamp counter on disconnect to handle reconnection cleanly
+        this.lastSeenTimestamp = 0;
+        console.log("🔄 Reset lastSeenTimestamp on disconnect");
         this.notifyListeners({
           type: "statusChange",
           status: this.connectionStatus,
@@ -254,15 +254,15 @@ class WorkerSocketManager {
     return this.lastDataUpdate;
   }
 
-  // Method to get last seen messageId (useful for debugging)
-  getLastSeenMessageId(): number {
-    return this.lastSeenMessageId;
+  // Method to get last seen timestamp (useful for debugging)
+  getLastSeenTimestamp(): number {
+    return this.lastSeenTimestamp;
   }
 
-  // Method to reset messageId counter (useful for testing)
-  resetMessageIdCounter(): void {
-    this.lastSeenMessageId = 0;
-    console.log("🔄 Manually reset lastSeenMessageId");
+  // Method to reset timestamp counter (useful for testing)
+  resetTimestampCounter(): void {
+    this.lastSeenTimestamp = 0;
+    console.log("🔄 Manually reset lastSeenTimestamp");
   }
 
   // Cleanup method
@@ -272,7 +272,7 @@ class WorkerSocketManager {
       this.socket.disconnect();
     }
     this.broadcastChannel.close();
-    this.lastSeenMessageId = 0;
+    this.lastSeenTimestamp = 0;
   }
 }
 
