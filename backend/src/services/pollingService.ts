@@ -4,7 +4,6 @@ import { loadTournamentFile } from "./loadTournamentFile";
 import { Server as SocketIOServer } from "socket.io";
 import { GamesAddedMessage } from "@shared/types/websocket";
 import { convertFileToDatabase } from "./fileToDatabaseConversions";
-import { GlobalMessageCounter } from "./GlobalMessageCounter";
 
 export class TournamentPollingService {
   private isRunning: boolean;
@@ -13,7 +12,6 @@ export class TournamentPollingService {
   constructor(
     private readonly tournamentRepo: TournamentRepository,
     private readonly io: SocketIOServer,
-    private readonly messageCounter: GlobalMessageCounter,
   ) {
     this.isRunning = false;
     this.job = null;
@@ -74,7 +72,7 @@ export class TournamentPollingService {
           const gamesAddedMessage: GamesAddedMessage = {
             userId: tournament.user_id,
             tournamentId: tournament.id,
-            messageId: this.messageCounter.getNextId(),
+            timestamp: Date.now(),
           };
           this.io.emit("GamesAdded", gamesAddedMessage);
         }

@@ -16,7 +16,6 @@ import authRoutes from "./routes/auth";
 import { requireAuth } from "./middleware/auth";
 import { TournamentPollingService } from "./services/pollingService";
 import { PingService } from "./services/pingService";
-import { GlobalMessageCounter } from "./services/GlobalMessageCounter";
 
 // Helper function to determine project root path
 function getProjectRoot(): string {
@@ -75,15 +74,13 @@ const io = new SocketIOServer(server, {
   pingInterval: 25000,
 });
 
-const globalMessageCounter = new GlobalMessageCounter();
 const tournamentRepository = new TournamentRepository();
 const currentMatchRepository = new CurrentMatchRepository(pool);
 const pollingService = new TournamentPollingService(
   tournamentRepository,
   io,
-  globalMessageCounter,
 );
-const pingService = new PingService(io, globalMessageCounter);
+const pingService = new PingService(io);
 
 app.use(
   cors({
@@ -161,7 +158,7 @@ app.use(
 app.use(
   "/api/admin",
   requireAuth,
-  createAdminRoutes(currentMatchRepository, io, globalMessageCounter),
+  createAdminRoutes(currentMatchRepository, io),
 );
 
 // Get the project root once

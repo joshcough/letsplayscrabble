@@ -4,29 +4,29 @@ import { loadTournamentFile } from "./loadTournamentFile";
 import { Server as SocketIOServer } from "socket.io";
 import { Ping } from "@shared/types/websocket";
 import { convertFileToDatabase } from "./fileToDatabaseConversions";
-import { GlobalMessageCounter } from "./GlobalMessageCounter";
 
 export class PingService {
   private isRunning: boolean;
   private job: ScheduledTask | null;
+  private count: number;
 
   constructor(
     private readonly io: SocketIOServer,
-    private readonly messageCounter: GlobalMessageCounter,
   ) {
     this.isRunning = false;
     this.job = null;
+    this.count = 0;
   }
 
   async start(): Promise<void> {
     if (this.isRunning) return;
 
-    // Run every 7 seconds
-    this.job = cron.schedule("*/7 * * * * *", async () => {
+    // Run every 30 seconds
+    this.job = cron.schedule("*/30 * * * * *", async () => {
       try {
         const pingData: Ping = {
           timestamp: Date.now(),
-          messageId: this.messageCounter.getNextId(),
+          messageId: this.count++,
         };
 
         console.log("Sending ping", pingData);
