@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { fetchWithAuth } from "../../config/api";
-import { fetchTournamentRow, fetchDivisions } from "../../utils/api";
-import { TournamentRow, DivisionRow } from "@shared/types/database";
+import {
+  fetchTournamentRow,
+  fetchDivisions,
+  fetchPlayersForDivision,
+} from "../../utils/api";
+import { TournamentRow, DivisionRow, PlayerRow } from "@shared/types/database";
 import { ProtectedPage } from "../ProtectedPage";
 import { useAuth } from "../../context/AuthContext";
 
@@ -26,6 +30,13 @@ const TournamentDetails: React.FC = () => {
 
   const [tournament, setTournament] = useState<TournamentRow | null>(null);
   const [divisions, setDivisions] = useState<DivisionRow[]>([]);
+  const [divisionPlayers, setDivisionPlayers] = useState<
+    Record<string, PlayerRow[]>
+  >({});
+  const [expandedDivisions, setExpandedDivisions] = useState<Set<string>>(
+    new Set(),
+  );
+  const [loadingPlayers, setLoadingPlayers] = useState<Set<string>>(new Set());
   const [pollingDays, setPollingDays] = useState<number>(1);
   const [isPolling, setIsPolling] = useState<boolean>(false);
   const [pollUntil, setPollUntil] = useState<Date | null>(null);
@@ -39,6 +50,43 @@ const TournamentDetails: React.FC = () => {
       setEditedTournament(tournament);
     }
   }, [tournament]);
+
+  const toggleDivisionExpansion = async (divisionName: string) => {
+    const newExpanded = new Set(expandedDivisions);
+
+    if (expandedDivisions.has(divisionName)) {
+      // Collapse
+      newExpanded.delete(divisionName);
+    } else {
+      // Expand - fetch players if not already loaded
+      newExpanded.add(divisionName);
+
+      if (!divisionPlayers[divisionName]) {
+        setLoadingPlayers((prev) => new Set(prev).add(divisionName));
+        try {
+          const players = await fetchPlayersForDivision(
+            user_id,
+            tournamentId,
+            divisionName,
+          );
+          setDivisionPlayers((prev) => ({ ...prev, [divisionName]: players }));
+        } catch (error) {
+          console.error(
+            `Error fetching players for division ${divisionName}:`,
+            error,
+          );
+        } finally {
+          setLoadingPlayers((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(divisionName);
+            return newSet;
+          });
+        }
+      }
+    }
+
+    setExpandedDivisions(newExpanded);
+  };
 
   const overlayTypes = [
     {
@@ -443,9 +491,62 @@ const TournamentDetails: React.FC = () => {
                     key={division.id}
                     className="bg-white p-4 rounded border"
                   >
-                    <h5 className="font-semibold text-gray-800 mb-3">
-                      Division {division.name}
-                    </h5>
+                    <div className="flex items-center justify-between mb-3">
+                      <h5 className="font-semibold text-gray-800">
+                        Division {division.name}
+                      </h5>
+                      <button
+                        onClick={() => toggleDivisionExpansion(division.name)}
+                        className="text-blue-600 hover:text-blue-800 text-sm"
+                      >
+                        {expandedDivisions.has(division.name)
+                          ? "Hide Players"
+                          : "Show Players"}
+                      </button>
+                    </div>
+
+                    {/* Players List */}
+                    {expandedDivisions.has(division.name) && (
+                      <div className="mb-4 p-3 bg-gray-50 rounded">
+                        {loadingPlayers.has(division.name) ? (
+                          <div className="text-gray-600">
+                            Loading players...
+                          </div>
+                        ) : divisionPlayers[division.name] ? (
+                          <div className="space-y-1">
+                            <h6 className="font-medium text-gray-700 mb-2">
+                              Players:
+                            </h6>
+                            {divisionPlayers[division.name].map((player) => (
+                              <div
+                                key={player.id}
+                                className="flex items-center justify-between text-sm"
+                              >
+                                <span>
+                                  <strong>#{player.seed}</strong> {player.name}
+                                </span>
+                                <div className="flex items-center gap-4">
+                                  <span className="text-gray-500">
+                                    ID: {player.id} | Rating:{" "}
+                                    {player.initial_rating}
+                                  </span>
+                                  <Link
+                                    to={`/users/${user_id}/overlay/player/${tournamentId}/${encodeURIComponent(division.name)}/${player.id}/test`}
+                                    className="text-blue-600 hover:text-blue-800 underline text-xs"
+                                    target="_blank"
+                                  >
+                                    Test Overlays →
+                                  </Link>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-gray-600">No players found</div>
+                        )}
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {overlayTypes.map((overlay) => (
                         <Link

@@ -1,5 +1,48 @@
 # Changelog
 
+## 2025-07-31
+
+# Changelog
+
+## New Features
+
+### 🎯 Clean Player Overlay System
+- **Added `PlayerOverlay` page** - A new, clean overlay system for individual player data without the legacy player1/player2 complexity
+- **Added `PlayerOverlayTestingPage`** - Comprehensive testing interface for the new player overlay system
+- **Route**: `/users/:userId/overlay/player/:tournamentId/:divisionName`
+- **Testing Route**: `/users/:userId/overlay/player/:tournamentId/:divisionName/:playerId/test`
+
+**Supported overlay sources:**
+- Basic info: `name`, `record`, `average-score`, `high-score`, `spread`
+- Rankings: `rank`, `rank-ordinal`
+- Ratings: `rating`
+- Under camera displays: `under-cam`, `under-cam-no-seed`, `under-cam-small`, `under-cam-with-rating`
+- Game data: `points`, `game-history`, `game-history-small`
+- Special: `bo7`, `tournament-info`
+
+### 📊 Enhanced Tournament Details Page
+- **Added collapsible player lists** for each division with "Show Players" / "Hide Players" buttons
+- **Player information display** showing seed number, name, player ID, and initial rating
+- **"Test Overlays" links** for each player that open the new PlayerOverlayTestingPage
+- **Lazy loading** - player data is only fetched when a division is expanded
+- **Tournament-wide vs Division-specific overlays** - Clear separation between tournament stats and division stats
+
+### 🛠 Backend API Enhancements
+- **Added `getPlayersForDivision()` method** to TournamentRepository
+- **Added `/users/:userId/tournaments/:tournamentId/divisions/:divisionName/players` API endpoint**
+- **Enhanced route validation** with the new `withValidation` wrapper for cleaner, more maintainable route handlers
+- **Improved error handling** and consistent API response patterns
+
+### 🔧 Tournament Stats Fixes
+- **Fixed tournament stats overlay** for tournament-wide statistics (URLs without division)
+- **Resolved React hooks rules violations** by moving all hook calls before conditional returns
+- **Improved data fetching** using direct tournament ID instead of URL parameter parsing
+
+### 🎨 Code Quality Improvements
+- **Refactored route handlers** using a shared `withValidation` wrapper to eliminate code duplication
+- **Added `getRecentGamesForPlayer` utility function** to `tournamentHelpers.ts`
+- **Consistent URL structure** for all o
+
 ## 2025-07-30
 
 ## 🚀 Major System Refactoring

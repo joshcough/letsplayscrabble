@@ -111,6 +111,24 @@ export function unprotectedTournamentRoutes(
     },
   );
 
+  // Get players for division
+  const getPlayersForDivision = withValidation(
+    async ({ userId, tournamentId }, req, res) => {
+      const divisionName = req.params.divisionName;
+      if (!divisionName) {
+        res.status(400).json(Api.failure("Division name is required"));
+        return;
+      }
+
+      const players = await tournamentRepository.getPlayersForDivision(
+        tournamentId,
+        userId,
+        divisionName,
+      );
+      res.json(Api.success(players));
+    },
+  );
+
   // Routes
   router.get("/users/:userId/tournaments/:tournamentId", getTournamentForUser);
   router.get(
@@ -124,6 +142,10 @@ export function unprotectedTournamentRoutes(
   router.get(
     "/users/:userId/tournaments/:tournamentId/divisions",
     getDivisionsForTournament,
+  );
+  router.get(
+    "/users/:userId/tournaments/:tournamentId/divisions/:divisionName/players",
+    getPlayersForDivision,
   );
 
   return router;

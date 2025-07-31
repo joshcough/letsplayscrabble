@@ -367,4 +367,19 @@ export class TournamentRepository {
       .where("tournaments.user_id", userId)
       .orderBy("divisions.name", "asc");
   }
+
+  async getPlayersForDivision(
+    tournamentId: number,
+    userId: number,
+    divisionName: string,
+  ): Promise<Array<DB.PlayerRow>> {
+    return knexDb("players")
+      .select("players.*")
+      .join("divisions", "players.division_id", "divisions.id")
+      .join("tournaments", "divisions.tournament_id", "tournaments.id")
+      .where("divisions.tournament_id", tournamentId)
+      .where("tournaments.user_id", userId)
+      .where("divisions.name", divisionName)
+      .orderBy("players.seed", "asc");
+  }
 }

@@ -13,6 +13,8 @@ import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOve
 import HomePage from "./pages/HomePage";
 import WorkerPage from "./pages/WorkerPage";
 import Navigation from "./components/common/Navigation";
+import PlayerOverlay from "./pages/overlay/PlayerOverlayPage";
+import PlayerOverlayTestingPage from "./pages/overlay/PlayerOverlayTestingPage";
 import MiscOverlayPage from "./pages/overlay/MiscOverlayPage";
 import MiscOverlayTestingPage from "./pages/overlay/MiscOverlayTestingPage";
 import OverlaysPage from "./pages/overlay/OverlaysPage";
@@ -54,6 +56,14 @@ const AppContent: React.FC = () => {
         <Route
           path="/users/:userId/overlay/misc"
           element={<MiscOverlayPage />}
+        />
+        <Route
+          path="/users/:userId/overlay/player/:tournamentId/:divisionName"
+          element={<PlayerOverlay />}
+        />
+        <Route
+          path="/users/:userId/overlay/player/:tournamentId/:divisionName/:playerId/test"
+          element={<PlayerOverlayTestingPage />}
         />
         <Route
           path="/users/:userId/overlay/standings/:tournamentId?/:divisionName?"
