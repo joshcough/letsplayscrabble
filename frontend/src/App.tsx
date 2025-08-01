@@ -58,7 +58,7 @@ const AppContent: React.FC = () => {
           element={<MiscOverlayPage />}
         />
         <Route
-          path="/users/:userId/overlay/player/:tournamentId/:divisionName"
+          path="/users/:userId/overlay/player/:tournamentId?/:divisionName?"
           element={<PlayerOverlay />}
         />
         <Route

@@ -1,6 +1,7 @@
 import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useTournamentData } from "../../hooks/useTournamentData";
+import { BaseOverlay } from "../../components/shared/BaseOverlay";
 import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
 import PointsDisplay from "../../components/shared/PointsDisplay";
@@ -41,31 +42,130 @@ type SourceType =
   | "bo7"
   | "tournament-info";
 
-const PlayerOverlay: React.FC = () => {
-  const { userId, tournamentId, divisionName } = useParams<RouteParams>();
-  const [searchParams] = useSearchParams();
-  const source = searchParams.get("source") as SourceType;
-  const playerIdParam = searchParams.get("playerId");
-  const playerNameParam = searchParams.get("playerName");
+// Render function for player data
+const renderPlayerData = (
+  source: SourceType,
+  player: any,
+  divisionData?: any,
+  tournament?: any,
+) => {
+  if (!player && source !== "tournament-info") {
+    return <div>Player not found</div>;
+  }
 
-  const playerId = playerIdParam ? Number(playerIdParam) : undefined;
+  switch (source) {
+    case "name":
+      return <div>{player.firstLast || player.name || "Player"}</div>;
 
-  // Always call hooks first, before any conditional returns
+    case "record":
+      return <div>{formatRecord(player)}</div>;
+
+    case "average-score":
+      return <div>{player.averageScoreRounded || "N/A"}</div>;
+
+    case "high-score":
+      return <div>{player.highScore || "N/A"}</div>;
+
+    case "spread":
+      return <div>{formatSpread(player.spread)}</div>;
+
+    case "rank":
+      return <div>{player.rank || "N/A"}</div>;
+
+    case "rank-ordinal":
+      return <div>{player.rankOrdinal || "N/A"}</div>;
+
+    case "rating":
+      return <div>{player.currentRating || "N/A"}</div>;
+
+    case "under-cam":
+      return <div>{formatFullUnderCam(player)}</div>;
+
+    case "under-cam-no-seed":
+      return <div>{formatUnderCamNoSeed(player)}</div>;
+
+    case "under-cam-small":
+      return <div>{formatUnderCamRecord(player)}</div>;
+
+    case "under-cam-with-rating":
+      return <div>{formatFullUnderCamWithRating(player)}</div>;
+
+    case "bo7":
+      return <div>{formatBestOf7(player)}</div>;
+
+    case "points":
+      return <PointsDisplay stats={player} side="player1" />;
+
+    case "game-history":
+      const recentGames = getRecentGamesForPlayer(
+        player.playerId,
+        divisionData?.games || [],
+        divisionData?.players || [],
+      );
+      return (
+        <div>
+          <div className="mb-2">
+            <PointsDisplay stats={player} side="player1" />
+          </div>
+          <GameHistoryDisplay games={recentGames} side="player1" />
+        </div>
+      );
+
+    case "game-history-small":
+      const recentGamesSmall = getRecentGamesForPlayer(
+        player.playerId,
+        divisionData?.games || [],
+        divisionData?.players || [],
+      );
+      return <GameHistoryDisplay games={recentGamesSmall} side="player1" />;
+
+    case "tournament-info":
+      return (
+        <div>
+          {tournament?.name || "N/A"}
+          {" | "}
+          {tournament?.lexicon || "N/A"}
+          {" | "}
+          Division {divisionData?.division?.name || "N/A"}
+        </div>
+      );
+
+    default:
+      return <div>Unknown source: {source}</div>;
+  }
+};
+
+// Component for URL-based player display
+const URLBasedPlayerDisplay: React.FC<{
+  tournamentId: number;
+  divisionName: string;
+  source: SourceType;
+  playerIdParam: string | null;
+  playerNameParam: string | null;
+  playerParam: string | null;
+}> = ({
+  tournamentId,
+  divisionName,
+  source,
+  playerIdParam,
+  playerNameParam,
+  playerParam,
+}) => {
   const {
     tournamentData,
     loading: dataLoading,
     fetchError,
   } = useTournamentData({
-    tournamentId: tournamentId ? Number(tournamentId) : 0,
+    tournamentId: tournamentId,
     useUrlParams: false,
   });
 
   // Find the target division
   const targetDivision = tournamentData?.divisions.find(
-    (div) => div.division.name.toUpperCase() === divisionName?.toUpperCase(),
+    (div) => div.division.name.toUpperCase() === divisionName.toUpperCase(),
   );
 
-  // Calculate player stats - always call this hook
+  // Calculate player stats
   const playerStats = React.useMemo(() => {
     if (!targetDivision) return [];
 
@@ -91,11 +191,12 @@ const PlayerOverlay: React.FC = () => {
       }));
   }, [targetDivision]);
 
-  // Find the target player - always call this hook
+  // Find the target player
   const targetPlayer = React.useMemo(() => {
     if (!playerStats.length) return null;
 
-    if (playerId) {
+    if (playerIdParam) {
+      const playerId = Number(playerIdParam);
       return playerStats.find((p: any) => p.playerId === playerId) || null;
     }
 
@@ -111,116 +212,15 @@ const PlayerOverlay: React.FC = () => {
       );
     }
 
+    if (playerParam) {
+      // For current match mode with URL parameters, we need to find the current match
+      // This is a bit more complex - we'd need current match data
+      // For now, return null and handle this case
+      return null;
+    }
+
     return null;
-  }, [playerStats, playerId, playerNameParam]);
-
-  // Now do validation after all hooks are called
-  if (!tournamentId || !divisionName) {
-    return (
-      <div className="text-black p-2">
-        Tournament ID and division name are required in URL
-      </div>
-    );
-  }
-
-  if (!source) {
-    return <div className="text-black p-2">Source parameter is required</div>;
-  }
-
-  if (!playerIdParam && !playerNameParam) {
-    return (
-      <div className="text-black p-2">
-        Either playerId or playerName parameter is required
-      </div>
-    );
-  }
-
-  const renderPlayerData = (source: SourceType, player: any) => {
-    if (!player && source !== "tournament-info") {
-      return <div>Player not found</div>;
-    }
-
-    switch (source) {
-      case "name":
-        return <div>{player.firstLast || player.name || "Player"}</div>;
-
-      case "record":
-        return <div>{formatRecord(player)}</div>;
-
-      case "average-score":
-        return <div>{player.averageScoreRounded || "N/A"}</div>;
-
-      case "high-score":
-        return <div>{player.highScore || "N/A"}</div>;
-
-      case "spread":
-        return <div>{formatSpread(player.spread)}</div>;
-
-      case "rank":
-        return <div>{player.rank || "N/A"}</div>;
-
-      case "rank-ordinal":
-        return <div>{player.rankOrdinal || "N/A"}</div>;
-
-      case "rating":
-        return <div>{player.currentRating || "N/A"}</div>;
-
-      case "under-cam":
-        return <div>{formatFullUnderCam(player)}</div>;
-
-      case "under-cam-no-seed":
-        return <div>{formatUnderCamNoSeed(player)}</div>;
-
-      case "under-cam-small":
-        return <div>{formatUnderCamRecord(player)}</div>;
-
-      case "under-cam-with-rating":
-        return <div>{formatFullUnderCamWithRating(player)}</div>;
-
-      case "bo7":
-        return <div>{formatBestOf7(player)}</div>;
-
-      case "points":
-        return <PointsDisplay stats={player} side="player1" />;
-
-      case "game-history":
-        const recentGames = getRecentGamesForPlayer(
-          player.playerId,
-          targetDivision!.games,
-          targetDivision!.players,
-        );
-        return (
-          <div>
-            <div className="mb-2">
-              <PointsDisplay stats={player} side="player1" />
-            </div>
-            <GameHistoryDisplay games={recentGames} side="player1" />
-          </div>
-        );
-
-      case "game-history-small":
-        const recentGamesSmall = getRecentGamesForPlayer(
-          player.playerId,
-          targetDivision!.games,
-          targetDivision!.players,
-        );
-        return <GameHistoryDisplay games={recentGamesSmall} side="player1" />;
-
-      case "tournament-info":
-        return (
-          <div>
-            {tournamentData?.tournament.name || "N/A"}
-            {" | "}
-            {tournamentData?.tournament.lexicon || "N/A"}
-            {" | "}
-            Division {targetDivision?.division.name || "N/A"}
-          </div>
-        );
-
-      default:
-        return <div>Unknown source: {source}</div>;
-    }
-  };
+  }, [playerStats, playerIdParam, playerNameParam, playerParam]);
 
   return (
     <LoadingErrorWrapper loading={dataLoading} error={fetchError}>
@@ -243,8 +243,9 @@ const PlayerOverlay: React.FC = () => {
         ) {
           return (
             <div className="text-black p-2">
-              Player {playerIdParam || playerNameParam} not found in division{" "}
-              {divisionName}
+              Player{" "}
+              {playerIdParam || playerNameParam || `player ${playerParam}`} not
+              found in division {divisionName}
             </div>
           );
         }
@@ -252,7 +253,12 @@ const PlayerOverlay: React.FC = () => {
         if (tournamentData && targetDivision) {
           return (
             <div className="inline-block text-black">
-              {renderPlayerData(source, targetPlayer)}
+              {renderPlayerData(
+                source,
+                targetPlayer,
+                targetDivision,
+                tournamentData.tournament,
+              )}
             </div>
           );
         }
@@ -261,6 +267,166 @@ const PlayerOverlay: React.FC = () => {
       })()}
     </LoadingErrorWrapper>
   );
+};
+
+const PlayerOverlay: React.FC = () => {
+  const { userId, tournamentId, divisionName } = useParams<RouteParams>();
+  const [searchParams] = useSearchParams();
+  const source = searchParams.get("source") as SourceType;
+  const playerIdParam = searchParams.get("playerId");
+  const playerNameParam = searchParams.get("playerName");
+  const playerParam = searchParams.get("player"); // "1" or "2" for current match
+
+  console.log("🎯 PlayerOverlay params:", {
+    userId,
+    tournamentId,
+    divisionName,
+    source,
+    playerIdParam,
+    playerNameParam,
+    playerParam,
+  });
+
+  // Determine what mode we're in
+  const shouldUseCurrentMatch = !tournamentId;
+  const hasSpecificPlayer = !!(playerIdParam || playerNameParam);
+  const hasCurrentMatchPlayer = !!playerParam;
+
+  console.log("🎯 Mode flags:", {
+    shouldUseCurrentMatch,
+    hasSpecificPlayer,
+    hasCurrentMatchPlayer,
+  });
+
+  // Validation
+  if (!source) {
+    return <div className="text-black p-2">Source parameter is required</div>;
+  }
+
+  if (shouldUseCurrentMatch) {
+    // Current match mode - must specify player 1 or 2
+    if (!hasCurrentMatchPlayer) {
+      return (
+        <div className="text-black p-2">
+          Current match mode requires player parameter (1 or 2)
+        </div>
+      );
+    }
+
+    return (
+      <BaseOverlay>
+        {({
+          tournament,
+          divisionData,
+          divisionName: currentDivisionName,
+          currentMatch,
+        }) => {
+          console.log("🎯 BaseOverlay data:", {
+            tournament,
+            divisionData,
+            currentDivisionName,
+            currentMatch,
+          });
+
+          if (!currentMatch) {
+            return (
+              <div className="text-black p-2">
+                No current match data available
+              </div>
+            );
+          }
+
+          // Find the current game
+          const currentGame = divisionData.games.find(
+            (game) =>
+              game.pairing_id === currentMatch.pairing_id &&
+              game.round_number === currentMatch.round,
+          );
+
+          if (!currentGame) {
+            return (
+              <div className="text-black p-2">
+                Current game not found in tournament data
+              </div>
+            );
+          }
+
+          // Calculate player stats
+          const {
+            calculateStandingsFromGames,
+          } = require("../../utils/calculateStandings");
+          const playerStats = calculateStandingsFromGames(
+            divisionData.games,
+            divisionData.players,
+          );
+
+          // Sort by standings and add ranks
+          const rankedPlayers = playerStats
+            .sort((a: any, b: any) => {
+              if (a.wins !== b.wins) return b.wins - a.wins;
+              if (a.losses !== b.losses) return a.losses - b.losses;
+              return b.spread - a.spread;
+            })
+            .map((player: any, index: number) => ({
+              ...player,
+              rank: index + 1,
+              rankOrdinal: `${index + 1}${["th", "st", "nd", "rd"][(index + 1) % 100 > 10 && (index + 1) % 100 < 14 ? 0 : (index + 1) % 10] || "th"}`,
+            }));
+
+          // Get the right player based on parameter
+          const isPlayer1 = playerParam === "1";
+          const targetPlayerId = isPlayer1
+            ? currentGame.player1_id
+            : currentGame.player2_id;
+          const targetPlayer = rankedPlayers.find(
+            (p: any) => p.playerId === targetPlayerId,
+          );
+
+          if (!targetPlayer) {
+            return (
+              <div className="text-black p-2">
+                Player {playerParam} not found in tournament data
+              </div>
+            );
+          }
+
+          return (
+            <div className="inline-block text-black">
+              {renderPlayerData(source, targetPlayer, divisionData, tournament)}
+            </div>
+          );
+        }}
+      </BaseOverlay>
+    );
+  } else {
+    // URL-based mode
+    if (!tournamentId || !divisionName) {
+      return (
+        <div className="text-black p-2">
+          Tournament ID and division name are required in URL
+        </div>
+      );
+    }
+
+    if (!hasSpecificPlayer && !hasCurrentMatchPlayer) {
+      return (
+        <div className="text-black p-2">
+          Either playerId, playerName, or player parameter is required
+        </div>
+      );
+    }
+
+    return (
+      <URLBasedPlayerDisplay
+        tournamentId={Number(tournamentId)}
+        divisionName={divisionName}
+        source={source}
+        playerIdParam={playerIdParam}
+        playerNameParam={playerNameParam}
+        playerParam={playerParam}
+      />
+    );
+  }
 };
 
 export default PlayerOverlay;
