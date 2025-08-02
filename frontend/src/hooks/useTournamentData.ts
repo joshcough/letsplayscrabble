@@ -127,8 +127,8 @@ export const useTournamentData = ({
           data,
         );
         if (
-          data.userId === parseInt(userId) &&
-          data.tournamentId === effectiveTournamentId
+          data.update.tournament.user_id === parseInt(userId) &&
+          data.update.tournament.id === effectiveTournamentId
         ) {
           console.log("✅ Matching tournament - refetching data!");
           fetchTournamentData();

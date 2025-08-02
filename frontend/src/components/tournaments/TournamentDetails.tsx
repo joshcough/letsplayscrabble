@@ -135,7 +135,7 @@ const TournamentDetails: React.FC = () => {
 
   const handleEnablePolling = async () => {
     try {
-      const data: PollingResponse = await fetchWithAuth(
+      const data: string = await fetchWithAuth(
         `/api/private/tournaments/${params.id}/polling`,
         {
           method: "POST",
@@ -147,7 +147,7 @@ const TournamentDetails: React.FC = () => {
       );
 
       setIsPolling(true);
-      setPollUntil(new Date(data.pollUntil));
+      setPollUntil(new Date(data));
     } catch (error) {
       console.error("Error enabling polling:", error);
     }

@@ -1,3 +1,4 @@
+import * as DB from "@shared/types/database";
 import { GamesAddedMessage } from "@shared/types/websocket";
 import cron, { ScheduledTask } from "node-cron";
 import { Server as SocketIOServer } from "socket.io";
@@ -11,7 +12,7 @@ export class TournamentPollingService {
   private job: ScheduledTask | null;
 
   constructor(
-    private readonly tournamentRepo: TournamentRepository,
+    private readonly repo: TournamentRepository,
     private readonly io: SocketIOServer,
   ) {
     this.isRunning = false;
@@ -46,7 +47,7 @@ export class TournamentPollingService {
     console.log("Tournament polling service is polling...");
 
     await this.clearExpiredPolls();
-    const activeTournaments = await this.tournamentRepo.findActivePollable();
+    const activeTournaments = await this.repo.findActivePollable();
 
     for (const tournament of activeTournaments) {
       try {
@@ -54,6 +55,9 @@ export class TournamentPollingService {
 
         // Use a deep comparison of the data
         if (JSON.stringify(newData) !== JSON.stringify(tournament.data)) {
+          console.log("-------------------")
+          console.log(`Found new data for ${tournament.id}:${tournament.name}`);
+
           // Convert file data to database format
           const createTournamentData = convertFileToDatabase(
             newData,
@@ -68,14 +72,15 @@ export class TournamentPollingService {
             tournament.user_id,
           );
 
-          await this.tournamentRepo.updateData(
-            tournament.id,
-            createTournamentData,
-          );
-          console.log(`Updated tournament ${tournament.id} with new data`);
+          const update: DB.TournamentUpdate =
+            await this.repo.updateData(tournament.id, createTournamentData);
+
+          console.log(`Updated tournament ${tournament.id} with new data`, JSON.stringify(update, null, 2));
+
+          console.log("-------------------")
+
           const gamesAddedMessage: GamesAddedMessage = {
-            userId: tournament.user_id,
-            tournamentId: tournament.id,
+            update,
             timestamp: Date.now(),
           };
           this.io.emit("GamesAdded", gamesAddedMessage);
@@ -87,6 +92,6 @@ export class TournamentPollingService {
   }
 
   private async clearExpiredPolls(): Promise<void> {
-    await this.tournamentRepo.endInactivePollable();
+    await this.repo.endInactivePollable();
   }
 }

@@ -2,7 +2,7 @@ newt = {
   config: {
     _termdict: {
       messages: {
-        "1/2": { brief: "1/2", code: "1/2", type: "label" },
+        "1/3": { brief: "1/2", code: "1/2", type: "label" },
         "1st": { brief: "1st", code: "1st", type: "label" },
         "1stadv": { brief: "1st-2nd", code: "1stadv", type: "label" },
         "1stadvantage": {

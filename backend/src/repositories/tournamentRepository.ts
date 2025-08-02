@@ -1,7 +1,9 @@
 import * as DB from "@shared/types/database";
+import { knexDb } from "../config/database";
 import { Knex } from "knex";
 
-import { knexDb } from "../config/database";
+// Import the shared types
+import { GameChanges, TournamentUpdate } from "@shared/types/database";
 
 export class TournamentRepository {
   async create(
@@ -14,7 +16,7 @@ export class TournamentRepository {
         .returning("*");
 
       // Store data in normalized tables (first time = no incremental logic needed)
-      await this.storeTournamentData(trx, tournament.id, createTournament);
+      await this.storeTournamentDataIncremental(trx, tournament.id, createTournament);
 
       return tournament;
     });
@@ -56,11 +58,7 @@ export class TournamentRepository {
       }
 
       // Update normalized tables with incremental approach
-      const changes = await this.storeTournamentDataIncremental(
-        trx,
-        id,
-        createTournament,
-      );
+      const changes = await this.storeTournamentDataIncremental(trx, id, createTournament);
 
       return { tournament: updated, changes };
     });
@@ -93,11 +91,7 @@ export class TournamentRepository {
       }
 
       // Update normalized tables with incremental approach
-      const changes = await this.storeTournamentDataIncremental(
-        trx,
-        id,
-        createTournament,
-      );
+      const changes = await this.storeTournamentDataIncremental(trx, id, createTournament);
 
       return { tournament: updated, changes };
     });
@@ -128,7 +122,6 @@ export class TournamentRepository {
     return updated;
   }
 
-  // NEW: The main method for getting hierarchical tournament data
   async getTournamentAsTree(
     tournamentId: number,
     userId: number,
@@ -173,7 +166,6 @@ export class TournamentRepository {
       divisions.map((d) => ({ id: d.id, name: d.name })),
     );
 
-    // Build hierarchical structure
     const hierarchicalDivisions = await Promise.all(
       divisions.map(async (division) => {
         // Get players for this division
@@ -282,76 +274,6 @@ export class TournamentRepository {
 
   // PRIVATE: Internal methods for data storage
 
-  // Original method for tournament creation (keeps existing behavior)
-  private async storeTournamentData(
-    trx: Knex.Transaction,
-    tournamentId: number,
-    data: DB.CreateTournament,
-  ): Promise<void> {
-    // Clear existing data for this tournament
-    await this.clearTournamentData(trx, tournamentId);
-
-    // Insert divisions and collect ID mapping
-    const divisionIdMap = new Map<number, number>(); // position → db_id
-    for (let i = 0; i < data.divisions.length; i++) {
-      const divisionData = data.divisions[i];
-      const [division] = await trx("divisions")
-        .insert({
-          tournament_id: tournamentId,
-          ...divisionData,
-        })
-        .returning("*");
-      divisionIdMap.set(i, division.id);
-    }
-
-    // Insert players and collect ID mapping
-    const playerFileIdToDbIdMap = new Map<number, number>(); // file_id → db_id
-    for (const playerData of data.players) {
-      const divisionId = divisionIdMap.get(playerData.division_position);
-      if (!divisionId) continue;
-
-      const [player] = await trx("players")
-        .insert({
-          tournament_id: tournamentId,
-          division_id: divisionId,
-          seed: playerData.seed,
-          name: playerData.name,
-          initial_rating: playerData.initial_rating,
-          photo: playerData.photo,
-          etc_data: JSON.stringify(playerData.etc_data),
-        })
-        .returning("*");
-
-      playerFileIdToDbIdMap.set(playerData.seed, player.id);
-    }
-
-    // Insert games
-    const gameInserts = [];
-    for (const gameData of data.games) {
-      const divisionId = divisionIdMap.get(gameData.division_position);
-      const player1DbId = playerFileIdToDbIdMap.get(gameData.player1_file_id);
-      const player2DbId = playerFileIdToDbIdMap.get(gameData.player2_file_id);
-
-      if (!divisionId || !player1DbId || !player2DbId) continue;
-
-      gameInserts.push({
-        division_id: divisionId,
-        round_number: gameData.round_number,
-        player1_id: player1DbId,
-        player2_id: player2DbId,
-        player1_score: gameData.player1_score,
-        player2_score: gameData.player2_score,
-        is_bye: gameData.is_bye,
-        pairing_id: gameData.pairing_id,
-      });
-    }
-
-    if (gameInserts.length > 0) {
-      await trx("games").insert(gameInserts);
-    }
-  }
-
-  // New incremental method for tournament updates
   private async storeTournamentDataIncremental(
     trx: Knex.Transaction,
     tournamentId: number,
@@ -404,9 +326,7 @@ export class TournamentRepository {
       }
     } else {
       // Subsequent loads - get existing mappings
-      console.log(
-        "🔄 Incremental data load - using existing divisions and players",
-      );
+      console.log("🔄 Incremental data load - using existing divisions and players");
 
       // Get division mappings
       const divisions = await trx("divisions")
@@ -415,7 +335,7 @@ export class TournamentRepository {
         .orderBy("position");
 
       divisionIdMap = new Map<number, number>();
-      divisions.forEach((div) => divisionIdMap.set(div.position, div.id));
+      divisions.forEach(div => divisionIdMap.set(div.position, div.id));
 
       // Get player mappings
       const players = await trx("players")
@@ -423,9 +343,7 @@ export class TournamentRepository {
         .select("id", "seed");
 
       playerFileIdToDbIdMap = new Map<number, number>();
-      players.forEach((player) =>
-        playerFileIdToDbIdMap.set(player.seed, player.id),
-      );
+      players.forEach(player => playerFileIdToDbIdMap.set(player.seed, player.id));
     }
 
     // Always upsert games with change detection
@@ -441,14 +359,13 @@ export class TournamentRepository {
           divisionId,
           player1DbId,
           player2DbId,
-          gameData,
+          gameData
         });
         continue;
       }
 
       try {
-        const result = await trx.raw(
-          `
+        const result = await trx.raw(`
           INSERT INTO games (
             division_id, round_number, player1_id, player2_id,
             player1_score, player2_score, is_bye, pairing_id
@@ -470,25 +387,25 @@ export class TournamentRepository {
               WHEN xmax = 0 THEN 'INSERTED'
               ELSE 'UPDATED'
             END as action
-        `,
-          [
-            divisionId,
-            gameData.round_number,
-            player1DbId,
-            player2DbId,
-            gameData.player1_score,
-            gameData.player2_score,
-            gameData.is_bye,
-            gameData.pairing_id,
-          ],
-        );
+        `, [
+          divisionId,
+          gameData.round_number,
+          player1DbId,
+          player2DbId,
+          gameData.player1_score ?? null,
+          gameData.player2_score ?? null,
+          gameData.is_bye ?? false,
+          gameData.pairing_id
+        ]);
 
         if (result.rows.length > 0) {
           const { action } = result.rows[0];
           if (action === "INSERTED") {
             changes.added.push(gameData);
+            console.log(`➕ ADDED: Div${gameData.division_position} R${gameData.round_number} P${gameData.player1_file_id}vsP${gameData.player2_file_id} (${gameData.player1_score ?? 'null'}/${gameData.player2_score ?? 'null'}) Pairing:${gameData.pairing_id}`);
           } else if (action === "UPDATED") {
             changes.updated.push(gameData);
+            console.log(`🔄 UPDATED: Div${gameData.division_position} R${gameData.round_number} P${gameData.player1_file_id}vsP${gameData.player2_file_id} (${gameData.player1_score ?? 'null'}/${gameData.player2_score ?? 'null'}) Pairing:${gameData.pairing_id}`);
           }
         }
       } catch (error) {
@@ -499,7 +416,7 @@ export class TournamentRepository {
 
     console.log("📊 Game changes:", {
       added: changes.added.length,
-      updated: changes.updated.length,
+      updated: changes.updated.length
     });
 
     return changes;

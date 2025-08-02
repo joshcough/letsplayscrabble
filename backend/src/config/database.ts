@@ -50,7 +50,7 @@ const knexConfig = {
         connectionString: process.env.DATABASE_URL,
         ssl: { rejectUnauthorized: false },
       },
-  debug: isDevelopment,
+  debug: false, // isDevelopment,
 };
 
 const knexDb = knex(knexConfig);
