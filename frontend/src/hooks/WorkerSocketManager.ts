@@ -3,11 +3,12 @@ import {
   AdminPanelUpdateMessage,
   GamesAddedMessage,
   Ping,
+  SubscribeMessage,
 } from "@shared/types/websocket";
 import io, { Socket } from "socket.io-client";
 
 import { API_BASE } from "../config/api";
-import { fetchTournament } from "../utils/api";
+import { fetchTournament, fetchTournamentDivision } from "../utils/api";
 
 class WorkerSocketManager {
   private static instance: WorkerSocketManager;
@@ -28,6 +29,7 @@ class WorkerSocketManager {
     );
     this.broadcastChannel = new BroadcastChannel("tournament-updates");
     this.connectSocket();
+    this.setupBroadcastListener();
   }
 
   static getInstance(): WorkerSocketManager {
@@ -74,6 +76,75 @@ class WorkerSocketManager {
       `✅ Processing ${eventType} message: timestamp ${data.timestamp}`,
     );
     return false;
+  }
+
+  private setupBroadcastListener() {
+    this.broadcastChannel.onmessage = (event) => {
+      const { type, data } = event.data;
+
+      console.log(`📥 Worker received broadcast message: ${type}`, data);
+
+      switch (type) {
+        case 'SUBSCRIBE':
+          this.handleSubscribeMessage(data as SubscribeMessage);
+          break;
+        default:
+          console.log(`⚠️ Worker received unknown broadcast message type: ${type}`);
+      }
+    };
+  }
+
+  private async handleSubscribeMessage(data: SubscribeMessage) {
+    const { userId, tournamentId, divisionId } = data;
+
+    console.log(
+      `🔔 Worker handling SUBSCRIBE request: user ${userId}, tournament ${tournamentId}${divisionId ? `, division ${divisionId}` : ' (full tournament)'}`
+    );
+
+    try {
+      let tournamentData;
+
+      if (divisionId) {
+        console.log(`🔄 Worker fetching division ${divisionId} data...`);
+        tournamentData = await fetchTournamentDivision(userId, tournamentId, divisionId);
+      } else {
+        console.log(`🔄 Worker fetching full tournament data...`);
+        tournamentData = await fetchTournament(userId, tournamentId);
+      }
+
+      const message = {
+        type: "TOURNAMENT_DATA",
+        tournamentId: tournamentId,
+        userId: userId,
+        data: tournamentData,
+        timestamp: Date.now(),
+      };
+
+      console.log(
+        `📢 Worker broadcasting TOURNAMENT_DATA for SUBSCRIBE request: user ${userId}, tournament ${tournamentId}`,
+        message,
+      );
+      this.broadcastChannel.postMessage(message);
+
+    } catch (error) {
+      console.error(
+        `🔴 Worker failed to fetch tournament data for SUBSCRIBE request: user ${userId}, tournament ${tournamentId}:`,
+        error,
+      );
+
+      // Broadcast error so display sources know something went wrong
+      const errorMessage = {
+        type: "TOURNAMENT_DATA_ERROR",
+        tournamentId: tournamentId,
+        userId: userId,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch tournament data",
+        timestamp: Date.now(),
+      };
+      this.broadcastChannel.postMessage(errorMessage);
+    }
   }
 
   private connectSocket() {

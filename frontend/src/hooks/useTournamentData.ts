@@ -5,6 +5,7 @@ import * as DB from "@shared/types/database";
 import {
   GamesAddedMessage,
   TournamentDataMessage,
+  SubscribeMessage,
 } from "@shared/types/websocket";
 
 import { fetchTournament, fetchTournamentDivision } from "../utils/api";
@@ -48,6 +49,44 @@ export const useTournamentData = ({
     ? Number(urlTournamentId)
     : propTournamentId;
 
+  // Create broadcast channel instance for sending SUBSCRIBE messages
+  const broadcastChannel = new BroadcastChannel("tournament-updates");
+
+  const subscribeToTournamentData = () => {
+    if (!userId || !effectiveTournamentId) {
+      setFetchError("Missing required parameters");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setFetchError(null);
+
+      const subscribeMessage: SubscribeMessage = {
+        userId: parseInt(userId),
+        tournamentId: effectiveTournamentId,
+        divisionId: propDivisionId, // Only set if we want a specific division
+      };
+
+      console.log(
+        `📤 useTournamentData sending SUBSCRIBE message:`,
+        subscribeMessage,
+      );
+
+      broadcastChannel.postMessage({
+        type: 'SUBSCRIBE',
+        data: subscribeMessage,
+      });
+
+    } catch (err) {
+      setFetchError(
+        err instanceof Error ? err.message : "Failed to subscribe to tournament data",
+      );
+      setLoading(false);
+    }
+  };
+
+  // Fallback direct fetch method (for emergencies or if worker isn't available)
   const fetchTournamentData = async () => {
     if (!userId || !effectiveTournamentId) {
       setFetchError("Missing required parameters");
@@ -101,11 +140,12 @@ export const useTournamentData = ({
     }
   };
 
-  // Initial data fetch on mount
+  // Initial data subscription on mount
   useEffect(() => {
     if (userId && effectiveTournamentId) {
       if (shouldUseUrlParams || propTournamentId) {
-        fetchTournamentData();
+        console.log(`🔔 useTournamentData subscribing to tournament data on mount`);
+        subscribeToTournamentData();
       }
     }
   }, [
@@ -116,7 +156,7 @@ export const useTournamentData = ({
     shouldUseUrlParams,
   ]);
 
-  // Listen for GamesAdded broadcasts and refetch (these are rare, so API calls are OK)
+  // Listen for GamesAdded broadcasts and re-subscribe (for compatibility)
   useEffect(() => {
     if (!userId || !effectiveTournamentId) return;
 
@@ -130,8 +170,8 @@ export const useTournamentData = ({
           data.update.tournament.user_id === parseInt(userId) &&
           data.update.tournament.id === effectiveTournamentId
         ) {
-          console.log("✅ Matching tournament - refetching data!");
-          fetchTournamentData();
+          console.log("✅ Matching tournament - re-subscribing for fresh data!");
+          subscribeToTournamentData();
         } else {
           console.log("⏭️ Different tournament - ignoring");
         }
@@ -143,7 +183,7 @@ export const useTournamentData = ({
     };
   }, [userId, effectiveTournamentId]);
 
-  // Listen for TOURNAMENT_DATA broadcasts from worker (prevents thundering herd)
+  // Listen for TOURNAMENT_DATA broadcasts from worker
   useEffect(() => {
     if (!userId || !effectiveTournamentId) return;
 
@@ -199,6 +239,33 @@ export const useTournamentData = ({
     shouldUseUrlParams,
   ]);
 
+  // Listen for TOURNAMENT_DATA_ERROR broadcasts from worker
+  useEffect(() => {
+    if (!userId || !effectiveTournamentId) return;
+
+    const cleanupTournamentDataError =
+      BroadcastManager.getInstance().onTournamentDataError(
+        (data) => {
+          console.log(
+            "🔴 useTournamentData received TOURNAMENT_DATA_ERROR broadcast:",
+            data,
+          );
+          if (
+            data.userId === parseInt(userId) &&
+            data.tournamentId === effectiveTournamentId
+          ) {
+            console.log("❌ Tournament data error for our tournament");
+            setFetchError(data.error);
+            setLoading(false);
+          }
+        },
+      );
+
+    return () => {
+      cleanupTournamentDataError();
+    };
+  }, [userId, effectiveTournamentId]);
+
   const getDivisionData = (divisionId?: number) => {
     if (!tournamentData) return null;
     const targetDivisionId = divisionId || selectedDivisionId;
@@ -218,6 +285,13 @@ export const useTournamentData = ({
     );
   };
 
+  // Cleanup broadcast channel on unmount
+  useEffect(() => {
+    return () => {
+      broadcastChannel.close();
+    };
+  }, []);
+
   return {
     tournamentData,
     getDivisionData,
@@ -225,6 +299,7 @@ export const useTournamentData = ({
     divisionName: getDivisionName(),
     loading,
     fetchError,
-    refetch: fetchTournamentData,
+    refetch: subscribeToTournamentData, // Changed from fetchTournamentData to subscribeToTournamentData
+    refetchDirect: fetchTournamentData, // Backup direct fetch method
   };
 };

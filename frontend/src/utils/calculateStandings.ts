@@ -174,10 +174,6 @@ function calculatePlayerStatsFromGames(
   let ties = 0;
   let gamesPlayed = 0;
 
-  console.log(
-    `🔢 Calculating stats for player ${player.name}, ${playerGames.length} games`,
-  );
-
   for (const game of playerGames) {
     if (game.is_bye) {
       // Handle bye - need to figure out which score belongs to this player
@@ -291,8 +287,6 @@ export const calculateStandingsFromGames = (
     const playerGames = games.filter(
       (game) => game.player1_id === player.id || game.player2_id === player.id,
     );
-
-    console.log(`📊 Player ${player.name}: ${playerGames.length} games found`);
 
     // Calculate stats for this player
     const stats = calculatePlayerStatsFromGames(player, playerGames);

@@ -34,10 +34,17 @@ export interface TournamentDataErrorMessage {
   error: string;
 }
 
+export interface SubscribeMessage {
+  userId: number;
+  tournamentId: number;
+  divisionId?: number;
+}
+
 // Union type for all possible broadcast messages
 export type BroadcastMessage =
   | { type: 'Ping'; data: Ping }
   | { type: 'AdminPanelUpdate'; data: AdminPanelUpdateMessage }
   | { type: 'GamesAdded'; data: GamesAddedMessage }
   | { type: 'TOURNAMENT_DATA'; data: TournamentDataMessage }
-  | { type: 'TOURNAMENT_DATA_ERROR'; data: TournamentDataErrorMessage };
+  | { type: 'TOURNAMENT_DATA_ERROR'; data: TournamentDataErrorMessage }
+  | { type: 'SUBSCRIBE'; data: SubscribeMessage };
