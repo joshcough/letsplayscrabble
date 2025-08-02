@@ -1,5 +1,6 @@
-import { CurrentMatch } from "./currentMatch";
-import { Tournament, TournamentUpdate } from "./database";
+// shared/types/websocket.ts - WebSocket messages from server to worker
+
+import { TournamentUpdate } from "./database";
 
 export interface WebSocketMessage {
   timestamp: number;
@@ -15,36 +16,15 @@ export interface AdminPanelUpdateMessage extends WebSocketMessage {
 }
 
 export interface GamesAddedMessage extends WebSocketMessage {
-  update: DB.TournamentUpdate;
+  update: TournamentUpdate;
 }
 
 export interface Ping extends WebSocketMessage {
   messageId: number;
 }
 
-export interface TournamentDataMessage {
-  userId: number;
-  tournamentId: number;
-  data: Tournament;
-}
-
-export interface TournamentDataErrorMessage {
-  userId: number;
-  tournamentId: number;
-  error: string;
-}
-
-export interface SubscribeMessage {
-  userId: number;
-  tournamentId: number;
-  divisionId?: number;
-}
-
-// Union type for all possible broadcast messages
-export type BroadcastMessage =
+// Union type for all possible WebSocket messages from server
+export type WebSocketMessageType =
   | { type: 'Ping'; data: Ping }
   | { type: 'AdminPanelUpdate'; data: AdminPanelUpdateMessage }
-  | { type: 'GamesAdded'; data: GamesAddedMessage }
-  | { type: 'TOURNAMENT_DATA'; data: TournamentDataMessage }
-  | { type: 'TOURNAMENT_DATA_ERROR'; data: TournamentDataErrorMessage }
-  | { type: 'SUBSCRIBE'; data: SubscribeMessage };
+  | { type: 'GamesAdded'; data: GamesAddedMessage };

@@ -3,12 +3,18 @@ import {
   AdminPanelUpdateMessage,
   GamesAddedMessage,
   Ping,
-  SubscribeMessage,
 } from "@shared/types/websocket";
+import {
+  SubscribeMessage,
+  TournamentDataResponse,
+  TournamentDataRefresh,
+  TournamentDataError,
+  BroadcastMessage,
+} from "@shared/types/broadcast";
 import io, { Socket } from "socket.io-client";
 
 import { API_BASE } from "../config/api";
-import { fetchTournament, fetchTournamentDivision } from "../utils/api";
+import { fetchTournament } from "../utils/api";
 
 class WorkerSocketManager {
   private static instance: WorkerSocketManager;
@@ -20,7 +26,7 @@ class WorkerSocketManager {
 
   private broadcastChannel: BroadcastChannel;
 
-  // Cache for tournament data - keyed by "userId:tournamentId:divisionId"
+  // Cache for tournament data - keyed by "userId:tournamentId" (always full tournament)
   private tournamentCache = new Map<string, any>();
 
   // Message deduplication - track highest timestamp seen
@@ -97,16 +103,16 @@ class WorkerSocketManager {
     };
   }
 
-  private getCacheKey(userId: number, tournamentId: number, divisionId?: number): string {
-    return `${userId}:${tournamentId}:${divisionId || 'full'}`;
+  private getCacheKey(userId: number, tournamentId: number): string {
+    return `${userId}:${tournamentId}`;
   }
 
   private async handleSubscribeMessage(data: SubscribeMessage) {
     const { userId, tournamentId, divisionId } = data;
-    const cacheKey = this.getCacheKey(userId, tournamentId, divisionId);
+    const cacheKey = this.getCacheKey(userId, tournamentId);
 
     console.log(
-      `🔔 Worker handling SUBSCRIBE request: user ${userId}, tournament ${tournamentId}${divisionId ? `, division ${divisionId}` : ' (full tournament)'}`
+      `🔔 Worker handling SUBSCRIBE request: user ${userId}, tournament ${tournamentId}${divisionId ? `, division ${divisionId} (will fetch full tournament)` : ' (full tournament)'}`
     );
 
     // Check cache first
@@ -114,49 +120,44 @@ class WorkerSocketManager {
       console.log(`💾 Worker found cached data for ${cacheKey} - broadcasting immediately`);
 
       const cachedData = this.tournamentCache.get(cacheKey);
-      const message = {
-        type: "TOURNAMENT_DATA",
-        tournamentId: tournamentId,
+      const message: TournamentDataResponse = {
         userId: userId,
+        tournamentId: tournamentId,
         data: cachedData,
-        timestamp: Date.now(),
       };
 
       console.log(
-        `📢 Worker broadcasting cached TOURNAMENT_DATA for user ${userId}, tournament ${tournamentId}`,
+        `📢 Worker broadcasting cached TOURNAMENT_DATA_RESPONSE for user ${userId}, tournament ${tournamentId}`,
       );
-      this.broadcastChannel.postMessage(message);
+      this.broadcastMessage({
+        type: "TOURNAMENT_DATA_RESPONSE",
+        data: message,
+      });
       return;
     }
 
-    // Not in cache - fetch and cache
+    // Not in cache - fetch full tournament and cache
     try {
-      let tournamentData;
-
-      if (divisionId) {
-        console.log(`🔄 Worker fetching division ${divisionId} data...`);
-        tournamentData = await fetchTournamentDivision(userId, tournamentId, divisionId);
-      } else {
-        console.log(`🔄 Worker fetching full tournament data...`);
-        tournamentData = await fetchTournament(userId, tournamentId);
-      }
+      console.log(`🔄 Worker fetching full tournament data for tournament ${tournamentId}...`);
+      const tournamentData = await fetchTournament(userId, tournamentId);
 
       // Cache the data
       this.tournamentCache.set(cacheKey, tournamentData);
-      console.log(`💾 Worker cached tournament data for ${cacheKey}`);
+      console.log(`💾 Worker cached full tournament data for ${cacheKey}`);
 
-      const message = {
-        type: "TOURNAMENT_DATA",
-        tournamentId: tournamentId,
+      const message: TournamentDataResponse = {
         userId: userId,
+        tournamentId: tournamentId,
         data: tournamentData,
-        timestamp: Date.now(),
       };
 
       console.log(
-        `📢 Worker broadcasting fresh TOURNAMENT_DATA for user ${userId}, tournament ${tournamentId}`,
+        `📢 Worker broadcasting fresh TOURNAMENT_DATA_RESPONSE for user ${userId}, tournament ${tournamentId}`,
       );
-      this.broadcastChannel.postMessage(message);
+      this.broadcastMessage({
+        type: "TOURNAMENT_DATA_RESPONSE",
+        data: message,
+      });
 
     } catch (error) {
       console.error(
@@ -165,17 +166,18 @@ class WorkerSocketManager {
       );
 
       // Broadcast error so display sources know something went wrong
-      const errorMessage = {
-        type: "TOURNAMENT_DATA_ERROR",
-        tournamentId: tournamentId,
+      const errorMessage: TournamentDataError = {
         userId: userId,
+        tournamentId: tournamentId,
         error:
           error instanceof Error
             ? error.message
             : "Failed to fetch tournament data",
-        timestamp: Date.now(),
       };
-      this.broadcastChannel.postMessage(errorMessage);
+      this.broadcastMessage({
+        type: "TOURNAMENT_DATA_ERROR",
+        data: errorMessage,
+      });
     }
   }
 
@@ -241,7 +243,7 @@ class WorkerSocketManager {
       this.withDeduplication("Ping", (data: Ping) => {
         console.log(`🏓 Worker received ping`, data);
         this.lastDataUpdate = Date.now();
-        this.broadcastToDisplayOverlays("Ping", data);
+        // Ping is just for keep-alive - no need to broadcast to overlays
       });
 
       // Set up tournament event handlers
@@ -261,44 +263,37 @@ class WorkerSocketManager {
       "AdminPanelUpdate",
       (data: AdminPanelUpdateMessage) => {
         console.log("📡 Worker received AdminPanelUpdate:", data);
-        this.broadcastToDisplayOverlays("AdminPanelUpdate", data);
-        this.fetchAndBroadcastTournamentData(data.tournamentId, data.userId);
+        // Process internally - fetch fresh tournament data and broadcast refresh
+        this.fetchAndBroadcastTournamentRefresh(data.tournamentId, data.userId);
       },
     );
 
     this.withDeduplication("GamesAdded", (data: GamesAddedMessage) => {
       console.log("📡 Worker received GamesAdded:", data);
-      this.broadcastToDisplayOverlays("GamesAdded", data);
-      this.fetchAndBroadcastTournamentData(
+      // TODO: Implement incremental updates using data.update.changes
+      // For now, treat as refresh until incremental updates are implemented
+      this.fetchAndBroadcastTournamentRefresh(
         data.update.tournament.id,
         data.update.tournament.user_id,
       );
     });
   }
 
-  private broadcastToDisplayOverlays(eventType: string, data: any) {
-    const message = {
-      type: eventType,
-      data: data,
-      timestamp: Date.now(),
-    };
-
-    console.log(
-      `📢 Worker broadcasting ${eventType} to display sources:`,
-      message,
-    );
+  // Type-safe broadcast method - only accepts proper BroadcastMessage types
+  private broadcastMessage(message: BroadcastMessage) {
+    console.log(`📢 Worker broadcasting ${message.type}:`, message.data);
     this.broadcastChannel.postMessage(message);
   }
 
-  private async fetchAndBroadcastTournamentData(
+  private async fetchAndBroadcastTournamentRefresh(
     tournamentId: number,
     userId: number,
   ) {
-    const cacheKey = this.getCacheKey(userId, tournamentId); // Full tournament
+    const cacheKey = this.getCacheKey(userId, tournamentId);
 
     try {
       console.log(
-        `🔄 Worker fetching tournament data for user ${userId}, tournament ID: ${tournamentId}`,
+        `🔄 Worker fetching full tournament data for refresh: user ${userId}, tournament ID: ${tournamentId}`,
       );
       const tournamentData = await fetchTournament(userId, tournamentId);
 
@@ -306,36 +301,38 @@ class WorkerSocketManager {
       this.tournamentCache.set(cacheKey, tournamentData);
       console.log(`💾 Worker updated cache for ${cacheKey} after WebSocket event`);
 
-      const message = {
-        type: "TOURNAMENT_DATA",
-        tournamentId: tournamentId,
+      const message: TournamentDataRefresh = {
         userId: userId,
+        tournamentId: tournamentId,
         data: tournamentData,
-        timestamp: Date.now(),
+        reason: 'admin_panel_update',
       };
 
       console.log(
-        `📢 Worker broadcasting TOURNAMENT_DATA for user ${userId}, tournament ${tournamentId}:`,
-        message,
+        `📢 Worker broadcasting TOURNAMENT_DATA_REFRESH for user ${userId}, tournament ${tournamentId}`,
       );
-      this.broadcastChannel.postMessage(message);
+      this.broadcastMessage({
+        type: "TOURNAMENT_DATA_REFRESH",
+        data: message,
+      });
     } catch (error) {
       console.error(
-        `🔴 Worker failed to fetch tournament data for user ${userId}, tournament ${tournamentId}:`,
+        `🔴 Worker failed to fetch tournament data for refresh: user ${userId}, tournament ${tournamentId}:`,
         error,
       );
       // Broadcast error so display sources know something went wrong
-      const errorMessage = {
-        type: "TOURNAMENT_DATA_ERROR",
-        tournamentId: tournamentId,
+      const errorMessage: TournamentDataError = {
         userId: userId,
+        tournamentId: tournamentId,
         error:
           error instanceof Error
             ? error.message
             : "Failed to fetch tournament data",
-        timestamp: Date.now(),
       };
-      this.broadcastChannel.postMessage(errorMessage);
+      this.broadcastMessage({
+        type: "TOURNAMENT_DATA_ERROR",
+        data: errorMessage,
+      });
     }
   }
 
