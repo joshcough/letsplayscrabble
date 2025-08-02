@@ -1,9 +1,10 @@
 import React from "react";
+
+import { TournamentTableOverlay } from "../../components/shared/TournamentTableOverlay";
 import {
   UsePlayerStatsCalculation,
   RankedPlayerStats,
 } from "../../hooks/usePlayerStatsCalculation";
-import { TournamentTableOverlay } from "../../components/shared/TournamentTableOverlay";
 import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
 const ScoringLeadersOverlayPage: React.FC = () => {

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import { Socket } from "socket.io-client";
+
 import { CurrentMatch } from "@shared/types/currentMatch";
+import { Socket } from "socket.io-client";
 
 /**
  * Hook to listen for AdminPanelUpdate messages

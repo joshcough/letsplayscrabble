@@ -1,4 +1,5 @@
 import React from "react";
+
 import { GameResult } from "@shared/types/tournament";
 
 interface GameHistoryDisplayProps {

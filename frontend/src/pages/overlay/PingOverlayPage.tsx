@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
+
+import { Ping } from "@shared/types/websocket";
+
 import {
   BaseOverlay,
   BaseOverlayDataProps,
 } from "../../components/shared/BaseOverlay";
 import BroadcastManager from "../../hooks/BroadcastManager";
-import { Ping } from "@shared/types/websocket";
 
 const PingOverlayPage: React.FC = () => {
   const [pingData, setPingData] = useState<Ping | null>(null);

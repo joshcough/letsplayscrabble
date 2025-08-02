@@ -1,5 +1,5 @@
-import * as Stats from "@shared/types/stats";
 import * as DB from "@shared/types/database";
+import * as Stats from "@shared/types/stats";
 
 export interface TournamentStats {
   gamesPlayed: number;

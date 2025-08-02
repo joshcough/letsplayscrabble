@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchApiResponseWithAuth, fetchWithAuth } from "../../config/api";
-import { fetchTournament } from "../../utils/api";
+
 import { CreateCurrentMatch, CurrentMatch } from "@shared/types/currentMatch";
 import {
   TournamentRow,
@@ -9,8 +8,11 @@ import {
   GameRow,
   Tournament,
 } from "@shared/types/database";
-import { ProtectedPage } from "../ProtectedPage";
+
+import { fetchApiResponseWithAuth, fetchWithAuth } from "../../config/api";
 import { useAuth } from "../../context/AuthContext";
+import { fetchTournament } from "../../utils/api";
+import { ProtectedPage } from "../ProtectedPage";
 
 // UI types for transformed dropdown data
 interface PairingOption {

@@ -1,5 +1,5 @@
-import { Pool, PoolConfig } from "pg";
 import knex from "knex";
+import { Pool, PoolConfig } from "pg";
 
 interface DatabaseConfig extends PoolConfig {
   ssl?: {
@@ -50,7 +50,7 @@ const knexConfig = {
         connectionString: process.env.DATABASE_URL,
         ssl: { rejectUnauthorized: false },
       },
-  debug: isDevelopment,
+  debug: false, // isDevelopment,
 };
 
 const knexDb = knex(knexConfig);

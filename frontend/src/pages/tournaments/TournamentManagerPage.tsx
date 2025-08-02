@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+
 import TournamentList from "../../components/tournaments/TournamentList";
 
 const TournamentManagerPage: React.FC = () => {

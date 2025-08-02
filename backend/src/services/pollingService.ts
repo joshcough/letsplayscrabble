@@ -1,16 +1,18 @@
-import cron, { ScheduledTask } from "node-cron";
-import { TournamentRepository } from "../repositories/tournamentRepository";
-import { loadTournamentFile } from "./loadTournamentFile";
-import { Server as SocketIOServer } from "socket.io";
+import * as DB from "@shared/types/database";
 import { GamesAddedMessage } from "@shared/types/websocket";
+import cron, { ScheduledTask } from "node-cron";
+import { Server as SocketIOServer } from "socket.io";
+
+import { TournamentRepository } from "../repositories/tournamentRepository";
 import { convertFileToDatabase } from "./fileToDatabaseConversions";
+import { loadTournamentFile } from "./loadTournamentFile";
 
 export class TournamentPollingService {
   private isRunning: boolean;
   private job: ScheduledTask | null;
 
   constructor(
-    private readonly tournamentRepo: TournamentRepository,
+    private readonly repo: TournamentRepository,
     private readonly io: SocketIOServer,
   ) {
     this.isRunning = false;
@@ -45,7 +47,7 @@ export class TournamentPollingService {
     console.log("Tournament polling service is polling...");
 
     await this.clearExpiredPolls();
-    const activeTournaments = await this.tournamentRepo.findActivePollable();
+    const activeTournaments = await this.repo.findActivePollable();
 
     for (const tournament of activeTournaments) {
       try {
@@ -53,25 +55,32 @@ export class TournamentPollingService {
 
         // Use a deep comparison of the data
         if (JSON.stringify(newData) !== JSON.stringify(tournament.data)) {
-          // Convert file data to database format
-          const createTournamentData = convertFileToDatabase(newData, {
-            name: tournament.name,
-            city: tournament.city,
-            year: tournament.year,
-            lexicon: tournament.lexicon,
-            longFormName: tournament.long_form_name,
-            dataUrl: tournament.data_url,
-            userId: tournament.user_id,
-          });
+          console.log("-------------------")
+          console.log(`Found new data for ${tournament.id}:${tournament.name}`);
 
-          await this.tournamentRepo.updateData(
-            tournament.id,
-            createTournamentData,
+          // Convert file data to database format
+          const createTournamentData = convertFileToDatabase(
+            newData,
+            {
+              name: tournament.name,
+              city: tournament.city,
+              year: tournament.year,
+              lexicon: tournament.lexicon,
+              longFormName: tournament.long_form_name,
+              dataUrl: tournament.data_url,
+            },
+            tournament.user_id,
           );
-          console.log(`Updated tournament ${tournament.id} with new data`);
+
+          const update: DB.TournamentUpdate =
+            await this.repo.updateData(tournament.id, createTournamentData);
+
+          console.log(`Updated tournament ${tournament.id} with new data`, JSON.stringify(update.changes, null, 2));
+
+          console.log("-------------------")
+
           const gamesAddedMessage: GamesAddedMessage = {
-            userId: tournament.user_id,
-            tournamentId: tournament.id,
+            update,
             timestamp: Date.now(),
           };
           this.io.emit("GamesAdded", gamesAddedMessage);
@@ -83,6 +92,6 @@ export class TournamentPollingService {
   }
 
   private async clearExpiredPolls(): Promise<void> {
-    await this.tournamentRepo.endInactivePollable();
+    await this.repo.endInactivePollable();
   }
 }

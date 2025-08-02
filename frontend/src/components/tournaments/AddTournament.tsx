@@ -1,8 +1,10 @@
 // src/components/tournaments/AddTournament.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchWithAuth } from "../../config/api";
+
 import { CreateTournamentParams } from "@shared/types/tournament";
+
+import { fetchWithAuth } from "../../config/api";
 import { ProtectedPage } from "../ProtectedPage";
 
 const AddTournament: React.FC = () => {

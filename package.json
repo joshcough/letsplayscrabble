@@ -12,6 +12,7 @@
     "heroku-postbuild": "cd frontend && npm install && npm run build && cd ../backend && cp -r ../shared . && npm install && npm run build && npm run migrate:latest"
   },
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "prettier": "^3.3.3"
   }
 }

@@ -1,11 +1,12 @@
 // WorkerSocketManager.ts - Enhanced SocketManager for the worker thread
-import io, { Socket } from "socket.io-client";
-import { API_BASE } from "../config/api";
 import {
   AdminPanelUpdateMessage,
   GamesAddedMessage,
   Ping,
 } from "@shared/types/websocket";
+import io, { Socket } from "socket.io-client";
+
+import { API_BASE } from "../config/api";
 import { fetchTournament } from "../utils/api";
 
 class WorkerSocketManager {
@@ -165,7 +166,7 @@ class WorkerSocketManager {
     this.withDeduplication("GamesAdded", (data: GamesAddedMessage) => {
       console.log("📡 Worker received GamesAdded:", data);
       this.broadcastToDisplayOverlays("GamesAdded", data);
-      this.fetchAndBroadcastTournamentData(data.tournamentId, data.userId);
+      this.fetchAndBroadcastTournamentData(data.update.tournament.id, data.update.tournament.user_id);
     });
   }
 

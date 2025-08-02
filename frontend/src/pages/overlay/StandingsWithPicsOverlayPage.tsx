@@ -1,6 +1,7 @@
 import React from "react";
-import { UsePlayerStatsCalculation } from "../../hooks/usePlayerStatsCalculation";
+
 import PictureDisplay from "../../components/shared/PictureDisplay";
+import { UsePlayerStatsCalculation } from "../../hooks/usePlayerStatsCalculation";
 import { formatNumberWithSign } from "../../utils/tournamentHelpers";
 
 const StandingsWithPicsOverlayPage: React.FC = () => {

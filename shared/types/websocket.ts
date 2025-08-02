@@ -1,5 +1,5 @@
 import { CurrentMatch } from "./currentMatch";
-import { Tournament } from "./database";
+import { Tournament, TournamentUpdate } from "./database";
 
 export interface WebSocketMessage {
   timestamp: number;
@@ -15,8 +15,7 @@ export interface AdminPanelUpdateMessage extends WebSocketMessage {
 }
 
 export interface GamesAddedMessage extends WebSocketMessage {
-  userId: number;
-  tournamentId: number;
+  update: DB.TournamentUpdate;
 }
 
 export interface Ping extends WebSocketMessage {

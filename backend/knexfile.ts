@@ -1,5 +1,5 @@
-import type { Knex } from "knex";
 import * as dotenv from "dotenv";
+import type { Knex } from "knex";
 import * as path from "path";
 
 // Load environment-specific config

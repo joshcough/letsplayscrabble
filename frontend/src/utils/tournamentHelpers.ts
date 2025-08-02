@@ -1,5 +1,5 @@
-import { PlayerStats } from "@shared/types/stats";
 import * as DB from "@shared/types/database";
+import { PlayerStats } from "@shared/types/stats";
 
 /**
  * Calculate ranks for players based on average score

@@ -1,6 +1,8 @@
 import express, { Router, Response, RequestHandler } from "express";
-import { TournamentRepository } from "../../repositories/tournamentRepository";
+
 import * as DB from "@shared/types/database";
+
+import { TournamentRepository } from "../../repositories/tournamentRepository";
 import * as Api from "../../utils/apiHelpers";
 
 interface UserTournamentParams {
@@ -16,111 +18,80 @@ interface ParsedParams {
 }
 
 export function unprotectedTournamentRoutes(
-  tournamentRepository: TournamentRepository,
+  repo: TournamentRepository,
 ): Router {
   const router = express.Router();
 
   // Shared validation and error handling wrapper
-  const withValidation = <T>(
+  const withInputValidation = <T>(
     handler: (params: ParsedParams, req: any, res: Response) => Promise<T>,
   ): RequestHandler => {
     return async (req, res) => {
-      try {
-        const userId = parseInt(req.params.userId);
-        const tournamentId = parseInt(req.params.tournamentId);
-        const divisionId = req.params.divisionId
-          ? parseInt(req.params.divisionId)
-          : undefined;
+      const userId = parseInt(req.params.userId);
+      const tournamentId = parseInt(req.params.tournamentId);
+      const divisionId = req.params.divisionId
+        ? parseInt(req.params.divisionId)
+        : undefined;
 
-        if (
-          isNaN(userId) ||
-          isNaN(tournamentId) ||
-          (req.params.divisionId && isNaN(divisionId!))
-        ) {
-          res.status(400).json(Api.failure("Invalid parameters"));
-          return;
-        }
-
-        const params = { userId, tournamentId, divisionId };
-        await handler(params, req, res);
-      } catch (error) {
-        console.error("💥 Route error:", error);
-        res
-          .status(500)
-          .json(
-            Api.failure(
-              error instanceof Error ? error.message : "Unknown error",
-            ),
-          );
+      if (
+        isNaN(userId) ||
+        isNaN(tournamentId) ||
+        (req.params.divisionId && isNaN(divisionId!))
+      ) {
+        res.status(400).json(Api.failure("Invalid parameters"));
+        return;
       }
+
+      const params = { userId, tournamentId, divisionId };
+      await handler(params, req, res);
     };
   };
 
   // Get full tournament data
-  const getTournamentForUser = withValidation(
+  const getTournamentForUser = withInputValidation(
     async ({ userId, tournamentId, divisionId }, req, res) => {
-      const tournament =
-        await tournamentRepository.getHierarchicalTournamentForUser(
-          tournamentId,
-          userId,
-          divisionId,
-        );
-
-      if (!tournament) {
-        res
-          .status(404)
-          .json(
-            Api.failure(
-              divisionId
-                ? "Tournament or division not found"
-                : "Tournament not found",
-            ),
-          );
-        return;
-      }
-
-      res.json(Api.success(tournament));
+      await Api.withDataOr404(
+        repo.getTournamentAsTree(tournamentId, userId, divisionId),
+        res,
+        "Tournament or division not found",
+        async (tournament) => {
+          res.json(Api.success(tournament));
+        },
+      );
     },
   );
 
   // Get tournament metadata only
-  const getTournamentRowForUser = withValidation(
+  const getTournamentRowForUser = withInputValidation(
     async ({ userId, tournamentId }, req, res) => {
-      const tournamentRow = await tournamentRepository.findByIdForUser(
-        tournamentId,
-        userId,
+      await Api.withDataOr404(
+        repo.findByIdForUser(tournamentId, userId),
+        res,
+        "Tournament not found",
+        async (tournamentRow) => {
+          res.json(Api.success(tournamentRow));
+        },
       );
-
-      if (!tournamentRow) {
-        res.status(404).json(Api.failure("Tournament not found"));
-        return;
-      }
-
-      res.json(Api.success(tournamentRow));
     },
   );
 
   // Get divisions for tournament
-  const getDivisionsForTournament = withValidation(
+  const getDivisionsForTournament = withInputValidation(
     async ({ userId, tournamentId }, req, res) => {
-      const divisions = await tournamentRepository.getDivisions(
-        tournamentId,
-        userId,
-      );
+      const divisions = await repo.getDivisions(tournamentId, userId);
       res.json(Api.success(divisions));
     },
   );
 
   // Get players for division
-  const getPlayersForDivision = withValidation(
+  const getPlayersForDivision = withInputValidation(
     async ({ userId, tournamentId }, req, res) => {
       const divisionName = req.params.divisionName;
       if (!divisionName) {
         res.status(400).json(Api.failure("Division name is required"));
         return;
       }
-
-      const players = await tournamentRepository.getPlayersForDivision(
+      const players = await repo.getPlayersForDivision(
         tournamentId,
         userId,
         divisionName,

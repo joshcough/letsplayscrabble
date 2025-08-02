@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+
 import * as DB from "@shared/types/database";
-import BroadcastManager from "./BroadcastManager";
-import { fetchTournament, fetchTournamentDivision } from "../utils/api";
 import {
   GamesAddedMessage,
   TournamentDataMessage,
 } from "@shared/types/websocket";
+
+import { fetchTournament, fetchTournamentDivision } from "../utils/api";
+import BroadcastManager from "./BroadcastManager";
 
 interface UseTournamentDataProps {
   tournamentId?: number;
@@ -125,8 +127,8 @@ export const useTournamentData = ({
           data,
         );
         if (
-          data.userId === parseInt(userId) &&
-          data.tournamentId === effectiveTournamentId
+          data.update.tournament.user_id === parseInt(userId) &&
+          data.update.tournament.id === effectiveTournamentId
         ) {
           console.log("✅ Matching tournament - refetching data!");
           fetchTournamentData();

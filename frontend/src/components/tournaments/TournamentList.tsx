@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { fetchAuthenticatedApiEndpoint } from "../../utils/api";
+
 import { TournamentRow } from "@shared/types/database";
+
+import { fetchAuthenticatedApiEndpoint } from "../../utils/api";
 import { ProtectedPage } from "../ProtectedPage";
 
 interface TournamentListProps {

@@ -77,6 +77,26 @@ export interface CreateTournamentRow {
   user_id: number;
 }
 
+// For creating tournaments - takes file data
+export interface CreateTournamentParams {
+  name: string;
+  city: string;
+  year: number;
+  lexicon: string;
+  longFormName: string;
+  dataUrl: string;
+  rawData: File.TournamentData;
+}
+
+export interface TournamentMetadata {
+  name: string;
+  city: string;
+  year: number;
+  lexicon: string;
+  longFormName: string;
+  dataUrl: string;
+}
+
 export interface CreateDivisionRow {
   name: string;
   position: number;
@@ -102,17 +122,6 @@ export interface CreateGameRow {
   pairing_id: number | null;
 }
 
-// For creating tournaments - takes file data
-export interface CreateTournamentParams {
-  name: string;
-  city: string;
-  year: number;
-  lexicon: string;
-  longFormName: string;
-  dataUrl: string;
-  rawData: File.TournamentData;
-}
-
 // For creating/inserting - before database IDs are assigned
 export interface CreateTournament {
   tournament: CreateTournamentRow;
@@ -130,11 +139,13 @@ export interface Tournament {
   }[];
 }
 
-export interface UpdateTournamentMetadata {
-  name: string;
-  city: string;
-  year: number;
-  lexicon: string;
-  longFormName: string;
-  dataUrl: string;
+// Interface for tracking game changes
+export interface GameChanges {
+  added: CreateGameRow[];
+  updated: CreateGameRow[];
+}
+
+export interface TournamentUpdate {
+  tournament: TournamentRow;
+  changes: GameChanges;
 }

@@ -1,21 +1,25 @@
 import express, { Express, Request, Response } from "express";
-import http from "http";
-import { Server as SocketIOServer } from "socket.io";
+
 import cors from "cors";
-import path from "path";
 import dotenv from "dotenv";
+import http from "http";
+import path from "path";
+import { Server as SocketIOServer } from "socket.io";
+
 import { pool } from "./config/database";
-import { TournamentRepository } from "./repositories/tournamentRepository";
+import { requireAuth } from "./middleware/auth";
 import { CurrentMatchRepository } from "./repositories/currentMatchRepository";
+import { TournamentRepository } from "./repositories/tournamentRepository";
+import createAdminRoutes from "./routes/admin";
+import authRoutes from "./routes/auth";
+import createOverlayRoutes from "./routes/overlay";
 import { protectedPollingRoutes } from "./routes/tournament/polling";
 import { protectedTournamentRoutes } from "./routes/tournament/protected";
 import { unprotectedTournamentRoutes } from "./routes/tournament/unprotected";
-import createAdminRoutes from "./routes/admin";
-import createOverlayRoutes from "./routes/overlay";
-import authRoutes from "./routes/auth";
-import { requireAuth } from "./middleware/auth";
-import { TournamentPollingService } from "./services/pollingService";
 import { PingService } from "./services/pingService";
+import { TournamentPollingService } from "./services/pollingService";
+
+const morgan = require("morgan");
 
 // Helper function to determine project root path
 function getProjectRoot(): string {
@@ -79,6 +83,7 @@ const currentMatchRepository = new CurrentMatchRepository(pool);
 const pollingService = new TournamentPollingService(tournamentRepository, io);
 const pingService = new PingService(io);
 
+app.use(morgan("combined"));
 app.use(
   cors({
     origin: "http://localhost:3000",
