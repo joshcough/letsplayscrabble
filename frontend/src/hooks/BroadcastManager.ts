@@ -2,10 +2,14 @@
 import {
   AdminPanelUpdateMessage,
   GamesAddedMessage,
-  TournamentDataMessage,
-  TournamentDataErrorMessage,
   Ping,
 } from "@shared/types/websocket";
+import {
+  TournamentDataResponse,
+  TournamentDataRefresh,
+  TournamentDataIncremental,
+  TournamentDataError,
+} from "@shared/types/broadcast";
 
 type EventHandler = (data: any) => void;
 
@@ -57,19 +61,19 @@ class BroadcastManager {
 
   private setupBroadcastListener() {
     this.broadcastChannel.onmessage = (event) => {
-      const { type, data, timestamp, tournamentId } = event.data;
+      const { type, data } = event.data;
 
       // Only log tournament data events, and only show tournamentId for relevant events
-      if (type === "TOURNAMENT_DATA" || type === "TOURNAMENT_DATA_ERROR") {
+      if (type.startsWith("TOURNAMENT_DATA")) {
         console.log(`📥 BroadcastManager received ${type}:`, {
-          tournamentId,
-          timestamp,
+          tournamentId: data.tournamentId,
+          userId: data.userId,
         });
       } else {
-        console.log(`📥 BroadcastManager received ${type}:`, { timestamp });
+        console.log(`📥 BroadcastManager received ${type}:`, { timestamp: data?.timestamp });
       }
 
-      // Check for duplicates based on message type
+      // Check for duplicates based on message type (only for timestamped WebSocket relays)
       let shouldSkip = false;
       if (type === "Ping" && data?.timestamp) {
         shouldSkip = this.shouldSkipDuplicateMessage(data, "Ping");
@@ -88,11 +92,17 @@ class BroadcastManager {
       if (handlers) {
         handlers.forEach((handler) => {
           switch (type) {
-            case "TOURNAMENT_DATA":
-              handler(event.data as TournamentDataMessage);
+            case "TOURNAMENT_DATA_RESPONSE":
+              handler(data as TournamentDataResponse);
+              break;
+            case "TOURNAMENT_DATA_REFRESH":
+              handler(data as TournamentDataRefresh);
+              break;
+            case "TOURNAMENT_DATA_INCREMENTAL":
+              handler(data as TournamentDataIncremental);
               break;
             case "TOURNAMENT_DATA_ERROR":
-              handler(event.data as TournamentDataErrorMessage);
+              handler(data as TournamentDataError);
               break;
             case "AdminPanelUpdate":
               handler(data as AdminPanelUpdateMessage);
@@ -111,7 +121,7 @@ class BroadcastManager {
     };
   }
 
-  // Register a handler for specific event types (AdminPanelUpdate, GamesAdded, etc.)
+  // Register a handler for specific event types
   on(eventType: string, handler: EventHandler) {
     if (!this.eventHandlers.has(eventType)) {
       this.eventHandlers.set(eventType, new Set());
@@ -145,12 +155,23 @@ class BroadcastManager {
     return () => this.off("GamesAdded", handler);
   }
 
-  onTournamentData(handler: (data: TournamentDataMessage) => void) {
-    this.on("TOURNAMENT_DATA", handler);
-    return () => this.off("TOURNAMENT_DATA", handler);
+  // New tournament data handlers
+  onTournamentDataResponse(handler: (data: TournamentDataResponse) => void) {
+    this.on("TOURNAMENT_DATA_RESPONSE", handler);
+    return () => this.off("TOURNAMENT_DATA_RESPONSE", handler);
   }
 
-  onTournamentDataError(handler: (data: TournamentDataErrorMessage) => void) {
+  onTournamentDataRefresh(handler: (data: TournamentDataRefresh) => void) {
+    this.on("TOURNAMENT_DATA_REFRESH", handler);
+    return () => this.off("TOURNAMENT_DATA_REFRESH", handler);
+  }
+
+  onTournamentDataIncremental(handler: (data: TournamentDataIncremental) => void) {
+    this.on("TOURNAMENT_DATA_INCREMENTAL", handler);
+    return () => this.off("TOURNAMENT_DATA_INCREMENTAL", handler);
+  }
+
+  onTournamentDataError(handler: (data: TournamentDataError) => void) {
     this.on("TOURNAMENT_DATA_ERROR", handler);
     return () => this.off("TOURNAMENT_DATA_ERROR", handler);
   }

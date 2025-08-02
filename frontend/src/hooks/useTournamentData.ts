@@ -2,11 +2,14 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
 import * as DB from "@shared/types/database";
+import { GamesAddedMessage } from "@shared/types/websocket";
 import {
-  GamesAddedMessage,
-  TournamentDataMessage,
   SubscribeMessage,
-} from "@shared/types/websocket";
+  TournamentDataResponse,
+  TournamentDataRefresh,
+  TournamentDataIncremental,
+  TournamentDataError,
+} from "@shared/types/broadcast";
 
 import { fetchTournament, fetchTournamentDivision } from "../utils/api";
 import BroadcastManager from "./BroadcastManager";
@@ -183,21 +186,73 @@ export const useTournamentData = ({
     };
   }, [userId, effectiveTournamentId]);
 
-  // Listen for TOURNAMENT_DATA broadcasts from worker
+  // Listen for AdminPanelUpdate broadcasts and re-subscribe when tournament/division changes
+  useEffect(() => {
+    if (!userId) return;
+
+    const cleanupAdminPanelUpdate = BroadcastManager.getInstance().onAdminPanelUpdate(
+      (data) => {
+        console.log(
+          "🎮 useTournamentData received AdminPanelUpdate broadcast:",
+          data,
+        );
+
+        // Only process if this update is for our user
+        if (data.userId === parseInt(userId)) {
+          console.log("✅ AdminPanelUpdate for our user - checking if we need to resubscribe");
+
+          // Check if the tournament or division has changed from what we currently have
+          const newTournamentId = data.tournamentId;
+          const newDivisionId = data.divisionId;
+
+          // If we're using URL params, compare against URL values
+          // If we're using props, compare against prop values
+          const currentTournamentId = effectiveTournamentId;
+          const currentDivisionId = propDivisionId;
+
+          if (newTournamentId !== currentTournamentId ||
+              (propDivisionId && newDivisionId !== currentDivisionId)) {
+            console.log(
+              `🔄 Tournament/division changed: ${currentTournamentId}/${currentDivisionId} → ${newTournamentId}/${newDivisionId} - resubscribing`
+            );
+
+            // Note: The currentMatch will be updated by useCurrentMatch hook,
+            // which will trigger our main subscription effect to resubscribe
+            // We don't need to manually subscribe here
+          } else {
+            console.log("⏭️ Same tournament/division - no resubscription needed");
+          }
+        } else {
+          console.log("⏭️ AdminPanelUpdate for different user - ignoring");
+        }
+      },
+    );
+
+    return () => {
+      cleanupAdminPanelUpdate();
+    };
+  }, [userId, effectiveTournamentId, propDivisionId]);
+
+  // Listen for TOURNAMENT_DATA_RESPONSE broadcasts from worker (SUBSCRIBE responses)
   useEffect(() => {
     if (!userId || !effectiveTournamentId) return;
 
-    const cleanupTournamentData =
-      BroadcastManager.getInstance().onTournamentData(
-        (data: TournamentDataMessage) => {
+    const cleanupTournamentDataResponse =
+      BroadcastManager.getInstance().onTournamentDataResponse(
+        (data: TournamentDataResponse) => {
           console.log(
-            "🎮 useTournamentData received TOURNAMENT_DATA broadcast:",
+            "🎮 useTournamentData received TOURNAMENT_DATA_RESPONSE broadcast:",
             data,
           );
+
+          // Filter by userId and tournamentId
           if (
             data.userId === parseInt(userId) &&
             data.tournamentId === effectiveTournamentId
           ) {
+            // We always get full tournament data now, so just accept it
+            console.log(`✅ TOURNAMENT_DATA_RESPONSE for tournament - accepting (contains ${data.data.divisions.length} divisions)`);
+
             console.log(
               "✅ Using worker's tournament data - no API call needed!",
             );
@@ -210,7 +265,7 @@ export const useTournamentData = ({
               finalDivisionId = propDivisionId;
             } else if (shouldUseUrlParams && divisionName) {
               const divisionData = tournament.divisions.find(
-                (d) =>
+                (d: any) =>
                   d.division.name.toUpperCase() === divisionName.toUpperCase(),
               );
               if (divisionData) {
@@ -223,13 +278,73 @@ export const useTournamentData = ({
             setFetchError(null);
             setLoading(false);
           } else {
-            console.log("⏭️ Different tournament - ignoring");
+            console.log(`⏭️ Different tournament/user - ignoring (received: ${data.userId}/${data.tournamentId}, expected: ${userId}/${effectiveTournamentId})`);
           }
         },
       );
 
     return () => {
-      cleanupTournamentData();
+      cleanupTournamentDataResponse();
+    };
+  }, [
+    userId,
+    effectiveTournamentId,
+    propDivisionId,
+    divisionName,
+    shouldUseUrlParams,
+  ]);
+
+  // Listen for TOURNAMENT_DATA_REFRESH broadcasts from worker (AdminPanelUpdate responses)
+  useEffect(() => {
+    if (!userId || !effectiveTournamentId) return;
+
+    const cleanupTournamentDataRefresh =
+      BroadcastManager.getInstance().onTournamentDataRefresh(
+        (data: TournamentDataRefresh) => {
+          console.log(
+            "🎮 useTournamentData received TOURNAMENT_DATA_REFRESH broadcast:",
+            data,
+          );
+
+          // Filter by userId and tournamentId
+          if (
+            data.userId === parseInt(userId) &&
+            data.tournamentId === effectiveTournamentId
+          ) {
+            console.log(`✅ TOURNAMENT_DATA_REFRESH for tournament - accepting (contains ${data.data.divisions.length} divisions)`);
+
+            console.log(
+              "✅ Using worker's refreshed tournament data!",
+            );
+
+            // Process the tournament data (same logic as fetchTournamentData)
+            const tournament = data.data;
+            let finalDivisionId: number | null = null;
+
+            if (propDivisionId) {
+              finalDivisionId = propDivisionId;
+            } else if (shouldUseUrlParams && divisionName) {
+              const divisionData = tournament.divisions.find(
+                (d: any) =>
+                  d.division.name.toUpperCase() === divisionName.toUpperCase(),
+              );
+              if (divisionData) {
+                finalDivisionId = divisionData.division.id;
+              }
+            }
+
+            setTournamentData(tournament);
+            setSelectedDivisionId(finalDivisionId);
+            setFetchError(null);
+            setLoading(false);
+          } else {
+            console.log(`⏭️ Different tournament/user - ignoring (received: ${data.userId}/${data.tournamentId}, expected: ${userId}/${effectiveTournamentId})`);
+          }
+        },
+      );
+
+    return () => {
+      cleanupTournamentDataRefresh();
     };
   }, [
     userId,
@@ -245,11 +360,13 @@ export const useTournamentData = ({
 
     const cleanupTournamentDataError =
       BroadcastManager.getInstance().onTournamentDataError(
-        (data) => {
+        (data: TournamentDataError) => {
           console.log(
             "🔴 useTournamentData received TOURNAMENT_DATA_ERROR broadcast:",
             data,
           );
+
+          // Filter by userId and tournamentId
           if (
             data.userId === parseInt(userId) &&
             data.tournamentId === effectiveTournamentId
@@ -257,6 +374,8 @@ export const useTournamentData = ({
             console.log("❌ Tournament data error for our tournament");
             setFetchError(data.error);
             setLoading(false);
+          } else {
+            console.log(`⏭️ Error for different tournament/user - ignoring (received: ${data.userId}/${data.tournamentId}, expected: ${userId}/${effectiveTournamentId})`);
           }
         },
       );
