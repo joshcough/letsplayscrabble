@@ -5,15 +5,8 @@ import * as DB from "@shared/types/database";
 // File Format → Database (complete conversion)
 export function convertFileToDatabase(
   fileData: File.TournamentData,
-  metadata: {
-    name: string;
-    city: string;
-    year: number;
-    lexicon: string;
-    longFormName: string;
-    dataUrl: string;
-    userId: number;
-  },
+  metadata: DB.TournamentMetadata,
+  userId: number,
 ): DB.CreateTournament {
   // Convert tournament metadata
   const tournament: DB.CreateTournamentRow = {
@@ -25,7 +18,7 @@ export function convertFileToDatabase(
     data_url: metadata.dataUrl,
     data: fileData,
     poll_until: null,
-    user_id: metadata.userId,
+    user_id: userId,
   };
 
   // Convert divisions

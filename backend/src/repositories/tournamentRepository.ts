@@ -12,7 +12,7 @@ export class TournamentRepository {
         .insert(createTournament.tournament)
         .returning("*");
 
-      // Store data in normalized tables
+      // Store data in normalized tables (first time = no incremental logic needed)
       await this.storeTournamentData(trx, tournament.id, createTournament);
 
       return tournament;
@@ -40,7 +40,7 @@ export class TournamentRepository {
   async updateData(
     id: number,
     createTournament: DB.CreateTournament,
-  ): Promise<DB.TournamentRow> {
+  ): Promise<DB.TournamentUpdate> {
     return knexDb.transaction(async (trx) => {
       // Update tournament record
       const [updated] = await trx("tournaments")
@@ -54,19 +54,23 @@ export class TournamentRepository {
         throw new Error(`Tournament ${id} not found`);
       }
 
-      // Update normalized tables
-      await this.storeTournamentData(trx, id, createTournament);
+      // Update normalized tables with incremental approach
+      const changes = await this.storeTournamentDataIncremental(
+        trx,
+        id,
+        createTournament,
+      );
 
-      return updated;
+      return { tournament: updated, changes };
     });
   }
 
   async updateTournamentWithNewData(
     id: number,
     userId: number,
-    metadata: DB.UpdateTournamentMetadata,
+    metadata: DB.TournamentMetadata,
     createTournament: DB.CreateTournament,
-  ): Promise<DB.TournamentRow> {
+  ): Promise<DB.TournamentUpdate> {
     return knexDb.transaction(async (trx) => {
       // Update tournament metadata AND data in single transaction
       const [updated] = await trx("tournaments")
@@ -87,17 +91,21 @@ export class TournamentRepository {
         throw new Error("Tournament not found or access denied");
       }
 
-      // Update normalized tables with new data
-      await this.storeTournamentData(trx, id, createTournament);
+      // Update normalized tables with incremental approach
+      const changes = await this.storeTournamentDataIncremental(
+        trx,
+        id,
+        createTournament,
+      );
 
-      return updated;
+      return { tournament: updated, changes };
     });
   }
 
   async updateTournamentMetadata(
     id: number,
     userId: number,
-    metadata: DB.UpdateTournamentMetadata,
+    metadata: DB.TournamentMetadata,
   ): Promise<DB.TournamentRow> {
     const [updated] = await knexDb("tournaments")
       .where("id", id)
@@ -120,12 +128,12 @@ export class TournamentRepository {
   }
 
   // NEW: The main method for getting hierarchical tournament data
-  async getHierarchicalTournamentForUser(
+  async getTournamentAsTree(
     tournamentId: number,
     userId: number,
     divisionId?: number,
   ): Promise<DB.Tournament | null> {
-    console.log("🔍 getHierarchicalTournamentForUser:", {
+    console.log("🔍 getTournamentAsTree:", {
       tournamentId,
       userId,
       divisionId,
@@ -272,6 +280,8 @@ export class TournamentRepository {
   }
 
   // PRIVATE: Internal methods for data storage
+
+  // Original method for tournament creation (keeps existing behavior)
   private async storeTournamentData(
     trx: Knex.Transaction,
     tournamentId: number,
@@ -338,6 +348,160 @@ export class TournamentRepository {
     if (gameInserts.length > 0) {
       await trx("games").insert(gameInserts);
     }
+  }
+
+  // New incremental method for tournament updates
+  private async storeTournamentDataIncremental(
+    trx: Knex.Transaction,
+    tournamentId: number,
+    data: DB.CreateTournament,
+  ): Promise<DB.GameChanges> {
+    // Check if divisions exist for this tournament
+    const existingDivisions = await trx("divisions")
+      .where("tournament_id", tournamentId)
+      .select("id");
+
+    let divisionIdMap: Map<number, number>; // position → db_id
+    let playerFileIdToDbIdMap: Map<number, number>; // file_id → db_id
+
+    if (existingDivisions.length === 0) {
+      // First time loading data - insert divisions and players
+      console.log("🆕 First data load - inserting divisions and players");
+
+      // Insert divisions
+      divisionIdMap = new Map<number, number>();
+      for (let i = 0; i < data.divisions.length; i++) {
+        const divisionData = data.divisions[i];
+        const [division] = await trx("divisions")
+          .insert({
+            tournament_id: tournamentId,
+            ...divisionData,
+          })
+          .returning("*");
+        divisionIdMap.set(i, division.id);
+      }
+
+      // Insert players
+      playerFileIdToDbIdMap = new Map<number, number>();
+      for (const playerData of data.players) {
+        const divisionId = divisionIdMap.get(playerData.division_position);
+        if (!divisionId) continue;
+
+        const [player] = await trx("players")
+          .insert({
+            tournament_id: tournamentId,
+            division_id: divisionId,
+            seed: playerData.seed,
+            name: playerData.name,
+            initial_rating: playerData.initial_rating,
+            photo: playerData.photo,
+            etc_data: JSON.stringify(playerData.etc_data),
+          })
+          .returning("*");
+
+        playerFileIdToDbIdMap.set(playerData.seed, player.id);
+      }
+    } else {
+      // Subsequent loads - get existing mappings
+      console.log(
+        "🔄 Incremental data load - using existing divisions and players",
+      );
+
+      // Get division mappings
+      const divisions = await trx("divisions")
+        .where("tournament_id", tournamentId)
+        .select("id", "position")
+        .orderBy("position");
+
+      divisionIdMap = new Map<number, number>();
+      divisions.forEach((div) => divisionIdMap.set(div.position, div.id));
+
+      // Get player mappings
+      const players = await trx("players")
+        .where("tournament_id", tournamentId)
+        .select("id", "seed");
+
+      playerFileIdToDbIdMap = new Map<number, number>();
+      players.forEach((player) =>
+        playerFileIdToDbIdMap.set(player.seed, player.id),
+      );
+    }
+
+    // Always upsert games with change detection
+    const changes: DB.GameChanges = { added: [], updated: [] };
+
+    for (const gameData of data.games) {
+      const divisionId = divisionIdMap.get(gameData.division_position);
+      const player1DbId = playerFileIdToDbIdMap.get(gameData.player1_file_id);
+      const player2DbId = playerFileIdToDbIdMap.get(gameData.player2_file_id);
+
+      if (!divisionId || !player1DbId || !player2DbId) {
+        console.warn("⚠️ Skipping game - missing division or player IDs", {
+          divisionId,
+          player1DbId,
+          player2DbId,
+          gameData,
+        });
+        continue;
+      }
+
+      try {
+        const result = await trx.raw(
+          `
+          INSERT INTO games (
+            division_id, round_number, player1_id, player2_id,
+            player1_score, player2_score, is_bye, pairing_id
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT (division_id, round_number, pairing_id)
+          DO UPDATE SET
+            player1_score = EXCLUDED.player1_score,
+            player2_score = EXCLUDED.player2_score,
+            is_bye = EXCLUDED.is_bye,
+            updated_at = NOW()
+          WHERE
+            games.player1_score IS DISTINCT FROM EXCLUDED.player1_score OR
+            games.player2_score IS DISTINCT FROM EXCLUDED.player2_score OR
+            games.is_bye IS DISTINCT FROM EXCLUDED.is_bye
+          RETURNING
+            id,
+            CASE
+              WHEN xmax = 0 THEN 'INSERTED'
+              ELSE 'UPDATED'
+            END as action
+        `,
+          [
+            divisionId,
+            gameData.round_number,
+            player1DbId,
+            player2DbId,
+            gameData.player1_score,
+            gameData.player2_score,
+            gameData.is_bye,
+            gameData.pairing_id,
+          ],
+        );
+
+        if (result.rows.length > 0) {
+          const { action } = result.rows[0];
+          if (action === "INSERTED") {
+            changes.added.push(gameData);
+          } else if (action === "UPDATED") {
+            changes.updated.push(gameData);
+          }
+        }
+      } catch (error) {
+        console.error("❌ Error upserting game:", error, gameData);
+        throw error;
+      }
+    }
+
+    console.log("📊 Game changes:", {
+      added: changes.added.length,
+      updated: changes.updated.length,
+    });
+
+    return changes;
   }
 
   private async clearTournamentData(

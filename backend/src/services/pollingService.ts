@@ -54,15 +54,18 @@ export class TournamentPollingService {
         // Use a deep comparison of the data
         if (JSON.stringify(newData) !== JSON.stringify(tournament.data)) {
           // Convert file data to database format
-          const createTournamentData = convertFileToDatabase(newData, {
-            name: tournament.name,
-            city: tournament.city,
-            year: tournament.year,
-            lexicon: tournament.lexicon,
-            longFormName: tournament.long_form_name,
-            dataUrl: tournament.data_url,
-            userId: tournament.user_id,
-          });
+          const createTournamentData = convertFileToDatabase(
+            newData,
+            {
+              name: tournament.name,
+              city: tournament.city,
+              year: tournament.year,
+              lexicon: tournament.lexicon,
+              longFormName: tournament.long_form_name,
+              dataUrl: tournament.data_url,
+            },
+            tournament.user_id,
+          );
 
           await this.tournamentRepo.updateData(
             tournament.id,

@@ -16,6 +16,7 @@ import authRoutes from "./routes/auth";
 import { requireAuth } from "./middleware/auth";
 import { TournamentPollingService } from "./services/pollingService";
 import { PingService } from "./services/pingService";
+const morgan = require('morgan');
 
 // Helper function to determine project root path
 function getProjectRoot(): string {
@@ -79,6 +80,7 @@ const currentMatchRepository = new CurrentMatchRepository(pool);
 const pollingService = new TournamentPollingService(tournamentRepository, io);
 const pingService = new PingService(io);
 
+app.use(morgan('combined'))
 app.use(
   cors({
     origin: "http://localhost:3000",
