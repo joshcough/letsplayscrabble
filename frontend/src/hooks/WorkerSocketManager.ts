@@ -20,6 +20,9 @@ class WorkerSocketManager {
 
   private broadcastChannel: BroadcastChannel;
 
+  // Cache for tournament data - keyed by "userId:tournamentId:divisionId"
+  private tournamentCache = new Map<string, any>();
+
   // Message deduplication - track highest timestamp seen
   private lastSeenTimestamp: number = 0;
 
@@ -94,13 +97,39 @@ class WorkerSocketManager {
     };
   }
 
+  private getCacheKey(userId: number, tournamentId: number, divisionId?: number): string {
+    return `${userId}:${tournamentId}:${divisionId || 'full'}`;
+  }
+
   private async handleSubscribeMessage(data: SubscribeMessage) {
     const { userId, tournamentId, divisionId } = data;
+    const cacheKey = this.getCacheKey(userId, tournamentId, divisionId);
 
     console.log(
       `🔔 Worker handling SUBSCRIBE request: user ${userId}, tournament ${tournamentId}${divisionId ? `, division ${divisionId}` : ' (full tournament)'}`
     );
 
+    // Check cache first
+    if (this.tournamentCache.has(cacheKey)) {
+      console.log(`💾 Worker found cached data for ${cacheKey} - broadcasting immediately`);
+
+      const cachedData = this.tournamentCache.get(cacheKey);
+      const message = {
+        type: "TOURNAMENT_DATA",
+        tournamentId: tournamentId,
+        userId: userId,
+        data: cachedData,
+        timestamp: Date.now(),
+      };
+
+      console.log(
+        `📢 Worker broadcasting cached TOURNAMENT_DATA for user ${userId}, tournament ${tournamentId}`,
+      );
+      this.broadcastChannel.postMessage(message);
+      return;
+    }
+
+    // Not in cache - fetch and cache
     try {
       let tournamentData;
 
@@ -112,6 +141,10 @@ class WorkerSocketManager {
         tournamentData = await fetchTournament(userId, tournamentId);
       }
 
+      // Cache the data
+      this.tournamentCache.set(cacheKey, tournamentData);
+      console.log(`💾 Worker cached tournament data for ${cacheKey}`);
+
       const message = {
         type: "TOURNAMENT_DATA",
         tournamentId: tournamentId,
@@ -121,8 +154,7 @@ class WorkerSocketManager {
       };
 
       console.log(
-        `📢 Worker broadcasting TOURNAMENT_DATA for SUBSCRIBE request: user ${userId}, tournament ${tournamentId}`,
-        message,
+        `📢 Worker broadcasting fresh TOURNAMENT_DATA for user ${userId}, tournament ${tournamentId}`,
       );
       this.broadcastChannel.postMessage(message);
 
@@ -262,11 +294,17 @@ class WorkerSocketManager {
     tournamentId: number,
     userId: number,
   ) {
+    const cacheKey = this.getCacheKey(userId, tournamentId); // Full tournament
+
     try {
       console.log(
         `🔄 Worker fetching tournament data for user ${userId}, tournament ID: ${tournamentId}`,
       );
       const tournamentData = await fetchTournament(userId, tournamentId);
+
+      // Update cache
+      this.tournamentCache.set(cacheKey, tournamentData);
+      console.log(`💾 Worker updated cache for ${cacheKey} after WebSocket event`);
 
       const message = {
         type: "TOURNAMENT_DATA",
@@ -348,6 +386,8 @@ class WorkerSocketManager {
     }
     this.broadcastChannel.close();
     this.lastSeenTimestamp = 0;
+    this.tournamentCache.clear();
+    console.log("💾 Worker cleared tournament cache");
   }
 }
 
