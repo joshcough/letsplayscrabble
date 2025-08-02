@@ -1,5 +1,28 @@
 # Changelog
 
+## 2025-08-02
+
+### Added
+- **Worker-Coordinated Data Fetching**: Overlays now subscribe to tournament data through worker instead of direct API calls
+- **Tournament Data Caching**: Worker maintains in-memory cache of tournament data with automatic invalidation
+- **SUBSCRIBE Message Protocol**: New message type for overlay-worker data subscription coordination
+- **Cache Performance Logging**: Detailed logs for cache hits/misses and fetch operations
+
+### Changed
+- **useTournamentData Hook**: Replaced direct API calls with SUBSCRIBE message broadcasting
+- **WorkerSocketManager**: Enhanced to handle SUBSCRIBE messages and manage tournament data cache
+- **Data Loading Flow**: Multiple overlays requesting same tournament now trigger single API call
+
+### Performance
+- **Eliminated Thundering Herd**: Multiple overlay startup now results in 1 API call instead of N calls
+- **Instant Cache Responses**: Subsequent overlays get immediate data from worker cache
+- **Reduced Server Load**: Significant reduction in duplicate tournament data requests
+
+### Technical
+- Cache key format: `userId:tournamentId:divisionId` for precise data targeting
+- Automatic cache updates on WebSocket events (GamesAdded, AdminPanelUpdate)
+- Backward-compatible message broadcasting maintains existing overlay functionality
+
 ## 2025-08-02  - Incremental Tournament Updates
 
 ### 🎯 **Major Features Added**
