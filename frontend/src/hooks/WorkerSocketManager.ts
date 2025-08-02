@@ -166,7 +166,10 @@ class WorkerSocketManager {
     this.withDeduplication("GamesAdded", (data: GamesAddedMessage) => {
       console.log("📡 Worker received GamesAdded:", data);
       this.broadcastToDisplayOverlays("GamesAdded", data);
-      this.fetchAndBroadcastTournamentData(data.update.tournament.id, data.update.tournament.user_id);
+      this.fetchAndBroadcastTournamentData(
+        data.update.tournament.id,
+        data.update.tournament.user_id,
+      );
     });
   }
 

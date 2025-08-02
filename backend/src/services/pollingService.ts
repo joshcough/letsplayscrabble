@@ -55,7 +55,6 @@ export class TournamentPollingService {
 
         // Use a deep comparison of the data
         if (JSON.stringify(newData) !== JSON.stringify(tournament.data)) {
-          console.log("-------------------")
           console.log(`Found new data for ${tournament.id}:${tournament.name}`);
 
           // Convert file data to database format
@@ -72,12 +71,17 @@ export class TournamentPollingService {
             tournament.user_id,
           );
 
-          const update: DB.TournamentUpdate =
-            await this.repo.updateData(tournament.id, createTournamentData);
+          const update: DB.TournamentUpdate = await this.repo.updateData(
+            tournament.id,
+            createTournamentData,
+          );
 
-          console.log(`Updated tournament ${tournament.id} with new data`, JSON.stringify(update.changes, null, 2));
+          console.log(
+            `Updated tournament ${tournament.id} with new data`,
+            JSON.stringify(update.changes, null, 2),
+          );
 
-          console.log("-------------------")
+          console.log("-------------------");
 
           const gamesAddedMessage: GamesAddedMessage = {
             update,
