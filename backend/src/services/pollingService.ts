@@ -75,7 +75,7 @@ export class TournamentPollingService {
           const update: DB.TournamentUpdate =
             await this.repo.updateData(tournament.id, createTournamentData);
 
-          console.log(`Updated tournament ${tournament.id} with new data`, JSON.stringify(update, null, 2));
+          console.log(`Updated tournament ${tournament.id} with new data`, JSON.stringify(update.changes, null, 2));
 
           console.log("-------------------")
 

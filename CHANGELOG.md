@@ -1,5 +1,158 @@
 # Changelog
 
+## 2025-08-02  - Incremental Tournament Updates
+
+### 🎯 **Major Features Added**
+
+#### **Incremental Tournament Updates**
+- **NEW**: Database-driven incremental update system using PostgreSQL as diff engine
+- **NEW**: `GameChanges` and `TournamentUpdate` interfaces for tracking changes
+- **NEW**: Real-time change detection for tournament games (added vs updated)
+- **NEW**: WebSocket broadcasting of incremental updates to frontend
+
+#### **Enhanced TournamentRepository**
+- **NEW**: `storeTournamentDataIncremental()` method for smart data updates
+- **NEW**: Automatic first-time vs incremental update detection
+- **NEW**: Player and division mapping optimization for existing tournaments
+- **CHANGED**: `updateData()` and `updateTournamentWithNewData()` now return `TournamentUpdate` with changes
+- **CHANGED**: Tournament creation now uses same incremental logic for consistency
+
+### 🔧 **Database Changes**
+
+#### **Schema Updates**
+- **NEW**: Unique constraint on games table: `(division_id, round_number, pairing_id)`
+- **NEW**: Migration: `add_games_unique_constraint.js`
+- **ENHANCED**: PostgreSQL UPSERT with conflict resolution and change detection
+
+#### **Query Improvements**
+- **NEW**: Advanced UPSERT query with `RETURNING` clause for change detection
+- **NEW**: `xmax = 0` technique to distinguish INSERT from UPDATE operations
+- **NEW**: `IS DISTINCT FROM` for proper null handling in comparisons
+
+### 🎲 **Tournament Generator**
+
+#### **Complete Testing Suite**
+- **NEW**: Swiss-style tournament generator with realistic pairings
+- **NEW**: Real Scrabble player names (Josh Cough, Nigel Richards, Will Anderson, etc.)
+- **NEW**: Proper opponent tracking to prevent repeat pairings
+- **NEW**: Realistic score generation (350-550 range)
+- **NEW**: Automatic bye handling for odd numbers of players
+- **NEW**: Comprehensive logging of all data changes
+
+#### **File Management**
+- **NEW**: Sequential file naming: `tournament_01_round1_pairings.js`, `tournament_02_round1_complete.js`
+- **NEW**: Detailed blow-by-blow logging of pairings and scores
+- **NEW**: Player statistics tracking (wins, losses, spread)
+
+### 🔄 **API Changes**
+
+#### **Repository Method Updates**
+```typescript
+// OLD
+async updateData(id: number, data: CreateTournament): Promise<TournamentRow>
+
+// NEW  
+async updateData(id: number, data: CreateTournament): Promise<TournamentUpdate>
+```
+
+#### **New Interfaces**
+```typescript
+interface GameChanges {
+  added: CreateGameRow[];
+  updated: CreateGameRow[];
+}
+
+interface TournamentUpdate {
+  tournament: TournamentRow;
+  changes: GameChanges;
+}
+```
+
+### 🎮 **Real-Time Features**
+- **NEW**: Live game change detection and broadcasting
+- **NEW**: Granular update logging: `🔄 UPDATED` vs `➕ ADDED`
+- **NEW**: WebSocket integration for frontend real-time updates
+- **NEW**: Event-ready architecture for "New High Score!" notifications
+
+### 🐛 **Bug Fixes**
+- **FIXED**: Undefined binding errors in PostgreSQL queries (null handling)
+- **FIXED**: Player mapping inconsistencies between file data and database
+- **FIXED**: Race conditions in tournament data updates
+- **FIXED**: File format compatibility issues
+
+### 🚀 **Performance Improvements**
+- **OPTIMIZED**: Database queries use indexes and proper conflict resolution
+- **OPTIMIZED**: Reduced WebSocket payload size with incremental updates
+- **OPTIMIZED**: Eliminated unnecessary full-table scans
+- **OPTIMIZED**: Efficient player/division mapping caching
+
+### 📁 **File Structure Changes**
+```
+├── src/repositories/
+│   └── tournamentRepository.ts (ENHANCED)
+├── migrations/
+│   └── add_games_unique_constraint.js (NEW)
+├── shared/types/
+│   └── database.ts (ENHANCED with GameChanges, TournamentUpdate)
+├── routes/tournament/
+│   └── protected.ts (UPDATED for new return types)
+└── tournament-generator.js (NEW)
+```
+
+### 🎯 **Testing Results**
+- **VERIFIED**: Complex tournament progression with mixed updates/additions
+- **VERIFIED**: First-time tournament creation vs incremental updates
+- **VERIFIED**: Swiss pairings with realistic player behavior
+- **VERIFIED**: Perfect data consistency across all operations
+- **LEGENDARY**: Josh Cough defeated Nigel Richards 514-422 in championship final! 🏆
+
+### ⚠️ **Breaking Changes**
+- `updateData()` and `updateTournamentWithNewData()` return types changed
+- New unique constraint on games table requires migration
+- WebSocket payload structure updated for incremental changes
+
+### 📖 **Documentation**
+- **NEW**: Complete implementation summary with architecture diagrams
+- **NEW**: Tournament generator usage examples
+- **NEW**: Database schema documentation
+- **NEW**: Real-time update flow documentation
+
+### 🏆 **Notable Achievements**
+- Built production-ready incremental update system
+- Created sophisticated tournament testing framework
+- Leveraged PostgreSQL as elegant diff engine
+- Achieved real-time tournament data synchronization
+- **Beat Nigel Richards in epic tournament finale!**
+
+---
+
+## Migration Guide
+
+### Required Database Migration
+```bash
+npx knex migrate:latest
+```
+
+### Update API Calls
+```typescript
+// Update calling code to handle new return structure
+const { tournament, changes } = await tournamentRepository.updateData(id, data);
+// Use changes.added and changes.updated for real-time updates
+```
+
+### WebSocket Integration
+```typescript
+// Frontend can now listen for granular updates
+socket.on('tournament-update', ({ changes }) => {
+  changes.added.forEach(game => addGameToUI(game));
+  changes.updated.forEach(game => updateGameInUI(game));
+});
+```
+
+---
+
+**Full Changelog maintained by**: Josh Cough, Tournament Champion and Database Diff Algorithm Architect 👑
+
 ## 2025-07-31
 
 # Changelog
