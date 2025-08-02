@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+
 import { useAuth } from "../../context/AuthContext";
 
 type NavPath = "/" | "/tournaments/manager" | "/admin" | "/overlays";

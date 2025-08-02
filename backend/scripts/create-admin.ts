@@ -1,6 +1,7 @@
 // backend/scripts/create-admin.ts
-import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import dotenv from "dotenv";
+
 import { pool } from "../src/config/database";
 
 dotenv.config();

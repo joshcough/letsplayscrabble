@@ -1,5 +1,6 @@
-import { CurrentMatch } from "@shared/types/currentMatch";
 import { MatchWithPlayers } from "@shared/types/admin";
+import { CurrentMatch } from "@shared/types/currentMatch";
+
 import { fetchUserOverlayEndpoint, postAuthenticatedApiEndpoint } from "./api";
 
 export const fetchCurrentMatch = async (

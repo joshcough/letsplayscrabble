@@ -1,7 +1,9 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import * as DB from "@shared/types/database";
+
 import { CurrentMatch } from "@shared/types/currentMatch";
+import * as DB from "@shared/types/database";
+
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { useTournamentData } from "../../hooks/useTournamentData";
 import { LoadingErrorWrapper } from "./LoadingErrorWrapper";

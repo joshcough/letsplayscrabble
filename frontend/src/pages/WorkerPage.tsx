@@ -1,5 +1,6 @@
 // WorkerPage.tsx - Hidden worker page that handles WebSocket connections
 import React, { useEffect, useState } from "react";
+
 import WorkerSocketManager from "../hooks/WorkerSocketManager";
 
 const WorkerPage: React.FC = () => {

@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+
+import { TournamentRow, DivisionRow, PlayerRow } from "@shared/types/database";
+
 import { fetchWithAuth } from "../../config/api";
+import { useAuth } from "../../context/AuthContext";
 import {
   fetchTournamentRow,
   fetchDivisions,
   fetchPlayersForDivision,
 } from "../../utils/api";
-import { TournamentRow, DivisionRow, PlayerRow } from "@shared/types/database";
 import { ProtectedPage } from "../ProtectedPage";
-import { useAuth } from "../../context/AuthContext";
 
 type RouteParams = {
   id: string;

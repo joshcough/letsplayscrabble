@@ -5,29 +5,30 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import AddTournament from "./components/tournaments/AddTournament";
+
 import AdminLogin from "./components/AdminLogin";
-import AdminPage from "./pages/admin/AdminPage";
-import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Navigation from "./components/common/Navigation";
+import AddTournament from "./components/tournaments/AddTournament";
+import { AuthProvider } from "./context/AuthContext";
 import HomePage from "./pages/HomePage";
 import WorkerPage from "./pages/WorkerPage";
-import Navigation from "./components/common/Navigation";
-import PlayerOverlay from "./pages/overlay/PlayerOverlayPage";
-import PlayerOverlayTestingPage from "./pages/overlay/PlayerOverlayTestingPage";
+import AdminPage from "./pages/admin/AdminPage";
+import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
 import MiscOverlayPage from "./pages/overlay/MiscOverlayPage";
 import MiscOverlayTestingPage from "./pages/overlay/MiscOverlayTestingPage";
 import OverlaysPage from "./pages/overlay/OverlaysPage";
 import PingOverlayPage from "./pages/overlay/PingOverlayPage";
-import ProtectedRoute from "./components/ProtectedRoute";
+import PlayerOverlay from "./pages/overlay/PlayerOverlayPage";
+import PlayerOverlayTestingPage from "./pages/overlay/PlayerOverlayTestingPage";
 import RatingGainOverlayPage from "./pages/overlay/RatingGainOverlayPage";
 import RatingGainWithPicsOverlayPage from "./pages/overlay/RatingGainWithPicsOverlayPage";
 import ScoringLeadersOverlayPage from "./pages/overlay/ScoringLeadersOverlayPage";
 import ScoringLeadersWithPicsOverlayPage from "./pages/overlay/ScoringLeadersWithPicsOverlayPage";
 import StandingsOverlayPage from "./pages/overlay/StandingsOverlayPage";
 import StandingsWithPicsOverlayPage from "./pages/overlay/StandingsWithPicsOverlayPage";
-import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentStatsOverlayPage from "./pages/overlay/TournamentStatsOverlayPage";
+import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
 
 // Wrapper component to conditionally apply theme

@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+
 import AdminInterface from "../../components/admin/AdminInterface";
 
 const AdminPage: React.FC = () => {

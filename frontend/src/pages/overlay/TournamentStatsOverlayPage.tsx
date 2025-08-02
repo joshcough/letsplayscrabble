@@ -1,14 +1,16 @@
 import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
+
 import { Tournament } from "@shared/types/database";
-import { useTournamentData } from "../../hooks/useTournamentData";
+
+import { BaseOverlay } from "../../components/shared/BaseOverlay";
 import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
+import { useTournamentData } from "../../hooks/useTournamentData";
 import {
   calculateTournamentStats,
   calculateAllTournamentStats,
   TournamentStats,
 } from "../../utils/calculateStandings";
-import { BaseOverlay } from "../../components/shared/BaseOverlay";
 
 type RouteParams = {
   userId?: string;

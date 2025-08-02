@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+
 import * as DB from "@shared/types/database";
-import BroadcastManager from "./BroadcastManager";
-import { fetchTournament, fetchTournamentDivision } from "../utils/api";
 import {
   GamesAddedMessage,
   TournamentDataMessage,
 } from "@shared/types/websocket";
+
+import { fetchTournament, fetchTournamentDivision } from "../utils/api";
+import BroadcastManager from "./BroadcastManager";
 
 interface UseTournamentDataProps {
   tournamentId?: number;

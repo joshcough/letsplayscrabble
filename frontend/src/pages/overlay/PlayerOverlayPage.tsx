@@ -1,11 +1,13 @@
 import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { useTournamentData } from "../../hooks/useTournamentData";
-import { BaseOverlay } from "../../components/shared/BaseOverlay";
-import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
-import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
-import PointsDisplay from "../../components/shared/PointsDisplay";
+
 import * as DB from "@shared/types/database";
+
+import { BaseOverlay } from "../../components/shared/BaseOverlay";
+import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
+import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
+import PointsDisplay from "../../components/shared/PointsDisplay";
+import { useTournamentData } from "../../hooks/useTournamentData";
 import {
   formatSpread,
   formatRecord,

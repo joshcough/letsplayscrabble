@@ -1,5 +1,6 @@
 // components/ProtectedPage.tsx
 import React from "react";
+
 import { useRequireAuth } from "../hooks/useRequireAuth";
 
 export const ProtectedPage: React.FC<{ children: React.ReactNode }> = ({

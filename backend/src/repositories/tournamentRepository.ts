@@ -1,6 +1,7 @@
 import * as DB from "@shared/types/database";
-import { knexDb } from "../config/database";
 import { Knex } from "knex";
+
+import { knexDb } from "../config/database";
 
 export class TournamentRepository {
   async create(

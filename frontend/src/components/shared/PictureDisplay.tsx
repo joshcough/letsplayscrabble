@@ -1,10 +1,12 @@
 import React from "react";
+
 import * as Stats from "@shared/types/stats";
-import { TournamentDisplayData } from "../shared/BaseOverlay";
+
 import {
   getPlayerImageUrl,
   formatPlayerName,
 } from "../../utils/pictureOverlayUtils";
+import { TournamentDisplayData } from "../shared/BaseOverlay";
 
 interface PictureDisplayProps {
   tournament: TournamentDisplayData;

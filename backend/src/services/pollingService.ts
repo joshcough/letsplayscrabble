@@ -1,9 +1,10 @@
-import cron, { ScheduledTask } from "node-cron";
-import { TournamentRepository } from "../repositories/tournamentRepository";
-import { loadTournamentFile } from "./loadTournamentFile";
-import { Server as SocketIOServer } from "socket.io";
 import { GamesAddedMessage } from "@shared/types/websocket";
+import cron, { ScheduledTask } from "node-cron";
+import { Server as SocketIOServer } from "socket.io";
+
+import { TournamentRepository } from "../repositories/tournamentRepository";
 import { convertFileToDatabase } from "./fileToDatabaseConversions";
+import { loadTournamentFile } from "./loadTournamentFile";
 
 export class TournamentPollingService {
   private isRunning: boolean;

@@ -1,10 +1,12 @@
 import React from "react";
+
+import * as Stats from "@shared/types/stats";
+
 import {
   BaseOverlay,
   TournamentDisplayData,
 } from "../components/shared/BaseOverlay";
 import { calculateStandingsFromGames } from "../utils/calculateStandings";
-import * as Stats from "@shared/types/stats";
 
 // Type for PlayerStats with rank added
 export type RankedPlayerStats = Stats.PlayerStats & { rank: number };

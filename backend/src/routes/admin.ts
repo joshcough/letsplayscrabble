@@ -1,9 +1,11 @@
 import express, { Router } from "express";
-import { Server as SocketIOServer } from "socket.io";
 import { RequestHandler } from "express-serve-static-core";
-import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
+
 import { CreateCurrentMatch, CurrentMatch } from "@shared/types/currentMatch";
 import { AdminPanelUpdateMessage } from "@shared/types/websocket";
+import { Server as SocketIOServer } from "socket.io";
+
+import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
 import * as Api from "../utils/apiHelpers";
 import { withDataOr404, withErrorHandling } from "../utils/apiHelpers";
 

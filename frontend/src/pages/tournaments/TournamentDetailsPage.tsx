@@ -1,4 +1,5 @@
 import React from "react";
+
 import TournamentDetails from "../../components/tournaments/TournamentDetails";
 
 const TournamentDetailsPage: React.FC = () => {
