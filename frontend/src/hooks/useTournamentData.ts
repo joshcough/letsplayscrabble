@@ -394,7 +394,9 @@ export const useTournamentData = ({
             // Simple replacement with the updated tournament data from worker
             // Worker has already applied all the changes to the cache
             if (data.data) {
-              console.log("✅ Replacing tournament data with worker's updated version");
+              console.log(
+                "✅ Replacing tournament data with worker's updated version",
+              );
 
               // Process division selection (same logic as other handlers)
               const tournament = data.data;
@@ -405,7 +407,8 @@ export const useTournamentData = ({
               } else if (shouldUseUrlParams && divisionName) {
                 const divisionData = tournament.divisions.find(
                   (d: any) =>
-                    d.division.name.toUpperCase() === divisionName.toUpperCase(),
+                    d.division.name.toUpperCase() ===
+                    divisionName.toUpperCase(),
                 );
                 if (divisionData) {
                   finalDivisionId = divisionData.division.id;
@@ -428,7 +431,13 @@ export const useTournamentData = ({
     return () => {
       cleanupTournamentDataIncremental();
     };
-  }, [userId, effectiveTournamentId, propDivisionId, divisionName, shouldUseUrlParams]);
+  }, [
+    userId,
+    effectiveTournamentId,
+    propDivisionId,
+    divisionName,
+    shouldUseUrlParams,
+  ]);
 
   // Listen for TOURNAMENT_DATA_ERROR broadcasts from worker
   useEffect(() => {

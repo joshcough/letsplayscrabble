@@ -1,5 +1,10 @@
 // TournamentCacheManager.ts - Enhanced cache with incremental update support
-import { Tournament, GameChanges, GameRow, TournamentUpdate } from "@shared/types/database";
+import {
+  Tournament,
+  GameChanges,
+  GameRow,
+  TournamentUpdate,
+} from "@shared/types/database";
 
 interface CachedTournament {
   data: Tournament;
@@ -48,7 +53,11 @@ class TournamentCacheManager {
   }
 
   // Apply incremental game changes to cached tournament
-  applyGameChanges(userId: number, tournamentId: number, changes: GameChanges): boolean {
+  applyGameChanges(
+    userId: number,
+    tournamentId: number,
+    changes: GameChanges,
+  ): boolean {
     const cacheKey = this.getCacheKey(userId, tournamentId);
     const cached = this.cache.get(cacheKey);
 
@@ -59,7 +68,7 @@ class TournamentCacheManager {
 
     console.log(`💾 🔄 Applying game changes to ${cacheKey}:`, {
       added: changes.added.length,
-      updated: changes.updated.length
+      updated: changes.updated.length,
     });
 
     let changeCount = 0;
@@ -67,42 +76,53 @@ class TournamentCacheManager {
     // Apply added games
     for (const addedGame of changes.added) {
       const targetDivision = cached.data.divisions.find(
-        div => div.division.id === addedGame.division_id
+        (div) => div.division.id === addedGame.division_id,
       );
 
       if (targetDivision) {
         const beforeCount = targetDivision.games.length;
         targetDivision.games.push(addedGame);
         changeCount++;
-        console.log(`💾 ✅ Added game ${addedGame.id} to division ${addedGame.division_id} (${beforeCount} → ${targetDivision.games.length} games)`);
+        console.log(
+          `💾 ✅ Added game ${addedGame.id} to division ${addedGame.division_id} (${beforeCount} → ${targetDivision.games.length} games)`,
+        );
       } else {
-        console.warn(`💾 ❌ Could not find division ${addedGame.division_id} for added game ${addedGame.id}`);
+        console.warn(
+          `💾 ❌ Could not find division ${addedGame.division_id} for added game ${addedGame.id}`,
+        );
       }
     }
 
     // Apply updated games
     for (const updatedGame of changes.updated) {
       const targetDivision = cached.data.divisions.find(
-        div => div.division.id === updatedGame.division_id
+        (div) => div.division.id === updatedGame.division_id,
       );
 
       if (targetDivision) {
         const gameIndex = targetDivision.games.findIndex(
-          game => game.id === updatedGame.id
+          (game) => game.id === updatedGame.id,
         );
 
         if (gameIndex !== -1) {
           const oldGame = targetDivision.games[gameIndex];
           targetDivision.games[gameIndex] = updatedGame;
           changeCount++;
-          console.log(`💾 ✅ Updated game ${updatedGame.id} in division ${updatedGame.division_id}:`, {
-            scores: `${oldGame.player1_score}-${oldGame.player2_score} → ${updatedGame.player1_score}-${updatedGame.player2_score}`
-          });
+          console.log(
+            `💾 ✅ Updated game ${updatedGame.id} in division ${updatedGame.division_id}:`,
+            {
+              scores: `${oldGame.player1_score}-${oldGame.player2_score} → ${updatedGame.player1_score}-${updatedGame.player2_score}`,
+            },
+          );
         } else {
-          console.warn(`💾 ❌ Could not find game ${updatedGame.id} to update in division ${updatedGame.division_id}`);
+          console.warn(
+            `💾 ❌ Could not find game ${updatedGame.id} to update in division ${updatedGame.division_id}`,
+          );
         }
       } else {
-        console.warn(`💾 ❌ Could not find division ${updatedGame.division_id} for updated game ${updatedGame.id}`);
+        console.warn(
+          `💾 ❌ Could not find division ${updatedGame.division_id} for updated game ${updatedGame.id}`,
+        );
       }
     }
 
@@ -110,23 +130,31 @@ class TournamentCacheManager {
     const oldTimestamp = cached.lastUpdated;
     cached.lastUpdated = Date.now();
 
-    console.log(`💾 🎯 Applied ${changeCount} game changes to ${cacheKey} (cache age: ${Date.now() - oldTimestamp}ms)`);
+    console.log(
+      `💾 🎯 Applied ${changeCount} game changes to ${cacheKey} (cache age: ${Date.now() - oldTimestamp}ms)`,
+    );
     return changeCount > 0;
   }
 
   // Apply a complete tournament update (includes tournament metadata + game changes)
-  applyTournamentUpdate(userId: number, tournamentId: number, update: TournamentUpdate): boolean {
+  applyTournamentUpdate(
+    userId: number,
+    tournamentId: number,
+    update: TournamentUpdate,
+  ): boolean {
     const cacheKey = this.getCacheKey(userId, tournamentId);
     const cached = this.cache.get(cacheKey);
 
     if (!cached) {
-      console.log(`💾 🔄 Cannot apply tournament update - no cached data for ${cacheKey}`);
+      console.log(
+        `💾 🔄 Cannot apply tournament update - no cached data for ${cacheKey}`,
+      );
       return false;
     }
 
     console.log(`💾 🔄 Applying tournament update to ${cacheKey}:`, {
       tournamentName: update.tournament.name,
-      changes: this.getChangesSummary(update.changes)
+      changes: this.getChangesSummary(update.changes),
     });
 
     // Update tournament metadata
@@ -134,16 +162,22 @@ class TournamentCacheManager {
     cached.data.tournament = update.tournament;
 
     if (oldTournamentName !== update.tournament.name) {
-      console.log(`💾 📝 Updated tournament metadata: "${oldTournamentName}" → "${update.tournament.name}"`);
+      console.log(
+        `💾 📝 Updated tournament metadata: "${oldTournamentName}" → "${update.tournament.name}"`,
+      );
     }
 
     // Apply game changes
     const success = this.applyGameChanges(userId, tournamentId, update.changes);
 
     if (success) {
-      console.log(`💾 ✅ Tournament update applied successfully to ${cacheKey}`);
+      console.log(
+        `💾 ✅ Tournament update applied successfully to ${cacheKey}`,
+      );
     } else {
-      console.log(`💾 ⚠️ Tournament update completed but no game changes applied to ${cacheKey}`);
+      console.log(
+        `💾 ⚠️ Tournament update completed but no game changes applied to ${cacheKey}`,
+      );
     }
 
     return success;
@@ -164,7 +198,9 @@ class TournamentCacheManager {
     }
 
     const result = Array.from(divisionIds);
-    console.log(`💾 🎯 Affected divisions: [${result.join(', ')}] from ${changes.added.length + changes.updated.length} game changes`);
+    console.log(
+      `💾 🎯 Affected divisions: [${result.join(", ")}] from ${changes.added.length + changes.updated.length} game changes`,
+    );
 
     return result;
   }
@@ -181,7 +217,7 @@ class TournamentCacheManager {
     const updatedCount = changes.updated.length;
     const affectedDivisions = this.getAffectedDivisions(changes);
 
-    return `${addedCount} added, ${updatedCount} updated games affecting divisions: [${affectedDivisions.join(', ')}]`;
+    return `${addedCount} added, ${updatedCount} updated games affecting divisions: [${affectedDivisions.join(", ")}]`;
   }
 
   // Check if cache has data for specific tournament
@@ -219,10 +255,13 @@ class TournamentCacheManager {
   }
 
   // Get cached tournament with change validation
-  getWithValidation(userId: number, tournamentId: number): {
+  getWithValidation(
+    userId: number,
+    tournamentId: number,
+  ): {
     tournament: Tournament | null;
     isStale: boolean;
-    age: number
+    age: number;
   } {
     const tournament = this.get(userId, tournamentId);
     const lastUpdated = this.getLastUpdated(userId, tournamentId);
@@ -232,7 +271,7 @@ class TournamentCacheManager {
     return {
       tournament,
       isStale,
-      age
+      age,
     };
   }
 }
