@@ -60,8 +60,17 @@ export function protectedTournamentRoutes(repo: TournamentRepository): Router {
       res,
       "Tournament not found",
       async (existingTournament) => {
+        // Get the current tournament data to check if dataUrl changed
+        const existingTournamentData =
+          await repo.getTournamentData(tournamentId);
+
+        if (!existingTournamentData) {
+          res.status(404).json(Api.failure("Tournament data not found"));
+          return;
+        }
+
         // Check if dataUrl changed - if so, we need to reload and convert the data
-        if (metadata.dataUrl !== existingTournament.data_url) {
+        if (metadata.dataUrl !== existingTournamentData.data_url) {
           // Load new data from the URL
           const newData = await loadTournamentFile(metadata.dataUrl);
           // Update everything in one transaction through repo

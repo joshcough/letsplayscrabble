@@ -43,13 +43,32 @@ export interface TournamentDataError {
   error: string;
 }
 
-// Union type for all possible broadcast messages (worker ↔ overlays only)
+export interface WorkerStatusUpdate {
+  status: string;
+  error: string | null;
+  lastDataUpdate: number;
+}
+
+export interface AdminPanelUpdate  {
+  userId: number;
+  tournamentId: number;
+  divisionId: number;
+  divisionName: string;
+  round: number;
+  pairingId: number;
+}
+
+// Add to BroadcastMessage union
 export type BroadcastMessage =
   // Overlay to Worker
   | { type: 'SUBSCRIBE'; data: SubscribeMessage }
 
-  // Worker to Overlays - Tournament Data Only
+  // Worker to Overlays - Tournament Data
   | { type: 'TOURNAMENT_DATA_RESPONSE'; data: TournamentDataResponse }
   | { type: 'TOURNAMENT_DATA_REFRESH'; data: TournamentDataRefresh }
   | { type: 'TOURNAMENT_DATA_INCREMENTAL'; data: TournamentDataIncremental }
-  | { type: 'TOURNAMENT_DATA_ERROR'; data: TournamentDataError };
+  | { type: 'TOURNAMENT_DATA_ERROR'; data: TournamentDataError }
+  | { type: 'ADMIN_PANEL_UPDATE'; data: AdminPanelUpdate }
+
+  // Worker to WorkerPage - Status Updates
+  | { type: 'WORKER_STATUS_UPDATE'; data: WorkerStatusUpdate };

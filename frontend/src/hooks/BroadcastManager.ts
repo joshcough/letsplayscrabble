@@ -1,15 +1,15 @@
 // BroadcastManager.ts - Lightweight manager for display sources with deduplication
 import {
-  AdminPanelUpdateMessage,
-  GamesAddedMessage,
-  Ping,
-} from "@shared/types/websocket";
-import {
   TournamentDataResponse,
   TournamentDataRefresh,
   TournamentDataIncremental,
   TournamentDataError,
 } from "@shared/types/broadcast";
+import {
+  AdminPanelUpdateMessage,
+  GamesAddedMessage,
+  Ping,
+} from "@shared/types/websocket";
 
 type EventHandler = (data: any) => void;
 
@@ -70,7 +70,9 @@ class BroadcastManager {
           userId: data.userId,
         });
       } else {
-        console.log(`📥 BroadcastManager received ${type}:`, { timestamp: data?.timestamp });
+        console.log(`📥 BroadcastManager received ${type}:`, {
+          timestamp: data?.timestamp,
+        });
       }
 
       // Check for duplicates based on message type (only for timestamped WebSocket relays)
@@ -146,7 +148,7 @@ class BroadcastManager {
 
   // Convenience methods with proper types and type assertions
   onAdminPanelUpdate(handler: (data: AdminPanelUpdateMessage) => void) {
-    this.on("AdminPanelUpdate", handler);
+    this.on("ADMIN_PANEL_UPDATE", handler);
     return () => this.off("AdminPanelUpdate", handler);
   }
 
@@ -166,7 +168,9 @@ class BroadcastManager {
     return () => this.off("TOURNAMENT_DATA_REFRESH", handler);
   }
 
-  onTournamentDataIncremental(handler: (data: TournamentDataIncremental) => void) {
+  onTournamentDataIncremental(
+    handler: (data: TournamentDataIncremental) => void,
+  ) {
     this.on("TOURNAMENT_DATA_INCREMENTAL", handler);
     return () => this.off("TOURNAMENT_DATA_INCREMENTAL", handler);
   }

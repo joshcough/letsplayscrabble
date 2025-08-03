@@ -1,5 +1,37 @@
 # Changelog
 
+## 2025-08-02 Separated Tournament Data for Cleaner Debugging
+
+### Added
+- New `tournament_data` table containing `data_url`, `data`, and `poll_until` fields
+- Enhanced WorkerPage debugging interface with extended mode (`?extended`)
+  - WebSocket message monitoring with ping filtering
+  - Broadcast message tracking
+  - Message statistics and cache details
+  - Real-time status updates via broadcast channels
+- Separate `worker-status` broadcast channel for debugging data
+- Database migration to move large data fields out of tournaments table
+
+### Changed
+- `TournamentRow` objects now exclude massive JSON data for readable console logs
+- Repository methods join with `tournament_data` table to include `data_url` and `poll_until`
+- Polling service updated to work with separated table structure
+- WorkerSocketManager broadcasts `AdminPanelUpdate` messages to overlays
+- Eliminated direct method calls between WorkerPage and worker (now uses broadcasts)
+- Status updates now broadcast every second instead of manual polling
+
+### Fixed
+- Admin panel division changes now properly update overlays
+- Tournament data polling comparison issues with JSONB vs JSON
+- Overlay real-time updates for division switching
+- Cache manager properly isolated from WebSocket manager
+
+### Technical
+- Moved from `tournamentCache.get()` direct calls to broadcast-only communication
+- Repository refactored into clean helper methods for better maintainability
+- Enhanced error handling and logging throughout data flow
+- Improved type safety by removing `any` usage in cache operations
+
 ## 2025-08-02
 
 ### Added

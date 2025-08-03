@@ -74,7 +74,6 @@ export function convertFileToDatabase(
           const pairingKey = `${divisionIndex}-${roundNum}-${player.id}-bye`;
           if (!processedPairings.has(pairingKey)) {
             games.push({
-              division_position: divisionIndex,
               round_number: roundNum,
               player1_file_id: player.id,
               player2_file_id: player.id,
@@ -106,7 +105,6 @@ export function convertFileToDatabase(
             : [opponentId, player.id, opponentScore, playerScore];
 
           games.push({
-            division_position: divisionIndex,
             round_number: roundNum,
             player1_file_id: player1FileId,
             player2_file_id: player2FileId,

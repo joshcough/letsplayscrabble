@@ -47,14 +47,14 @@ export class TournamentPollingService {
     console.log("Tournament polling service is polling...");
 
     await this.clearExpiredPolls();
-    const activeTournaments = await this.repo.findActivePollable();
 
-    for (const tournament of activeTournaments) {
+    const activeTournaments = await this.repo.findActivePollableWithData();
+    for (const { tournament, tournamentData } of activeTournaments) {
       try {
-        const newData = await loadTournamentFile(tournament.data_url);
+        const newData = await loadTournamentFile(tournamentData.data_url);
 
-        // Use a deep comparison of the data
-        if (JSON.stringify(newData) !== JSON.stringify(tournament.data)) {
+        // Use a deep comparison of the data - compare with tournamentData.data, not tournament.data
+        if (JSON.stringify(newData) !== JSON.stringify(tournamentData.data)) {
           console.log(`Found new data for ${tournament.id}:${tournament.name}`);
 
           // Convert file data to database format
@@ -66,15 +66,18 @@ export class TournamentPollingService {
               year: tournament.year,
               lexicon: tournament.lexicon,
               longFormName: tournament.long_form_name,
-              dataUrl: tournament.data_url,
+              dataUrl: tournamentData.data_url, // Use tournamentData.data_url, not tournament.data_url
             },
             tournament.user_id,
           );
 
-          const update: DB.TournamentUpdate = await this.repo.updateData(
-            tournament.id,
-            createTournamentData,
-          );
+          // Use the new updateTournamentData method instead of updateData
+          const update: DB.TournamentUpdate =
+            await this.repo.updateTournamentData(
+              tournament.id,
+              tournamentData.data_url,
+              newData, // Pass the raw file data, not the converted data
+            );
 
           console.log(
             `Updated tournament ${tournament.id} with new data`,
