@@ -1,5 +1,35 @@
 # Changelog
 
+## 2025-08-03 - High Score Animations!
+
+### Added
+- **High Score Animation Overlay**: Real-time celebration popup that triggers when division high scores are broken
+- **Animation Route Architecture**: New `/users/:userId/animation/*` routes with transparent backgrounds for overlay effects
+- **Responsive Animation Design**: Clean, professional celebration popup that scales to any browser source size
+- **Smart High Score Detection**: Compares highest score in game changes vs previous division record to prevent false triggers
+
+### Enhanced
+- **App Background Logic**: Conditional backgrounds based on route type (animations=transparent, overlays=white, pages=tan)
+- **Navigation Hiding**: Animation routes properly hide navigation bar for clean overlay experience
+- **Incremental Update Data Flow**: Fixed mutable state bug by cloning previous tournament data before applying changes
+
+### Technical Details
+- Animation overlay listens for `TOURNAMENT_DATA_INCREMENTAL` messages
+- Only triggers when changes contain scores higher than previous division record
+- Handles round completion scenarios (multiple new games) by finding highest among changes
+- 5-second display duration with smooth fade transitions
+- Designed for 300x200px commentator cam overlay use case
+
+### Bug Fixes
+- **Fixed Mutable State Issue**: Worker now properly clones previous tournament data before applying incremental changes
+- **Corrected High Score Logic**: Compares changes vs true previous state instead of mutated current state
+- **Resolved Background Conflicts**: Animation overlays get transparent backgrounds while regular overlays stay white
+
+### Performance
+- Zero additional API calls - leverages existing incremental update system
+- Efficient change detection using PostgreSQL diff engine
+- Real-time updates without impacting tournament overlay performance
+
 ## 2025-08-03
 
 ### Added

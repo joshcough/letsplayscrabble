@@ -35,22 +35,26 @@ import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
 // Wrapper component to conditionally apply theme
 const AppContent: React.FC = () => {
   const location = useLocation();
+
   const isOverlay =
     location.pathname.startsWith("/overlay/") ||
     location.pathname.includes("/overlay/") ||
+    location.pathname.includes("/animation/") ||
     location.pathname.startsWith("/worker");
 
+  const getBackgroundClass = () => {
+    if (location.pathname.includes("/animation/")) {
+      return "min-h-screen bg-transparent";
+    }
+    return isOverlay ? "min-h-screen bg-white" : "min-h-screen bg-[#E4C6A0]";
+  };
+
   return (
-    <div
-      className={
-        isOverlay ? "min-h-screen bg-white" : "min-h-screen bg-[#E4C6A0]"
-      }
-    >
+    <div className={getBackgroundClass()}>
       {!isOverlay && <Navigation />}
       <Routes>
         <Route path="/login" element={<AdminLogin />} />
         {/* User-scoped overlay routes */}
-        PingOverlayPage
         <Route
           path="/users/:userId/overlay/ping"
           element={<PingOverlayPage />}
@@ -87,8 +91,9 @@ const AppContent: React.FC = () => {
           path="/users/:userId/overlay/high_scores_with_pics/:tournamentId?/:divisionName?"
           element={<HighScoresWithPicsOverlayPage />}
         />
+        {/* Animation routes - transparent background */}
         <Route
-          path="/users/:userId/overlay/high_score_animation/:tournamentId?/:divisionName?"
+          path="/users/:userId/animation/high_score/:tournamentId?/:divisionName?"
           element={<HighScoreAnimationOverlay />}
         />
         <Route
