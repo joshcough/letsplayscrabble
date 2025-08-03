@@ -1,8 +1,9 @@
-// WorkerSocketManager.ts - Enhanced SocketManager using TournamentCacheManager
+// WorkerSocketManager.ts - Enhanced SocketManager using TournamentCacheManager with incremental updates
 import {
   SubscribeMessage,
   TournamentDataResponse,
   TournamentDataRefresh,
+  TournamentDataIncremental,
   TournamentDataError,
   BroadcastMessage,
 } from "@shared/types/broadcast";
@@ -267,20 +268,87 @@ class WorkerSocketManager {
           type: "ADMIN_PANEL_UPDATE",
           data: data,
         });
-        // Process internally - fetch fresh tournament data and broadcast refresh
+        // Admin panel changes always require full refresh (new tournament selected)
         this.fetchAndBroadcastTournamentRefresh(data.tournamentId, data.userId);
       },
     );
 
     this.withDeduplication("GamesAdded", (data: GamesAddedMessage) => {
       console.log("📡 Worker received GamesAdded:", data);
+      console.log(`📊 Changes summary: ${this.cacheManager.getChangesSummary(data.update.changes)}`);
+
       this.broadcastWebSocketMessage("GamesAdded", data);
-      // TODO: Implement incremental updates using data.update.changes
-      // For now, treat as refresh until incremental updates are implemented
-      this.fetchAndBroadcastTournamentRefresh(
-        data.update.tournament.id,
+
+      // Get current data before applying changes (for previousData)
+      const previousData = this.cacheManager.get(
         data.update.tournament.user_id,
+        data.update.tournament.id
       );
+
+      // Apply incremental changes to cache
+      const success = this.cacheManager.applyTournamentUpdate(
+        data.update.tournament.user_id,
+        data.update.tournament.id,
+        data.update
+      );
+
+      if (success) {
+        // Broadcast incremental update with full tournament data
+        this.broadcastTournamentIncremental(data.update, previousData);
+      } else {
+        // Fallback to full refresh if cache update failed
+        console.warn("⚠️ Cache update failed, falling back to full refresh");
+        this.fetchAndBroadcastTournamentRefresh(
+          data.update.tournament.id,
+          data.update.tournament.user_id,
+        );
+      }
+    });
+  }
+
+  // New method to broadcast incremental tournament updates
+  private broadcastTournamentIncremental(
+    update: import("@shared/types/database").TournamentUpdate,
+    previousData?: import("@shared/types/database").Tournament | null
+  ) {
+    const affectedDivisions = this.cacheManager.getAffectedDivisions(update.changes);
+
+    // Get updated tournament data from cache (after changes applied)
+    const updatedTournamentData = this.cacheManager.get(
+      update.tournament.user_id,
+      update.tournament.id
+    );
+
+    if (!updatedTournamentData) {
+      console.error("🔴 Cannot broadcast incremental update - no cached data found");
+      return;
+    }
+
+    const message: TournamentDataIncremental = {
+      userId: update.tournament.user_id,
+      tournamentId: update.tournament.id,
+      data: updatedTournamentData,        // Full updated tournament
+      previousData: previousData || undefined, // Previous state for comparisons
+      changes: update.changes,            // What changed
+      affectedDivisions: affectedDivisions,
+      metadata: {
+        addedCount: update.changes.added.length,
+        updatedCount: update.changes.updated.length,
+        timestamp: Date.now(),
+      },
+      reason: 'games_added',
+    };
+
+    console.log(
+      `📢 Worker broadcasting TOURNAMENT_DATA_INCREMENTAL for user ${update.tournament.user_id}, tournament ${update.tournament.id}`,
+      `- ${message.metadata.addedCount} added, ${message.metadata.updatedCount} updated games`,
+      `- Affected divisions: [${affectedDivisions.join(', ')}]`,
+      `- Previous data: ${previousData ? 'included' : 'not available'}`
+    );
+
+    this.broadcastMessage({
+      type: "TOURNAMENT_DATA_INCREMENTAL",
+      data: message,
     });
   }
 

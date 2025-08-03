@@ -370,6 +370,66 @@ export const useTournamentData = ({
     shouldUseUrlParams,
   ]);
 
+  // Listen for TOURNAMENT_DATA_INCREMENTAL broadcasts from worker (GamesAdded responses)
+  useEffect(() => {
+    if (!userId || !effectiveTournamentId) return;
+
+    const cleanupTournamentDataIncremental =
+      BroadcastManager.getInstance().onTournamentDataIncremental(
+        (data: TournamentDataIncremental) => {
+          console.log(
+            "🎮 useTournamentData received TOURNAMENT_DATA_INCREMENTAL broadcast:",
+            data,
+          );
+
+          // Filter by userId and tournamentId
+          if (
+            data.userId === parseInt(userId) &&
+            data.tournamentId === effectiveTournamentId
+          ) {
+            console.log(
+              `✅ TOURNAMENT_DATA_INCREMENTAL for tournament - applying ${data.metadata.addedCount} added, ${data.metadata.updatedCount} updated games`,
+            );
+
+            // Simple replacement with the updated tournament data from worker
+            // Worker has already applied all the changes to the cache
+            if (data.data) {
+              console.log("✅ Replacing tournament data with worker's updated version");
+
+              // Process division selection (same logic as other handlers)
+              const tournament = data.data;
+              let finalDivisionId: number | null = null;
+
+              if (propDivisionId) {
+                finalDivisionId = propDivisionId;
+              } else if (shouldUseUrlParams && divisionName) {
+                const divisionData = tournament.divisions.find(
+                  (d: any) =>
+                    d.division.name.toUpperCase() === divisionName.toUpperCase(),
+                );
+                if (divisionData) {
+                  finalDivisionId = divisionData.division.id;
+                }
+              }
+
+              setTournamentData(tournament);
+              setSelectedDivisionId(finalDivisionId);
+              setFetchError(null);
+              setLoading(false);
+            }
+          } else {
+            console.log(
+              `⏭️ Different tournament/user - ignoring (received: ${data.userId}/${data.tournamentId}, expected: ${userId}/${effectiveTournamentId})`,
+            );
+          }
+        },
+      );
+
+    return () => {
+      cleanupTournamentDataIncremental();
+    };
+  }, [userId, effectiveTournamentId, propDivisionId, divisionName, shouldUseUrlParams]);
+
   // Listen for TOURNAMENT_DATA_ERROR broadcasts from worker
   useEffect(() => {
     if (!userId || !effectiveTournamentId) return;
