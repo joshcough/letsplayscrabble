@@ -30,9 +30,15 @@ export interface TournamentDataRefresh {
 export interface TournamentDataIncremental {
   userId: number;
   tournamentId: number;
-  data: Tournament;
-  previousData?: Tournament;
+  data: Tournament;           // Full updated tournament data
+  previousData?: Tournament;  // Optional previous state
   changes: GameChanges;
+  affectedDivisions: number[];
+  metadata: {
+    addedCount: number;
+    updatedCount: number;
+    timestamp: number;
+  };
   reason: 'games_added';
 }
 

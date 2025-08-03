@@ -1,5 +1,30 @@
 # Changelog
 
+## 2025-08-03
+
+### Added
+- **Incremental Tournament Updates**: Implemented true incremental game updates using worker-coordinated caching system
+- **Tournament Cache Manager**: Added sophisticated cache management with incremental change application
+- **Rich Broadcast Messages**: Enhanced broadcast system with full tournament data, previous state, and change metadata for overlay animations
+
+### Changed
+- **Eliminated "Thundering Herd"**: Multiple overlays now share single API call through worker coordination
+- **Real-time Game Updates**: File changes now trigger incremental updates instead of full tournament refreshes
+- **Network Efficiency**: Server sends only game changes over WebSocket, worker provides full data to overlays via local broadcast
+
+### Technical Details
+- Worker applies incremental changes to cache and broadcasts complete tournament data locally
+- Overlays receive both old and new tournament state plus specific changes for rich animations
+- PostgreSQL-based change detection using `ON CONFLICT` with `RETURNING` for atomic updates
+- Division-aware filtering to update only affected overlays
+- Fallback to full refresh if incremental updates fail
+
+### Performance Improvements
+- Reduced API calls from N (per overlay) to 1 (per tournament change)
+- Instant cache responses for subsequent overlay loads
+- Sub-second tournament update propagation
+- Minimal network traffic for game changes
+
 ## 2025-08-02 Separated Tournament Data for Cleaner Debugging
 
 ### Added
