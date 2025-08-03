@@ -14,6 +14,7 @@ import { AuthProvider } from "./context/AuthContext";
 import HomePage from "./pages/HomePage";
 import WorkerPage from "./pages/WorkerPage";
 import AdminPage from "./pages/admin/AdminPage";
+import HighScoreAnimationOverlay from "./pages/overlay/HighScoreAnimationOverlay";
 import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
 import MiscOverlayPage from "./pages/overlay/MiscOverlayPage";
 import MiscOverlayTestingPage from "./pages/overlay/MiscOverlayTestingPage";
@@ -85,6 +86,10 @@ const AppContent: React.FC = () => {
         <Route
           path="/users/:userId/overlay/high_scores_with_pics/:tournamentId?/:divisionName?"
           element={<HighScoresWithPicsOverlayPage />}
+        />
+        <Route
+          path="/users/:userId/overlay/high_score_animation/:tournamentId?/:divisionName?"
+          element={<HighScoreAnimationOverlay />}
         />
         <Route
           path="/users/:userId/overlay/scoring_leaders/:tournamentId?/:divisionName?"

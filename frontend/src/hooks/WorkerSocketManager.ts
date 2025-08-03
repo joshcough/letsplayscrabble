@@ -287,6 +287,11 @@ class WorkerSocketManager {
         data.update.tournament.id,
       );
 
+      // Clone the previous data to avoid mutation issues
+      const previousDataSnapshot = previousData
+        ? JSON.parse(JSON.stringify(previousData))
+        : null;
+
       // Apply incremental changes to cache
       const success = this.cacheManager.applyTournamentUpdate(
         data.update.tournament.user_id,
@@ -296,7 +301,7 @@ class WorkerSocketManager {
 
       if (success) {
         // Broadcast incremental update with full tournament data
-        this.broadcastTournamentIncremental(data.update, previousData);
+        this.broadcastTournamentIncremental(data.update, previousDataSnapshot);
       } else {
         // Fallback to full refresh if cache update failed
         console.warn("⚠️ Cache update failed, falling back to full refresh");
