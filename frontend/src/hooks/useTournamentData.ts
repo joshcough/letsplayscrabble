@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
-import * as DB from "@shared/types/database";
-import { GamesAddedMessage } from "@shared/types/websocket";
 import {
   SubscribeMessage,
   TournamentDataResponse,
@@ -10,6 +8,8 @@ import {
   TournamentDataIncremental,
   TournamentDataError,
 } from "@shared/types/broadcast";
+import * as DB from "@shared/types/database";
+import { GamesAddedMessage } from "@shared/types/websocket";
 
 import { fetchTournament, fetchTournamentDivision } from "../utils/api";
 import BroadcastManager from "./BroadcastManager";
@@ -77,13 +77,14 @@ export const useTournamentData = ({
       );
 
       broadcastChannel.postMessage({
-        type: 'SUBSCRIBE',
+        type: "SUBSCRIBE",
         data: subscribeMessage,
       });
-
     } catch (err) {
       setFetchError(
-        err instanceof Error ? err.message : "Failed to subscribe to tournament data",
+        err instanceof Error
+          ? err.message
+          : "Failed to subscribe to tournament data",
       );
       setLoading(false);
     }
@@ -147,7 +148,9 @@ export const useTournamentData = ({
   useEffect(() => {
     if (userId && effectiveTournamentId) {
       if (shouldUseUrlParams || propTournamentId) {
-        console.log(`🔔 useTournamentData subscribing to tournament data on mount`);
+        console.log(
+          `🔔 useTournamentData subscribing to tournament data on mount`,
+        );
         subscribeToTournamentData();
       }
     }
@@ -173,7 +176,9 @@ export const useTournamentData = ({
           data.update.tournament.user_id === parseInt(userId) &&
           data.update.tournament.id === effectiveTournamentId
         ) {
-          console.log("✅ Matching tournament - re-subscribing for fresh data!");
+          console.log(
+            "✅ Matching tournament - re-subscribing for fresh data!",
+          );
           subscribeToTournamentData();
         } else {
           console.log("⏭️ Different tournament - ignoring");
@@ -190,8 +195,8 @@ export const useTournamentData = ({
   useEffect(() => {
     if (!userId) return;
 
-    const cleanupAdminPanelUpdate = BroadcastManager.getInstance().onAdminPanelUpdate(
-      (data) => {
+    const cleanupAdminPanelUpdate =
+      BroadcastManager.getInstance().onAdminPanelUpdate((data) => {
         console.log(
           "🎮 useTournamentData received AdminPanelUpdate broadcast:",
           data,
@@ -199,7 +204,9 @@ export const useTournamentData = ({
 
         // Only process if this update is for our user
         if (data.userId === parseInt(userId)) {
-          console.log("✅ AdminPanelUpdate for our user - checking if we need to resubscribe");
+          console.log(
+            "✅ AdminPanelUpdate for our user - checking if we need to resubscribe",
+          );
 
           // Check if the tournament or division has changed from what we currently have
           const newTournamentId = data.tournamentId;
@@ -210,23 +217,26 @@ export const useTournamentData = ({
           const currentTournamentId = effectiveTournamentId;
           const currentDivisionId = propDivisionId;
 
-          if (newTournamentId !== currentTournamentId ||
-              (propDivisionId && newDivisionId !== currentDivisionId)) {
+          if (
+            newTournamentId !== currentTournamentId ||
+            (propDivisionId && newDivisionId !== currentDivisionId)
+          ) {
             console.log(
-              `🔄 Tournament/division changed: ${currentTournamentId}/${currentDivisionId} → ${newTournamentId}/${newDivisionId} - resubscribing`
+              `🔄 Tournament/division changed: ${currentTournamentId}/${currentDivisionId} → ${newTournamentId}/${newDivisionId} - resubscribing`,
             );
 
             // Note: The currentMatch will be updated by useCurrentMatch hook,
             // which will trigger our main subscription effect to resubscribe
             // We don't need to manually subscribe here
           } else {
-            console.log("⏭️ Same tournament/division - no resubscription needed");
+            console.log(
+              "⏭️ Same tournament/division - no resubscription needed",
+            );
           }
         } else {
           console.log("⏭️ AdminPanelUpdate for different user - ignoring");
         }
-      },
-    );
+      });
 
     return () => {
       cleanupAdminPanelUpdate();
@@ -251,7 +261,9 @@ export const useTournamentData = ({
             data.tournamentId === effectiveTournamentId
           ) {
             // We always get full tournament data now, so just accept it
-            console.log(`✅ TOURNAMENT_DATA_RESPONSE for tournament - accepting (contains ${data.data.divisions.length} divisions)`);
+            console.log(
+              `✅ TOURNAMENT_DATA_RESPONSE for tournament - accepting (contains ${data.data.divisions.length} divisions)`,
+            );
 
             console.log(
               "✅ Using worker's tournament data - no API call needed!",
@@ -278,7 +290,9 @@ export const useTournamentData = ({
             setFetchError(null);
             setLoading(false);
           } else {
-            console.log(`⏭️ Different tournament/user - ignoring (received: ${data.userId}/${data.tournamentId}, expected: ${userId}/${effectiveTournamentId})`);
+            console.log(
+              `⏭️ Different tournament/user - ignoring (received: ${data.userId}/${data.tournamentId}, expected: ${userId}/${effectiveTournamentId})`,
+            );
           }
         },
       );
@@ -311,11 +325,11 @@ export const useTournamentData = ({
             data.userId === parseInt(userId) &&
             data.tournamentId === effectiveTournamentId
           ) {
-            console.log(`✅ TOURNAMENT_DATA_REFRESH for tournament - accepting (contains ${data.data.divisions.length} divisions)`);
-
             console.log(
-              "✅ Using worker's refreshed tournament data!",
+              `✅ TOURNAMENT_DATA_REFRESH for tournament - accepting (contains ${data.data.divisions.length} divisions)`,
             );
+
+            console.log("✅ Using worker's refreshed tournament data!");
 
             // Process the tournament data (same logic as fetchTournamentData)
             const tournament = data.data;
@@ -338,7 +352,9 @@ export const useTournamentData = ({
             setFetchError(null);
             setLoading(false);
           } else {
-            console.log(`⏭️ Different tournament/user - ignoring (received: ${data.userId}/${data.tournamentId}, expected: ${userId}/${effectiveTournamentId})`);
+            console.log(
+              `⏭️ Different tournament/user - ignoring (received: ${data.userId}/${data.tournamentId}, expected: ${userId}/${effectiveTournamentId})`,
+            );
           }
         },
       );
@@ -375,7 +391,9 @@ export const useTournamentData = ({
             setFetchError(data.error);
             setLoading(false);
           } else {
-            console.log(`⏭️ Error for different tournament/user - ignoring (received: ${data.userId}/${data.tournamentId}, expected: ${userId}/${effectiveTournamentId})`);
+            console.log(
+              `⏭️ Error for different tournament/user - ignoring (received: ${data.userId}/${data.tournamentId}, expected: ${userId}/${effectiveTournamentId})`,
+            );
           }
         },
       );

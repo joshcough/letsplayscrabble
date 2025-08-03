@@ -1,9 +1,4 @@
-// WorkerSocketManager.ts - Enhanced SocketManager for the worker thread
-import {
-  AdminPanelUpdateMessage,
-  GamesAddedMessage,
-  Ping,
-} from "@shared/types/websocket";
+// WorkerSocketManager.ts - Enhanced SocketManager using TournamentCacheManager
 import {
   SubscribeMessage,
   TournamentDataResponse,
@@ -11,10 +6,16 @@ import {
   TournamentDataError,
   BroadcastMessage,
 } from "@shared/types/broadcast";
+import {
+  AdminPanelUpdateMessage,
+  GamesAddedMessage,
+  Ping,
+} from "@shared/types/websocket";
 import io, { Socket } from "socket.io-client";
 
 import { API_BASE } from "../config/api";
 import { fetchTournament } from "../utils/api";
+import TournamentCacheManager from "./TournamentCacheManager";
 
 class WorkerSocketManager {
   private static instance: WorkerSocketManager;
@@ -22,23 +23,32 @@ class WorkerSocketManager {
   private connectionStatus: string = "Initializing...";
   private error: string | null = null;
   private lastDataUpdate: number = Date.now();
-  private listeners: Set<(data: any) => void> = new Set();
 
   private broadcastChannel: BroadcastChannel;
-
-  // Cache for tournament data - keyed by "userId:tournamentId" (always full tournament)
-  private tournamentCache = new Map<string, any>();
+  private statusChannel: BroadcastChannel;
+  private cacheManager: TournamentCacheManager;
 
   // Message deduplication - track highest timestamp seen
   private lastSeenTimestamp: number = 0;
+  private statusBroadcastInterval: NodeJS.Timeout | null = null;
 
   private constructor() {
     console.log(
       "🔧 WorkerSocketManager constructor called - creating instance",
     );
     this.broadcastChannel = new BroadcastChannel("tournament-updates");
+    this.statusChannel = new BroadcastChannel("worker-status");
+    this.cacheManager = TournamentCacheManager.getInstance();
     this.connectSocket();
     this.setupBroadcastListener();
+    this.startStatusBroadcasting();
+  }
+
+  private startStatusBroadcasting() {
+    // Broadcast status every second
+    this.statusBroadcastInterval = setInterval(() => {
+      this.broadcastStatus();
+    }, 1000);
   }
 
   static getInstance(): WorkerSocketManager {
@@ -94,32 +104,29 @@ class WorkerSocketManager {
       console.log(`📥 Worker received broadcast message: ${type}`, data);
 
       switch (type) {
-        case 'SUBSCRIBE':
+        case "SUBSCRIBE":
           this.handleSubscribeMessage(data as SubscribeMessage);
           break;
         default:
-          console.log(`⚠️ Worker received unknown broadcast message type: ${type}`);
+          console.log(
+            `⚠️ Worker received unknown broadcast message type: ${type}`,
+          );
       }
     };
   }
 
-  private getCacheKey(userId: number, tournamentId: number): string {
-    return `${userId}:${tournamentId}`;
-  }
-
   private async handleSubscribeMessage(data: SubscribeMessage) {
     const { userId, tournamentId, divisionId } = data;
-    const cacheKey = this.getCacheKey(userId, tournamentId);
 
     console.log(
-      `🔔 Worker handling SUBSCRIBE request: user ${userId}, tournament ${tournamentId}${divisionId ? `, division ${divisionId} (will fetch full tournament)` : ' (full tournament)'}`
+      `🔔 Worker handling SUBSCRIBE request: user ${userId}, tournament ${tournamentId}${divisionId ? `, division ${divisionId} (will fetch full tournament)` : " (full tournament)"}`,
     );
 
     // Check cache first
-    if (this.tournamentCache.has(cacheKey)) {
-      console.log(`💾 Worker found cached data for ${cacheKey} - broadcasting immediately`);
+    const cachedData = this.cacheManager.get(userId, tournamentId);
+    if (cachedData) {
+      console.log(`💾 Worker found cached data - broadcasting immediately`);
 
-      const cachedData = this.tournamentCache.get(cacheKey);
       const message: TournamentDataResponse = {
         userId: userId,
         tournamentId: tournamentId,
@@ -138,12 +145,13 @@ class WorkerSocketManager {
 
     // Not in cache - fetch full tournament and cache
     try {
-      console.log(`🔄 Worker fetching full tournament data for tournament ${tournamentId}...`);
+      console.log(
+        `🔄 Worker fetching full tournament data for tournament ${tournamentId}...`,
+      );
       const tournamentData = await fetchTournament(userId, tournamentId);
 
       // Cache the data
-      this.tournamentCache.set(cacheKey, tournamentData);
-      console.log(`💾 Worker cached full tournament data for ${cacheKey}`);
+      this.cacheManager.set(userId, tournamentId, tournamentData);
 
       const message: TournamentDataResponse = {
         userId: userId,
@@ -158,7 +166,6 @@ class WorkerSocketManager {
         type: "TOURNAMENT_DATA_RESPONSE",
         data: message,
       });
-
     } catch (error) {
       console.error(
         `🔴 Worker failed to fetch tournament data for SUBSCRIBE request: user ${userId}, tournament ${tournamentId}:`,
@@ -202,19 +209,13 @@ class WorkerSocketManager {
         this.connectionStatus = "Connected to server";
         this.error = null;
         this.lastDataUpdate = Date.now();
-        this.notifyListeners({
-          type: "statusChange",
-          status: this.connectionStatus,
-        });
+        this.broadcastStatus();
       });
 
       this.socket.on("connect_error", (error: Error) => {
         console.error("🔴 Worker Socket connect error:", error);
         this.connectionStatus = `Connection error: ${error.message}`;
-        this.notifyListeners({
-          type: "statusChange",
-          status: this.connectionStatus,
-        });
+        this.broadcastStatus();
       });
 
       this.socket.on("disconnect", (reason: string) => {
@@ -223,16 +224,13 @@ class WorkerSocketManager {
         // Reset timestamp counter on disconnect to handle reconnection cleanly
         this.lastSeenTimestamp = 0;
         console.log("🔄 Reset lastSeenTimestamp on disconnect");
-        this.notifyListeners({
-          type: "statusChange",
-          status: this.connectionStatus,
-        });
+        this.broadcastStatus();
       });
 
       this.socket.on("error", (error: Error) => {
         console.error("🔴 Worker Socket error:", error);
         this.error = `Socket error: ${error.message}`;
-        this.notifyListeners({ type: "error", error: this.error });
+        this.broadcastStatus();
       });
 
       this.socket.on("ping", () => {
@@ -243,6 +241,7 @@ class WorkerSocketManager {
       this.withDeduplication("Ping", (data: Ping) => {
         console.log(`🏓 Worker received ping`, data);
         this.lastDataUpdate = Date.now();
+        this.broadcastWebSocketMessage("Ping", data);
         // Ping is just for keep-alive - no need to broadcast to overlays
       });
 
@@ -263,6 +262,11 @@ class WorkerSocketManager {
       "AdminPanelUpdate",
       (data: AdminPanelUpdateMessage) => {
         console.log("📡 Worker received AdminPanelUpdate:", data);
+        this.broadcastWebSocketMessage("AdminPanelUpdate", data);
+        this.broadcastMessage({
+          type: "ADMIN_PANEL_UPDATE",
+          data: data,
+        });
         // Process internally - fetch fresh tournament data and broadcast refresh
         this.fetchAndBroadcastTournamentRefresh(data.tournamentId, data.userId);
       },
@@ -270,6 +274,7 @@ class WorkerSocketManager {
 
     this.withDeduplication("GamesAdded", (data: GamesAddedMessage) => {
       console.log("📡 Worker received GamesAdded:", data);
+      this.broadcastWebSocketMessage("GamesAdded", data);
       // TODO: Implement incremental updates using data.update.changes
       // For now, treat as refresh until incremental updates are implemented
       this.fetchAndBroadcastTournamentRefresh(
@@ -283,14 +288,22 @@ class WorkerSocketManager {
   private broadcastMessage(message: BroadcastMessage) {
     console.log(`📢 Worker broadcasting ${message.type}:`, message.data);
     this.broadcastChannel.postMessage(message);
+
+    // Also broadcast to status channel for debugging
+    this.statusChannel.postMessage({
+      type: "BROADCAST_MESSAGE",
+      data: {
+        messageType: message.type,
+        data: message.data,
+        timestamp: Date.now(),
+      },
+    });
   }
 
   private async fetchAndBroadcastTournamentRefresh(
     tournamentId: number,
     userId: number,
   ) {
-    const cacheKey = this.getCacheKey(userId, tournamentId);
-
     try {
       console.log(
         `🔄 Worker fetching full tournament data for refresh: user ${userId}, tournament ID: ${tournamentId}`,
@@ -298,14 +311,13 @@ class WorkerSocketManager {
       const tournamentData = await fetchTournament(userId, tournamentId);
 
       // Update cache
-      this.tournamentCache.set(cacheKey, tournamentData);
-      console.log(`💾 Worker updated cache for ${cacheKey} after WebSocket event`);
+      this.cacheManager.set(userId, tournamentId, tournamentData);
 
       const message: TournamentDataRefresh = {
         userId: userId,
         tournamentId: tournamentId,
         data: tournamentData,
-        reason: 'admin_panel_update',
+        reason: "admin_panel_update",
       };
 
       console.log(
@@ -336,16 +348,29 @@ class WorkerSocketManager {
     }
   }
 
-  private notifyListeners(data: any) {
-    this.listeners.forEach((listener) => listener(data));
+  // Broadcast status updates via status channel
+  private broadcastStatus() {
+    this.statusChannel.postMessage({
+      type: "WORKER_STATUS_UPDATE",
+      data: {
+        status: this.connectionStatus,
+        error: this.error,
+        lastDataUpdate: this.lastDataUpdate,
+        cacheStats: this.cacheManager.getStats(),
+      },
+    });
   }
 
-  addListener(listener: (data: any) => void) {
-    this.listeners.add(listener);
-  }
-
-  removeListener(listener: (data: any) => void) {
-    this.listeners.delete(listener);
+  // Broadcast incoming WebSocket messages for debugging
+  private broadcastWebSocketMessage(eventType: string, data: any) {
+    this.statusChannel.postMessage({
+      type: "WEBSOCKET_MESSAGE",
+      data: {
+        eventType,
+        data,
+        timestamp: Date.now(),
+      },
+    });
   }
 
   getSocket(): Socket | null {
@@ -375,15 +400,24 @@ class WorkerSocketManager {
     console.log("🔄 Manually reset lastSeenTimestamp");
   }
 
+  // Get cache stats for debugging
+  getCacheStats() {
+    return this.cacheManager.getStats();
+  }
+
   // Cleanup method
   cleanup() {
     console.log("🧹 Worker cleaning up...");
     if (this.socket) {
       this.socket.disconnect();
     }
+    if (this.statusBroadcastInterval) {
+      clearInterval(this.statusBroadcastInterval);
+    }
     this.broadcastChannel.close();
+    this.statusChannel.close();
     this.lastSeenTimestamp = 0;
-    this.tournamentCache.clear();
+    this.cacheManager.clear();
     console.log("💾 Worker cleared tournament cache");
   }
 }

@@ -11,12 +11,20 @@ export interface TournamentRow {
   year: number;
   lexicon: string;
   long_form_name: string;
-  data_url: string;
-  data: File.TournamentData; // JSON field containing raw tournament data
   created_at: Date;
   updated_at: Date;
-  poll_until: Date | null;
   user_id: number;
+  poll_until: Date | null; // TODO: doesnt actually live in this table
+  data_url: string; // TODO: doesnt actually live in this table.
+}
+
+export interface TournamentDataRow {
+  tournament_id: number;
+  data_url: string;
+  data: File.TournamentData; // JSON field containing raw tournament data
+  poll_until: Date | null;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface DivisionRow {
@@ -112,7 +120,6 @@ export interface CreatePlayerRow {
 }
 
 export interface CreateGameRow {
-  division_position: number;
   round_number: number;
   player1_file_id: number;
   player2_file_id: number;
@@ -141,8 +148,8 @@ export interface Tournament {
 
 // Interface for tracking game changes
 export interface GameChanges {
-  added: CreateGameRow[];
-  updated: CreateGameRow[];
+  added: GameRow[];
+  updated: GameRow[];
 }
 
 export interface TournamentUpdate {
