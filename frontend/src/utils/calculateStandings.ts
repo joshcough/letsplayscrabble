@@ -1,6 +1,9 @@
 import * as DB from "@shared/types/database";
 import * as Stats from "@shared/types/stats";
 
+import { getOrdinal } from "./formatUtils";
+import { formatPlayerName } from "./playerUtils";
+
 export interface TournamentStats {
   gamesPlayed: number;
   pointsScored: number;
@@ -144,22 +147,6 @@ export function calculateAllTournamentStats(
   return calculateTournamentStats(allGames, allPlayers);
 }
 
-// Helper function to format player names (assuming this exists somewhere)
-const formatName = (name: string): string => {
-  const parts = name.split(",");
-  if (parts.length === 2) {
-    return `${parts[1].trim()} ${parts[0].trim()}`;
-  }
-  return name;
-};
-
-// Helper function to get ordinal (1st, 2nd, 3rd, etc.)
-const getOrdinal = (num: number): string => {
-  const suffixes = ["th", "st", "nd", "rd"];
-  const v = num % 100;
-  return num + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
-};
-
 // Calculate stats for a single player from their games
 function calculatePlayerStatsFromGames(
   player: DB.PlayerRow,
@@ -247,7 +234,7 @@ function calculatePlayerStatsFromGames(
   return {
     playerId: player.id,
     name: player.name,
-    firstLast: formatName(player.name),
+    firstLast: formatPlayerName(player.name),
     initialRating: player.initial_rating,
     currentRating,
     ratingDiff,

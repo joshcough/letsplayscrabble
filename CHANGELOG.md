@@ -1,5 +1,17 @@
 # Changelog
 
+## 2025-08-03 - More Animations
+
+### Changed
+- **Notification System Refactor**: Simplified the tournament notification architecture by removing complex TypeScript generics and intermediate event objects. Each notification type now exports a single detector function that returns JSX directly, making the system easier to understand and extend.
+
+### Added
+- **Flexible Notification Routing**: Notifications can now be easily mixed and matched across different routes (e.g., `AllNotifications`, `CriticalNotifications`) for different OBS browser sources.
+
+### Improved
+- **Developer Experience**: Adding new notification types is now straightforward - just create three simple functions (detect, render, combine) without worrying about generic type constraints.
+- **Queue System**: Multiple notifications from the same game update are automatically queued and displayed sequentially.
+
 ## 2025-08-03 - High Score Animations!
 
 ### Added
