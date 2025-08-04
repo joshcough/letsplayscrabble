@@ -14,7 +14,7 @@ import { AuthProvider } from "./context/AuthContext";
 import HomePage from "./pages/HomePage";
 import WorkerPage from "./pages/WorkerPage";
 import AdminPage from "./pages/admin/AdminPage";
-import HighScoreAnimation from "./pages/notifications/HighScoreAnimation";
+import AllNotifications from "./pages/notifications/AllNotifications";
 import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
 import MiscOverlayPage from "./pages/overlay/MiscOverlayPage";
 import MiscOverlayTestingPage from "./pages/overlay/MiscOverlayTestingPage";
@@ -93,8 +93,8 @@ const AppContent: React.FC = () => {
         />
         {/* Animation routes - transparent background */}
         <Route
-          path="/users/:userId/notifications/high_score/:tournamentId?/:divisionName?"
-          element={<HighScoreAnimation />}
+          path="/users/:userId/notifications/all/:tournamentId?/:divisionName?"
+          element={<AllNotifications />}
         />
         <Route
           path="/users/:userId/overlay/scoring_leaders/:tournamentId?/:divisionName?"

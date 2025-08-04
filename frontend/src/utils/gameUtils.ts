@@ -108,3 +108,53 @@ export const getHighScoreFromChanges = (
 
   return { score: highScore, playerName: highScorePlayerName };
 };
+
+// Helper to determine if a player won a game
+export const didPlayerWinGame = (
+  game: DB.GameRow,
+  playerId: number,
+): boolean => {
+  if (game.is_bye) {
+    // For byes, check if the player got a positive score
+    const playerScore =
+      game.player1_id === playerId ? game.player1_score : game.player2_score;
+    return (playerScore || 0) > 0;
+  }
+
+  // For regular games, compare scores
+  const playerScore =
+    game.player1_id === playerId ? game.player1_score : game.player2_score;
+  const opponentScore =
+    game.player1_id === playerId ? game.player2_score : game.player1_score;
+
+  return (playerScore || 0) > (opponentScore || 0);
+};
+
+// Helper to calculate current win streak for a player
+export const calculateWinStreak = (
+  playerId: number,
+  allGames: DB.GameRow[],
+): number => {
+  // Get all games for this player, sorted by round (newest first)
+  const playerGames = allGames
+    .filter(
+      (game) => game.player1_id === playerId || game.player2_id === playerId,
+    )
+    .filter(
+      (game) => game.player1_score !== null && game.player2_score !== null,
+    ) // Only completed games
+    .sort((a, b) => b.round_number - a.round_number);
+
+  let streak = 0;
+
+  // Count consecutive wins from most recent game backwards
+  for (const game of playerGames) {
+    if (didPlayerWinGame(game, playerId)) {
+      streak++;
+    } else {
+      break; // Streak ends at first loss
+    }
+  }
+
+  return streak;
+};
