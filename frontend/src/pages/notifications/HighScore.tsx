@@ -1,6 +1,11 @@
 import React from "react";
+
 import { TournamentDataIncremental } from "@shared/types/broadcast";
-import { getHighScoreForDivision, getHighScoreFromChanges } from "../../utils/gameUtils";
+
+import {
+  getHighScoreForDivision,
+  getHighScoreFromChanges,
+} from "../../utils/gameUtils";
 
 // High score data structure
 interface HighScoreData {
@@ -10,20 +15,32 @@ interface HighScoreData {
 }
 
 // 1. Detection logic - returns data or null
-const detectHighScore = (update: TournamentDataIncremental, divisionData: any): HighScoreData | null => {
-  console.log('🏆 HighScoreDetector: Checking for new high scores...');
+const detectHighScore = (
+  update: TournamentDataIncremental,
+  divisionData: any,
+): HighScoreData | null => {
+  console.log("🏆 HighScoreDetector: Checking for new high scores...");
 
   // Get the highest score from just the changes for our division
-  const changesHighScore = getHighScoreFromChanges(update.changes, divisionData.division.id, divisionData.players);
+  const changesHighScore = getHighScoreFromChanges(
+    update.changes,
+    divisionData.division.id,
+    divisionData.players,
+  );
 
   // Get the previous high score for the division (0 if no previous data)
   const previousHighScore = update.previousData
     ? getHighScoreForDivision(update.previousData, divisionData.division.id)
-    : { score: 0, playerName: '', gameId: 0 };
+    : { score: 0, playerName: "", gameId: 0 };
 
   // Check if the highest score in the changes beats the previous record (or is the first score)
-  if (changesHighScore.score > previousHighScore.score && changesHighScore.score > 0) {
-    console.log(`🏆 NEW HIGH SCORE! ${changesHighScore.playerName}: ${changesHighScore.score} (was ${previousHighScore.score})`);
+  if (
+    changesHighScore.score > previousHighScore.score &&
+    changesHighScore.score > 0
+  ) {
+    console.log(
+      `🏆 NEW HIGH SCORE! ${changesHighScore.playerName}: ${changesHighScore.score} (was ${previousHighScore.score})`,
+    );
 
     return {
       score: changesHighScore.score,
@@ -36,7 +53,10 @@ const detectHighScore = (update: TournamentDataIncremental, divisionData: any): 
 };
 
 // 2. Render logic - pure UI component
-const renderHighScore = (data: HighScoreData, divisionData: any): JSX.Element => (
+const renderHighScore = (
+  data: HighScoreData,
+  divisionData: any,
+): JSX.Element => (
   <div className="relative bg-white text-gray-900 p-4 sm:p-6 lg:p-12 rounded-lg shadow-2xl border-2 border-gray-300 w-full max-w-sm sm:max-w-md lg:max-w-2xl mx-auto">
     <div className="text-center space-y-2 sm:space-y-4 lg:space-y-6">
       {/* Title */}
@@ -70,7 +90,10 @@ const renderHighScore = (data: HighScoreData, divisionData: any): JSX.Element =>
 );
 
 // 3. Combined detector - calls detect, then render
-export const highScoreDetector = (update: TournamentDataIncremental, divisionData: any): JSX.Element | null => {
+export const highScoreDetector = (
+  update: TournamentDataIncremental,
+  divisionData: any,
+): JSX.Element | null => {
   const data = detectHighScore(update, divisionData);
   if (!data) return null;
   return renderHighScore(data, divisionData);

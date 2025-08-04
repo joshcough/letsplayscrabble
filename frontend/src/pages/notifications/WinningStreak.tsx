@@ -1,6 +1,8 @@
 import React from "react";
+
 import { TournamentDataIncremental } from "@shared/types/broadcast";
 import { PlayerRow } from "@shared/types/database";
+
 import { didPlayerWinGame, calculateWinStreak } from "../../utils/gameUtils";
 
 // Winning streak data structure
@@ -10,23 +12,36 @@ interface WinningStreakData {
 }
 
 // 1. Detection logic - returns data or null
-const detectWinningStreak = (update: TournamentDataIncremental, divisionData: any): WinningStreakData | null => {
-  console.log('🔥 WinningStreakDetector: Checking for win streaks...');
+const detectWinningStreak = (
+  update: TournamentDataIncremental,
+  divisionData: any,
+): WinningStreakData | null => {
+  console.log("🔥 WinningStreakDetector: Checking for win streaks...");
 
   // Only look at newly added or updated games in this division
   const relevantChanges = [
-    ...update.changes.added.filter(g => g.division_id === divisionData.division.id),
-    ...update.changes.updated.filter(g => g.division_id === divisionData.division.id)
-  ].filter(game => game.player1_score !== null && game.player2_score !== null); // Only completed games
+    ...update.changes.added.filter(
+      (g) => g.division_id === divisionData.division.id,
+    ),
+    ...update.changes.updated.filter(
+      (g) => g.division_id === divisionData.division.id,
+    ),
+  ].filter(
+    (game) => game.player1_score !== null && game.player2_score !== null,
+  ); // Only completed games
 
   if (relevantChanges.length === 0) {
-    console.log('🔥 WinningStreakDetector: No relevant completed games in changes');
+    console.log(
+      "🔥 WinningStreakDetector: No relevant completed games in changes",
+    );
     return null;
   }
 
   // Get all games in the current data for streak calculation
-  const allCurrentGames = update.data?.divisions
-    .find(d => d.division.id === divisionData.division.id)?.games || [];
+  const allCurrentGames =
+    update.data?.divisions.find(
+      (d) => d.division.id === divisionData.division.id,
+    )?.games || [];
 
   // Check each changed game to see if it resulted in a notable win streak
   for (const game of relevantChanges) {
@@ -41,10 +56,14 @@ const detectWinningStreak = (update: TournamentDataIncremental, divisionData: an
 
         // Trigger notification for streaks of 3+ games
         if (currentStreak >= 3) {
-          const player = divisionData.players.find((p:PlayerRow) => p.id === playerId);
+          const player = divisionData.players.find(
+            (p: PlayerRow) => p.id === playerId,
+          );
 
           if (player) {
-            console.log(`🔥 WIN STREAK DETECTED! ${player.name}: ${currentStreak} games`);
+            console.log(
+              `🔥 WIN STREAK DETECTED! ${player.name}: ${currentStreak} games`,
+            );
 
             return {
               playerName: player.name,
@@ -56,12 +75,15 @@ const detectWinningStreak = (update: TournamentDataIncremental, divisionData: an
     }
   }
 
-  console.log('🔥 WinningStreakDetector: No notable win streaks found');
+  console.log("🔥 WinningStreakDetector: No notable win streaks found");
   return null;
 };
 
 // 2. Render logic - pure UI component
-const renderWinningStreak = (data: WinningStreakData, divisionData: any): JSX.Element => (
+const renderWinningStreak = (
+  data: WinningStreakData,
+  divisionData: any,
+): JSX.Element => (
   <div className="relative bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-4 sm:p-6 lg:p-12 rounded-lg shadow-2xl border-2 border-yellow-300 w-full max-w-sm sm:max-w-md lg:max-w-2xl mx-auto">
     <div className="text-center space-y-2 sm:space-y-4 lg:space-y-6">
       {/* Title with fire emojis */}
@@ -93,7 +115,10 @@ const renderWinningStreak = (data: WinningStreakData, divisionData: any): JSX.El
 );
 
 // 3. Combined detector - calls detect, then render
-export const winningStreakDetector = (update: TournamentDataIncremental, divisionData: any): JSX.Element | null => {
+export const winningStreakDetector = (
+  update: TournamentDataIncremental,
+  divisionData: any,
+): JSX.Element | null => {
   const data = detectWinningStreak(update, divisionData);
   if (!data) return null;
   return renderWinningStreak(data, divisionData);

@@ -1,4 +1,5 @@
 import React from "react";
+
 import TournamentNotificationOverlay from "../../components/notifications/TournamentNotificationOverlay";
 import { highScoreDetector } from "./HighScore";
 import { winningStreakDetector } from "./WinningStreak";
