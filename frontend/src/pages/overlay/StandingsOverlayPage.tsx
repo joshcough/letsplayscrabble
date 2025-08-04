@@ -5,7 +5,7 @@ import {
   UsePlayerStatsCalculation,
   RankedPlayerStats,
 } from "../../hooks/usePlayerStatsCalculation";
-import { formatNumberWithSign } from "../../utils/tournamentHelpers";
+import { formatNumberWithSign } from "../../utils/formatUtils";
 
 const StandingsOverlayPage: React.FC = () => {
   const columns = [

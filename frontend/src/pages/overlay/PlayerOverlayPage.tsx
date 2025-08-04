@@ -8,6 +8,7 @@ import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
 import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
 import PointsDisplay from "../../components/shared/PointsDisplay";
 import { useTournamentData } from "../../hooks/useTournamentData";
+import { getRecentGamesForPlayer } from "../../utils/gameUtils";
 import {
   formatSpread,
   formatRecord,
@@ -16,8 +17,7 @@ import {
   formatUnderCamNoSeed,
   formatFullUnderCamWithRating,
   formatBestOf7,
-} from "../../utils/statsOverlayHelpers";
-import { getRecentGamesForPlayer } from "../../utils/tournamentHelpers";
+} from "../../utils/playerUtils";
 
 type RouteParams = {
   userId?: string;

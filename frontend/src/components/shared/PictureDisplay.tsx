@@ -2,10 +2,7 @@ import React from "react";
 
 import * as Stats from "@shared/types/stats";
 
-import {
-  getPlayerImageUrl,
-  formatPlayerName,
-} from "../../utils/pictureOverlayUtils";
+import { getPlayerImageUrl, formatPlayerName } from "../../utils/playerUtils";
 import { TournamentDisplayData } from "../shared/BaseOverlay";
 
 interface PictureDisplayProps {

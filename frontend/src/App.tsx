@@ -14,7 +14,7 @@ import { AuthProvider } from "./context/AuthContext";
 import HomePage from "./pages/HomePage";
 import WorkerPage from "./pages/WorkerPage";
 import AdminPage from "./pages/admin/AdminPage";
-import HighScoreAnimationOverlay from "./pages/overlay/HighScoreAnimationOverlay";
+import HighScoreAnimation from "./pages/notifications/HighScoreAnimation";
 import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
 import MiscOverlayPage from "./pages/overlay/MiscOverlayPage";
 import MiscOverlayTestingPage from "./pages/overlay/MiscOverlayTestingPage";
@@ -39,11 +39,11 @@ const AppContent: React.FC = () => {
   const isOverlay =
     location.pathname.startsWith("/overlay/") ||
     location.pathname.includes("/overlay/") ||
-    location.pathname.includes("/animation/") ||
+    location.pathname.includes("/notifications/") ||
     location.pathname.startsWith("/worker");
 
   const getBackgroundClass = () => {
-    if (location.pathname.includes("/animation/")) {
+    if (location.pathname.includes("/notifications/")) {
       return "min-h-screen bg-transparent";
     }
     return isOverlay ? "min-h-screen bg-white" : "min-h-screen bg-[#E4C6A0]";
@@ -93,8 +93,8 @@ const AppContent: React.FC = () => {
         />
         {/* Animation routes - transparent background */}
         <Route
-          path="/users/:userId/animation/high_score/:tournamentId?/:divisionName?"
-          element={<HighScoreAnimationOverlay />}
+          path="/users/:userId/notifications/high_score/:tournamentId?/:divisionName?"
+          element={<HighScoreAnimation />}
         />
         <Route
           path="/users/:userId/overlay/scoring_leaders/:tournamentId?/:divisionName?"

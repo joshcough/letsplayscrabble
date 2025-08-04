@@ -18,7 +18,7 @@ import {
   formatUnderCamNoSeed,
   formatFullUnderCamWithRating,
   formatBestOf7,
-} from "../../utils/statsOverlayHelpers";
+} from "../../utils/playerUtils";
 
 type SourceType =
   | "player1-name"

@@ -55,3 +55,37 @@ export const calculateHighScoreRanks = (
     rank: index + 1,
   }));
 };
+
+// Generic ranking function by sort type
+export type SortType =
+  | "highScore"
+  | "averageScore"
+  | "ratingDiff"
+  | "standings";
+
+export const calculateRanksBySortType = (
+  players: Stats.PlayerStats[],
+  sortType: SortType,
+): RankedPlayerStats[] => {
+  const sortedPlayers = [...players].sort((a, b) => {
+    switch (sortType) {
+      case "highScore":
+        return b.highScore - a.highScore;
+      case "averageScore":
+        return b.averageScore - a.averageScore;
+      case "ratingDiff":
+        return b.ratingDiff - a.ratingDiff;
+      case "standings":
+        if (a.wins !== b.wins) return b.wins - a.wins;
+        if (a.losses !== b.losses) return a.losses - b.losses;
+        return b.spread - a.spread;
+      default:
+        return 0;
+    }
+  });
+
+  return sortedPlayers.map((player, index) => ({
+    ...player,
+    rank: index + 1,
+  }));
+};

@@ -2,7 +2,7 @@ import React from "react";
 
 import PictureDisplay from "../../components/shared/PictureDisplay";
 import { UsePlayerStatsCalculation } from "../../hooks/usePlayerStatsCalculation";
-import { formatNumberWithSign } from "../../utils/tournamentHelpers";
+import { formatNumberWithSign } from "../../utils/formatUtils";
 
 const RatingGainWithPicsOverlayPage: React.FC = () => {
   const renderPlayerContent = (player: any) => (
