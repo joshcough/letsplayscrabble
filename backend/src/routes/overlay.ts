@@ -6,8 +6,6 @@ import { CurrentMatch } from "@shared/types/currentMatch";
 
 import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
 
-// import { getPlayerRecentGames } from "../services/dataProcessing";
-
 export default function createOverlayRoutes(
   currentMatchRepository: CurrentMatchRepository,
 ): Router {

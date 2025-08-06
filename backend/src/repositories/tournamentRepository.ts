@@ -4,11 +4,14 @@ import { Knex } from "knex";
 
 import { knexDb } from "../config/database";
 import { convertFileToDatabase } from "../services/fileToDatabaseConversions";
+import { debugPrintCreateTournament } from "../utils/debugHelpers";
 
 export class TournamentRepository {
   async create(
     createTournament: DB.CreateTournament,
   ): Promise<DB.TournamentRow> {
+    debugPrintCreateTournament(createTournament);
+
     return knexDb.transaction(async (trx) => {
       // Insert tournament record (metadata only)
       const [tournament] = await trx("tournaments")
@@ -43,7 +46,11 @@ export class TournamentRepository {
 
   async findAllForUser(userId: number): Promise<Array<DB.TournamentRow>> {
     return knexDb("tournaments")
-      .select("tournaments.*", "tournament_data.data_url")
+      .select(
+        "tournaments.*",
+        "tournament_data.data_url",
+        "tournament_data.poll_until",
+      )
       .join(
         "tournament_data",
         "tournaments.id",
@@ -58,7 +65,11 @@ export class TournamentRepository {
     userId: number,
   ): Promise<DB.TournamentRow | null> {
     return knexDb("tournaments")
-      .select("tournaments.*", "tournament_data.data_url")
+      .select(
+        "tournaments.*",
+        "tournament_data.data_url",
+        "tournament_data.poll_until",
+      )
       .join(
         "tournament_data",
         "tournaments.id",
@@ -250,11 +261,13 @@ export class TournamentRepository {
         throw new Error("Tournament not found or access denied");
       }
 
-      // Update data_url in tournament_data
-      await trx("tournament_data").where("tournament_id", id).update({
-        data_url: metadata.dataUrl,
-        updated_at: knexDb.fn.now(),
-      });
+      // Update data_url in tournament_data table if provided
+      if (metadata.dataUrl !== undefined) {
+        await trx("tournament_data").where("tournament_id", id).update({
+          data_url: metadata.dataUrl,
+          updated_at: knexDb.fn.now(),
+        });
+      }
 
       return updated;
     });
@@ -505,18 +518,35 @@ export class TournamentRepository {
     tournamentId: number,
     data: DB.CreateTournament,
   ): Promise<DB.GameChanges> {
-    const divisionIds = await this.insertDivisions(
-      trx,
-      tournamentId,
-      data.divisions,
-    );
-    const playerSeedToDbIdMap = await this.insertPlayers(
-      trx,
-      tournamentId,
-      data,
-      divisionIds,
-    );
-    return this.upsertGames(trx, data.games, divisionIds, playerSeedToDbIdMap);
+    const allChanges: DB.GameChanges = { added: [], updated: [] };
+
+    // Process each division with its players and games
+    for (const divisionData of data.divisions) {
+      const divisionId = await this.insertDivision(
+        trx,
+        tournamentId,
+        divisionData.division,
+      );
+
+      const playerSeedToDbIdMap = await this.insertPlayersForDivision(
+        trx,
+        tournamentId,
+        divisionId,
+        divisionData.players,
+      );
+
+      const changes = await this.upsertGamesForDivision(
+        trx,
+        divisionId,
+        divisionData.games,
+        playerSeedToDbIdMap,
+      );
+
+      allChanges.added.push(...changes.added);
+      allChanges.updated.push(...changes.updated);
+    }
+
+    return allChanges;
   }
 
   private async handleIncrementalDataLoad(
@@ -524,55 +554,81 @@ export class TournamentRepository {
     tournamentId: number,
     data: DB.CreateTournament,
   ): Promise<DB.GameChanges> {
-    const divisionIds = await this.getExistingDivisionIds(trx, tournamentId);
-    const playerSeedToDbIdMap = await this.getExistingPlayerMappings(
-      trx,
-      tournamentId,
+    const allChanges: DB.GameChanges = { added: [], updated: [] };
+
+    // Get existing divisions mapped by position
+    const existingDivisions = await trx("divisions")
+      .where("tournament_id", tournamentId)
+      .select("id", "position")
+      .orderBy("position");
+
+    const divisionsByPosition = new Map(
+      existingDivisions.map((d) => [d.position, d.id]),
     );
-    return this.upsertGames(trx, data.games, divisionIds, playerSeedToDbIdMap);
-  }
 
-  private async insertDivisions(
-    trx: Knex.Transaction,
-    tournamentId: number,
-    divisions: any[],
-  ): Promise<number[]> {
-    const divisionIds: number[] = [];
-
-    for (let i = 0; i < divisions.length; i++) {
-      const [division] = await trx("divisions")
-        .insert({ tournament_id: tournamentId, ...divisions[i] })
-        .returning("*");
-      divisionIds[i] = division.id;
-    }
-
-    return divisionIds;
-  }
-
-  private async insertPlayers(
-    trx: Knex.Transaction,
-    tournamentId: number,
-    data: DB.CreateTournament,
-    divisionIds: number[],
-  ): Promise<Map<number, number>> {
-    const playerSeedToDbIdMap = new Map<number, number>();
-
-    for (const playerData of data.players) {
-      const divisionIndex = data.divisions.findIndex(
-        (div) => div.position === playerData.division_position,
+    // Process each division's games
+    for (const divisionData of data.divisions) {
+      const divisionId = divisionsByPosition.get(
+        divisionData.division.position,
       );
 
-      if (divisionIndex === -1) {
+      if (!divisionId) {
         console.warn(
-          `⚠️ Player ${playerData.name} references unknown division position ${playerData.division_position}`,
+          `⚠️ Division at position ${divisionData.division.position} not found`,
         );
         continue;
       }
 
+      // Get existing player mappings for this division
+      const playerSeedToDbIdMap = await this.getPlayerMappingsForDivision(
+        trx,
+        tournamentId,
+        divisionId,
+      );
+
+      const changes = await this.upsertGamesForDivision(
+        trx,
+        divisionId,
+        divisionData.games,
+        playerSeedToDbIdMap,
+      );
+
+      allChanges.added.push(...changes.added);
+      allChanges.updated.push(...changes.updated);
+    }
+
+    return allChanges;
+  }
+
+  private async insertDivision(
+    trx: Knex.Transaction,
+    tournamentId: number,
+    division: DB.CreateDivisionRow,
+  ): Promise<number> {
+    const [inserted] = await trx("divisions")
+      .insert({
+        tournament_id: tournamentId,
+        name: division.name,
+        position: division.position,
+      })
+      .returning("id");
+
+    return inserted.id;
+  }
+
+  private async insertPlayersForDivision(
+    trx: Knex.Transaction,
+    tournamentId: number,
+    divisionId: number,
+    players: DB.CreatePlayerRow[],
+  ): Promise<Map<number, number>> {
+    const playerSeedToDbIdMap = new Map<number, number>();
+
+    for (const playerData of players) {
       const [player] = await trx("players")
         .insert({
           tournament_id: tournamentId,
-          division_id: divisionIds[divisionIndex],
+          division_id: divisionId,
           seed: playerData.seed,
           name: playerData.name,
           initial_rating: playerData.initial_rating,
@@ -587,24 +643,14 @@ export class TournamentRepository {
     return playerSeedToDbIdMap;
   }
 
-  private async getExistingDivisionIds(
+  private async getPlayerMappingsForDivision(
     trx: Knex.Transaction,
     tournamentId: number,
-  ): Promise<number[]> {
-    const divisions = await trx("divisions")
-      .where("tournament_id", tournamentId)
-      .select("id", "position")
-      .orderBy("position");
-
-    return divisions.map((div) => div.id);
-  }
-
-  private async getExistingPlayerMappings(
-    trx: Knex.Transaction,
-    tournamentId: number,
+    divisionId: number,
   ): Promise<Map<number, number>> {
     const players = await trx("players")
       .where("tournament_id", tournamentId)
+      .where("division_id", divisionId)
       .select("id", "seed");
 
     const playerSeedToDbIdMap = new Map<number, number>();
@@ -612,10 +658,10 @@ export class TournamentRepository {
     return playerSeedToDbIdMap;
   }
 
-  private async upsertGames(
+  private async upsertGamesForDivision(
     trx: Knex.Transaction,
-    games: any[],
-    divisionIds: number[],
+    divisionId: number,
+    games: DB.CreateGameRow[],
     playerSeedToDbIdMap: Map<number, number>,
   ): Promise<DB.GameChanges> {
     const changes: DB.GameChanges = { added: [], updated: [] };
@@ -623,6 +669,7 @@ export class TournamentRepository {
     for (const gameData of games) {
       const gameResult = await this.upsertSingleGame(
         trx,
+        divisionId,
         gameData,
         playerSeedToDbIdMap,
       );
@@ -637,20 +684,19 @@ export class TournamentRepository {
 
   private async upsertSingleGame(
     trx: Knex.Transaction,
-    gameData: any,
+    divisionId: number,
+    gameData: DB.CreateGameRow,
     playerSeedToDbIdMap: Map<number, number>,
   ): Promise<{ action: "added" | "updated"; game: DB.GameRow } | null> {
-    const player1DbId = playerSeedToDbIdMap.get(gameData.player1_file_id);
-    const player2DbId = playerSeedToDbIdMap.get(gameData.player2_file_id);
+    const player1DbId = playerSeedToDbIdMap.get(gameData.player1_seed);
+    const player2DbId = playerSeedToDbIdMap.get(gameData.player2_seed);
 
     if (!player1DbId || !player2DbId) {
-      console.warn("⚠️ Skipping game - missing player IDs", { gameData });
-      return null;
-    }
-
-    const divisionId = await this.getDivisionIdForPlayer(trx, player1DbId);
-    if (!divisionId) {
-      console.warn("⚠️ Skipping game - missing division ID", { gameData });
+      console.warn("⚠️ Skipping game - missing player IDs", {
+        divisionId,
+        gameData,
+        availableSeeds: Array.from(playerSeedToDbIdMap.keys()),
+      });
       return null;
     }
 
@@ -715,16 +761,5 @@ export class TournamentRepository {
     }
 
     return null;
-  }
-
-  private async getDivisionIdForPlayer(
-    trx: Knex.Transaction,
-    playerId: number,
-  ): Promise<number | undefined> {
-    const player = await trx("players")
-      .where("id", playerId)
-      .select("division_id")
-      .first();
-    return player?.division_id;
   }
 }

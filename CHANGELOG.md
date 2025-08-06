@@ -1,5 +1,30 @@
 # Changelog
 
+## 2025-08-05
+
+### Fixed
+- Player ID collision bug where games were incorrectly attributed to wrong divisions
+- Missing `poll_until` field in tournament queries causing polling status to not display correctly
+- `updateTournamentMetadata` not updating `data_url` in the correct table after migration
+
+### Changed
+- **BREAKING**: Restructured `CreateTournament` type to use hierarchical tree format
+  - Divisions now contain their own players and games
+  - Player seeds are now division-scoped instead of globally unique
+  - Games reference players by `player1_seed`/`player2_seed` instead of `file_id`
+- Repository now processes each division independently for clearer data flow
+- Tournament data migration properly separated between `tournaments` and `tournament_data` tables
+
+### Added
+- Comprehensive debug helpers for inspecting `CreateTournament` data structure
+- Enhanced tournament generator with multi-division support (2-4 divisions)
+- Command-line parameters for tournament generator (divisions and rounds)
+- Validation functions for tournament data integrity
+
+### Technical Debt Addressed
+- Completed partial migration of tournament data fields to separate table
+- Removed ambiguous global player ID mappings in favor of division-scoped references
+
 ## 2025-08-03 - More Animations
 
 ### Changed

@@ -111,8 +111,7 @@ export interface CreateDivisionRow {
 }
 
 export interface CreatePlayerRow {
-  division_position: number; // Reference by position, not ID
-  seed: number;
+  seed: number;  // Division-specific seed (1-8, 1-8, 1-12)
   name: string;
   initial_rating: number;
   photo: string | null;
@@ -121,8 +120,8 @@ export interface CreatePlayerRow {
 
 export interface CreateGameRow {
   round_number: number;
-  player1_file_id: number;
-  player2_file_id: number;
+  player1_seed: number;
+  player2_seed: number;
   player1_score: number | null;
   player2_score: number | null;
   is_bye: boolean;
@@ -132,7 +131,11 @@ export interface CreateGameRow {
 // For creating/inserting - before database IDs are assigned
 export interface CreateTournament {
   tournament: CreateTournamentRow;
-  divisions: CreateDivisionRow[];
+  divisions: CreateDivisionWithData[];
+}
+
+export interface CreateDivisionWithData {
+  division: CreateDivisionRow;
   players: CreatePlayerRow[];
   games: CreateGameRow[];
 }

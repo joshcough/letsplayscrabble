@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 class TournamentGenerator {
-  constructor(players, config = {}) {
+  constructor(playersByDivision, config = {}) {
     this.config = {
       eventName: config.eventName || 'Test Tournament',
       eventDate: config.eventDate || 'January 1, 2025',
@@ -13,10 +13,10 @@ class TournamentGenerator {
       ...config
     };
 
-    this.players = this.initializePlayers(players);
+    // Accept either array of arrays or object with division names
+    this.divisions = this.initializeDivisions(playersByDivision);
     this.currentRound = 0;
     this.completedRounds = [];
-    this.playedPairings = new Set(); // Track who has played whom
 
     // Ensure output directory exists
     if (!fs.existsSync(this.config.outputDir)) {
@@ -24,74 +24,86 @@ class TournamentGenerator {
     }
   }
 
-  initializePlayers(playerNames) {
-    return playerNames.map((name, index) => ({
-      etc: {
-        p12: []
-      },
-      id: index + 1,
-      name: name,
-      newr: undefined,
-      pairings: [],
-      photo: `pix/${name.toLowerCase().replace(/[^a-z]/g, '_')}.jpg`,
-      rating: Math.floor(Math.random() * 1000) + 1500, // Random rating 1500-2500
-      scores: [],
+  initializeDivisions(playersByDivision) {
+    // Convert to array and assign division names A, B, C, etc.
+    const divisionsArray = Array.isArray(playersByDivision)
+      ? playersByDivision
+      : Object.values(playersByDivision);
 
-      // Track tournament statistics
-      wins: 0,
-      losses: 0,
-      spread: 0,
-      opponentIds: [], // Track all opponents played
-    }));
+    return divisionsArray.map((playerNames, divIndex) => {
+      const divName = String.fromCharCode(65 + divIndex); // A, B, C, etc.
+      console.log(`📋 Initializing Division ${divName} with ${playerNames.length} players`);
+
+      // Calculate rating range for division
+      const baseRating = 2200 - (divIndex * 400); // A: 2200, B: 1800, C: 1400, etc.
+
+      const players = playerNames.map((name, index) => ({
+        etc: {
+          p12: []
+        },
+        id: index + 1, // Division-specific ID (1-based)
+        name: name,
+        newr: undefined,
+        pairings: [],
+        photo: `pix/${name.toLowerCase().replace(/[^a-z]/g, '_')}.jpg`,
+        rating: baseRating - (index * 20) + Math.floor(Math.random() * 40) - 20, // Decreasing by seed with some randomness
+        scores: [],
+
+        // Track tournament statistics
+        wins: 0,
+        losses: 0,
+        spread: 0,
+        opponentIds: [], // Track all opponents played within division
+      }));
+
+      return {
+        name: divName,
+        players: players,
+        playedPairings: new Set() // Track who has played whom in this division
+      };
+    });
   }
 
-  // Get current standings for Swiss pairings
-  getStandings() {
-    return [...this.players].sort((a, b) => {
-      // Sort by wins first, then by spread, then by rating
+  // Get current standings for a division
+  getStandings(division) {
+    return [...division.players].sort((a, b) => {
       if (a.wins !== b.wins) return b.wins - a.wins;
       if (a.spread !== b.spread) return b.spread - a.spread;
       return b.rating - a.rating;
     });
   }
 
-  // Check if two players have already played each other
-  havePlayedBefore(player1Id, player2Id) {
-    const player1 = this.players.find(p => p.id === player1Id);
+  // Check if two players have already played each other in a division
+  havePlayedBefore(division, player1Id, player2Id) {
+    const player1 = division.players.find(p => p.id === player1Id);
     return player1.opponentIds.includes(player2Id);
   }
 
-  generateSwissPairings(roundNumber) {
-    console.log(`📋 Generating Swiss pairings for Round ${roundNumber}`);
+  generateSwissPairings(division, roundNumber) {
+    console.log(`  📋 Generating Swiss pairings for Division ${division.name}, Round ${roundNumber}`);
 
-    const standings = this.getStandings();
+    const standings = this.getStandings(division);
     const unpaired = [...standings];
     const pairings = [];
-
-    console.log(`📊 Pre-round standings:`);
-    standings.forEach((player, index) => {
-      console.log(`   ${index + 1}. ${player.name} (${player.wins}-${player.losses}, +${player.spread})`);
-    });
-    console.log();
 
     while (unpaired.length > 1) {
       const player1 = unpaired.shift();
       let player2 = null;
 
-      // Find best opponent for player1 (closest in standings who hasn't played them)
+      // Find best opponent for player1
       for (let i = 0; i < unpaired.length; i++) {
         const candidate = unpaired[i];
-        if (!this.havePlayedBefore(player1.id, candidate.id)) {
+        if (!this.havePlayedBefore(division, player1.id, candidate.id)) {
           player2 = candidate;
           unpaired.splice(i, 1);
           break;
         }
       }
 
-      // If no valid opponent found, pair with next available (shouldn't happen in early rounds)
+      // If no valid opponent found, pair with next available
       if (!player2 && unpaired.length > 0) {
         player2 = unpaired.shift();
-        console.log(`⚠️  Repeat pairing: ${player1.name} vs ${player2.name}`);
+        console.log(`    ⚠️  Repeat pairing: ${player1.name} vs ${player2.name}`);
       }
 
       if (player2) {
@@ -105,58 +117,54 @@ class TournamentGenerator {
         player1.opponentIds.push(player2.id);
         player2.opponentIds.push(player1.id);
 
-        // Determine who goes first (alternate or by rating)
+        // Determine who goes first
         const player1First = (pairings.length % 2 === 1) || (player1.rating > player2.rating);
         player1.etc.p12[roundNumber - 1] = player1First ? 1 : 2;
         player2.etc.p12[roundNumber - 1] = player1First ? 2 : 1;
 
-        console.log(`🤝 Pairing ${pairings.length}: ${player1.name} (ID:${player1.id}) vs ${player2.name} (ID:${player2.id})`);
-        console.log(`   📝 ${player1.name}.pairings[${roundNumber-1}] = ${player2.id}, p12 = ${player1First ? 1 : 2}`);
-        console.log(`   📝 ${player2.name}.pairings[${roundNumber-1}] = ${player1.id}, p12 = ${player1First ? 2 : 1}`);
+        console.log(`    🤝 Pair ${pairings.length}: ${player1.name} vs ${player2.name}`);
       }
     }
 
     // Handle bye if odd number of players
     if (unpaired.length === 1) {
       const byePlayer = unpaired[0];
-      byePlayer.pairings[roundNumber - 1] = byePlayer.id;
+      byePlayer.pairings[roundNumber - 1] = 0; // Use 0 for bye
       byePlayer.etc.p12[roundNumber - 1] = 0;
-      console.log(`🛌 Bye: ${byePlayer.name} (ID:${byePlayer.id})`);
-      console.log(`   📝 ${byePlayer.name}.pairings[${roundNumber-1}] = ${byePlayer.id} (self), p12 = 0`);
+      console.log(`    🛌 Bye: ${byePlayer.name}`);
     }
 
-    console.log();
     return pairings;
   }
 
-  generateRealisticScores() {
-    // Generate realistic Scrabble scores
-    const baseScore = 350 + Math.random() * 200; // 350-550 base
-    const variation = (Math.random() - 0.5) * 100; // +/- 50 points variation
+  generateRealisticScores(divisionLevel) {
+    // Generate realistic Scrabble scores based on division level
+    // Higher divisions have higher average scores
+    const baseScore = 400 - (divisionLevel * 30); // A: 400, B: 370, C: 340
+    const variation = Math.random() * 150; // 0-150 points variation
     return Math.round(baseScore + variation);
   }
 
-  addScores(roundNumber) {
-    console.log(`🎯 Adding scores for Round ${roundNumber}`);
-    console.log(`📊 Game results:`);
+  addScores(division, divisionLevel, roundNumber) {
+    console.log(`  🎯 Adding scores for Division ${division.name}, Round ${roundNumber}`);
 
     const processedPairs = new Set();
 
-    this.players.forEach(player => {
+    division.players.forEach(player => {
       const opponentId = player.pairings[roundNumber - 1];
 
-      if (opponentId === player.id) {
+      if (opponentId === 0) {
         // Bye game - standard 50 points
         player.scores[roundNumber - 1] = 50;
         player.wins += 1;
         player.spread += 50;
-        console.log(`🛌 ${player.name}: BYE → scores[${roundNumber-1}] = 50, wins = ${player.wins}, spread = +${player.spread}`);
+        console.log(`    🛌 ${player.name}: BYE (50 points)`);
       } else if (opponentId && !processedPairs.has(`${Math.min(player.id, opponentId)}-${Math.max(player.id, opponentId)}`)) {
-        // Generate game scores (only process each pair once)
-        const opponent = this.players.find(p => p.id === opponentId);
+        // Generate game scores
+        const opponent = division.players.find(p => p.id === opponentId);
 
-        const playerScore = this.generateRealisticScores();
-        const opponentScore = this.generateRealisticScores();
+        const playerScore = this.generateRealisticScores(divisionLevel);
+        const opponentScore = this.generateRealisticScores(divisionLevel);
 
         player.scores[roundNumber - 1] = playerScore;
         opponent.scores[roundNumber - 1] = opponentScore;
@@ -178,20 +186,22 @@ class TournamentGenerator {
         player.spread += playerSpreadChange;
         opponent.spread -= playerSpreadChange;
 
-        console.log(`🎮 ${player.name} ${playerScore} - ${opponentScore} ${opponent.name} ${playerWon ? '(W)' : isTie ? '(T)' : '(L)'}`);
-        console.log(`   📝 ${player.name}.scores[${roundNumber-1}] = ${playerScore}, wins = ${player.wins}, spread = +${player.spread}`);
-        console.log(`   📝 ${opponent.name}.scores[${roundNumber-1}] = ${opponentScore}, wins = ${opponent.wins}, spread = +${opponent.spread}`);
+        console.log(`    🎮 ${player.name} ${playerScore} - ${opponentScore} ${opponent.name}`);
 
         // Mark this pair as processed
         processedPairs.add(`${Math.min(player.id, opponentId)}-${Math.max(player.id, opponentId)}`);
       }
     });
-    console.log();
   }
 
   generateTournamentFile(stage) {
     const tournamentData = {
-      divisions: this.createDivisions()
+      config: {
+        event_name: this.config.eventName,
+        event_date: this.config.eventDate,
+        max_rounds: this.config.maxRounds
+      },
+      divisions: this.createDivisionsForFile()
     };
 
     const filename = `tournament_${stage}.js`;
@@ -204,92 +214,111 @@ class TournamentGenerator {
     return filepath;
   }
 
-  createDivisions() {
-    // For simplicity, put all players in one division
-    // Clean up the player data (remove our tracking fields)
-    const cleanPlayers = this.players.map(player => ({
-      etc: { p12: [...player.etc.p12] },
-      id: player.id,
-      name: player.name,
-      newr: player.newr,
-      pairings: [...player.pairings],
-      photo: player.photo,
-      rating: player.rating,
-      scores: [...player.scores]
-    }));
+  createDivisionsForFile() {
+    // Create divisions array for the file format
+    return this.divisions.map(division => {
+      // Clean up the player data (remove our tracking fields)
+      const cleanPlayers = division.players.map(player => ({
+        etc: {
+          p12: [...player.etc.p12],
+          newr: [], // Empty for now
+          board: [],
+          excwins: [],
+          penalty: [],
+          rcrank: undefined,
+          rmood: undefined,
+          rrank: [],
+          rtime: [],
+          seat: [],
+          time: []
+        },
+        id: player.id,
+        name: player.name,
+        newr: player.newr,
+        pairings: [...player.pairings],
+        photo: player.photo,
+        photomood: undefined,
+        rating: player.rating,
+        scores: [...player.scores]
+      }));
 
-    return [
-      {
-        name: 'A',
-        players: [undefined, ...cleanPlayers] // 1-based indexing
-      }
-    ];
+      return {
+        name: division.name,
+        players: [undefined, ...cleanPlayers], // 1-based indexing with undefined at index 0
+        // Add other division properties that might be expected
+        classes: undefined,
+        first_out_of_the_money: [],
+        maxr: this.config.maxRounds,
+        maxrp: 0,
+        rating_list: "nsa",
+        rating_system: "nsa2008",
+        seeds: cleanPlayers.map(p => p.id)
+      };
+    });
   }
 
-  // Generate pairings for round
+  // Generate pairings for all divisions for a round
   addRoundPairings(roundNumber) {
-    console.log(`\n🎯 === GENERATING ROUND ${roundNumber} PAIRINGS ===`);
+    console.log(`\n🎯 === GENERATING ROUND ${roundNumber} PAIRINGS FOR ALL DIVISIONS ===`);
     this.currentRound = roundNumber;
-    this.generateSwissPairings(roundNumber);
 
-    // Show current state of all players
-    console.log(`📋 Current player data after pairings:`);
-    this.players.forEach(player => {
-      console.log(`   ${player.name} (ID:${player.id}):`);
-      console.log(`     pairings: [${player.pairings.join(', ')}]`);
-      console.log(`     p12: [${player.etc.p12.join(', ')}]`);
-      console.log(`     scores: [${player.scores.join(', ')}]`);
+    this.divisions.forEach((division, divIndex) => {
+      console.log(`\n Division ${division.name}:`);
+      this.generateSwissPairings(division, roundNumber);
     });
-    console.log();
 
     const fileNumber = (roundNumber * 2 - 1).toString().padStart(2, '0');
     const filename = this.generateTournamentFile(`${fileNumber}_round${roundNumber}_pairings`);
-    console.log(`✅ Pairings file generated: ${filename}\n`);
+    console.log(`\n✅ Pairings file generated: ${filename}\n`);
     return filename;
   }
 
-  // Add scores for round
+  // Add scores for all divisions for a round
   addRoundScores(roundNumber) {
-    console.log(`\n🎯 === ADDING ROUND ${roundNumber} SCORES ===`);
-    this.addScores(roundNumber);
-    this.completedRounds.push(roundNumber);
+    console.log(`\n🎯 === ADDING ROUND ${roundNumber} SCORES FOR ALL DIVISIONS ===`);
 
-    // Show current state of all players
-    console.log(`📋 Current player data after scores:`);
-    this.players.forEach(player => {
-      console.log(`   ${player.name} (ID:${player.id}):`);
-      console.log(`     pairings: [${player.pairings.join(', ')}]`);
-      console.log(`     scores: [${player.scores.join(', ')}]`);
-      console.log(`     record: ${player.wins}-${player.losses}, spread: +${player.spread}`);
+    this.divisions.forEach((division, divIndex) => {
+      console.log(`\n Division ${division.name}:`);
+      this.addScores(division, divIndex, roundNumber);
     });
-    console.log();
+
+    this.completedRounds.push(roundNumber);
 
     const fileNumber = (roundNumber * 2).toString().padStart(2, '0');
     const filename = this.generateTournamentFile(`${fileNumber}_round${roundNumber}_complete`);
-    console.log(`✅ Scores file generated: ${filename}\n`);
+    console.log(`\n✅ Scores file generated: ${filename}\n`);
     return filename;
   }
 
-  // Simulate one complete round
+  // Simulate one complete round for all divisions
   simulateFullRound(roundNumber) {
     console.log(`\n🎲 ===== SIMULATING ROUND ${roundNumber} =====`);
 
     const pairingsFile = this.addRoundPairings(roundNumber);
     const scoresFile = this.addRoundScores(roundNumber);
 
-    console.log(`📊 Final standings after Round ${roundNumber}:`);
-    this.getStandings().forEach((player, index) => {
-      console.log(`   ${index + 1}. ${player.name} (${player.wins}-${player.losses}, +${player.spread})`);
+    console.log(`\n📊 Standings after Round ${roundNumber}:`);
+    this.divisions.forEach(division => {
+      console.log(`\n Division ${division.name}:`);
+      this.getStandings(division).slice(0, 5).forEach((player, index) => {
+        console.log(`   ${index + 1}. ${player.name} (${player.wins}-${player.losses}, +${player.spread})`);
+      });
+      if (division.players.length > 5) {
+        console.log(`   ... and ${division.players.length - 5} more`);
+      }
     });
-    console.log(`\n🎯 Round ${roundNumber} complete!\n`);
 
+    console.log(`\n🎯 Round ${roundNumber} complete!\n`);
     return { pairingsFile, scoresFile };
   }
 
   // Generate initial empty tournament
   generateInitialTournament() {
     console.log(`🏆 Creating tournament: ${this.config.eventName}`);
-    console.log(`👥 Players: ${this.players.length}`);
+    console.log(`📊 Divisions: ${this.divisions.length}`);
+    this.divisions.forEach(div => {
+      console.log(`   Division ${div.name}: ${div.players.length} players`);
+    });
     return this.generateTournamentFile('00_initial');
   }
 
@@ -306,46 +335,103 @@ class TournamentGenerator {
     }
 
     console.log(`\n✅ Tournament simulation complete!`);
-    console.log(`🏆 Final Standings:`);
-    this.getStandings().forEach((player, index) => {
-      console.log(`   ${index + 1}. ${player.name} (${player.wins}-${player.losses}, +${player.spread})`);
-    });
     console.log(`📁 Generated ${files.length} files in: ${this.config.outputDir}`);
 
     return files;
   }
 }
 
-// Example usage and CLI interface
+// Command-line interface
 if (require.main === module) {
-  const players = [
-    "Josh Cough",           // You!
-    "Will Anderson",
-    "Joel Wapnick",
-    "David Gibson",
-    "Chris Lipe",
-    "Nigel Richards",
-    "Dave Wiegand",
-    "Joey Mallick",
-    "Conrad Bassett-Bouchard",
-    "Jackson Smylie",
-    "Matthew Tunnicliffe"
-  ];
+  // Parse command line arguments
+  const args = process.argv.slice(2);
+  const numDivisions = parseInt(args[0]) || 3; // Default to 3 divisions
+  const numRounds = parseInt(args[1]) || 7;    // Default to 7 rounds
 
-  const generator = new TournamentGenerator(players, {
-    eventName: 'Josh Test Tournament',
-    eventDate: 'August 2, 2025',
-    maxRounds: 7,
-    outputDir: './generated-tournament'
-  });
+  if (numDivisions < 2 || numDivisions > 4) {
+    console.error('❌ Number of divisions must be between 2 and 4');
+    console.log('Usage: node tournament-generator.js [divisions] [rounds]');
+    console.log('Example: node tournament-generator.js 3 7');
+    process.exit(1);
+  }
 
-  // Generate a full 7-round tournament
-  generator.simulateFullTournament(7);
+  console.log(`\n🏆 Generating tournament with ${numDivisions} divisions and ${numRounds} rounds\n`);
 
-  console.log('\n📖 Usage examples:');
-  console.log('  generator.generateInitialTournament()           // Empty tournament');
-  console.log('  generator.addRoundPairings(1)                   // Add Round 1 pairings');
-  console.log('  generator.addRoundScores(1)                     // Add Round 1 scores');
-  console.log('  generator.simulateFullRound(2)                  // Full Round 2');
-  console.log('  generator.simulateFullTournament(5)             // 5-round tournament');
+  // Player pools for each division
+  const allPlayers = {
+    A: [
+      "Josh Cough",
+      "Nigel Richards",
+      "Will Anderson",
+      "Dave Wiegand",
+      "Conrad Bassett-Bouchard",
+      "Joel Wapnick",
+      "Joey Mallick",
+      "Chris Lipe"
+    ],
+    B: [
+      "Matthew Tunnicliffe",
+      "Jackson Smylie",
+      "David Gibson",
+      "Jeremy Hall",
+      "Stefan Rau",
+      "Joshua Sokol",
+      "Matt Canik",
+      "Cesar Del Solar"
+    ],
+    C: [
+      "Sam Kantimathi",
+      "Lisa Odom",
+      "Mark Berg",
+      "Terry Kang",
+      "Carol Guest",
+      "Samuel Heiman",
+      "Russell McKinstry",
+      "Joseph Waldbaum",
+      "Sheldon Gartner",
+      "Elizabeth Stoumen",
+      "Dalton Hoffine",
+      "Portia Zwicker"
+    ],
+    D: [
+      "Pat Baron",
+      "Ruth Hamilton",
+      "Daniel Stock",
+      "Mary Rhoades",
+      "Tom Bond",
+      "Jennifer Lee",
+      "Alan Stern",
+      "Barbara Van Alen"
+    ]
+  };
+
+  // Build divisions array based on requested number
+  const divisions = [];
+  const divisionLetters = ['A', 'B', 'C', 'D'];
+  for (let i = 0; i < numDivisions; i++) {
+    divisions.push(allPlayers[divisionLetters[i]]);
+  }
+
+  const generator = new TournamentGenerator(
+    divisions,
+    {
+      eventName: `Test Tournament (${numDivisions} Divisions)`,
+      eventDate: 'August 5, 2025',
+      maxRounds: numRounds,
+      outputDir: './generated-tournament'
+    }
+  );
+
+  // Generate the full tournament
+  generator.simulateFullTournament(numRounds);
+
+  console.log('\n✅ Tournament files generated successfully!');
+  console.log('\n📖 Usage:');
+  console.log('  node tournament-generator.js [divisions] [rounds]');
+  console.log('  divisions: 2-4 (default: 3)');
+  console.log('  rounds: number of rounds (default: 7)');
+  console.log('\nExamples:');
+  console.log('  node tournament-generator.js        # 3 divisions, 7 rounds');
+  console.log('  node tournament-generator.js 2      # 2 divisions, 7 rounds');
+  console.log('  node tournament-generator.js 4 5    # 4 divisions, 5 rounds');
 }

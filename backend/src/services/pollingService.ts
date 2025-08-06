@@ -84,8 +84,6 @@ export class TournamentPollingService {
             JSON.stringify(update.changes, null, 2),
           );
 
-          console.log("-------------------");
-
           const gamesAddedMessage: GamesAddedMessage = {
             update,
             timestamp: Date.now(),
