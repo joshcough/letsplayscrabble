@@ -5,7 +5,13 @@ import {
   DivisionRow,
   PlayerRow,
 } from "@shared/types/database";
-import { baseFetch, parseApiResponse, getAuthHeaders, fetchApiResponseWithAuth as utilsFetchApiResponseWithAuth } from "../utils/api";
+
+import {
+  baseFetch,
+  parseApiResponse,
+  getAuthHeaders,
+  fetchApiResponseWithAuth as utilsFetchApiResponseWithAuth,
+} from "../utils/api";
 
 // ============================================================================
 // PUBLIC API CALLS (no auth required)
@@ -123,7 +129,7 @@ export const deleteWithAuth = async <T>(endpoint: string): Promise<T> => {
 export const loginUser = async (credentials: {
   username: string;
   password: string;
-}): Promise<{token: string; user: any}> => {
+}): Promise<{ token: string; user: any }> => {
   const response = await baseFetch("/api/auth/login", {
     method: "POST",
     headers: {
@@ -131,7 +137,7 @@ export const loginUser = async (credentials: {
     },
     body: JSON.stringify(credentials),
   });
-  return parseApiResponse<{token: string; user: any}>(response);
+  return parseApiResponse<{ token: string; user: any }>(response);
 };
 
 // ============================================================================
@@ -204,7 +210,10 @@ export const createTournament = async (tournament: any): Promise<void> => {
   await postWithAuth("/api/private/tournaments", tournament);
 };
 
-export const updateTournament = async (tournamentId: number, tournament: any): Promise<void> => {
+export const updateTournament = async (
+  tournamentId: number,
+  tournament: any,
+): Promise<void> => {
   await putWithAuth(`/api/private/tournaments/${tournamentId}`, tournament);
 };
 
@@ -212,11 +221,19 @@ export const deleteTournament = async (tournamentId: number): Promise<void> => {
   await deleteWithAuth(`/api/private/tournaments/${tournamentId}`);
 };
 
-export const enableTournamentPolling = async (tournamentId: number, days?: number): Promise<string> => {
-  return await postWithAuth(`/api/private/tournaments/${tournamentId}/polling`, { days });
+export const enableTournamentPolling = async (
+  tournamentId: number,
+  days?: number,
+): Promise<string> => {
+  return await postWithAuth(
+    `/api/private/tournaments/${tournamentId}/polling`,
+    { days },
+  );
 };
 
-export const disableTournamentPolling = async (tournamentId: number): Promise<void> => {
+export const disableTournamentPolling = async (
+  tournamentId: number,
+): Promise<void> => {
   await deleteWithAuth(`/api/private/tournaments/${tournamentId}/polling`);
 };
 

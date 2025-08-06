@@ -138,7 +138,10 @@ const TournamentDetails: React.FC = () => {
 
   const handleEnablePolling = async () => {
     try {
-      const data: string = await enableTournamentPolling(Number(params.id), pollingDays);
+      const data: string = await enableTournamentPolling(
+        Number(params.id),
+        pollingDays,
+      );
 
       setIsPolling(true);
       setPollUntil(new Date(data));

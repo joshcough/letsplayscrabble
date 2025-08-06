@@ -10,7 +10,12 @@ import {
 } from "@shared/types/database";
 
 import { useAuth } from "../../context/AuthContext";
-import { fetchTournament, fetchApiResponseWithAuth, setCurrentMatch, listTournaments } from "../../services/api";
+import {
+  fetchTournament,
+  fetchApiResponseWithAuth,
+  setCurrentMatch,
+  listTournaments,
+} from "../../services/api";
 import { ProtectedPage } from "../ProtectedPage";
 
 // UI types for transformed dropdown data
