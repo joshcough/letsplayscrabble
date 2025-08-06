@@ -9,9 +9,8 @@ import {
   Tournament,
 } from "@shared/types/database";
 
-import { fetchApiResponseWithAuth, fetchWithAuth } from "../../config/api";
 import { useAuth } from "../../context/AuthContext";
-import { fetchTournament } from "../../utils/api";
+import { fetchTournament, fetchApiResponseWithAuth, setCurrentMatch, listTournaments } from "../../services/api";
 import { ProtectedPage } from "../ProtectedPage";
 
 // UI types for transformed dropdown data
@@ -54,9 +53,7 @@ const AdminInterface: React.FC = () => {
   );
 
   const loadTournaments = async (): Promise<TournamentRow[]> => {
-    return await fetchWithAuth<TournamentRow[]>(
-      `/api/private/tournaments/list`,
-    );
+    return await listTournaments();
   };
 
   const loadCurrentMatch = async (): Promise<CurrentMatch | null> => {
@@ -302,11 +299,7 @@ const AdminInterface: React.FC = () => {
 
       console.log("Updating current match:", requestBody);
 
-      await fetchWithAuth(`/api/admin/match/current`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
-      });
+      await setCurrentMatch(requestBody);
 
       setSuccess("Match updated successfully!");
       setTimeout(() => setSuccess(null), 3000);

@@ -1,22 +1,13 @@
-// utils/api.ts - Clean API utilities for the new backend structure
-import {
-  Tournament,
-  TournamentRow,
-  DivisionRow,
-  PlayerRow,
-} from "@shared/types/database";
+// utils/api.ts - API utility functions and helpers
+import { ApiResponse } from "../config/api";
 
 const API_BASE: string =
   process.env.NODE_ENV === "production"
     ? window.location.origin
     : "http://localhost:3001";
 
-export type ApiResponse<T> =
-  | { success: true; data: T }
-  | { success: false; error: string };
-
 // Base fetch function with error handling
-const baseFetch = async (
+export const baseFetch = async (
   endpoint: string,
   options: RequestInit = {},
 ): Promise<Response> => {
@@ -36,7 +27,7 @@ const baseFetch = async (
 };
 
 // Parse API response (handles both ApiResponse format and raw data)
-const parseApiResponse = async <T>(response: Response): Promise<T> => {
+export const parseApiResponse = async <T>(response: Response): Promise<T> => {
   if (response.status === 204) {
     return null as T;
   }
@@ -72,67 +63,8 @@ const parseApiResponse = async <T>(response: Response): Promise<T> => {
   return data as T;
 };
 
-// Public tournament endpoints (no auth required)
-
-export const fetchTournament = async (
-  userId: number,
-  tournamentId: number,
-  divisionId?: number,
-): Promise<Tournament> => {
-  // Choose endpoint based on whether division is specified
-  const endpoint =
-    divisionId !== undefined
-      ? `/api/public/users/${userId}/tournaments/${tournamentId}/divisions/${divisionId}`
-      : `/api/public/users/${userId}/tournaments/${tournamentId}`;
-
-  const response = await baseFetch(endpoint);
-  return parseApiResponse<Tournament>(response);
-};
-
-export const fetchTournamentRow = async (
-  userId: number,
-  tournamentId: number,
-  divisionId?: number,
-): Promise<TournamentRow> => {
-  const response = await baseFetch(
-    `/api/public/users/${userId}/tournaments/${tournamentId}/row`,
-  );
-  return parseApiResponse<TournamentRow>(response);
-};
-
-// Keep the existing fetchTournamentDivision for backward compatibility if needed
-export const fetchTournamentDivision = async (
-  userId: number,
-  tournamentId: number,
-  divisionId: number,
-): Promise<Tournament> => {
-  // This now just calls the updated fetchTournament
-  return fetchTournament(userId, tournamentId, divisionId);
-};
-
-export const fetchPlayersForDivision = async (
-  userId: number,
-  tournamentId: number,
-  divisionName: string,
-): Promise<PlayerRow[]> => {
-  const response = await baseFetch(
-    `/api/public/users/${userId}/tournaments/${tournamentId}/divisions/${encodeURIComponent(divisionName)}/players`,
-  );
-  return parseApiResponse<PlayerRow[]>(response);
-};
-
-export const fetchDivisions = async (
-  userId: number,
-  tournamentId: number,
-): Promise<DivisionRow[]> => {
-  const response = await baseFetch(
-    `/api/public/users/${userId}/tournaments/${tournamentId}/divisions`,
-  );
-  return parseApiResponse<DivisionRow[]>(response);
-};
-
-// Authenticated endpoints (require Bearer token)
-const getAuthHeaders = (): HeadersInit => {
+// Get authentication headers
+export const getAuthHeaders = (): HeadersInit => {
   const token = localStorage.getItem("token");
   return {
     "Content-Type": "application/json",
@@ -140,114 +72,20 @@ const getAuthHeaders = (): HeadersInit => {
   };
 };
 
-export const fetchWithAuth = async <T>(
-  endpoint: string,
-  options: RequestInit = {},
-): Promise<T> => {
-  const response = await baseFetch(endpoint, {
-    ...options,
-    headers: {
-      ...getAuthHeaders(),
-      ...options.headers,
-    },
-  });
-  return parseApiResponse<T>(response);
-};
-
-export const postWithAuth = async <T>(
-  endpoint: string,
-  body: any,
-): Promise<T> => {
-  const response = await baseFetch(endpoint, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(body),
-  });
-  return parseApiResponse<T>(response);
-};
-
-export const putWithAuth = async <T>(
-  endpoint: string,
-  body: any,
-): Promise<T> => {
-  const response = await baseFetch(endpoint, {
-    method: "PUT",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(body),
-  });
-  return parseApiResponse<T>(response);
-};
-
-export const deleteWithAuth = async <T>(endpoint: string): Promise<T> => {
-  const response = await baseFetch(endpoint, {
-    method: "DELETE",
-    headers: getAuthHeaders(),
-  });
-  return parseApiResponse<T>(response);
-};
-
-// Legacy exports for backward compatibility - add these missing functions
-export const fetchAuthenticatedApiEndpoint = async <T>(
-  endpoint: string,
-  errorContext: string,
-  options: RequestInit = {},
-): Promise<T | null> => {
-  try {
-    return await fetchWithAuth<T>(endpoint, options);
-  } catch (error) {
-    console.error(`Error ${errorContext.toLowerCase()}:`, error);
-    return null;
-  }
-};
-
-export const fetchUserOverlayEndpoint = async <T>(
-  userId: number,
-  endpoint: string,
-  errorContext: string,
-): Promise<T | null> => {
-  try {
-    const userScopedEndpoint = `/api/overlay/users/${userId}${endpoint}`;
-    return await fetchWithAuth<T>(userScopedEndpoint);
-  } catch (error) {
-    console.error(`Error ${errorContext.toLowerCase()}:`, error);
-    return null;
-  }
-};
-
-export const fetchUserTournamentEndpoint = async <T>(
-  userId: number,
-  endpoint: string,
-  errorContext: string,
-): Promise<T | null> => {
-  try {
-    const userScopedEndpoint = `/api/tournaments/public/users/${userId}${endpoint}`;
-    const response = await baseFetch(userScopedEndpoint);
-    return parseApiResponse<T>(response);
-  } catch (error) {
-    console.error(`Error ${errorContext.toLowerCase()}:`, error);
-    return null;
-  }
-};
-
-export const postAuthenticatedApiEndpoint = async <T, B = any>(
-  endpoint: string,
-  body: B,
-  errorContext: string,
-): Promise<T | null> => {
-  try {
-    return await postWithAuth<T>(endpoint, body);
-  } catch (error) {
-    console.error(`Error ${errorContext.toLowerCase()}:`, error);
-    return null;
-  }
-};
-
+// Wrapper for ApiResponse format (preserves success/error structure)
 export const fetchApiResponseWithAuth = async <T>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<ApiResponse<T>> => {
   try {
-    const data = await fetchWithAuth<T>(endpoint, options);
+    const response = await baseFetch(endpoint, {
+      ...options,
+      headers: {
+        ...getAuthHeaders(),
+        ...options.headers,
+      },
+    });
+    const data = await parseApiResponse<T>(response);
     return { success: true, data };
   } catch (error) {
     return {

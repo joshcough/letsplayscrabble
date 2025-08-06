@@ -11,7 +11,7 @@ import {
 import * as DB from "@shared/types/database";
 import { GamesAddedMessage } from "@shared/types/websocket";
 
-import { fetchTournament, fetchTournamentDivision } from "../utils/api";
+import { fetchTournament, fetchTournamentDivision } from "../services/api";
 import BroadcastManager from "./BroadcastManager";
 
 interface UseTournamentDataProps {

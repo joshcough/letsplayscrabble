@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 
 import { TournamentRow } from "@shared/types/database";
 
-import { fetchAuthenticatedApiEndpoint } from "../../utils/api";
+import { listTournaments } from "../../services/api";
 import { ProtectedPage } from "../ProtectedPage";
 
 interface TournamentListProps {
@@ -17,10 +17,7 @@ const TournamentList: React.FC<TournamentListProps> = ({
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const data = await fetchAuthenticatedApiEndpoint<TournamentRow[]>(
-          "/api/private/tournaments/list",
-          "fetching user tournaments",
-        ); // Change endpoint
+        const data = await listTournaments();
         setTournaments(data || []);
       } catch (error) {
         console.error("Error fetching tournaments:", error);
