@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { CreateTournamentParams } from "@shared/types/tournament";
 
-import { fetchWithAuth } from "../../config/api";
+import { createTournament } from "../../services/api";
 import { ProtectedPage } from "../ProtectedPage";
 
 const AddTournament: React.FC = () => {
@@ -23,13 +23,7 @@ const AddTournament: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await fetchWithAuth(`/api/private/tournaments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(tournament),
-      });
+      await createTournament(tournament);
       navigate("/tournaments/manager");
     } catch (error) {
       console.error("Error adding tournament:", error);

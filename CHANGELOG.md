@@ -1,5 +1,15 @@
 # Changelog
 
+## 2025-08-06
+
+### Refactored
+- **Frontend API Layer**: Centralized all API calls into clean, named functions
+  - Created `services/api.ts` with specific functions like `createTournament()`, `updateTournament()`, `listTournaments()`
+  - Moved helper functions (`baseFetch`, `parseApiResponse`, `getAuthHeaders`) to `utils/api.ts`
+  - Simplified `config/api.ts` to only contain configuration and types
+  - Replaced raw `fetchWithAuth()` calls throughout components with descriptive function names
+  - Improved code maintainability and readability across tournament management and admin interfaces
+
 ## 2025-08-05
 
 ### Fixed

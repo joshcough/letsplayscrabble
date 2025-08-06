@@ -2,8 +2,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { API_BASE } from "../config/api";
 import { useAuth } from "../context/AuthContext";
+import { loginUser } from "../services/api";
 
 const AdminLogin: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -19,20 +19,7 @@ const AdminLogin: React.FC = () => {
     setError("");
 
     try {
-      const response = await fetch(`${API_BASE}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Login failed");
-      }
-
+      const data = await loginUser(formData);
       login(data.token);
       navigate("/");
     } catch (err) {

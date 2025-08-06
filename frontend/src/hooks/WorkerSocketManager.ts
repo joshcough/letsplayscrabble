@@ -15,7 +15,7 @@ import {
 import io, { Socket } from "socket.io-client";
 
 import { API_BASE } from "../config/api";
-import { fetchTournament } from "../utils/api";
+import { fetchTournament } from "../services/api";
 import TournamentCacheManager from "./TournamentCacheManager";
 
 class WorkerSocketManager {

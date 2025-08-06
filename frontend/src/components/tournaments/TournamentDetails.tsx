@@ -3,13 +3,16 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 
 import { TournamentRow, DivisionRow, PlayerRow } from "@shared/types/database";
 
-import { fetchWithAuth } from "../../config/api";
 import { useAuth } from "../../context/AuthContext";
 import {
   fetchTournamentRow,
   fetchDivisions,
   fetchPlayersForDivision,
-} from "../../utils/api";
+  updateTournament,
+  deleteTournament,
+  enableTournamentPolling,
+  disableTournamentPolling,
+} from "../../services/api";
 import { ProtectedPage } from "../ProtectedPage";
 
 type RouteParams = {
@@ -135,15 +138,9 @@ const TournamentDetails: React.FC = () => {
 
   const handleEnablePolling = async () => {
     try {
-      const data: string = await fetchWithAuth(
-        `/api/private/tournaments/${params.id}/polling`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ days: pollingDays }),
-        },
+      const data: string = await enableTournamentPolling(
+        Number(params.id),
+        pollingDays,
       );
 
       setIsPolling(true);
@@ -155,9 +152,7 @@ const TournamentDetails: React.FC = () => {
 
   const handleDisablePolling = async () => {
     try {
-      await fetchWithAuth(`/api/private/tournaments/${params.id}/polling`, {
-        method: "DELETE",
-      });
+      await disableTournamentPolling(Number(params.id));
 
       setIsPolling(false);
       setPollUntil(null);
@@ -168,9 +163,7 @@ const TournamentDetails: React.FC = () => {
 
   const handleDelete = async () => {
     try {
-      await fetchWithAuth(`/api/private/tournaments/${params.id}`, {
-        method: "DELETE",
-      });
+      await deleteTournament(Number(params.id));
 
       navigate("/tournaments/manager");
     } catch (error) {
@@ -191,13 +184,7 @@ const TournamentDetails: React.FC = () => {
         dataUrl: editedTournament.data_url || "",
       };
 
-      await fetchWithAuth(`/api/private/tournaments/${params.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(editableFields),
-      });
+      await updateTournament(Number(params.id), editableFields);
 
       const freshTournamentData = await fetchTournamentRow(
         user_id,
