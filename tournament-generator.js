@@ -37,24 +37,30 @@ class TournamentGenerator {
       // Calculate rating range for division
       const baseRating = 2200 - (divIndex * 400); // A: 2200, B: 1800, C: 1400, etc.
 
-      const players = playerNames.map((name, index) => ({
-        etc: {
-          p12: []
-        },
-        id: index + 1, // Division-specific ID (1-based)
-        name: name,
-        newr: undefined,
-        pairings: [],
-        photo: `pix/${name.toLowerCase().replace(/[^a-z]/g, '_')}.jpg`,
-        rating: baseRating - (index * 20) + Math.floor(Math.random() * 40) - 20, // Decreasing by seed with some randomness
-        scores: [],
+      const players = playerNames.map((name, index) => {
+        const initialRating = baseRating - (index * 20) + Math.floor(Math.random() * 40) - 20;
+        
+        return {
+          etc: {
+            p12: []
+          },
+          id: index + 1, // Division-specific ID (1-based)
+          name: name,
+          newr: undefined,
+          pairings: [],
+          photo: `pix/${name.toLowerCase().replace(/[^a-z]/g, '_')}.jpg`,
+          rating: initialRating, // Decreasing by seed with some randomness
+          scores: [],
 
-        // Track tournament statistics
-        wins: 0,
-        losses: 0,
-        spread: 0,
-        opponentIds: [], // Track all opponents played within division
-      }));
+          // Track tournament statistics
+          wins: 0,
+          losses: 0,
+          spread: 0,
+          opponentIds: [], // Track all opponents played within division
+          currentRating: initialRating, // Same as rating field
+          ratingHistory: [initialRating], // Track rating after each round
+        };
+      });
 
       return {
         name: divName,
@@ -145,6 +151,16 @@ class TournamentGenerator {
     return Math.round(baseScore + variation);
   }
 
+  // Calculate rating change based on result and opponent rating
+  calculateRatingChange(playerRating, opponentRating, result) {
+    // Simplified Elo-style rating calculation for Scrabble
+    // result: 1 for win, 0.5 for tie, 0 for loss
+    const K = 32; // K-factor
+    const expectedScore = 1 / (1 + Math.pow(10, (opponentRating - playerRating) / 400));
+    const ratingChange = K * (result - expectedScore);
+    return Math.round(ratingChange);
+  }
+
   addScores(division, divisionLevel, roundNumber) {
     console.log(`  🎯 Adding scores for Division ${division.name}, Round ${roundNumber}`);
 
@@ -158,6 +174,8 @@ class TournamentGenerator {
         player.scores[roundNumber - 1] = 50;
         player.wins += 1;
         player.spread += 50;
+        // No rating change for bye, but add current rating to history
+        player.ratingHistory.push(player.currentRating);
         console.log(`    🛌 ${player.name}: BYE (50 points)`);
       } else if (opponentId && !processedPairs.has(`${Math.min(player.id, opponentId)}-${Math.max(player.id, opponentId)}`)) {
         // Generate game scores
@@ -186,7 +204,22 @@ class TournamentGenerator {
         player.spread += playerSpreadChange;
         opponent.spread -= playerSpreadChange;
 
-        console.log(`    🎮 ${player.name} ${playerScore} - ${opponentScore} ${opponent.name}`);
+        // Calculate rating changes
+        const playerResult = isTie ? 0.5 : (playerWon ? 1 : 0);
+        const opponentResult = isTie ? 0.5 : (playerWon ? 0 : 1);
+
+        const playerRatingChange = this.calculateRatingChange(player.currentRating, opponent.currentRating, playerResult);
+        const opponentRatingChange = this.calculateRatingChange(opponent.currentRating, player.currentRating, opponentResult);
+
+        // Update current ratings
+        player.currentRating += playerRatingChange;
+        opponent.currentRating += opponentRatingChange;
+
+        // Add to rating history
+        player.ratingHistory.push(player.currentRating);
+        opponent.ratingHistory.push(opponent.currentRating);
+
+        console.log(`    🎮 ${player.name} ${playerScore} - ${opponentScore} ${opponent.name} (Rating: ${playerRatingChange > 0 ? '+' : ''}${playerRatingChange}, ${opponentRatingChange > 0 ? '+' : ''}${opponentRatingChange})`);
 
         // Mark this pair as processed
         processedPairs.add(`${Math.min(player.id, opponentId)}-${Math.max(player.id, opponentId)}`);
@@ -221,7 +254,7 @@ class TournamentGenerator {
       const cleanPlayers = division.players.map(player => ({
         etc: {
           p12: [...player.etc.p12],
-          newr: [], // Empty for now
+          newr: [...player.ratingHistory], // Use the rating history we've been tracking
           board: [],
           excwins: [],
           penalty: [],

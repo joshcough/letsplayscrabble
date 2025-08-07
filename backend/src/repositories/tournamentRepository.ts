@@ -633,7 +633,7 @@ export class TournamentRepository {
           name: playerData.name,
           initial_rating: playerData.initial_rating,
           photo: playerData.photo,
-          etc_data: JSON.stringify(playerData.etc_data),
+          etc_data: playerData.etc_data,
         })
         .returning("*");
 

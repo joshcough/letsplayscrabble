@@ -82,3 +82,4 @@ frontend/dist/
 frontend/coverage/
 frontend/.cache/
 /purescript/
+/generated-tournament/
