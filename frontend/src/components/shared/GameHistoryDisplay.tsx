@@ -17,7 +17,6 @@ const GameHistoryDisplay: React.FC<GameHistoryDisplayProps> = ({
     return null;
   }
 
-  const reversedGames = [...games].reverse();
   const headerText =
     games.length === 1 ? "Last Game:" : `Last ${games.length} Games:`;
 
@@ -34,7 +33,7 @@ const GameHistoryDisplay: React.FC<GameHistoryDisplayProps> = ({
       <div className="w-full text-left mb-1">{headerText}</div>
       <table className="w-full border-separate border-spacing-x-4">
         <tbody>
-          {reversedGames.map((game, index) => (
+          {games.map((game, index) => (
             <tr
               key={`${game.round}-${index}`}
               data-obs={`${side}-game-${index + 1}`}
