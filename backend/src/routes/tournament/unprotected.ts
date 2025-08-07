@@ -47,11 +47,25 @@ export function unprotectedTournamentRoutes(
     };
   };
 
-  // Get full tournament data
+  // Get full tournament data (OLD - returns flat structure)
   const getTournamentForUser = withInputValidation(
     async ({ userId, tournamentId, divisionId }, req, res) => {
       await Api.withDataOr404(
         repo.getTournamentAsTree(tournamentId, userId, divisionId),
+        res,
+        "Tournament or division not found",
+        async (tournament) => {
+          res.json(Api.success(tournament));
+        },
+      );
+    },
+  );
+
+  // Get full tournament data (V2 - returns domain model)
+  const getTournamentForUserV2 = withInputValidation(
+    async ({ userId, tournamentId, divisionId }, req, res) => {
+      await Api.withDataOr404(
+        repo.getTournamentAsDomainModel(tournamentId, userId, divisionId),
         res,
         "Tournament or division not found",
         async (tournament) => {
@@ -100,12 +114,21 @@ export function unprotectedTournamentRoutes(
     },
   );
 
-  // Routes
+  // OLD Routes (for backward compatibility)
   router.get("/users/:userId/tournaments/:tournamentId", getTournamentForUser);
   router.get(
     "/users/:userId/tournaments/:tournamentId/divisions/:divisionId",
     getTournamentForUser,
   );
+  
+  // V2 Routes (return domain model)
+  router.get("/v2/users/:userId/tournaments/:tournamentId", getTournamentForUserV2);
+  router.get(
+    "/v2/users/:userId/tournaments/:tournamentId/divisions/:divisionId",
+    getTournamentForUserV2,
+  );
+  
+  // Other routes (unchanged for now)
   router.get(
     "/users/:userId/tournaments/:tournamentId/row",
     getTournamentRowForUser,

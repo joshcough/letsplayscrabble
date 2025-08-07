@@ -1,10 +1,24 @@
 import * as DB from "@shared/types/database";
+import * as Domain from "@shared/types/domain";
 import { GameChanges, TournamentUpdate } from "@shared/types/database";
 import { Knex } from "knex";
+
+// Internal type for repository use - uses seeds before conversion to DB IDs
+type GameWithSeeds = {
+  division_id: number;
+  round_number: number;
+  player1_seed: number;
+  player2_seed: number;
+  player1_score: number | null;
+  player2_score: number | null;
+  is_bye: boolean;
+  pairing_id: number | null;
+};
 
 import { knexDb } from "../config/database";
 import { convertFileToDatabase } from "../services/fileToDatabaseConversions";
 import { debugPrintCreateTournament } from "../utils/debugHelpers";
+import { transformToDomainTournament } from "../utils/domainTransforms";
 
 export class TournamentRepository {
   async create(
@@ -298,6 +312,19 @@ export class TournamentRepository {
     return { tournament, divisions: hierarchicalDivisions };
   }
 
+  async getTournamentAsDomainModel(
+    tournamentId: number,
+    userId: number,
+    divisionId?: number,
+  ): Promise<Domain.Tournament | null> {
+    const flatTournament = await this.getTournamentAsTree(tournamentId, userId, divisionId);
+    if (!flatTournament) {
+      return null;
+    }
+
+    return transformToDomainTournament(flatTournament);
+  }
+
   async isOwner(id: number, userId: number): Promise<boolean> {
     const tournament = await knexDb("tournaments")
       .select("tournaments.id")
@@ -525,20 +552,41 @@ export class TournamentRepository {
       const divisionId = await this.insertDivision(
         trx,
         tournamentId,
-        divisionData.division,
+        {
+          tournament_id: tournamentId,
+          name: divisionData.division.name,
+          position: divisionData.division.position,
+        },
       );
 
       const playerSeedToDbIdMap = await this.insertPlayersForDivision(
         trx,
         tournamentId,
         divisionId,
-        divisionData.players,
+        divisionData.players.map(p => ({
+          tournament_id: tournamentId,
+          division_id: divisionId,
+          seed: p.seed,
+          name: p.name,
+          initial_rating: p.initial_rating,
+          photo: p.photo,
+          etc_data: p.etc_data,
+        })),
       );
 
       const changes = await this.upsertGamesForDivision(
         trx,
         divisionId,
-        divisionData.games,
+        divisionData.games.map(g => ({
+          division_id: divisionId,
+          round_number: g.round_number,
+          player1_seed: g.player1_seed,
+          player2_seed: g.player2_seed,
+          player1_score: g.player1_score,
+          player2_score: g.player2_score,
+          is_bye: g.is_bye,
+          pairing_id: g.pairing_id,
+        })),
         playerSeedToDbIdMap,
       );
 
@@ -589,7 +637,16 @@ export class TournamentRepository {
       const changes = await this.upsertGamesForDivision(
         trx,
         divisionId,
-        divisionData.games,
+        divisionData.games.map(g => ({
+          division_id: divisionId,
+          round_number: g.round_number,
+          player1_seed: g.player1_seed,
+          player2_seed: g.player2_seed,
+          player1_score: g.player1_score,
+          player2_score: g.player2_score,
+          is_bye: g.is_bye,
+          pairing_id: g.pairing_id,
+        })),
         playerSeedToDbIdMap,
       );
 
@@ -661,7 +718,7 @@ export class TournamentRepository {
   private async upsertGamesForDivision(
     trx: Knex.Transaction,
     divisionId: number,
-    games: DB.CreateGameRow[],
+    games: GameWithSeeds[],
     playerSeedToDbIdMap: Map<number, number>,
   ): Promise<DB.GameChanges> {
     const changes: DB.GameChanges = { added: [], updated: [] };
@@ -685,7 +742,7 @@ export class TournamentRepository {
   private async upsertSingleGame(
     trx: Knex.Transaction,
     divisionId: number,
-    gameData: DB.CreateGameRow,
+    gameData: GameWithSeeds,
     playerSeedToDbIdMap: Map<number, number>,
   ): Promise<{ action: "added" | "updated"; game: DB.GameRow } | null> {
     const player1DbId = playerSeedToDbIdMap.get(gameData.player1_seed);

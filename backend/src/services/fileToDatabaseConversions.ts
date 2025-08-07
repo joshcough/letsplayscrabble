@@ -9,7 +9,7 @@ export function convertFileToDatabase(
   userId: number,
 ): DB.CreateTournament {
   // Convert tournament metadata
-  const tournament: DB.CreateTournamentRow = {
+  const tournament = {
     name: metadata.name,
     city: metadata.city,
     year: metadata.year,
@@ -25,27 +25,24 @@ export function convertFileToDatabase(
   const divisions: DB.CreateDivisionWithData[] = fileData.divisions.map(
     (fileDivision, divisionIndex) => {
       // Create division
-      const division: DB.CreateDivisionRow = {
+      const division = {
         name: fileDivision.name,
         position: divisionIndex,
       };
 
       // Convert players for this division
-      const players: DB.CreatePlayerRow[] = [];
-      fileDivision.players.forEach((player) => {
-        if (!player) return; // Skip null players
-
-        players.push({
+      const players = fileDivision.players
+        .filter((player) => player !== null)
+        .map((player) => ({
           seed: player.id,
           name: player.name,
           initial_rating: player.rating,
           photo: player.photo,
           etc_data: player.etc,
-        });
-      });
+        }));
 
       // Convert games for this division
-      const games: DB.CreateGameRow[] = [];
+      const games: any[] = [];
       const processedPairings = new Set<string>();
 
       fileDivision.players.forEach((player) => {
