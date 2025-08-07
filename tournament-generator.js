@@ -228,13 +228,14 @@ class TournamentGenerator {
   }
 
   generateTournamentFile(stage) {
+    const isInitial = stage.includes('initial');
     const tournamentData = {
       config: {
         event_name: this.config.eventName,
         event_date: this.config.eventDate,
         max_rounds: this.config.maxRounds
       },
-      divisions: this.createDivisionsForFile()
+      divisions: this.createDivisionsForFile(isInitial)
     };
 
     const filename = `tournament_${stage}.js`;
@@ -247,14 +248,14 @@ class TournamentGenerator {
     return filepath;
   }
 
-  createDivisionsForFile() {
+  createDivisionsForFile(isInitial = false) {
     // Create divisions array for the file format
     return this.divisions.map(division => {
       // Clean up the player data (remove our tracking fields)
       const cleanPlayers = division.players.map(player => ({
         etc: {
-          p12: [...player.etc.p12],
-          newr: [...player.ratingHistory], // Use the rating history we've been tracking
+          p12: isInitial ? [] : [...player.etc.p12],
+          newr: isInitial ? [] : [...player.ratingHistory], // Use the rating history we've been tracking
           board: [],
           excwins: [],
           penalty: [],
@@ -268,11 +269,11 @@ class TournamentGenerator {
         id: player.id,
         name: player.name,
         newr: player.newr,
-        pairings: [...player.pairings],
+        pairings: isInitial ? [] : [...player.pairings],
         photo: player.photo,
         photomood: undefined,
         rating: player.rating,
-        scores: [...player.scores]
+        scores: isInitial ? [] : [...player.scores]
       }));
 
       return {

@@ -50,7 +50,10 @@ export function convertFileToDatabase(
 
       fileDivision.players.forEach((player) => {
         if (!player || !player.pairings || !player.scores) return;
-
+        
+        // Skip game creation for players with no pairings (player is still added to tournament)
+        if (player.pairings.length === 0) return;
+        
         for (
           let roundIndex = 0;
           roundIndex < player.pairings.length;
@@ -58,7 +61,9 @@ export function convertFileToDatabase(
         ) {
           const roundNum = roundIndex + 1;
           const opponentId = player.pairings[roundIndex];
-          const playerScore = player.scores[roundIndex];
+          
+          // Get player score, default to null if scores array is shorter or empty
+          const playerScore = roundIndex < player.scores.length ? player.scores[roundIndex] : null;
 
           // Handle bye
           if (opponentId === 0) {
@@ -83,15 +88,17 @@ export function convertFileToDatabase(
             (p) => p?.id === opponentId,
           );
           if (!opponent || !opponent.scores) continue;
+          
+          // Get opponent score, default to null if scores array is shorter or empty
+          const opponentScore = roundIndex < opponent.scores.length ? opponent.scores[roundIndex] : null;
 
           // Create a consistent pairing key (smaller ID first)
           const pairingKey = `${roundNum}-${Math.min(player.id, opponentId)}-${Math.max(player.id, opponentId)}`;
 
           if (!processedPairings.has(pairingKey)) {
-            const opponentScore = opponent.scores[roundIndex];
-
-            // Determine player order based on p12 values
-            const isPlayer1First = player.etc?.p12?.[roundIndex] === 1;
+            // Determine player order based on p12 values, with safe array access
+            const p12Value = player.etc?.p12?.[roundIndex];
+            const isPlayer1First = p12Value === 1;
 
             const [player1Seed, player2Seed, score1, score2] = isPlayer1First
               ? [player.id, opponentId, playerScore, opponentScore]
