@@ -50,10 +50,10 @@ export function convertFileToDatabase(
 
       fileDivision.players.forEach((player) => {
         if (!player || !player.pairings || !player.scores) return;
-        
+
         // Skip game creation for players with no pairings (player is still added to tournament)
         if (player.pairings.length === 0) return;
-        
+
         for (
           let roundIndex = 0;
           roundIndex < player.pairings.length;
@@ -61,9 +61,12 @@ export function convertFileToDatabase(
         ) {
           const roundNum = roundIndex + 1;
           const opponentId = player.pairings[roundIndex];
-          
+
           // Get player score, default to null if scores array is shorter or empty
-          const playerScore = roundIndex < player.scores.length ? player.scores[roundIndex] : null;
+          const playerScore =
+            roundIndex < player.scores.length
+              ? player.scores[roundIndex]
+              : null;
 
           // Handle bye
           if (opponentId === 0) {
@@ -88,9 +91,12 @@ export function convertFileToDatabase(
             (p) => p?.id === opponentId,
           );
           if (!opponent || !opponent.scores) continue;
-          
+
           // Get opponent score, default to null if scores array is shorter or empty
-          const opponentScore = roundIndex < opponent.scores.length ? opponent.scores[roundIndex] : null;
+          const opponentScore =
+            roundIndex < opponent.scores.length
+              ? opponent.scores[roundIndex]
+              : null;
 
           // Create a consistent pairing key (smaller ID first)
           const pairingKey = `${roundNum}-${Math.min(player.id, opponentId)}-${Math.max(player.id, opponentId)}`;

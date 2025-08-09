@@ -749,9 +749,10 @@ export class TournamentRepository {
 
         if (gameRow) {
           const actionType = action === "INSERTED" ? "added" : "updated";
-          const scoreDisplay = gameData.player1_score !== null && gameData.player2_score !== null 
-            ? `${gameData.player1_score}-${gameData.player2_score}`
-            : "no scores yet";
+          const scoreDisplay =
+            gameData.player1_score !== null && gameData.player2_score !== null
+              ? `${gameData.player1_score}-${gameData.player2_score}`
+              : "no scores yet";
           console.log(
             `${action === "INSERTED" ? "➕ ADDED" : "🔄 UPDATED"} game: Division ${divisionId}, Round ${gameData.round_number} - Seed${gameData.player1_seed} vs Seed${gameData.player2_seed} (${scoreDisplay})`,
           );

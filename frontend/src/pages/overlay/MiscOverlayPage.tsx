@@ -10,6 +10,7 @@ import {
   UsePlayerStatsCalculation,
   RankedPlayerStats,
 } from "../../hooks/usePlayerStatsCalculation";
+import { getRecentGamesForPlayer } from "../../utils/gameUtils";
 import {
   formatSpread,
   formatRecord,
@@ -54,40 +55,6 @@ type SourceType =
   | "player1-bo7"
   | "player2-bo7"
   | "tournament-data";
-
-// Helper function to get recent games for a player and convert to GameResult format
-const getRecentGamesForPlayer = (
-  playerId: number,
-  games: DB.GameRow[],
-  players: DB.PlayerRow[],
-  limit: number = 5,
-) => {
-  // Filter games where this player participated
-  const playerGames = games.filter(
-    (game) => game.player1_id === playerId || game.player2_id === playerId,
-  );
-
-  // Sort by round number (descending) to get most recent games
-  const sortedGames = playerGames.sort(
-    (a, b) => b.round_number - a.round_number,
-  );
-
-  // Convert to GameResult format that GameHistoryDisplay expects
-  const gameResults = sortedGames.slice(0, limit).map((game) => {
-    const isPlayer1 = game.player1_id === playerId;
-    const opponentId = isPlayer1 ? game.player2_id : game.player1_id;
-    const opponent = players.find((p) => p.id === opponentId);
-
-    return {
-      round: game.round_number,
-      opponentName: opponent?.name || "Unknown",
-      playerScore: (isPlayer1 ? game.player1_score : game.player2_score) || 0,
-      opponentScore: (isPlayer1 ? game.player2_score : game.player1_score) || 0,
-    };
-  });
-
-  return gameResults;
-};
 
 const MiscOverlay: React.FC = () => {
   const [searchParams] = useSearchParams();

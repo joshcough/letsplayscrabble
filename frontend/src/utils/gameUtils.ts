@@ -11,7 +11,12 @@ export const getRecentGamesForPlayer = (
     (game) => game.player1_id === playerId || game.player2_id === playerId,
   );
 
-  const sortedGames = playerGames.sort(
+  // Filter out games with no scores (unplayed games) before sorting
+  const playedGames = playerGames.filter(
+    (game) => game.player1_score !== null && game.player2_score !== null,
+  );
+
+  const sortedGames = playedGames.sort(
     (a, b) => b.round_number - a.round_number,
   );
 
