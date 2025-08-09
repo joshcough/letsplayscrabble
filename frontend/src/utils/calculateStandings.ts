@@ -226,9 +226,13 @@ function calculatePlayerStatsFromGames(
     etcData = player.etc_data;
   }
 
-  if (etcData?.newr && Array.isArray(etcData.newr)) {
-    currentRating = etcData.newr[etcData.newr.length - 1] ?? 0;
+  if (etcData?.newr && Array.isArray(etcData.newr) && etcData.newr.length > 0) {
+    currentRating = etcData.newr[etcData.newr.length - 1];
     ratingDiff = currentRating - player.initial_rating;
+  } else {
+    // No rating history yet, use initial rating
+    currentRating = player.initial_rating;
+    ratingDiff = 0;
   }
 
   return {
