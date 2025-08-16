@@ -1,9 +1,4 @@
 // services/api.ts - Centralized API calls for the application
-import {
-  TournamentRow,
-  DivisionRow,
-  PlayerRow,
-} from "@shared/types/database";
 import * as Domain from "@shared/types/domain";
 
 import {
@@ -18,15 +13,25 @@ import {
 // ============================================================================
 
 
-export const fetchTournamentRow = async (
+export const fetchTournamentSummary = async (
   userId: number,
   tournamentId: number,
-  divisionId?: number,
-): Promise<TournamentRow> => {
-  const response = await baseFetch(
-    `/api/public/users/${userId}/tournaments/${tournamentId}/row`,
-  );
-  return parseApiResponse<TournamentRow>(response);
+): Promise<Domain.TournamentSummary> => {
+  const tournamentData = await fetchTournament(userId, tournamentId);
+  
+  // Get polling data from the old endpoint (admin-specific data)
+  let pollUntil: Date | null = null;
+  try {
+    const response = await baseFetch(`/api/public/users/${userId}/tournaments/${tournamentId}/row`);
+    const rowData: any = parseApiResponse<any>(response);
+    pollUntil = rowData.poll_until ? new Date(rowData.poll_until) : null;
+  } catch (error) {
+    console.warn("Could not fetch polling data:", error);
+  }
+  
+  // Extract just the metadata from the full tournament
+  const { divisions, ...summary } = tournamentData;
+  return { ...summary, pollUntil };
 };
 
 
@@ -34,21 +39,18 @@ export const fetchPlayersForDivision = async (
   userId: number,
   tournamentId: number,
   divisionName: string,
-): Promise<PlayerRow[]> => {
-  const response = await baseFetch(
-    `/api/public/users/${userId}/tournaments/${tournamentId}/divisions/${encodeURIComponent(divisionName)}/players`,
-  );
-  return parseApiResponse<PlayerRow[]>(response);
+): Promise<Domain.Player[]> => {
+  const tournamentData = await fetchTournament(userId, tournamentId);
+  const division = tournamentData.divisions.find(d => d.name === divisionName);
+  return division ? division.players : [];
 };
 
 export const fetchDivisions = async (
   userId: number,
   tournamentId: number,
-): Promise<DivisionRow[]> => {
-  const response = await baseFetch(
-    `/api/public/users/${userId}/tournaments/${tournamentId}/divisions`,
-  );
-  return parseApiResponse<DivisionRow[]>(response);
+): Promise<Domain.Division[]> => {
+  const tournamentData = await fetchTournament(userId, tournamentId);
+  return tournamentData.divisions;
 };
 
 // ============================================================================
@@ -234,8 +236,20 @@ export const disableTournamentPolling = async (
   await deleteWithAuth(`/api/private/tournaments/${tournamentId}/polling`);
 };
 
-export const listTournaments = async (): Promise<TournamentRow[]> => {
-  return await fetchWithAuth<TournamentRow[]>("/api/private/tournaments/list");
+export const listTournaments = async (): Promise<Domain.TournamentSummary[]> => {
+  // TODO: Create a backend endpoint that returns tournament summaries
+  // For now, we'll need to fetch from the existing endpoint and transform
+  const response = await fetchWithAuth<any[]>("/api/private/tournaments/list");
+  return response.map((row: any): Domain.TournamentSummary => ({
+    id: row.id,
+    name: row.name,
+    city: row.city,
+    year: row.year,
+    lexicon: row.lexicon,
+    longFormName: row.long_form_name,
+    dataUrl: row.data_url,
+    pollUntil: row.poll_until ? new Date(row.poll_until) : null,
+  }));
 };
 
 // ============================================================================

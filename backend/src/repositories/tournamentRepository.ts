@@ -1,6 +1,6 @@
-import * as DB from "@shared/types/database";
+import * as DB from "../types/database";
 import * as Domain from "@shared/types/domain";
-import { GameChanges, TournamentUpdate } from "@shared/types/database";
+import { GameChanges, TournamentUpdate } from "../types/database";
 import { Knex } from "knex";
 
 // Internal type for repository use - uses seeds before conversion to DB IDs

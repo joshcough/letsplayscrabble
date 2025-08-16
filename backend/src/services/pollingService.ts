@@ -1,4 +1,4 @@
-import * as DB from "@shared/types/database";
+import * as DB from "../types/database";
 import { GamesAddedMessage } from "@shared/types/websocket";
 import cron, { ScheduledTask } from "node-cron";
 import { Server as SocketIOServer } from "socket.io";

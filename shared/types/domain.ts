@@ -2,6 +2,21 @@
 // Pure domain model types - business logic, no persistence concerns
 
 /**
+ * Tournament summary for admin list views
+ * Contains only metadata without divisions/games data
+ */
+export interface TournamentSummary {
+  id: number;
+  name: string;
+  city: string;
+  year: number;
+  lexicon: string;
+  longFormName: string;
+  dataUrl: string;
+  pollUntil?: Date | null; // When polling expires (for admin monitoring)
+}
+
+/**
  * Core Tournament domain model
  * Represents the business concept of a tournament
  */

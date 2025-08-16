@@ -2,7 +2,7 @@
 // Transform database rows into proper domain model types
 
 import * as Domain from "@shared/types/domain";
-import * as DB from "@shared/types/database";
+import * as DB from "../types/database";
 
 /**
  * Transform flat database response into proper domain tree structure

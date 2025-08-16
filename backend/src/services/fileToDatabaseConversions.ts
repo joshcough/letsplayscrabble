@@ -1,6 +1,6 @@
 // backend/src/services/fileToDatabaseConversions.ts
-import * as DB from "@shared/types/database";
-import * as File from "@shared/types/scrabbleFileFormat";
+import * as DB from "../types/database";
+import * as File from "../types/scrabbleFileFormat";
 
 // File Format → Database (complete conversion)
 export function convertFileToDatabase(

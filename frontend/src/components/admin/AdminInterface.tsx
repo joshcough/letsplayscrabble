@@ -2,10 +2,6 @@ import React, { useState, useEffect } from "react";
 
 import { CreateCurrentMatch, CurrentMatch } from "@shared/types/currentMatch";
 import * as Domain from "@shared/types/domain";
-import {
-  TournamentRow,
-  DivisionRow,
-} from "@shared/types/database";
 
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -28,7 +24,7 @@ const AdminInterface: React.FC = () => {
   const user_id = userId!;
 
   // State for dropdown options
-  const [tournaments, setTournaments] = useState<TournamentRow[]>([]);
+  const [tournaments, setTournaments] = useState<Domain.TournamentSummary[]>([]);
   const [hierarchicalTournament, setHierarchicalTournament] =
     useState<Domain.Tournament | null>(null);
 
@@ -39,7 +35,7 @@ const AdminInterface: React.FC = () => {
   const [selectedPairing, setSelectedPairing] = useState<number | null>(null);
 
   // Computed dropdown data
-  const [availableDivisions, setAvailableDivisions] = useState<DivisionRow[]>(
+  const [availableDivisions, setAvailableDivisions] = useState<Domain.Division[]>(
     [],
   );
   const [availableRounds, setAvailableRounds] = useState<number[]>([]);
@@ -55,7 +51,7 @@ const AdminInterface: React.FC = () => {
     "Loading tournaments...",
   );
 
-  const loadTournaments = async (): Promise<TournamentRow[]> => {
+  const loadTournaments = async (): Promise<Domain.TournamentSummary[]> => {
     return await listTournaments();
   };
 
@@ -73,15 +69,8 @@ const AdminInterface: React.FC = () => {
     round?: number,
   ) => {
     // Set available divisions from hierarchical structure
-    // Convert domain divisions to database format for dropdown compatibility
-    setAvailableDivisions(tournament.divisions.map((d) => ({
-      id: d.id,
-      tournament_id: tournament.id,
-      name: d.name,
-      position: 0, // Not used in domain model
-      created_at: new Date(),
-      updated_at: new Date(),
-    })));
+    // Use domain divisions directly
+    setAvailableDivisions(tournament.divisions);
 
     if (divisionId !== undefined) {
       // Find the specific division in the hierarchical structure
@@ -394,7 +383,7 @@ const AdminInterface: React.FC = () => {
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((t) => (
                     <option key={t.id} value={t.id}>
-                      {t.long_form_name}
+                      {t.longFormName}
                     </option>
                   ))}
               </select>

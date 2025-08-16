@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
-import { TournamentRow, DivisionRow, PlayerRow } from "@shared/types/database";
+import * as Domain from "@shared/types/domain";
 
 import { useAuth } from "../../context/AuthContext";
 import {
-  fetchTournamentRow,
+  fetchTournamentSummary,
   fetchDivisions,
   fetchPlayersForDivision,
   updateTournament,
@@ -33,10 +33,10 @@ const TournamentDetails: React.FC = () => {
   const user_id = userId!;
   const tournamentId = parseInt(params.id!);
 
-  const [tournament, setTournament] = useState<TournamentRow | null>(null);
-  const [divisions, setDivisions] = useState<DivisionRow[]>([]);
+  const [tournament, setTournament] = useState<Domain.TournamentSummary | null>(null);
+  const [divisions, setDivisions] = useState<Domain.Division[]>([]);
   const [divisionPlayers, setDivisionPlayers] = useState<
-    Record<string, PlayerRow[]>
+    Record<string, Domain.Player[]>
   >({});
   const [expandedDivisions, setExpandedDivisions] = useState<Set<string>>(
     new Set(),
@@ -47,7 +47,7 @@ const TournamentDetails: React.FC = () => {
   const [pollUntil, setPollUntil] = useState<Date | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editedTournament, setEditedTournament] =
-    useState<TournamentRow | null>(null);
+    useState<Domain.TournamentSummary | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
 
   useEffect(() => {
@@ -180,13 +180,13 @@ const TournamentDetails: React.FC = () => {
         city: editedTournament.city || "",
         year: editedTournament.year || 0,
         lexicon: editedTournament.lexicon || "",
-        longFormName: editedTournament.long_form_name || "",
-        dataUrl: editedTournament.data_url || "",
+        longFormName: editedTournament.longFormName || "",
+        dataUrl: editedTournament.dataUrl || "",
       };
 
       await updateTournament(Number(params.id), editableFields);
 
-      const freshTournamentData = await fetchTournamentRow(
+      const freshTournamentData = await fetchTournamentSummary(
         user_id,
         tournamentId,
       );
@@ -209,14 +209,14 @@ const TournamentDetails: React.FC = () => {
   useEffect(() => {
     const fetchTournamentData = async () => {
       try {
-        const tournamentData: TournamentRow = await fetchTournamentRow(
+        const tournamentData: Domain.TournamentSummary = await fetchTournamentSummary(
           user_id,
           tournamentId,
         );
         setTournament(tournamentData);
 
-        if (tournamentData.poll_until) {
-          const pollUntilDate = new Date(tournamentData.poll_until);
+        if (tournamentData.pollUntil) {
+          const pollUntilDate = tournamentData.pollUntil;
           setIsPolling(pollUntilDate > new Date());
           setPollUntil(pollUntilDate);
         } else {
@@ -377,14 +377,14 @@ const TournamentDetails: React.FC = () => {
                 {isEditing ? (
                   <input
                     type="text"
-                    value={editedTournament.long_form_name || ""}
+                    value={editedTournament.longFormName || ""}
                     onChange={(e) =>
-                      handleInputChange("long_form_name", e.target.value)
+                      handleInputChange("longFormName", e.target.value)
                     }
                     className="px-2 py-1 border rounded"
                   />
                 ) : (
-                  <span>{tournament.long_form_name || "N/A"}</span>
+                  <span>{tournament.longFormName || "N/A"}</span>
                 )}
               </div>
               <div className="flex">
@@ -394,14 +394,14 @@ const TournamentDetails: React.FC = () => {
                 {isEditing ? (
                   <input
                     type="text"
-                    value={editedTournament.data_url || ""}
+                    value={editedTournament.dataUrl || ""}
                     onChange={(e) =>
-                      handleInputChange("data_url", e.target.value)
+                      handleInputChange("dataUrl", e.target.value)
                     }
                     className="px-2 py-1 border rounded"
                   />
                 ) : (
-                  <span>{tournament.data_url || "N/A"}</span>
+                  <span>{tournament.dataUrl || "N/A"}</span>
                 )}
               </div>
               <div className="flex">
@@ -517,7 +517,7 @@ const TournamentDetails: React.FC = () => {
                                 <div className="flex items-center gap-4">
                                   <span className="text-gray-500">
                                     ID: {player.id} | Rating:{" "}
-                                    {player.initial_rating}
+                                    {player.initialRating}
                                   </span>
                                   <Link
                                     to={`/users/${user_id}/overlay/player/${tournamentId}/${encodeURIComponent(division.name)}/${player.id}/test`}

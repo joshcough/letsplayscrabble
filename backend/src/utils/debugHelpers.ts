@@ -1,4 +1,4 @@
-import { CreateTournament } from "@shared/types/database";
+import { CreateTournament } from "../types/database";
 
 /**
  * Debug helper to cleanly print CreateTournament data

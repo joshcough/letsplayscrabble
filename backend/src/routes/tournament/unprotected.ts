@@ -1,6 +1,6 @@
 import express, { Router, Response, RequestHandler } from "express";
 
-import * as DB from "@shared/types/database";
+import * as DB from "../../types/database";
 
 import { TournamentRepository } from "../../repositories/tournamentRepository";
 import * as Api from "../../utils/apiHelpers";

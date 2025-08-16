@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import { TournamentRow } from "@shared/types/database";
+import * as Domain from "@shared/types/domain";
 
 import { listTournaments } from "../../services/api";
 import { ProtectedPage } from "../ProtectedPage";
@@ -12,7 +12,7 @@ interface TournamentListProps {
 const TournamentList: React.FC<TournamentListProps> = ({
   onTournamentClick,
 }) => {
-  const [tournaments, setTournaments] = useState<TournamentRow[]>([]); // Change type
+  const [tournaments, setTournaments] = useState<Domain.TournamentSummary[]>([]);
 
   useEffect(() => {
     const fetchTournaments = async () => {

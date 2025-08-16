@@ -1,4 +1,4 @@
-import { TournamentData } from "@shared/types/scrabbleFileFormat";
+import { TournamentData } from "../types/scrabbleFileFormat";
 import axios from "axios";
 import fs from "fs/promises";
 
