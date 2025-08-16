@@ -430,7 +430,7 @@ export class TournamentRepository {
     return knexDb("divisions")
       .select("*")
       .where("tournament_id", tournamentId)
-      .orderBy("position");
+      .orderBy("id");
   }
 
   private async makeDivisionTree(

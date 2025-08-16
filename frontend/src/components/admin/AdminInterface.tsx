@@ -132,6 +132,17 @@ const AdminInterface: React.FC = () => {
     // Load the hierarchical tournament data for this match
     try {
       const tournament = await fetchTournament(user_id, match.tournament_id);
+      
+      // TEST: Also fetch with V2 to compare
+      try {
+        const { fetchTournamentV2 } = await import('../../services/api');
+        const tournamentV2 = await fetchTournamentV2(user_id, match.tournament_id);
+        console.log('🆚 COMPARISON - Old API vs V2 API:');
+        console.log('Old API (flat structure):', tournament);
+        console.log('V2 API (domain model):', tournamentV2);
+      } catch (v2Error) {
+        console.error('❌ V2 API test failed:', v2Error);
+      }
 
       setHierarchicalTournament(tournament);
 

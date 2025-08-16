@@ -22,7 +22,6 @@ export interface Tournament {
 export interface Division {
   id: number;
   name: string;
-  position: number;
   players: Player[];
   games: Game[];
 }

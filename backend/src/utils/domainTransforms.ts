@@ -39,7 +39,6 @@ export function transformToDomainTournament(
     return {
       id: divisionData.division.id,
       name: divisionData.division.name,
-      position: divisionData.division.position,
       players,
       games,
     };
