@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from "react";
 
 import { CreateCurrentMatch, CurrentMatch } from "@shared/types/currentMatch";
+import * as Domain from "@shared/types/domain";
 import {
   TournamentRow,
   DivisionRow,
-  PlayerRow,
-  GameRow,
-  Tournament,
 } from "@shared/types/database";
 
 import { useAuth } from "../../context/AuthContext";
 import {
-  fetchTournament,
+  fetchTournamentV2,
   fetchApiResponseWithAuth,
   setCurrentMatch,
   listTournaments,
@@ -32,7 +30,7 @@ const AdminInterface: React.FC = () => {
   // State for dropdown options
   const [tournaments, setTournaments] = useState<TournamentRow[]>([]);
   const [hierarchicalTournament, setHierarchicalTournament] =
-    useState<Tournament | null>(null);
+    useState<Domain.Tournament | null>(null);
 
   // State for selections
   const [selectedTournament, setSelectedTournament] = useState<string>("");
@@ -70,42 +68,50 @@ const AdminInterface: React.FC = () => {
 
   // UPDATED: Transform hierarchical tournament data into dropdown options
   const updateDropdownData = (
-    tournament: Tournament,
+    tournament: Domain.Tournament,
     divisionId?: number,
     round?: number,
   ) => {
     // Set available divisions from hierarchical structure
-    setAvailableDivisions(tournament.divisions.map((d) => d.division));
+    // Convert domain divisions to database format for dropdown compatibility
+    setAvailableDivisions(tournament.divisions.map((d) => ({
+      id: d.id,
+      tournament_id: tournament.id,
+      name: d.name,
+      position: 0, // Not used in domain model
+      created_at: new Date(),
+      updated_at: new Date(),
+    })));
 
     if (divisionId !== undefined) {
       // Find the specific division in the hierarchical structure
       const divisionData = tournament.divisions.find(
-        (d) => d.division.id === divisionId,
+        (d) => d.id === divisionId,
       );
 
       if (divisionData) {
         // Get rounds for this division from its games
         const rounds = Array.from(
-          new Set(divisionData.games.map((game) => game.round_number)),
+          new Set(divisionData.games.map((game) => game.roundNumber)),
         ).sort((a, b) => a - b);
         setAvailableRounds(rounds);
 
         if (round !== undefined) {
           // Get pairings for this division and round
           const roundGames = divisionData.games.filter(
-            (game) => game.round_number === round,
+            (game) => game.roundNumber === round,
           );
 
           const pairings = roundGames.map((game) => {
             const player1 = divisionData.players.find(
-              (p) => p.id === game.player1_id,
+              (p) => p.id === game.player1Id,
             );
             const player2 = divisionData.players.find(
-              (p) => p.id === game.player2_id,
+              (p) => p.id === game.player2Id,
             );
 
             return {
-              pairingId: game.pairing_id || 0,
+              pairingId: game.pairingId || 0,
               player1Name: player1?.name || "Unknown",
               player2Name: player2?.name || "Unknown",
             };
@@ -131,24 +137,14 @@ const AdminInterface: React.FC = () => {
 
     // Load the hierarchical tournament data for this match
     try {
-      const tournament = await fetchTournament(user_id, match.tournament_id);
-      
-      // TEST: Also fetch with V2 to compare
-      try {
-        const { fetchTournamentV2 } = await import('../../services/api');
-        const tournamentV2 = await fetchTournamentV2(user_id, match.tournament_id);
-        console.log('🆚 COMPARISON - Old API vs V2 API:');
-        console.log('Old API (flat structure):', tournament);
-        console.log('V2 API (domain model):', tournamentV2);
-      } catch (v2Error) {
-        console.error('❌ V2 API test failed:', v2Error);
-      }
+      const tournament = await fetchTournamentV2(user_id, match.tournament_id);
+      console.log('✅ Loaded tournament with V2 API:', tournament);
 
       setHierarchicalTournament(tournament);
 
       // Find the division in hierarchical structure
       const divisionData = tournament.divisions.find(
-        (d) => d.division.id === match.division_id,
+        (d) => d.id === match.division_id,
       );
       if (!divisionData) {
         console.warn(
@@ -248,7 +244,7 @@ const AdminInterface: React.FC = () => {
     if (newTournamentId) {
       try {
         setIsLoading(true);
-        const tournament = await fetchTournament(
+        const tournament = await fetchTournamentV2(
           user_id,
           parseInt(newTournamentId),
         );
