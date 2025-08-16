@@ -552,41 +552,31 @@ export class TournamentRepository {
       const divisionId = await this.insertDivision(
         trx,
         tournamentId,
-        {
-          tournament_id: tournamentId,
-          name: divisionData.division.name,
-          position: divisionData.division.position,
-        },
+        divisionData.division,
       );
 
       const playerSeedToDbIdMap = await this.insertPlayersForDivision(
         trx,
         tournamentId,
         divisionId,
-        divisionData.players.map(p => ({
-          tournament_id: tournamentId,
-          division_id: divisionId,
-          seed: p.seed,
-          name: p.name,
-          initial_rating: p.initial_rating,
-          photo: p.photo,
-          etc_data: p.etc_data,
-        })),
+        divisionData.players,
       );
+
+      const gamesWithDivision: GameWithSeeds[] = divisionData.games.map(g => ({
+        division_id: divisionId,
+        round_number: g.round_number,
+        player1_seed: g.player1_seed,
+        player2_seed: g.player2_seed,
+        player1_score: g.player1_score,
+        player2_score: g.player2_score,
+        is_bye: g.is_bye,
+        pairing_id: g.pairing_id,
+      }));
 
       const changes = await this.upsertGamesForDivision(
         trx,
         divisionId,
-        divisionData.games.map(g => ({
-          division_id: divisionId,
-          round_number: g.round_number,
-          player1_seed: g.player1_seed,
-          player2_seed: g.player2_seed,
-          player1_score: g.player1_score,
-          player2_score: g.player2_score,
-          is_bye: g.is_bye,
-          pairing_id: g.pairing_id,
-        })),
+        gamesWithDivision,
         playerSeedToDbIdMap,
       );
 
@@ -634,19 +624,21 @@ export class TournamentRepository {
         divisionId,
       );
 
+      const gamesWithDivision: GameWithSeeds[] = divisionData.games.map(g => ({
+        division_id: divisionId,
+        round_number: g.round_number,
+        player1_seed: g.player1_seed,
+        player2_seed: g.player2_seed,
+        player1_score: g.player1_score,
+        player2_score: g.player2_score,
+        is_bye: g.is_bye,
+        pairing_id: g.pairing_id,
+      }));
+
       const changes = await this.upsertGamesForDivision(
         trx,
         divisionId,
-        divisionData.games.map(g => ({
-          division_id: divisionId,
-          round_number: g.round_number,
-          player1_seed: g.player1_seed,
-          player2_seed: g.player2_seed,
-          player1_score: g.player1_score,
-          player2_score: g.player2_score,
-          is_bye: g.is_bye,
-          pairing_id: g.pairing_id,
-        })),
+        gamesWithDivision,
         playerSeedToDbIdMap,
       );
 
