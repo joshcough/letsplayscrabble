@@ -1,13 +1,18 @@
 import express, { Router } from "express";
 import { RequestHandler } from "express-serve-static-core";
 
-import { CreateCurrentMatch, CurrentMatch } from "@shared/types/currentMatch";
+import * as Domain from "@shared/types/domain";
 import { AdminPanelUpdateMessage } from "@shared/types/websocket";
 import { Server as SocketIOServer } from "socket.io";
 
 import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
+import { CreateCurrentMatch, CurrentMatch } from "../types/currentMatch";
 import * as Api from "../utils/apiHelpers";
 import { withDataOr404, withErrorHandling } from "../utils/apiHelpers";
+import {
+  transformCurrentMatchToDomain,
+  transformCreateCurrentMatchToDatabase,
+} from "../utils/domainTransforms";
 
 export default function createAdminRoutes(
   repo: CurrentMatchRepository,
@@ -17,43 +22,49 @@ export default function createAdminRoutes(
 
   const createMatch: RequestHandler<
     {},
-    Api.ApiResponse<CurrentMatch>,
-    CreateCurrentMatch
+    Api.ApiResponse<Domain.CurrentMatch>,
+    Domain.CreateCurrentMatch
   > = withErrorHandling(async (req, res) => {
-    const { tournament_id, division_id, round, pairing_id } = req.body;
+    // Transform domain input to database format
+    const dbCreateMatch = transformCreateCurrentMatchToDatabase(req.body);
     const userId = req.user!.id;
-    const match = await repo.create(
+    const dbMatch = await repo.create(
       userId,
-      tournament_id,
-      division_id,
-      round,
-      pairing_id,
+      dbCreateMatch.tournament_id,
+      dbCreateMatch.division_id,
+      dbCreateMatch.round,
+      dbCreateMatch.pairing_id,
     );
 
     const adminPanelUpdate: AdminPanelUpdateMessage = {
       userId,
-      tournamentId: match.tournament_id,
-      divisionId: match.division_id,
-      divisionName: match.division_name,
-      round: match.round,
-      pairingId: match.pairing_id,
+      tournamentId: dbMatch.tournament_id,
+      divisionId: dbMatch.division_id,
+      divisionName: dbMatch.division_name,
+      round: dbMatch.round,
+      pairingId: dbMatch.pairing_id,
       timestamp: Date.now(),
     };
 
     io.emit("AdminPanelUpdate", adminPanelUpdate);
-    res.json(Api.success(match));
+
+    // Transform database result to domain format for response
+    const domainMatch = transformCurrentMatchToDomain(dbMatch);
+    res.json(Api.success(domainMatch));
   });
 
   const getCurrentMatch: RequestHandler<
     {},
-    Api.ApiResponse<CurrentMatch>
+    Api.ApiResponse<Domain.CurrentMatch>
   > = async (req, res) => {
     await withDataOr404(
       repo.getCurrentMatch(req.user!.id),
       res,
       "No current match found",
-      (currentMatch) => {
-        res.json(Api.success(currentMatch));
+      (dbCurrentMatch) => {
+        // Transform database result to domain format for response
+        const domainMatch = transformCurrentMatchToDomain(dbCurrentMatch);
+        res.json(Api.success(domainMatch));
       },
     );
   };

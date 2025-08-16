@@ -1,13 +1,5 @@
 // WorkerSocketManager.ts - Enhanced SocketManager using TournamentCacheManager with incremental updates
 import {
-  SubscribeMessage,
-  TournamentDataResponse,
-  TournamentDataRefresh,
-  TournamentDataIncremental,
-  TournamentDataError,
-  BroadcastMessage,
-} from "@shared/types/broadcast";
-import {
   AdminPanelUpdateMessage,
   GamesAddedMessage,
   Ping,
@@ -16,6 +8,14 @@ import io, { Socket } from "socket.io-client";
 
 import { API_BASE } from "../config/api";
 import { fetchTournament } from "../services/api";
+import {
+  SubscribeMessage,
+  TournamentDataResponse,
+  TournamentDataRefresh,
+  TournamentDataIncremental,
+  TournamentDataError,
+  BroadcastMessage,
+} from "../types/broadcast";
 import TournamentCacheManager from "./TournamentCacheManager";
 
 class WorkerSocketManager {
@@ -301,14 +301,16 @@ class WorkerSocketManager {
 
       if (success) {
         // Broadcast incremental update with full tournament data
-        this.broadcastTournamentIncremental(data.userId, data.tournamentId, data.update, previousDataSnapshot);
+        this.broadcastTournamentIncremental(
+          data.userId,
+          data.tournamentId,
+          data.update,
+          previousDataSnapshot,
+        );
       } else {
         // Fallback to full refresh if cache update failed
         console.warn("⚠️ Cache update failed, falling back to full refresh");
-        this.fetchAndBroadcastTournamentRefresh(
-          data.tournamentId,
-          data.userId,
-        );
+        this.fetchAndBroadcastTournamentRefresh(data.tournamentId, data.userId);
       }
     });
   }
@@ -325,10 +327,7 @@ class WorkerSocketManager {
     );
 
     // Get updated tournament data from cache (after changes applied)
-    const updatedTournamentData = this.cacheManager.get(
-      userId,
-      tournamentId,
-    );
+    const updatedTournamentData = this.cacheManager.get(userId, tournamentId);
 
     if (!updatedTournamentData) {
       console.error(

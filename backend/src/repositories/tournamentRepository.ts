@@ -1,7 +1,12 @@
-import * as DB from "../types/database";
 import * as Domain from "@shared/types/domain";
-import { GameChanges, TournamentUpdate } from "../types/database";
 import { Knex } from "knex";
+
+import { knexDb } from "../config/database";
+import { convertFileToDatabase } from "../services/fileToDatabaseConversions";
+import * as DB from "../types/database";
+import { GameChanges, TournamentUpdate } from "../types/database";
+import { debugPrintCreateTournament } from "../utils/debugHelpers";
+import { transformToDomainTournament } from "../utils/domainTransforms";
 
 // Internal type for repository use - uses seeds before conversion to DB IDs
 type GameWithSeeds = {
@@ -14,11 +19,6 @@ type GameWithSeeds = {
   is_bye: boolean;
   pairing_id: number | null;
 };
-
-import { knexDb } from "../config/database";
-import { convertFileToDatabase } from "../services/fileToDatabaseConversions";
-import { debugPrintCreateTournament } from "../utils/debugHelpers";
-import { transformToDomainTournament } from "../utils/domainTransforms";
 
 export class TournamentRepository {
   async create(
@@ -317,7 +317,11 @@ export class TournamentRepository {
     userId: number,
     divisionId?: number,
   ): Promise<Domain.Tournament | null> {
-    const flatTournament = await this.getTournamentAsTree(tournamentId, userId, divisionId);
+    const flatTournament = await this.getTournamentAsTree(
+      tournamentId,
+      userId,
+      divisionId,
+    );
     if (!flatTournament) {
       return null;
     }
@@ -562,16 +566,18 @@ export class TournamentRepository {
         divisionData.players,
       );
 
-      const gamesWithDivision: GameWithSeeds[] = divisionData.games.map(g => ({
-        division_id: divisionId,
-        round_number: g.round_number,
-        player1_seed: g.player1_seed,
-        player2_seed: g.player2_seed,
-        player1_score: g.player1_score,
-        player2_score: g.player2_score,
-        is_bye: g.is_bye,
-        pairing_id: g.pairing_id,
-      }));
+      const gamesWithDivision: GameWithSeeds[] = divisionData.games.map(
+        (g) => ({
+          division_id: divisionId,
+          round_number: g.round_number,
+          player1_seed: g.player1_seed,
+          player2_seed: g.player2_seed,
+          player1_score: g.player1_score,
+          player2_score: g.player2_score,
+          is_bye: g.is_bye,
+          pairing_id: g.pairing_id,
+        }),
+      );
 
       const changes = await this.upsertGamesForDivision(
         trx,
@@ -624,16 +630,18 @@ export class TournamentRepository {
         divisionId,
       );
 
-      const gamesWithDivision: GameWithSeeds[] = divisionData.games.map(g => ({
-        division_id: divisionId,
-        round_number: g.round_number,
-        player1_seed: g.player1_seed,
-        player2_seed: g.player2_seed,
-        player1_score: g.player1_score,
-        player2_score: g.player2_score,
-        is_bye: g.is_bye,
-        pairing_id: g.pairing_id,
-      }));
+      const gamesWithDivision: GameWithSeeds[] = divisionData.games.map(
+        (g) => ({
+          division_id: divisionId,
+          round_number: g.round_number,
+          player1_seed: g.player1_seed,
+          player2_seed: g.player2_seed,
+          player1_score: g.player1_score,
+          player2_score: g.player2_score,
+          is_bye: g.is_bye,
+          pairing_id: g.pairing_id,
+        }),
+      );
 
       const changes = await this.upsertGamesForDivision(
         trx,

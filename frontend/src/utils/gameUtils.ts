@@ -16,9 +16,7 @@ export const getRecentGamesForPlayer = (
     (game) => game.player1Score !== null && game.player2Score !== null,
   );
 
-  const sortedGames = playedGames.sort(
-    (a, b) => b.roundNumber - a.roundNumber,
-  );
+  const sortedGames = playedGames.sort((a, b) => b.roundNumber - a.roundNumber);
 
   return sortedGames.slice(0, limit).map((game) => {
     const isPlayer1 = game.player1Id === playerId;
@@ -39,9 +37,7 @@ export const getHighScoreForDivision = (
   tournament: Domain.Tournament,
   divisionId: number,
 ) => {
-  const division = tournament.divisions.find(
-    (d) => d.id === divisionId,
-  );
+  const division = tournament.divisions.find((d) => d.id === divisionId);
   if (!division) return { score: 0, playerName: "", gameId: 0 };
 
   let highScore = 0;
@@ -80,11 +76,12 @@ export const getHighScoreFromChanges = (
   let highScorePlayerName = "";
 
   // For domain changes, we need to check if players belong to the division
-  const divisionPlayerIds = new Set(players.map(p => p.id));
+  const divisionPlayerIds = new Set(players.map((p) => p.id));
 
   // Check added games
   for (const game of changes.added.filter(
-    (g) => divisionPlayerIds.has(g.player1Id) || divisionPlayerIds.has(g.player2Id),
+    (g) =>
+      divisionPlayerIds.has(g.player1Id) || divisionPlayerIds.has(g.player2Id),
   )) {
     if (game.player1Score && game.player1Score > highScore) {
       highScore = game.player1Score;
@@ -100,7 +97,8 @@ export const getHighScoreFromChanges = (
 
   // Check updated games
   for (const game of changes.updated.filter(
-    (g) => divisionPlayerIds.has(g.player1Id) || divisionPlayerIds.has(g.player2Id),
+    (g) =>
+      divisionPlayerIds.has(g.player1Id) || divisionPlayerIds.has(g.player2Id),
   )) {
     if (game.player1Score && game.player1Score > highScore) {
       highScore = game.player1Score;
@@ -148,9 +146,7 @@ export const calculateWinStreak = (
     .filter(
       (game) => game.player1Id === playerId || game.player2Id === playerId,
     )
-    .filter(
-      (game) => game.player1Score !== null && game.player2Score !== null,
-    ) // Only completed games
+    .filter((game) => game.player1Score !== null && game.player2Score !== null) // Only completed games
     .sort((a, b) => b.roundNumber - a.roundNumber);
 
   let streak = 0;

@@ -2,10 +2,17 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { CreateTournamentParams } from "@shared/types/tournament";
-
 import { createTournament } from "../../services/api";
 import { ProtectedPage } from "../ProtectedPage";
+
+interface CreateTournamentParams {
+  name: string;
+  city: string;
+  year: number;
+  lexicon: string;
+  longFormName: string;
+  dataUrl: string;
+}
 
 const AddTournament: React.FC = () => {
   const navigate = useNavigate();

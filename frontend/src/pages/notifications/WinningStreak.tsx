@@ -1,8 +1,8 @@
 import React from "react";
 
-import { TournamentDataIncremental } from "@shared/types/broadcast";
 import * as Domain from "@shared/types/domain";
 
+import { TournamentDataIncremental } from "../../types/broadcast";
 import { didPlayerWinGame, calculateWinStreak } from "../../utils/gameUtils";
 
 // Winning streak data structure
@@ -19,24 +19,28 @@ const detectWinningStreak = (
   console.log("🔥 WinningStreakDetector: Checking for win streaks...");
 
   // Find division in the updated tournament data
-  const currentDivision = update.data?.divisions.find(d => d.id === divisionData.id);
+  const currentDivision = update.data?.divisions.find(
+    (d) => d.id === divisionData.id,
+  );
   if (!currentDivision) {
     console.log("🔥 WinningStreakDetector: Division not found in updated data");
     return null;
   }
 
   // Only look at newly added or updated games for this division's players
-  const divisionPlayerIds = new Set(currentDivision.players.map(p => p.id));
+  const divisionPlayerIds = new Set(currentDivision.players.map((p) => p.id));
   const relevantChanges = [
     ...update.changes.added.filter(
-      (g) => divisionPlayerIds.has(g.player1Id) || divisionPlayerIds.has(g.player2Id),
+      (g) =>
+        divisionPlayerIds.has(g.player1Id) ||
+        divisionPlayerIds.has(g.player2Id),
     ),
     ...update.changes.updated.filter(
-      (g) => divisionPlayerIds.has(g.player1Id) || divisionPlayerIds.has(g.player2Id),
+      (g) =>
+        divisionPlayerIds.has(g.player1Id) ||
+        divisionPlayerIds.has(g.player2Id),
     ),
-  ].filter(
-    (game) => game.player1Score !== null && game.player2Score !== null,
-  ); // Only completed games
+  ].filter((game) => game.player1Score !== null && game.player2Score !== null); // Only completed games
 
   if (relevantChanges.length === 0) {
     console.log(
@@ -61,9 +65,7 @@ const detectWinningStreak = (
 
         // Trigger notification for streaks of 3+ games
         if (currentStreak >= 3) {
-          const player = currentDivision.players.find(
-            (p) => p.id === playerId,
-          );
+          const player = currentDivision.players.find((p) => p.id === playerId);
 
           if (player) {
             console.log(

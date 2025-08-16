@@ -1,10 +1,12 @@
 import express, { Router } from "express";
 import { RequestHandler } from "express-serve-static-core";
 
-import { MatchWithPlayers } from "@shared/types/admin";
-import { CurrentMatch } from "@shared/types/currentMatch";
+import * as Domain from "@shared/types/domain";
 
 import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
+import { MatchWithPlayers } from "../types/admin";
+import { CurrentMatch } from "../types/currentMatch";
+import { transformCurrentMatchToDomain } from "../utils/domainTransforms";
 
 export default function createOverlayRoutes(
   currentMatchRepository: CurrentMatchRepository,
@@ -27,13 +29,16 @@ export default function createOverlayRoutes(
         res.status(400).json({ error: "Invalid user ID" });
         return;
       }
-      const currentMatch = await currentMatchRepository.getCurrentMatch(userId);
-      if (!currentMatch) {
+      const dbCurrentMatch =
+        await currentMatchRepository.getCurrentMatch(userId);
+      if (!dbCurrentMatch) {
         res.status(404).json({ error: "No current match found" });
         return;
       }
 
-      res.json(currentMatch);
+      // Transform database result to domain format
+      const domainMatch = transformCurrentMatchToDomain(dbCurrentMatch);
+      res.json(domainMatch);
     } catch (error) {
       console.error("Error fetching current match basic data:", error);
       res.status(500).json({

@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
-import { TournamentDataIncremental } from "@shared/types/broadcast";
-
 import BroadcastManager from "../../hooks/BroadcastManager";
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { useTournamentData } from "../../hooks/useTournamentData";
+import { TournamentDataIncremental } from "../../types/broadcast";
 
 type RouteParams = {
   userId: string;
@@ -57,8 +56,8 @@ const TournamentNotificationOverlay = ({
     tournamentData: currentMatchTournamentData,
     loading: currentMatchTournamentLoading,
   } = useTournamentData({
-    tournamentId: currentMatch?.tournament_id,
-    divisionId: currentMatch?.division_id,
+    tournamentId: currentMatch?.tournamentId,
+    divisionId: currentMatch?.divisionId,
     useUrlParams: false,
   });
 
@@ -67,7 +66,7 @@ const TournamentNotificationOverlay = ({
     ? currentMatchTournamentData
     : urlTournamentData;
   const effectiveDivisionId = shouldUseCurrentMatch
-    ? currentMatch?.division_id
+    ? currentMatch?.divisionId
     : urlDivisionId;
   const effectiveLoading = shouldUseCurrentMatch
     ? currentMatchLoading || currentMatchTournamentLoading

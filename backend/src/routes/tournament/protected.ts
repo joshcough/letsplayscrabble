@@ -1,11 +1,10 @@
 import express, { Router, RequestHandler } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 
-import * as DB from "../../types/database";
-
 import { TournamentRepository } from "../../repositories/tournamentRepository";
 import { convertFileToDatabase } from "../../services/fileToDatabaseConversions";
 import { loadTournamentFile } from "../../services/loadTournamentFile";
+import * as DB from "../../types/database";
 import * as Api from "../../utils/apiHelpers";
 
 interface TournamentIdParams extends ParamsDictionary {

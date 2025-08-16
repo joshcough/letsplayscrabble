@@ -33,7 +33,9 @@ const TournamentDetails: React.FC = () => {
   const user_id = userId!;
   const tournamentId = parseInt(params.id!);
 
-  const [tournament, setTournament] = useState<Domain.TournamentSummary | null>(null);
+  const [tournament, setTournament] = useState<Domain.TournamentSummary | null>(
+    null,
+  );
   const [divisions, setDivisions] = useState<Domain.Division[]>([]);
   const [divisionPlayers, setDivisionPlayers] = useState<
     Record<string, Domain.Player[]>
@@ -209,10 +211,8 @@ const TournamentDetails: React.FC = () => {
   useEffect(() => {
     const fetchTournamentData = async () => {
       try {
-        const tournamentData: Domain.TournamentSummary = await fetchTournamentSummary(
-          user_id,
-          tournamentId,
-        );
+        const tournamentData: Domain.TournamentSummary =
+          await fetchTournamentSummary(user_id, tournamentId);
         setTournament(tournamentData);
 
         if (tournamentData.pollUntil) {

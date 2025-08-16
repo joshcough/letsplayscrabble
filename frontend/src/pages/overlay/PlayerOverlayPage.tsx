@@ -1,7 +1,6 @@
 import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
-
 import { BaseOverlay } from "../../components/shared/BaseOverlay";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
 import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
@@ -340,7 +339,7 @@ const PlayerOverlay: React.FC = () => {
           // Find the current game
           const currentGame = divisionData.games.find(
             (game) =>
-              game.pairingId === currentMatch.pairing_id &&
+              game.pairingId === currentMatch.pairingId &&
               game.roundNumber === currentMatch.round,
           );
 

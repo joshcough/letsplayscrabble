@@ -1,40 +1,45 @@
 // backend/src/utils/domainTransforms.ts
 // Transform database rows into proper domain model types
-
 import * as Domain from "@shared/types/domain";
+
+import * as DBCurrentMatch from "../types/currentMatch";
 import * as DB from "../types/database";
 
 /**
  * Transform flat database response into proper domain tree structure
  */
 export function transformToDomainTournament(
-  flatTournament: DB.Tournament
+  flatTournament: DB.Tournament,
 ): Domain.Tournament {
   const divisions = flatTournament.divisions.map((divisionData) => {
     // Transform players and extract ratings from etc_data
-    const players = divisionData.players.map((playerRow): Domain.Player => ({
-      id: playerRow.id,
-      seed: playerRow.seed,
-      name: playerRow.name,
-      initialRating: playerRow.initial_rating,
-      photo: playerRow.photo,
-      ratingsHistory: playerRow.etc_data?.newr || [playerRow.initial_rating], // Extract from etc_data
-    }));
+    const players = divisionData.players.map(
+      (playerRow): Domain.Player => ({
+        id: playerRow.id,
+        seed: playerRow.seed,
+        name: playerRow.name,
+        initialRating: playerRow.initial_rating,
+        photo: playerRow.photo,
+        ratingsHistory: playerRow.etc_data?.newr || [playerRow.initial_rating], // Extract from etc_data
+      }),
+    );
 
     // Create player lookup for games
-    const playersById = new Map(players.map(p => [p.id, p]));
+    const playersById = new Map(players.map((p) => [p.id, p]));
 
     // Transform games to use player IDs instead of embedding full objects
-    const games = divisionData.games.map((gameRow): Domain.Game => ({
-      id: gameRow.id,
-      roundNumber: gameRow.round_number,
-      player1Id: gameRow.player1_id,
-      player2Id: gameRow.player2_id,
-      player1Score: gameRow.player1_score,
-      player2Score: gameRow.player2_score,
-      isBye: gameRow.is_bye,
-      pairingId: gameRow.pairing_id,
-    }));
+    const games = divisionData.games.map(
+      (gameRow): Domain.Game => ({
+        id: gameRow.id,
+        roundNumber: gameRow.round_number,
+        player1Id: gameRow.player1_id,
+        player2Id: gameRow.player2_id,
+        player1Score: gameRow.player1_score,
+        player2Score: gameRow.player2_score,
+        isBye: gameRow.is_bye,
+        pairingId: gameRow.pairing_id,
+      }),
+    );
 
     return {
       id: divisionData.division.id,
@@ -61,29 +66,33 @@ export function transformToDomainTournament(
  * ZZZ this looks sus
  */
 export function transformGameChangesToDomain(
-  dbChanges: DB.GameChanges
+  dbChanges: DB.GameChanges,
 ): Domain.GameChanges {
-  const addedGames = dbChanges.added.map((gameRow): Domain.Game => ({
-    id: gameRow.id,
-    roundNumber: gameRow.round_number,
-    player1Id: gameRow.player1_id,
-    player2Id: gameRow.player2_id,
-    player1Score: gameRow.player1_score,
-    player2Score: gameRow.player2_score,
-    isBye: gameRow.is_bye,
-    pairingId: gameRow.pairing_id,
-  }));
+  const addedGames = dbChanges.added.map(
+    (gameRow): Domain.Game => ({
+      id: gameRow.id,
+      roundNumber: gameRow.round_number,
+      player1Id: gameRow.player1_id,
+      player2Id: gameRow.player2_id,
+      player1Score: gameRow.player1_score,
+      player2Score: gameRow.player2_score,
+      isBye: gameRow.is_bye,
+      pairingId: gameRow.pairing_id,
+    }),
+  );
 
-  const updatedGames = dbChanges.updated.map((gameRow): Domain.Game => ({
-    id: gameRow.id,
-    roundNumber: gameRow.round_number,
-    player1Id: gameRow.player1_id,
-    player2Id: gameRow.player2_id,
-    player1Score: gameRow.player1_score,
-    player2Score: gameRow.player2_score,
-    isBye: gameRow.is_bye,
-    pairingId: gameRow.pairing_id,
-  }));
+  const updatedGames = dbChanges.updated.map(
+    (gameRow): Domain.Game => ({
+      id: gameRow.id,
+      roundNumber: gameRow.round_number,
+      player1Id: gameRow.player1_id,
+      player2Id: gameRow.player2_id,
+      player1Score: gameRow.player1_score,
+      player2Score: gameRow.player2_score,
+      isBye: gameRow.is_bye,
+      pairingId: gameRow.pairing_id,
+    }),
+  );
 
   return {
     added: addedGames,
@@ -91,3 +100,32 @@ export function transformGameChangesToDomain(
   };
 }
 
+/**
+ * Transform database current match to domain current match
+ */
+export function transformCurrentMatchToDomain(
+  dbCurrentMatch: DBCurrentMatch.CurrentMatch,
+): Domain.CurrentMatch {
+  return {
+    tournamentId: dbCurrentMatch.tournament_id,
+    divisionId: dbCurrentMatch.division_id,
+    divisionName: dbCurrentMatch.division_name,
+    round: dbCurrentMatch.round,
+    pairingId: dbCurrentMatch.pairing_id,
+    updatedAt: dbCurrentMatch.updated_at,
+  };
+}
+
+/**
+ * Transform domain create current match to database format
+ */
+export function transformCreateCurrentMatchToDatabase(
+  domainCreateMatch: Domain.CreateCurrentMatch,
+): DBCurrentMatch.CreateCurrentMatch {
+  return {
+    tournament_id: domainCreateMatch.tournamentId,
+    division_id: domainCreateMatch.divisionId,
+    round: domainCreateMatch.round,
+    pairing_id: domainCreateMatch.pairingId,
+  };
+}

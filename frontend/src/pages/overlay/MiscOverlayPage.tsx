@@ -1,7 +1,6 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
 
-
 import { BaseOverlay } from "../../components/shared/BaseOverlay";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
 import PointsDisplay from "../../components/shared/PointsDisplay";
@@ -100,7 +99,7 @@ const MiscOverlay: React.FC = () => {
         // Find the current pairing/game to get player IDs
         const currentGame = divisionData.games.find(
           (game) =>
-            game.pairingId === currentMatch.pairing_id &&
+            game.pairingId === currentMatch.pairingId &&
             game.roundNumber === currentMatch.round,
         );
 

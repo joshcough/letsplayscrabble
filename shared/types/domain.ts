@@ -113,3 +113,26 @@ export interface TournamentUpdate {
   tournament: Tournament;  // Updated tournament metadata
   changes: GameChanges;    // Domain-level game changes
 }
+
+/**
+ * Current match being displayed/managed
+ * Domain representation focusing on business concepts
+ */
+export interface CurrentMatch {
+  tournamentId: number;
+  divisionId: number;
+  divisionName: string;
+  round: number;
+  pairingId: number;
+  updatedAt: Date;
+}
+
+/**
+ * Data needed to create/update a current match
+ */
+export interface CreateCurrentMatch {
+  tournamentId: number;
+  divisionId: number;
+  round: number;
+  pairingId: number;
+}

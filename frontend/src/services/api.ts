@@ -12,28 +12,28 @@ import {
 // PUBLIC API CALLS (no auth required)
 // ============================================================================
 
-
 export const fetchTournamentSummary = async (
   userId: number,
   tournamentId: number,
 ): Promise<Domain.TournamentSummary> => {
   const tournamentData = await fetchTournament(userId, tournamentId);
-  
+
   // Get polling data from the old endpoint (admin-specific data)
   let pollUntil: Date | null = null;
   try {
-    const response = await baseFetch(`/api/public/users/${userId}/tournaments/${tournamentId}/row`);
+    const response = await baseFetch(
+      `/api/public/users/${userId}/tournaments/${tournamentId}/row`,
+    );
     const rowData: any = parseApiResponse<any>(response);
     pollUntil = rowData.poll_until ? new Date(rowData.poll_until) : null;
   } catch (error) {
     console.warn("Could not fetch polling data:", error);
   }
-  
+
   // Extract just the metadata from the full tournament
   const { divisions, ...summary } = tournamentData;
   return { ...summary, pollUntil };
 };
-
 
 export const fetchPlayersForDivision = async (
   userId: number,
@@ -41,7 +41,9 @@ export const fetchPlayersForDivision = async (
   divisionName: string,
 ): Promise<Domain.Player[]> => {
   const tournamentData = await fetchTournament(userId, tournamentId);
-  const division = tournamentData.divisions.find(d => d.name === divisionName);
+  const division = tournamentData.divisions.find(
+    (d) => d.name === divisionName,
+  );
   return division ? division.players : [];
 };
 
@@ -236,20 +238,24 @@ export const disableTournamentPolling = async (
   await deleteWithAuth(`/api/private/tournaments/${tournamentId}/polling`);
 };
 
-export const listTournaments = async (): Promise<Domain.TournamentSummary[]> => {
+export const listTournaments = async (): Promise<
+  Domain.TournamentSummary[]
+> => {
   // TODO: Create a backend endpoint that returns tournament summaries
   // For now, we'll need to fetch from the existing endpoint and transform
   const response = await fetchWithAuth<any[]>("/api/private/tournaments/list");
-  return response.map((row: any): Domain.TournamentSummary => ({
-    id: row.id,
-    name: row.name,
-    city: row.city,
-    year: row.year,
-    lexicon: row.lexicon,
-    longFormName: row.long_form_name,
-    dataUrl: row.data_url,
-    pollUntil: row.poll_until ? new Date(row.poll_until) : null,
-  }));
+  return response.map(
+    (row: any): Domain.TournamentSummary => ({
+      id: row.id,
+      name: row.name,
+      city: row.city,
+      year: row.year,
+      lexicon: row.lexicon,
+      longFormName: row.long_form_name,
+      dataUrl: row.data_url,
+      pollUntil: row.poll_until ? new Date(row.poll_until) : null,
+    }),
+  );
 };
 
 // ============================================================================
@@ -257,20 +263,20 @@ export const listTournaments = async (): Promise<Domain.TournamentSummary[]> => 
 // ============================================================================
 
 export const setCurrentMatch = async (matchData: {
-  tournament_id: number;
-  division_id: number;
+  tournamentId: number;
+  divisionId: number;
   round: number;
-  pairing_id: number;
+  pairingId: number;
 }): Promise<void> => {
   await postWithAuth("/api/admin/match/current", matchData);
 };
 
 // For backward compatibility with existing code that expects a return value
 export const setCurrentMatchWithResult = async (matchData: {
-  tournament_id: number;
-  division_id: number;
+  tournamentId: number;
+  divisionId: number;
   round: number;
-  pairing_id: number;
+  pairingId: number;
 }): Promise<any | null> => {
   try {
     return await postWithAuth("/api/admin/match/current", matchData);

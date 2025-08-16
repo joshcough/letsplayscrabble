@@ -1,8 +1,7 @@
 import express, { Router, Response, RequestHandler } from "express";
 
-import * as DB from "../../types/database";
-
 import { TournamentRepository } from "../../repositories/tournamentRepository";
+import * as DB from "../../types/database";
 import * as Api from "../../utils/apiHelpers";
 
 interface UserTournamentParams {
@@ -120,14 +119,17 @@ export function unprotectedTournamentRoutes(
     "/users/:userId/tournaments/:tournamentId/divisions/:divisionId",
     getTournamentForUser,
   );
-  
+
   // V2 Routes (return domain model)
-  router.get("/v2/users/:userId/tournaments/:tournamentId", getTournamentForUserV2);
+  router.get(
+    "/v2/users/:userId/tournaments/:tournamentId",
+    getTournamentForUserV2,
+  );
   router.get(
     "/v2/users/:userId/tournaments/:tournamentId/divisions/:divisionId",
     getTournamentForUserV2,
   );
-  
+
   // Other routes (unchanged for now)
   router.get(
     "/users/:userId/tournaments/:tournamentId/row",

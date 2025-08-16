@@ -1,7 +1,6 @@
 import React from "react";
 
-import { TournamentDataIncremental } from "@shared/types/broadcast";
-
+import { TournamentDataIncremental } from "../../types/broadcast";
 import {
   getHighScoreForDivision,
   getHighScoreFromChanges,

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 
-import { CreateCurrentMatch, CurrentMatch } from "@shared/types/currentMatch";
 import * as Domain from "@shared/types/domain";
 
 import { useAuth } from "../../context/AuthContext";
@@ -24,7 +23,9 @@ const AdminInterface: React.FC = () => {
   const user_id = userId!;
 
   // State for dropdown options
-  const [tournaments, setTournaments] = useState<Domain.TournamentSummary[]>([]);
+  const [tournaments, setTournaments] = useState<Domain.TournamentSummary[]>(
+    [],
+  );
   const [hierarchicalTournament, setHierarchicalTournament] =
     useState<Domain.Tournament | null>(null);
 
@@ -35,9 +36,9 @@ const AdminInterface: React.FC = () => {
   const [selectedPairing, setSelectedPairing] = useState<number | null>(null);
 
   // Computed dropdown data
-  const [availableDivisions, setAvailableDivisions] = useState<Domain.Division[]>(
-    [],
-  );
+  const [availableDivisions, setAvailableDivisions] = useState<
+    Domain.Division[]
+  >([]);
   const [availableRounds, setAvailableRounds] = useState<number[]>([]);
   const [availablePairings, setAvailablePairings] = useState<PairingOption[]>(
     [],
@@ -55,8 +56,8 @@ const AdminInterface: React.FC = () => {
     return await listTournaments();
   };
 
-  const loadCurrentMatch = async (): Promise<CurrentMatch | null> => {
-    const response = await fetchApiResponseWithAuth<CurrentMatch>(
+  const loadCurrentMatch = async (): Promise<Domain.CurrentMatch | null> => {
+    const response = await fetchApiResponseWithAuth<Domain.CurrentMatch>(
       `/api/admin/match/current`,
     );
     return response.success ? response.data : null;
@@ -121,25 +122,22 @@ const AdminInterface: React.FC = () => {
     }
   };
 
-  const applyCurrentMatchSelections = async (match: CurrentMatch) => {
+  const applyCurrentMatchSelections = async (match: Domain.CurrentMatch) => {
     console.log("Current match loaded:", match);
 
     // Load the hierarchical tournament data for this match
     try {
-      const tournament = await fetchTournament(user_id, match.tournament_id);
-      console.log('✅ Loaded tournament with V2 API:', tournament);
+      const tournament = await fetchTournament(user_id, match.tournamentId);
+      console.log("✅ Loaded tournament with V2 API:", tournament);
 
       setHierarchicalTournament(tournament);
 
       // Find the division in hierarchical structure
       const divisionData = tournament.divisions.find(
-        (d) => d.id === match.division_id,
+        (d) => d.id === match.divisionId,
       );
       if (!divisionData) {
-        console.warn(
-          "Division not found for current match:",
-          match.division_id,
-        );
+        console.warn("Division not found for current match:", match.divisionId);
         setInitializationStatus(
           "Current match has invalid division - starting fresh",
         );
@@ -147,13 +145,13 @@ const AdminInterface: React.FC = () => {
       }
 
       // Set selections
-      setSelectedTournament(match.tournament_id.toString());
-      setSelectedDivision(match.division_id.toString());
+      setSelectedTournament(match.tournamentId.toString());
+      setSelectedDivision(match.divisionId.toString());
       setSelectedRound(match.round.toString());
-      setSelectedPairing(match.pairing_id);
+      setSelectedPairing(match.pairingId);
 
       // Update dropdown data
-      updateDropdownData(tournament, match.division_id, match.round);
+      updateDropdownData(tournament, match.divisionId, match.round);
 
       setInitializationStatus("Current match loaded successfully");
     } catch (error) {
@@ -185,7 +183,7 @@ const AdminInterface: React.FC = () => {
         // Step 2: Try to load current match
         const match = await loadCurrentMatch();
 
-        if (match?.tournament_id) {
+        if (match?.tournamentId) {
           setInitializationStatus("Loading current match selections...");
           await applyCurrentMatchSelections(match);
         } else {
@@ -291,11 +289,11 @@ const AdminInterface: React.FC = () => {
     setSuccess(null);
 
     try {
-      const requestBody: CreateCurrentMatch = {
-        tournament_id: parseInt(selectedTournament),
-        division_id: parseInt(selectedDivision),
+      const requestBody: Domain.CreateCurrentMatch = {
+        tournamentId: parseInt(selectedTournament),
+        divisionId: parseInt(selectedDivision),
         round: parseInt(selectedRound),
-        pairing_id: selectedPairing,
+        pairingId: selectedPairing,
       };
 
       console.log("Updating current match:", requestBody);

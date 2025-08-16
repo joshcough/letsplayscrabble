@@ -1,4 +1,4 @@
-// shared/types/stats.ts
+// frontend/src/types/stats.ts
 // Computed statistics types (separate from core tournament data)
 
 // Inline Etc type to avoid file format dependency

@@ -71,8 +71,10 @@ class TournamentCacheManager {
     // Apply added games
     for (const addedGame of changes.added) {
       // Find the division that contains a player from this game
-      const targetDivision = cached.data.divisions.find(
-        (div) => div.players.some(p => p.id === addedGame.player1Id || p.id === addedGame.player2Id)
+      const targetDivision = cached.data.divisions.find((div) =>
+        div.players.some(
+          (p) => p.id === addedGame.player1Id || p.id === addedGame.player2Id,
+        ),
       );
 
       if (targetDivision) {
@@ -96,7 +98,9 @@ class TournamentCacheManager {
       let gameIndex = -1;
 
       for (const division of cached.data.divisions) {
-        gameIndex = division.games.findIndex(game => game.id === updatedGame.id);
+        gameIndex = division.games.findIndex(
+          (game) => game.id === updatedGame.id,
+        );
         if (gameIndex !== -1) {
           targetDivision = division;
           break;
@@ -114,9 +118,7 @@ class TournamentCacheManager {
           },
         );
       } else {
-        console.warn(
-          `💾 ❌ Could not find game ${updatedGame.id} to update`,
-        );
+        console.warn(`💾 ❌ Could not find game ${updatedGame.id} to update`);
       }
     }
 
@@ -187,12 +189,16 @@ class TournamentCacheManager {
 
     // For domain changes, we need to find which divisions contain the affected games
     const allGames = [...changes.added, ...changes.updated];
-    
+
     // We need access to cached data to determine division membership
     for (const [cacheKey, cached] of this.cache.entries()) {
       for (const division of cached.data.divisions) {
         for (const game of allGames) {
-          if (division.players.some(p => p.id === game.player1Id || p.id === game.player2Id)) {
+          if (
+            division.players.some(
+              (p) => p.id === game.player1Id || p.id === game.player2Id,
+            )
+          ) {
             divisionIds.add(division.id);
           }
         }

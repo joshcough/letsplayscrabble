@@ -11,7 +11,7 @@ export interface Division {
 }
 
 export interface Player {
-  id: number;  // player_id in the file
+  id: number; // player_id in the file
   name: string;
   scores: number[];
   pairings: number[];

@@ -1,7 +1,6 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 
-import { CurrentMatch } from "@shared/types/currentMatch";
 import * as Domain from "@shared/types/domain";
 
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
@@ -12,10 +11,10 @@ import { LoadingErrorWrapper } from "./LoadingErrorWrapper";
 export interface TournamentDisplayData {
   name: string;
   lexicon: string;
-  data_url: string;
+  dataUrl: string;
 }
 
-// Raw division data for overlays to calculate from  
+// Raw division data for overlays to calculate from
 export interface DivisionData {
   id: number;
   name: string;
@@ -27,7 +26,7 @@ export interface BaseOverlayDataProps {
   tournament: TournamentDisplayData;
   divisionData: DivisionData;
   divisionName: string;
-  currentMatch: CurrentMatch | null;
+  currentMatch: Domain.CurrentMatch | null;
 }
 
 interface BaseOverlayProps {
@@ -56,8 +55,8 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({ children }) => {
     error: matchError,
   } = useCurrentMatch();
   const currentMatchData = useTournamentData({
-    tournamentId: currentMatch?.tournament_id,
-    divisionId: currentMatch?.division_id,
+    tournamentId: currentMatch?.tournamentId,
+    divisionId: currentMatch?.divisionId,
   });
 
   // URL params approach
@@ -77,12 +76,12 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({ children }) => {
     tournamentData = currentMatchData.tournamentData;
     loading = matchLoading || currentMatchData.loading;
     fetchError = matchError || currentMatchData.fetchError;
-    finalDivisionName = currentMatch?.division_name;
-    selectedDivisionId = currentMatch?.division_id || null;
+    finalDivisionName = currentMatch?.divisionName;
+    selectedDivisionId = currentMatch?.divisionId || null;
     console.log("🔧 BaseOverlay: Raw tournament data", {
       currentMatchData_tournamentData: currentMatchData.tournamentData,
       currentMatchData_loading: currentMatchData.loading,
-      currentMatch_divisionId: currentMatch?.division_id,
+      currentMatch_divisionId: currentMatch?.divisionId,
       selectedDivisionId,
     });
   } else {
@@ -103,7 +102,7 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({ children }) => {
     tournament = {
       name: tournamentData.name,
       lexicon: tournamentData.lexicon,
-      data_url: tournamentData.dataUrl,
+      dataUrl: tournamentData.dataUrl,
     };
 
     // Get division-specific data

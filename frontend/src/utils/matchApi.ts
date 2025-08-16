@@ -1,5 +1,4 @@
-import { MatchWithPlayers } from "@shared/types/admin";
-import { CurrentMatch } from "@shared/types/currentMatch";
+import * as Domain from "@shared/types/domain";
 
 import {
   fetchUserOverlayEndpoint,
@@ -8,8 +7,8 @@ import {
 
 export const fetchCurrentMatch = async (
   userId: number,
-): Promise<CurrentMatch | null> => {
-  return fetchUserOverlayEndpoint<CurrentMatch>(
+): Promise<Domain.CurrentMatch | null> => {
+  return fetchUserOverlayEndpoint<Domain.CurrentMatch>(
     userId,
     "/match/current",
     "Failed to fetch current match",
@@ -18,8 +17,8 @@ export const fetchCurrentMatch = async (
 
 export const fetchCurrentMatchWithPlayers = async (
   userId: number,
-): Promise<MatchWithPlayers | null> => {
-  return fetchUserOverlayEndpoint<MatchWithPlayers>(
+): Promise<any | null> => {
+  return fetchUserOverlayEndpoint<any>(
     userId,
     "/match/current_match_for_stats_delete_this_route",
     "Failed to fetch match with players",
@@ -29,13 +28,10 @@ export const fetchCurrentMatchWithPlayers = async (
 /**
  * Set the current match for the authenticated admin user
  */
-export const setCurrentMatch = async (matchData: {
-  tournament_id: number;
-  division_id: number;
-  round: number;
-  pairing_id: number;
-}): Promise<MatchWithPlayers | null> => {
-  return postAuthenticatedApiEndpoint<MatchWithPlayers>(
+export const setCurrentMatch = async (
+  matchData: Domain.CreateCurrentMatch,
+): Promise<any | null> => {
+  return postAuthenticatedApiEndpoint<any>(
     "/api/admin/match/current",
     matchData,
     "Failed to set current match",

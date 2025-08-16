@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
+import * as Domain from "@shared/types/domain";
+import { GamesAddedMessage } from "@shared/types/websocket";
+
+import { fetchTournament } from "../services/api";
 import {
   SubscribeMessage,
   TournamentDataResponse,
   TournamentDataRefresh,
   TournamentDataIncremental,
   TournamentDataError,
-} from "@shared/types/broadcast";
-import * as Domain from "@shared/types/domain";
-import { GamesAddedMessage } from "@shared/types/websocket";
-
-import { fetchTournament } from "../services/api";
+} from "../types/broadcast";
 import BroadcastManager from "./BroadcastManager";
 
 interface UseTournamentDataProps {
@@ -38,9 +38,8 @@ export const useTournamentData = ({
     divisionName,
   } = useParams<RouteParams>();
 
-  const [tournamentData, setTournamentData] = useState<Domain.Tournament | null>(
-    null,
-  );
+  const [tournamentData, setTournamentData] =
+    useState<Domain.Tournament | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [selectedDivisionId, setSelectedDivisionId] = useState<number | null>(
@@ -276,8 +275,7 @@ export const useTournamentData = ({
               finalDivisionId = propDivisionId;
             } else if (shouldUseUrlParams && divisionName) {
               const divisionData = tournament.divisions.find(
-                (d: any) =>
-                  d.name.toUpperCase() === divisionName.toUpperCase(),
+                (d: any) => d.name.toUpperCase() === divisionName.toUpperCase(),
               );
               if (divisionData) {
                 finalDivisionId = divisionData.id;
@@ -338,8 +336,7 @@ export const useTournamentData = ({
               finalDivisionId = propDivisionId;
             } else if (shouldUseUrlParams && divisionName) {
               const divisionData = tournament.divisions.find(
-                (d: any) =>
-                  d.name.toUpperCase() === divisionName.toUpperCase(),
+                (d: any) => d.name.toUpperCase() === divisionName.toUpperCase(),
               );
               if (divisionData) {
                 finalDivisionId = divisionData.id;
@@ -406,8 +403,7 @@ export const useTournamentData = ({
               } else if (shouldUseUrlParams && divisionName) {
                 const divisionData = tournament.divisions.find(
                   (d: any) =>
-                    d.name.toUpperCase() ===
-                    divisionName.toUpperCase(),
+                    d.name.toUpperCase() === divisionName.toUpperCase(),
                 );
                 if (divisionData) {
                   finalDivisionId = divisionData.id;
@@ -476,17 +472,14 @@ export const useTournamentData = ({
     const targetDivisionId = divisionId || selectedDivisionId;
     if (!targetDivisionId) return null;
     return (
-      tournamentData.divisions.find(
-        (d) => d.id === targetDivisionId,
-      ) || null
+      tournamentData.divisions.find((d) => d.id === targetDivisionId) || null
     );
   };
 
   const getDivisionName = (divisionId?: number) => {
     const divisionData = getDivisionData(divisionId);
     return (
-      divisionData?.name ||
-      (shouldUseUrlParams ? divisionName : undefined)
+      divisionData?.name || (shouldUseUrlParams ? divisionName : undefined)
     );
   };
 

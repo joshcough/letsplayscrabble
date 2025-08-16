@@ -1,6 +1,6 @@
 import * as Domain from "@shared/types/domain";
-import * as Stats from "@shared/types/stats";
 
+import * as Stats from "../types/stats";
 import { getOrdinal } from "./formatUtils";
 import { formatPlayerName } from "./playerUtils";
 
@@ -19,9 +19,7 @@ export function calculateTournamentStats(
 ): TournamentStats {
   const completedGames = games.filter(
     (game) =>
-      game.player1Score !== null &&
-      game.player2Score !== null &&
-      !game.isBye,
+      game.player1Score !== null && game.player2Score !== null && !game.isBye,
   );
 
   const gamesPlayed = completedGames.length;
@@ -91,8 +89,7 @@ export function calculateTournamentStats(
     };
 
     const gamesWithRatings = completedGames.filter(
-      (game) =>
-        playerMap.has(game.player1Id) && playerMap.has(game.player2Id),
+      (game) => playerMap.has(game.player1Id) && playerMap.has(game.player2Id),
     );
 
     if (gamesWithRatings.length > 0) {
@@ -113,8 +110,7 @@ export function calculateTournamentStats(
         );
 
         const player1Higher = player1Rating > player2Rating;
-        const player1Won =
-          (game.player1Score || 0) > (game.player2Score || 0);
+        const player1Won = (game.player1Score || 0) > (game.player2Score || 0);
 
         return (player1Higher && player1Won) || (!player1Higher && !player1Won);
       }).length;
@@ -244,9 +240,9 @@ function calculatePlayerStatsFromGames(
     averageOpponentScoreRank: 0,
     averageScoreRankOrdinal: "0th",
     averageOpponentScoreRankOrdinal: "0th",
-    etc: { 
+    etc: {
       newr: player.ratingsHistory || [player.initialRating],
-      p12: [] // Empty for now during domain model migration
+      p12: [], // Empty for now during domain model migration
     },
     photo: player.photo || "", // Convert null to empty string
   };

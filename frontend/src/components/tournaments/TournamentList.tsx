@@ -12,7 +12,9 @@ interface TournamentListProps {
 const TournamentList: React.FC<TournamentListProps> = ({
   onTournamentClick,
 }) => {
-  const [tournaments, setTournaments] = useState<Domain.TournamentSummary[]>([]);
+  const [tournaments, setTournaments] = useState<Domain.TournamentSummary[]>(
+    [],
+  );
 
   useEffect(() => {
     const fetchTournaments = async () => {

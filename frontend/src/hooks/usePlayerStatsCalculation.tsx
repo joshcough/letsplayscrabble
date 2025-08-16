@@ -1,11 +1,10 @@
 import React from "react";
 
-import * as Stats from "@shared/types/stats";
-
 import {
   BaseOverlay,
   TournamentDisplayData,
 } from "../components/shared/BaseOverlay";
+import * as Stats from "../types/stats";
 import { calculateStandingsFromGames } from "../utils/calculateStandings";
 
 // Type for PlayerStats with rank added
