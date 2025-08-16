@@ -8,10 +8,10 @@ import {
   TournamentDataIncremental,
   TournamentDataError,
 } from "@shared/types/broadcast";
-import * as DB from "@shared/types/database";
+import * as Domain from "@shared/types/domain";
 import { GamesAddedMessage } from "@shared/types/websocket";
 
-import { fetchTournament, fetchTournamentDivision } from "../services/api";
+import { fetchTournamentV2 } from "../services/api";
 import BroadcastManager from "./BroadcastManager";
 
 interface UseTournamentDataProps {
@@ -38,7 +38,7 @@ export const useTournamentData = ({
     divisionName,
   } = useParams<RouteParams>();
 
-  const [tournamentData, setTournamentData] = useState<DB.Tournament | null>(
+  const [tournamentData, setTournamentData] = useState<Domain.Tournament | null>(
     null,
   );
   const [loading, setLoading] = useState<boolean>(false);
@@ -101,23 +101,22 @@ export const useTournamentData = ({
       setLoading(true);
       setFetchError(null);
 
-      let tournament: DB.Tournament;
+      let tournament: Domain.Tournament;
       let finalDivisionId: number | null = null;
 
       if (shouldUseUrlParams) {
-        tournament = await fetchTournament(
+        tournament = await fetchTournamentV2(
           parseInt(userId),
           effectiveTournamentId,
         );
       } else if (propDivisionId) {
-        tournament = await fetchTournamentDivision(
+        tournament = await fetchTournamentV2(
           parseInt(userId),
           effectiveTournamentId,
-          propDivisionId,
         );
         finalDivisionId = propDivisionId;
       } else {
-        tournament = await fetchTournament(
+        tournament = await fetchTournamentV2(
           parseInt(userId),
           effectiveTournamentId,
         );
@@ -125,12 +124,12 @@ export const useTournamentData = ({
 
       if (shouldUseUrlParams && divisionName) {
         const divisionData = tournament.divisions.find(
-          (d) => d.division.name.toUpperCase() === divisionName.toUpperCase(),
+          (d) => d.name.toUpperCase() === divisionName.toUpperCase(),
         );
         if (!divisionData) {
           throw new Error(`Division "${divisionName}" not found`);
         }
-        finalDivisionId = divisionData.division.id;
+        finalDivisionId = divisionData.id;
       }
 
       setTournamentData(tournament);
@@ -173,8 +172,8 @@ export const useTournamentData = ({
           data,
         );
         if (
-          data.update.tournament.user_id === parseInt(userId) &&
-          data.update.tournament.id === effectiveTournamentId
+          data.userId === parseInt(userId) &&
+          data.tournamentId === effectiveTournamentId
         ) {
           console.log(
             "✅ Matching tournament - re-subscribing for fresh data!",
@@ -278,10 +277,10 @@ export const useTournamentData = ({
             } else if (shouldUseUrlParams && divisionName) {
               const divisionData = tournament.divisions.find(
                 (d: any) =>
-                  d.division.name.toUpperCase() === divisionName.toUpperCase(),
+                  d.name.toUpperCase() === divisionName.toUpperCase(),
               );
               if (divisionData) {
-                finalDivisionId = divisionData.division.id;
+                finalDivisionId = divisionData.id;
               }
             }
 
@@ -340,10 +339,10 @@ export const useTournamentData = ({
             } else if (shouldUseUrlParams && divisionName) {
               const divisionData = tournament.divisions.find(
                 (d: any) =>
-                  d.division.name.toUpperCase() === divisionName.toUpperCase(),
+                  d.name.toUpperCase() === divisionName.toUpperCase(),
               );
               if (divisionData) {
-                finalDivisionId = divisionData.division.id;
+                finalDivisionId = divisionData.id;
               }
             }
 
@@ -407,11 +406,11 @@ export const useTournamentData = ({
               } else if (shouldUseUrlParams && divisionName) {
                 const divisionData = tournament.divisions.find(
                   (d: any) =>
-                    d.division.name.toUpperCase() ===
+                    d.name.toUpperCase() ===
                     divisionName.toUpperCase(),
                 );
                 if (divisionData) {
-                  finalDivisionId = divisionData.division.id;
+                  finalDivisionId = divisionData.id;
                 }
               }
 
@@ -478,7 +477,7 @@ export const useTournamentData = ({
     if (!targetDivisionId) return null;
     return (
       tournamentData.divisions.find(
-        (d) => d.division.id === targetDivisionId,
+        (d) => d.id === targetDivisionId,
       ) || null
     );
   };
@@ -486,7 +485,7 @@ export const useTournamentData = ({
   const getDivisionName = (divisionId?: number) => {
     const divisionData = getDivisionData(divisionId);
     return (
-      divisionData?.division.name ||
+      divisionData?.name ||
       (shouldUseUrlParams ? divisionName : undefined)
     );
   };

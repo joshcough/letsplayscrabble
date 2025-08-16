@@ -1,6 +1,6 @@
 // shared/types/broadcast.ts - Broadcast channel messages between worker and overlays
 
-import { Tournament, GameChanges } from "./database";
+import * as Domain from "./domain";
 
 // Messages FROM overlays TO worker
 export interface SubscribeMessage {
@@ -15,14 +15,14 @@ export interface SubscribeMessage {
 export interface TournamentDataResponse {
   userId: number;
   tournamentId: number;
-  data: Tournament;
+  data: Domain.Tournament;
 }
 
 // For AdminPanelUpdate - new tournament/division selected
 export interface TournamentDataRefresh {
   userId: number;
   tournamentId: number;
-  data: Tournament;
+  data: Domain.Tournament;
   reason: 'admin_panel_update';
 }
 
@@ -30,9 +30,9 @@ export interface TournamentDataRefresh {
 export interface TournamentDataIncremental {
   userId: number;
   tournamentId: number;
-  data: Tournament;           // Full updated tournament data
-  previousData?: Tournament;  // Optional previous state
-  changes: GameChanges;
+  data: Domain.Tournament;           // Full updated tournament data
+  previousData?: Domain.Tournament;  // Optional previous state
+  changes: Domain.GameChanges;
   affectedDivisions: number[];
   metadata: {
     addedCount: number;

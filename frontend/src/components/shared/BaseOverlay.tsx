@@ -2,7 +2,7 @@ import React from "react";
 import { useParams } from "react-router-dom";
 
 import { CurrentMatch } from "@shared/types/currentMatch";
-import * as DB from "@shared/types/database";
+import * as Domain from "@shared/types/domain";
 
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { useTournamentData } from "../../hooks/useTournamentData";
@@ -15,11 +15,12 @@ export interface TournamentDisplayData {
   data_url: string;
 }
 
-// Raw division data for overlays to calculate from
+// Raw division data for overlays to calculate from  
 export interface DivisionData {
-  division: DB.DivisionRow;
-  players: DB.PlayerRow[];
-  games: DB.GameRow[];
+  id: number;
+  name: string;
+  players: Domain.Player[];
+  games: Domain.Game[];
 }
 
 export interface BaseOverlayDataProps {
@@ -65,7 +66,7 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({ children }) => {
   });
 
   // Choose which data to use
-  let tournamentData: DB.Tournament | null;
+  let tournamentData: Domain.Tournament | null;
   let loading: boolean;
   let fetchError: string | null;
   let finalDivisionName: string | undefined;
@@ -100,32 +101,33 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({ children }) => {
   if (tournamentData && selectedDivisionId) {
     // Extract tournament display data
     tournament = {
-      name: tournamentData.tournament.name,
-      lexicon: tournamentData.tournament.lexicon,
-      data_url: tournamentData.tournament.data_url,
+      name: tournamentData.name,
+      lexicon: tournamentData.lexicon,
+      data_url: tournamentData.dataUrl,
     };
 
     // Get division-specific data
     const rawDivisionData = tournamentData.divisions.find(
-      (d) => d.division.id === selectedDivisionId,
+      (d) => d.id === selectedDivisionId,
     );
 
     if (rawDivisionData) {
       console.log("✅ BaseOverlay: Found division data", {
-        divisionName: rawDivisionData.division.name,
+        divisionName: rawDivisionData.name,
         players: rawDivisionData.players.length,
         games: rawDivisionData.games.length,
       });
 
       divisionData = {
-        division: rawDivisionData.division,
+        id: rawDivisionData.id,
+        name: rawDivisionData.name,
         players: rawDivisionData.players,
         games: rawDivisionData.games,
       };
 
       // Use division name from data if we don't have it from other sources
       if (!finalDivisionName) {
-        finalDivisionName = rawDivisionData.division.name;
+        finalDivisionName = rawDivisionData.name;
       }
     } else {
       console.warn(

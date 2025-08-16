@@ -12,6 +12,7 @@ export interface Tournament {
   year: number;
   lexicon: string;
   longFormName: string;
+  dataUrl: string;
   divisions: Division[];
 }
 
@@ -75,4 +76,25 @@ export interface PlayerStats {
   totalGames: number;
   totalPoints: number;
   averagePoints: number;
+}
+
+/**
+ * Domain-level change types for real-time updates
+ * Frontend should only see these, never raw database changes
+ */
+
+/**
+ * Represents changes to games in domain terms
+ */
+export interface GameChanges {
+  added: Game[];    // New games (already in domain format)
+  updated: Game[];  // Updated games (already in domain format)
+}
+
+/**
+ * Complete tournament update with domain-level changes
+ */
+export interface TournamentUpdate {
+  tournament: Tournament;  // Updated tournament metadata
+  changes: GameChanges;    // Domain-level game changes
 }

@@ -15,7 +15,7 @@ import {
 import io, { Socket } from "socket.io-client";
 
 import { API_BASE } from "../config/api";
-import { fetchTournament } from "../services/api";
+import { fetchTournamentV2 } from "../services/api";
 import TournamentCacheManager from "./TournamentCacheManager";
 
 class WorkerSocketManager {
@@ -149,7 +149,7 @@ class WorkerSocketManager {
       console.log(
         `🔄 Worker fetching full tournament data for tournament ${tournamentId}...`,
       );
-      const tournamentData = await fetchTournament(userId, tournamentId);
+      const tournamentData = await fetchTournamentV2(userId, tournamentId);
 
       // Cache the data
       this.cacheManager.set(userId, tournamentId, tournamentData);
@@ -283,8 +283,8 @@ class WorkerSocketManager {
 
       // Get current data before applying changes (for previousData)
       const previousData = this.cacheManager.get(
-        data.update.tournament.user_id,
-        data.update.tournament.id,
+        data.userId,
+        data.tournamentId,
       );
 
       // Clone the previous data to avoid mutation issues
@@ -294,20 +294,20 @@ class WorkerSocketManager {
 
       // Apply incremental changes to cache
       const success = this.cacheManager.applyTournamentUpdate(
-        data.update.tournament.user_id,
-        data.update.tournament.id,
+        data.userId,
+        data.tournamentId,
         data.update,
       );
 
       if (success) {
         // Broadcast incremental update with full tournament data
-        this.broadcastTournamentIncremental(data.update, previousDataSnapshot);
+        this.broadcastTournamentIncremental(data.userId, data.tournamentId, data.update, previousDataSnapshot);
       } else {
         // Fallback to full refresh if cache update failed
         console.warn("⚠️ Cache update failed, falling back to full refresh");
         this.fetchAndBroadcastTournamentRefresh(
-          data.update.tournament.id,
-          data.update.tournament.user_id,
+          data.tournamentId,
+          data.userId,
         );
       }
     });
@@ -315,8 +315,10 @@ class WorkerSocketManager {
 
   // New method to broadcast incremental tournament updates
   private broadcastTournamentIncremental(
-    update: import("@shared/types/database").TournamentUpdate,
-    previousData?: import("@shared/types/database").Tournament | null,
+    userId: number,
+    tournamentId: number,
+    update: import("@shared/types/domain").TournamentUpdate,
+    previousData?: import("@shared/types/domain").Tournament | null,
   ) {
     const affectedDivisions = this.cacheManager.getAffectedDivisions(
       update.changes,
@@ -324,8 +326,8 @@ class WorkerSocketManager {
 
     // Get updated tournament data from cache (after changes applied)
     const updatedTournamentData = this.cacheManager.get(
-      update.tournament.user_id,
-      update.tournament.id,
+      userId,
+      tournamentId,
     );
 
     if (!updatedTournamentData) {
@@ -336,8 +338,8 @@ class WorkerSocketManager {
     }
 
     const message: TournamentDataIncremental = {
-      userId: update.tournament.user_id,
-      tournamentId: update.tournament.id,
+      userId: userId,
+      tournamentId: tournamentId,
       data: updatedTournamentData, // Full updated tournament
       previousData: previousData || undefined, // Previous state for comparisons
       changes: update.changes, // What changed
@@ -351,7 +353,7 @@ class WorkerSocketManager {
     };
 
     console.log(
-      `📢 Worker broadcasting TOURNAMENT_DATA_INCREMENTAL for user ${update.tournament.user_id}, tournament ${update.tournament.id}`,
+      `📢 Worker broadcasting TOURNAMENT_DATA_INCREMENTAL for user ${userId}, tournament ${tournamentId}`,
       `- ${message.metadata.addedCount} added, ${message.metadata.updatedCount} updated games`,
       `- Affected divisions: [${affectedDivisions.join(", ")}]`,
       `- Previous data: ${previousData ? "included" : "not available"}`,
@@ -387,7 +389,7 @@ class WorkerSocketManager {
       console.log(
         `🔄 Worker fetching full tournament data for refresh: user ${userId}, tournament ID: ${tournamentId}`,
       );
-      const tournamentData = await fetchTournament(userId, tournamentId);
+      const tournamentData = await fetchTournamentV2(userId, tournamentId);
 
       // Update cache
       this.cacheManager.set(userId, tournamentId, tournamentData);

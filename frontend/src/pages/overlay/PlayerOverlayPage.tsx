@@ -1,7 +1,6 @@
 import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
-import * as DB from "@shared/types/database";
 
 import { BaseOverlay } from "../../components/shared/BaseOverlay";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
@@ -164,7 +163,7 @@ const URLBasedPlayerDisplay: React.FC<{
 
   // Find the target division
   const targetDivision = tournamentData?.divisions.find(
-    (div) => div.division.name.toUpperCase() === divisionName.toUpperCase(),
+    (div) => div.name.toUpperCase() === divisionName.toUpperCase(),
   );
 
   // Calculate player stats
@@ -259,7 +258,7 @@ const URLBasedPlayerDisplay: React.FC<{
                 source,
                 targetPlayer,
                 targetDivision,
-                tournamentData.tournament,
+                tournamentData,
               )}
             </div>
           );
@@ -341,8 +340,8 @@ const PlayerOverlay: React.FC = () => {
           // Find the current game
           const currentGame = divisionData.games.find(
             (game) =>
-              game.pairing_id === currentMatch.pairing_id &&
-              game.round_number === currentMatch.round,
+              game.pairingId === currentMatch.pairing_id &&
+              game.roundNumber === currentMatch.round,
           );
 
           if (!currentGame) {
@@ -378,8 +377,8 @@ const PlayerOverlay: React.FC = () => {
           // Get the right player based on parameter
           const isPlayer1 = playerParam === "1";
           const targetPlayerId = isPlayer1
-            ? currentGame.player1_id
-            : currentGame.player2_id;
+            ? currentGame.player1Id
+            : currentGame.player2Id;
           const targetPlayer = rankedPlayers.find(
             (p: any) => p.playerId === targetPlayerId,
           );

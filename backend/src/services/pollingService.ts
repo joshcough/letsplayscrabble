@@ -6,6 +6,8 @@ import { Server as SocketIOServer } from "socket.io";
 import { TournamentRepository } from "../repositories/tournamentRepository";
 import { convertFileToDatabase } from "./fileToDatabaseConversions";
 import { loadTournamentFile } from "./loadTournamentFile";
+import { transformToDomainTournament, transformGameChangesToDomain } from "../utils/domainTransforms";
+import * as Domain from "@shared/types/domain";
 
 export class TournamentPollingService {
   private isRunning: boolean;
@@ -84,8 +86,26 @@ export class TournamentPollingService {
             JSON.stringify(update.changes, null, 2),
           );
 
+          // Get the full tournament data to transform to domain model
+          const fullTournament = await this.repo.getTournamentAsTree(tournament.id, tournament.user_id);
+          
+          if (!fullTournament) {
+            console.error(`Failed to fetch full tournament data for ${tournament.id}`);
+            continue;
+          }
+
+          // Transform to domain update directly
+          const domainTournament = transformToDomainTournament(fullTournament);
+          const domainChanges = transformGameChangesToDomain(update.changes);
+          
+          const transformedUpdate: Domain.TournamentUpdate = {
+            tournament: domainTournament,
+            changes: domainChanges,
+          };
           const gamesAddedMessage: GamesAddedMessage = {
-            update,
+            userId: tournament.user_id,
+            tournamentId: tournament.id,
+            update: transformedUpdate,
             timestamp: Date.now(),
           };
           this.io.emit("GamesAdded", gamesAddedMessage);

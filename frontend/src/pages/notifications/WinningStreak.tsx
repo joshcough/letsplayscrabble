@@ -1,7 +1,7 @@
 import React from "react";
 
 import { TournamentDataIncremental } from "@shared/types/broadcast";
-import { PlayerRow } from "@shared/types/database";
+import * as Domain from "@shared/types/domain";
 
 import { didPlayerWinGame, calculateWinStreak } from "../../utils/gameUtils";
 
@@ -18,16 +18,24 @@ const detectWinningStreak = (
 ): WinningStreakData | null => {
   console.log("🔥 WinningStreakDetector: Checking for win streaks...");
 
-  // Only look at newly added or updated games in this division
+  // Find division in the updated tournament data
+  const currentDivision = update.data?.divisions.find(d => d.id === divisionData.id);
+  if (!currentDivision) {
+    console.log("🔥 WinningStreakDetector: Division not found in updated data");
+    return null;
+  }
+
+  // Only look at newly added or updated games for this division's players
+  const divisionPlayerIds = new Set(currentDivision.players.map(p => p.id));
   const relevantChanges = [
     ...update.changes.added.filter(
-      (g) => g.division_id === divisionData.division.id,
+      (g) => divisionPlayerIds.has(g.player1Id) || divisionPlayerIds.has(g.player2Id),
     ),
     ...update.changes.updated.filter(
-      (g) => g.division_id === divisionData.division.id,
+      (g) => divisionPlayerIds.has(g.player1Id) || divisionPlayerIds.has(g.player2Id),
     ),
   ].filter(
-    (game) => game.player1_score !== null && game.player2_score !== null,
+    (game) => game.player1Score !== null && game.player2Score !== null,
   ); // Only completed games
 
   if (relevantChanges.length === 0) {
@@ -38,15 +46,12 @@ const detectWinningStreak = (
   }
 
   // Get all games in the current data for streak calculation
-  const allCurrentGames =
-    update.data?.divisions.find(
-      (d) => d.division.id === divisionData.division.id,
-    )?.games || [];
+  const allCurrentGames = currentDivision.games;
 
   // Check each changed game to see if it resulted in a notable win streak
   for (const game of relevantChanges) {
     // Check both players in the game
-    const playerIds = [game.player1_id, game.player2_id];
+    const playerIds = [game.player1Id, game.player2Id];
 
     for (const playerId of playerIds) {
       if (didPlayerWinGame(game, playerId)) {
@@ -56,8 +61,8 @@ const detectWinningStreak = (
 
         // Trigger notification for streaks of 3+ games
         if (currentStreak >= 3) {
-          const player = divisionData.players.find(
-            (p: PlayerRow) => p.id === playerId,
+          const player = currentDivision.players.find(
+            (p) => p.id === playerId,
           );
 
           if (player) {
@@ -108,7 +113,7 @@ const renderWinningStreak = (
 
       {/* Division Name */}
       <div className="text-xs sm:text-base lg:text-xl text-yellow-100 font-medium">
-        Division {divisionData.division.name}
+        Division {divisionData.name}
       </div>
     </div>
   </div>

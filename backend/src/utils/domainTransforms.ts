@@ -51,6 +51,43 @@ export function transformToDomainTournament(
     year: flatTournament.tournament.year,
     lexicon: flatTournament.tournament.lexicon,
     longFormName: flatTournament.tournament.long_form_name,
+    dataUrl: flatTournament.tournament.data_url,
     divisions,
   };
 }
+
+/**
+ * Convert database game changes to domain game changes
+ * ZZZ this looks sus
+ */
+export function transformGameChangesToDomain(
+  dbChanges: DB.GameChanges
+): Domain.GameChanges {
+  const addedGames = dbChanges.added.map((gameRow): Domain.Game => ({
+    id: gameRow.id,
+    roundNumber: gameRow.round_number,
+    player1Id: gameRow.player1_id,
+    player2Id: gameRow.player2_id,
+    player1Score: gameRow.player1_score,
+    player2Score: gameRow.player2_score,
+    isBye: gameRow.is_bye,
+    pairingId: gameRow.pairing_id,
+  }));
+
+  const updatedGames = dbChanges.updated.map((gameRow): Domain.Game => ({
+    id: gameRow.id,
+    roundNumber: gameRow.round_number,
+    player1Id: gameRow.player1_id,
+    player2Id: gameRow.player2_id,
+    player1Score: gameRow.player1_score,
+    player2Score: gameRow.player2_score,
+    isBye: gameRow.is_bye,
+    pairingId: gameRow.pairing_id,
+  }));
+
+  return {
+    added: addedGames,
+    updated: updatedGames,
+  };
+}
+

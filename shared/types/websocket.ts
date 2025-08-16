@@ -1,6 +1,6 @@
 // shared/types/websocket.ts - WebSocket messages from server to worker
 
-import { TournamentUpdate } from "./database";
+import * as Domain from "./domain";
 
 export interface WebSocketMessage {
   timestamp: number;
@@ -16,7 +16,9 @@ export interface AdminPanelUpdateMessage extends WebSocketMessage {
 }
 
 export interface GamesAddedMessage extends WebSocketMessage {
-  update: TournamentUpdate;
+  userId: number;
+  tournamentId: number;
+  update: Domain.TournamentUpdate;
 }
 
 export interface Ping extends WebSocketMessage {

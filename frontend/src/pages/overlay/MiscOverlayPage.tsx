@@ -1,7 +1,6 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
 
-import * as DB from "@shared/types/database";
 
 import { BaseOverlay } from "../../components/shared/BaseOverlay";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
@@ -101,8 +100,8 @@ const MiscOverlay: React.FC = () => {
         // Find the current pairing/game to get player IDs
         const currentGame = divisionData.games.find(
           (game) =>
-            game.pairing_id === currentMatch.pairing_id &&
-            game.round_number === currentMatch.round,
+            game.pairingId === currentMatch.pairing_id &&
+            game.roundNumber === currentMatch.round,
         );
 
         if (!currentGame) {
@@ -115,10 +114,10 @@ const MiscOverlay: React.FC = () => {
 
         // Find the two players from current game
         const player1Stats = rankedPlayers.find(
-          (p: any) => p.playerId === currentGame.player1_id,
+          (p: any) => p.playerId === currentGame.player1Id,
         );
         const player2Stats = rankedPlayers.find(
-          (p: any) => p.playerId === currentGame.player2_id,
+          (p: any) => p.playerId === currentGame.player2Id,
         );
 
         if (!player1Stats || !player2Stats) {
@@ -134,8 +133,8 @@ const MiscOverlay: React.FC = () => {
           const player = isPlayer1 ? player1Stats : player2Stats;
           const side = isPlayer1 ? "player1" : "player2";
           const playerId = isPlayer1
-            ? currentGame.player1_id
-            : currentGame.player2_id;
+            ? currentGame.player1Id
+            : currentGame.player2Id;
 
           switch (source) {
             case "player1-name":
