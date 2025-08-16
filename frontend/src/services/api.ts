@@ -5,6 +5,7 @@ import {
   DivisionRow,
   PlayerRow,
 } from "@shared/types/database";
+import * as Domain from "@shared/types/domain";
 
 import {
   baseFetch,
@@ -70,6 +71,24 @@ export const fetchDivisions = async (
     `/api/public/users/${userId}/tournaments/${tournamentId}/divisions`,
   );
   return parseApiResponse<DivisionRow[]>(response);
+};
+
+// ============================================================================
+// V2 API CALLS - Domain Model (tree structure)
+// ============================================================================
+
+export const fetchTournamentV2 = async (
+  userId: number,
+  tournamentId: number,
+  divisionId?: number,
+): Promise<Domain.Tournament> => {
+  const endpoint =
+    divisionId !== undefined
+      ? `/api/public/v2/users/${userId}/tournaments/${tournamentId}/divisions/${divisionId}`
+      : `/api/public/v2/users/${userId}/tournaments/${tournamentId}`;
+
+  const response = await baseFetch(endpoint);
+  return parseApiResponse<Domain.Tournament>(response);
 };
 
 // ============================================================================
