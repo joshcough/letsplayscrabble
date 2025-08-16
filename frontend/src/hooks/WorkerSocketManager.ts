@@ -15,7 +15,7 @@ import {
 import io, { Socket } from "socket.io-client";
 
 import { API_BASE } from "../config/api";
-import { fetchTournamentV2 } from "../services/api";
+import { fetchTournament } from "../services/api";
 import TournamentCacheManager from "./TournamentCacheManager";
 
 class WorkerSocketManager {
@@ -149,7 +149,7 @@ class WorkerSocketManager {
       console.log(
         `🔄 Worker fetching full tournament data for tournament ${tournamentId}...`,
       );
-      const tournamentData = await fetchTournamentV2(userId, tournamentId);
+      const tournamentData = await fetchTournament(userId, tournamentId);
 
       // Cache the data
       this.cacheManager.set(userId, tournamentId, tournamentData);
@@ -389,7 +389,7 @@ class WorkerSocketManager {
       console.log(
         `🔄 Worker fetching full tournament data for refresh: user ${userId}, tournament ID: ${tournamentId}`,
       );
-      const tournamentData = await fetchTournamentV2(userId, tournamentId);
+      const tournamentData = await fetchTournament(userId, tournamentId);
 
       // Update cache
       this.cacheManager.set(userId, tournamentId, tournamentData);

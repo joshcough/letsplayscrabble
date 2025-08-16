@@ -11,7 +11,7 @@ import {
 import * as Domain from "@shared/types/domain";
 import { GamesAddedMessage } from "@shared/types/websocket";
 
-import { fetchTournamentV2 } from "../services/api";
+import { fetchTournament } from "../services/api";
 import BroadcastManager from "./BroadcastManager";
 
 interface UseTournamentDataProps {
@@ -105,18 +105,18 @@ export const useTournamentData = ({
       let finalDivisionId: number | null = null;
 
       if (shouldUseUrlParams) {
-        tournament = await fetchTournamentV2(
+        tournament = await fetchTournament(
           parseInt(userId),
           effectiveTournamentId,
         );
       } else if (propDivisionId) {
-        tournament = await fetchTournamentV2(
+        tournament = await fetchTournament(
           parseInt(userId),
           effectiveTournamentId,
         );
         finalDivisionId = propDivisionId;
       } else {
-        tournament = await fetchTournamentV2(
+        tournament = await fetchTournament(
           parseInt(userId),
           effectiveTournamentId,
         );

@@ -1,6 +1,5 @@
 // services/api.ts - Centralized API calls for the application
 import {
-  Tournament,
   TournamentRow,
   DivisionRow,
   PlayerRow,
@@ -18,20 +17,6 @@ import {
 // PUBLIC API CALLS (no auth required)
 // ============================================================================
 
-export const fetchTournament = async (
-  userId: number,
-  tournamentId: number,
-  divisionId?: number,
-): Promise<Tournament> => {
-  // Choose endpoint based on whether division is specified
-  const endpoint =
-    divisionId !== undefined
-      ? `/api/public/users/${userId}/tournaments/${tournamentId}/divisions/${divisionId}`
-      : `/api/public/users/${userId}/tournaments/${tournamentId}`;
-
-  const response = await baseFetch(endpoint);
-  return parseApiResponse<Tournament>(response);
-};
 
 export const fetchTournamentRow = async (
   userId: number,
@@ -44,13 +29,6 @@ export const fetchTournamentRow = async (
   return parseApiResponse<TournamentRow>(response);
 };
 
-export const fetchTournamentDivision = async (
-  userId: number,
-  tournamentId: number,
-  divisionId: number,
-): Promise<Tournament> => {
-  return fetchTournament(userId, tournamentId, divisionId);
-};
 
 export const fetchPlayersForDivision = async (
   userId: number,
@@ -74,10 +52,10 @@ export const fetchDivisions = async (
 };
 
 // ============================================================================
-// V2 API CALLS - Domain Model (tree structure)
+// TOURNAMENT API CALLS - Domain Model (tree structure)
 // ============================================================================
 
-export const fetchTournamentV2 = async (
+export const fetchTournament = async (
   userId: number,
   tournamentId: number,
   divisionId?: number,

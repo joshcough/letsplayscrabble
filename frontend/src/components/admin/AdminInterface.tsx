@@ -9,7 +9,7 @@ import {
 
 import { useAuth } from "../../context/AuthContext";
 import {
-  fetchTournamentV2,
+  fetchTournament,
   fetchApiResponseWithAuth,
   setCurrentMatch,
   listTournaments,
@@ -137,7 +137,7 @@ const AdminInterface: React.FC = () => {
 
     // Load the hierarchical tournament data for this match
     try {
-      const tournament = await fetchTournamentV2(user_id, match.tournament_id);
+      const tournament = await fetchTournament(user_id, match.tournament_id);
       console.log('✅ Loaded tournament with V2 API:', tournament);
 
       setHierarchicalTournament(tournament);
@@ -244,7 +244,7 @@ const AdminInterface: React.FC = () => {
     if (newTournamentId) {
       try {
         setIsLoading(true);
-        const tournament = await fetchTournamentV2(
+        const tournament = await fetchTournament(
           user_id,
           parseInt(newTournamentId),
         );
