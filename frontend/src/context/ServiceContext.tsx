@@ -1,9 +1,9 @@
 // frontend/src/context/ServiceContext.tsx
 // Context for dependency injection of service implementations
-
 import React, { createContext, useContext, ReactNode } from "react";
-import { ApiService } from "../services/interfaces";
+
 import { HttpApiService } from "../services/httpService";
+import { ApiService } from "../services/interfaces";
 
 // Create the context
 const ServiceContext = createContext<ApiService | null>(null);

@@ -20,7 +20,6 @@ type RouteParams = {
   name: string;
 };
 
-
 const TournamentDetails: React.FC = () => {
   const { userId } = useAuth();
   const params = useParams<RouteParams>();

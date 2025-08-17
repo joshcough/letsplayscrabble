@@ -1,19 +1,21 @@
 // frontend/src/services/httpService.ts
 // HTTP implementation of the API service interfaces
-
+import {
+  LoginRequest,
+  LoginSuccessData,
+  StartPollingRequest,
+  PollingSuccessData,
+} from "@shared/types/api";
 import * as Domain from "@shared/types/domain";
-import { LoginRequest, LoginSuccessData, StartPollingRequest, PollingSuccessData } from "@shared/types/api";
-import { ApiService } from "./interfaces";
+
+import { baseFetch, parseApiResponse } from "../utils/api";
 import {
   fetchWithAuth,
   postWithAuth,
   putWithAuth,
   deleteWithAuth,
 } from "./api";
-import {
-  baseFetch,
-  parseApiResponse,
-} from "../utils/api";
+import { ApiService } from "./interfaces";
 
 export class HttpApiService implements ApiService {
   // ============================================================================
@@ -33,23 +35,29 @@ export class HttpApiService implements ApiService {
   // TOURNAMENT SERVICE
   // ============================================================================
 
-  async getTournament(userId: number, tournamentId: number): Promise<Domain.Tournament> {
+  async getTournament(
+    userId: number,
+    tournamentId: number,
+  ): Promise<Domain.Tournament> {
     const response = await fetchWithAuth<Domain.Tournament>(
-      `/api/public/users/${userId}/tournaments/${tournamentId}`
+      `/api/public/users/${userId}/tournaments/${tournamentId}`,
     );
     return response;
   }
 
-  async getTournamentSummary(userId: number, tournamentId: number): Promise<Domain.TournamentSummary> {
+  async getTournamentSummary(
+    userId: number,
+    tournamentId: number,
+  ): Promise<Domain.TournamentSummary> {
     // This method would need to be implemented to get just the summary
     // For now, we get the full tournament and extract summary data
     const tournament = await this.getTournament(userId, tournamentId);
-    
+
     // Get polling data from the old endpoint (admin-specific data)
     let pollUntil: Date | null = null;
     try {
       const response = await baseFetch(
-        `/api/public/users/${userId}/tournaments/${tournamentId}/row`
+        `/api/public/users/${userId}/tournaments/${tournamentId}/row`,
       );
       const rowData: any = parseApiResponse<any>(response);
       pollUntil = rowData.poll_until ? new Date(rowData.poll_until) : null;
@@ -63,7 +71,9 @@ export class HttpApiService implements ApiService {
   }
 
   async listTournaments(): Promise<Domain.TournamentSummary[]> {
-    const response = await fetchWithAuth<any[]>("/api/private/tournaments/list");
+    const response = await fetchWithAuth<any[]>(
+      "/api/private/tournaments/list",
+    );
     return response.map(
       (row: any): Domain.TournamentSummary => ({
         id: row.id,
@@ -74,7 +84,7 @@ export class HttpApiService implements ApiService {
         longFormName: row.long_form_name,
         dataUrl: row.data_url,
         pollUntil: row.poll_until ? new Date(row.poll_until) : null,
-      })
+      }),
     );
   }
 
@@ -90,7 +100,10 @@ export class HttpApiService implements ApiService {
     await deleteWithAuth(`/api/private/tournaments/${id}`);
   }
 
-  async getDivisions(userId: number, tournamentId: number): Promise<Domain.Division[]> {
+  async getDivisions(
+    userId: number,
+    tournamentId: number,
+  ): Promise<Domain.Division[]> {
     const tournament = await this.getTournament(userId, tournamentId);
     return tournament.divisions;
   }
@@ -98,17 +111,21 @@ export class HttpApiService implements ApiService {
   async getPlayersForDivision(
     userId: number,
     tournamentId: number,
-    divisionName: string
+    divisionName: string,
   ): Promise<Domain.Player[]> {
     const tournament = await this.getTournament(userId, tournamentId);
-    const division = tournament.divisions.find(
-      (d) => d.name === divisionName
-    );
+    const division = tournament.divisions.find((d) => d.name === divisionName);
     return division ? division.players : [];
   }
 
-  async enablePolling(tournamentId: number, request: StartPollingRequest): Promise<PollingSuccessData> {
-    const response = await postWithAuth<PollingSuccessData>(`/api/private/tournaments/${tournamentId}/polling`, request);
+  async enablePolling(
+    tournamentId: number,
+    request: StartPollingRequest,
+  ): Promise<PollingSuccessData> {
+    const response = await postWithAuth<PollingSuccessData>(
+      `/api/private/tournaments/${tournamentId}/polling`,
+      request,
+    );
     return response;
   }
 
@@ -122,7 +139,9 @@ export class HttpApiService implements ApiService {
 
   async getCurrentMatch(userId: number): Promise<Domain.CurrentMatch | null> {
     try {
-      const response = await baseFetch(`/api/overlay/users/${userId}/match/current`);
+      const response = await baseFetch(
+        `/api/overlay/users/${userId}/match/current`,
+      );
       const apiResponse = parseApiResponse<Domain.CurrentMatch>(response);
       return apiResponse;
     } catch (error) {
@@ -133,8 +152,13 @@ export class HttpApiService implements ApiService {
     }
   }
 
-  async setCurrentMatch(request: Domain.CreateCurrentMatch): Promise<Domain.CurrentMatch> {
-    const response = await postWithAuth<Domain.CurrentMatch>("/api/admin/match/current", request);
+  async setCurrentMatch(
+    request: Domain.CreateCurrentMatch,
+  ): Promise<Domain.CurrentMatch> {
+    const response = await postWithAuth<Domain.CurrentMatch>(
+      "/api/admin/match/current",
+      request,
+    );
     return response;
   }
 }

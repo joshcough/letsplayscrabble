@@ -5,11 +5,11 @@ import express, {
   RequestHandler,
 } from "express";
 
+import { LoginRequest, LoginSuccessData } from "@shared/types/api";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Pool } from "pg";
 
-import { LoginRequest, LoginSuccessData } from "@shared/types/api";
 import * as Api from "../utils/apiHelpers";
 
 const router = express.Router();
@@ -52,13 +52,15 @@ const loginHandler: RequestHandler<
       },
     );
 
-    res.json(Api.success({ 
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-      }
-    }));
+    res.json(
+      Api.success({
+        token,
+        user: {
+          id: user.id,
+          username: user.username,
+        },
+      }),
+    );
     return;
   } catch (error) {
     console.error("Login error:", error);

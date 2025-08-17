@@ -6,8 +6,8 @@ import * as Domain from "@shared/types/domain";
 import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
 import { MatchWithPlayers } from "../types/admin";
 import { CurrentMatch } from "../types/currentMatch";
-import { transformCurrentMatchToDomain } from "../utils/domainTransforms";
 import * as Api from "../utils/apiHelpers";
+import { transformCurrentMatchToDomain } from "../utils/domainTransforms";
 
 export default function createOverlayRoutes(
   currentMatchRepository: CurrentMatchRepository,
@@ -45,9 +45,11 @@ export default function createOverlayRoutes(
       res.json(Api.success(domainMatch));
     } catch (error) {
       console.error("Error fetching current match basic data:", error);
-      res.status(500).json(Api.failure(
-        error instanceof Error ? error.message : "Unknown error"
-      ));
+      res
+        .status(500)
+        .json(
+          Api.failure(error instanceof Error ? error.message : "Unknown error"),
+        );
     }
   };
 
