@@ -10,7 +10,6 @@ import { CreateCurrentMatch, CurrentMatch } from "../types/currentMatch";
 import * as Api from "../utils/apiHelpers";
 import { withDataOr404, withErrorHandling } from "../utils/apiHelpers";
 import {
-  transformCurrentMatchToDomain,
   transformCreateCurrentMatchToDatabase,
 } from "../utils/domainTransforms";
 
@@ -28,7 +27,7 @@ export default function createAdminRoutes(
     // Transform domain input to database format
     const dbCreateMatch = transformCreateCurrentMatchToDatabase(req.body);
     const userId = req.user!.id;
-    const dbMatch = await repo.create(
+    const currentMatch = await repo.create(
       userId,
       dbCreateMatch.tournament_id,
       dbCreateMatch.division_id,
@@ -38,19 +37,18 @@ export default function createAdminRoutes(
 
     const adminPanelUpdate: AdminPanelUpdateMessage = {
       userId,
-      tournamentId: dbMatch.tournament_id,
-      divisionId: dbMatch.division_id,
-      divisionName: dbMatch.division_name,
-      round: dbMatch.round,
-      pairingId: dbMatch.pairing_id,
+      tournamentId: currentMatch.tournamentId,
+      divisionId: currentMatch.divisionId,
+      divisionName: currentMatch.divisionName,
+      round: currentMatch.round,
+      pairingId: currentMatch.pairingId,
       timestamp: Date.now(),
     };
 
     io.emit("AdminPanelUpdate", adminPanelUpdate);
 
-    // Transform database result to domain format for response
-    const domainMatch = transformCurrentMatchToDomain(dbMatch);
-    res.json(Api.success(domainMatch));
+    // Repository now returns domain object directly
+    res.json(Api.success(currentMatch));
   });
 
   const getCurrentMatch: RequestHandler<
@@ -61,10 +59,9 @@ export default function createAdminRoutes(
       repo.getCurrentMatch(req.user!.id),
       res,
       "No current match found",
-      (dbCurrentMatch) => {
-        // Transform database result to domain format for response
-        const domainMatch = transformCurrentMatchToDomain(dbCurrentMatch);
-        res.json(Api.success(domainMatch));
+      (currentMatch) => {
+        // Repository now returns domain object directly
+        res.json(Api.success(currentMatch));
       },
     );
   });

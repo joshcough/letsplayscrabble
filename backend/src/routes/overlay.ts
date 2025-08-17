@@ -4,7 +4,6 @@ import * as Domain from "@shared/types/domain";
 
 import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
 import * as Api from "../utils/apiHelpers";
-import { transformCurrentMatchToDomain } from "../utils/domainTransforms";
 
 export default function createOverlayRoutes(
   currentMatchRepository: CurrentMatchRepository,
@@ -16,10 +15,8 @@ export default function createOverlayRoutes(
       currentMatchRepository.getCurrentMatch(userId),
       res,
       "No current match found",
-      async (dbCurrentMatch) => {
-        // Transform database result to domain format
-        const domainMatch = transformCurrentMatchToDomain(dbCurrentMatch);
-        res.json(Api.success(domainMatch));
+      async (currentMatch) => {
+        res.json(Api.success(currentMatch));
       },
     );
   });
