@@ -6,6 +6,24 @@ import * as DBCurrentMatch from "../types/currentMatch";
 import * as DB from "../types/database";
 
 /**
+ * Transform tournament row to domain summary (metadata only)
+ */
+export function transformTournamentRowToSummary(
+  tournamentRow: DB.TournamentRow,
+): Domain.TournamentSummary {
+  return {
+    id: tournamentRow.id,
+    name: tournamentRow.name,
+    city: tournamentRow.city,
+    year: tournamentRow.year,
+    lexicon: tournamentRow.lexicon,
+    longFormName: tournamentRow.long_form_name,
+    dataUrl: tournamentRow.data_url,
+    pollUntil: tournamentRow.poll_until ? new Date(tournamentRow.poll_until) : null,
+  };
+}
+
+/**
  * Transform flat database response into proper domain tree structure
  */
 export function transformToDomainTournament(

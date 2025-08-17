@@ -1,5 +1,6 @@
 // backend/src/types/admin.ts
 import { CurrentMatch } from "./currentMatch";
+import * as File from "./scrabbleFileFormat";
 
 export interface CreateMatchRequest {
   player1Id: number;
@@ -38,7 +39,7 @@ export interface PlayerStats {
   highScore: number;
   rank?: number;
   rankOrdinal?: string;
-  etc: any; // Keep as any since this is backend specific
+  etc: File.Etc;
   photo: string;
 }
 
