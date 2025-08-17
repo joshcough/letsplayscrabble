@@ -104,7 +104,6 @@ export function unprotectedTournamentRoutes(
     getTournamentForUser,
   );
 
-  // Other routes (unchanged for now)
   router.get(
     "/users/:userId/tournaments/:tournamentId/row",
     getTournamentRowForUser,
