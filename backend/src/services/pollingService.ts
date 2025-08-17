@@ -5,10 +5,7 @@ import { Server as SocketIOServer } from "socket.io";
 
 import { TournamentRepository } from "../repositories/tournamentRepository";
 import * as DB from "../types/database";
-import {
-  transformToDomainTournament,
-  transformGameChangesToDomain,
-} from "../utils/domainTransforms";
+import { transformGameChangesToDomain } from "../utils/domainTransforms";
 import { convertFileToDatabase } from "./fileToDatabaseConversions";
 import { loadTournamentFile } from "./loadTournamentFile";
 
@@ -89,8 +86,8 @@ export class TournamentPollingService {
             JSON.stringify(update.changes, null, 2),
           );
 
-          // Get the full tournament data to transform to domain model
-          const fullTournament = await this.repo.getTournamentAsTree(
+          // Get the full tournament data as domain model
+          const fullTournament = await this.repo.getTournamentAsDomainModel(
             tournament.id,
             tournament.user_id,
           );
@@ -102,12 +99,11 @@ export class TournamentPollingService {
             continue;
           }
 
-          // Transform to domain update directly
-          const domainTournament = transformToDomainTournament(fullTournament);
+          // Transform game changes to domain format
           const domainChanges = transformGameChangesToDomain(update.changes);
 
           const transformedUpdate: Domain.TournamentUpdate = {
-            tournament: domainTournament,
+            tournament: fullTournament,
             changes: domainChanges,
           };
           const gamesAddedMessage: GamesAddedMessage = {

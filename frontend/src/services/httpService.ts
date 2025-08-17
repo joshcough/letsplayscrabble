@@ -50,7 +50,7 @@ export class HttpApiService implements ApiService {
     tournamentId: number,
   ): Promise<ApiResponse<Domain.Tournament>> {
     return await baseFetchSafe<Domain.Tournament>(
-      `/api/public/v2/users/${userId}/tournaments/${tournamentId}`,
+      `/api/public/users/${userId}/tournaments/${tournamentId}`,
     );
   }
 
