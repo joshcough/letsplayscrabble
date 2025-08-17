@@ -7,7 +7,7 @@ import {
 import io, { Socket } from "socket.io-client";
 
 import { API_BASE } from "../config/api";
-import { fetchTournament } from "../services/api";
+import { ApiService } from "../services/interfaces";
 import {
   SubscribeMessage,
   TournamentDataResponse,
@@ -28,6 +28,7 @@ class WorkerSocketManager {
   private broadcastChannel: BroadcastChannel;
   private statusChannel: BroadcastChannel;
   private cacheManager: TournamentCacheManager;
+  private apiService: ApiService | null = null;
 
   // Message deduplication - track highest timestamp seen
   private lastSeenTimestamp: number = 0;
@@ -52,9 +53,12 @@ class WorkerSocketManager {
     }, 1000);
   }
 
-  static getInstance(): WorkerSocketManager {
+  static getInstance(apiService?: ApiService): WorkerSocketManager {
     if (!WorkerSocketManager.instance) {
       WorkerSocketManager.instance = new WorkerSocketManager();
+    }
+    if (apiService && !WorkerSocketManager.instance.apiService) {
+      WorkerSocketManager.instance.apiService = apiService;
     }
     return WorkerSocketManager.instance;
   }
@@ -149,7 +153,14 @@ class WorkerSocketManager {
       console.log(
         `🔄 Worker fetching full tournament data for tournament ${tournamentId}...`,
       );
-      const tournamentData = await fetchTournament(userId, tournamentId);
+      if (!this.apiService) {
+        throw new Error("API service not initialized");
+      }
+      const response = await this.apiService.getTournament(userId, tournamentId);
+      if (!response.success) {
+        throw new Error(response.error);
+      }
+      const tournamentData = response.data;
 
       // Cache the data
       this.cacheManager.set(userId, tournamentId, tournamentData);
@@ -388,7 +399,14 @@ class WorkerSocketManager {
       console.log(
         `🔄 Worker fetching full tournament data for refresh: user ${userId}, tournament ID: ${tournamentId}`,
       );
-      const tournamentData = await fetchTournament(userId, tournamentId);
+      if (!this.apiService) {
+        throw new Error("API service not initialized");
+      }
+      const response = await this.apiService.getTournament(userId, tournamentId);
+      if (!response.success) {
+        throw new Error(response.error);
+      }
+      const tournamentData = response.data;
 
       // Update cache
       this.cacheManager.set(userId, tournamentId, tournamentData);

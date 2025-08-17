@@ -1,7 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const HomePage: React.FC = () => {
+import { ApiService } from "../services/interfaces";
+
+const HomePage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   return (
     <div className="min-h-screen bg-[#E4C6A0]">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">

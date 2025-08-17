@@ -4,6 +4,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { BaseOverlay } from "../../components/shared/BaseOverlay";
 import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
 import { useTournamentData } from "../../hooks/useTournamentData";
+import { ApiService } from "../../services/interfaces";
 import {
   calculateTournamentStats,
   calculateAllTournamentStats,
@@ -16,7 +17,7 @@ type RouteParams = {
   divisionName?: string;
 };
 
-const TournamentStatsOverlayPage: React.FC = () => {
+const TournamentStatsOverlayPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const { userId, tournamentId, divisionName } = useParams<RouteParams>();
   const [searchParams] = useSearchParams();
   const showAllDivisions = searchParams.get("all_divisions") === "true";
@@ -28,7 +29,7 @@ const TournamentStatsOverlayPage: React.FC = () => {
   // If we're using current match, use BaseOverlay, otherwise use direct useTournamentData
   if (shouldUseCurrentMatch) {
     return (
-      <BaseOverlay>
+      <BaseOverlay apiService={apiService}>
         {({
           tournament,
           divisionData,
@@ -57,6 +58,7 @@ const TournamentStatsOverlayPage: React.FC = () => {
       <URLBasedStatsDisplay
         tournamentId={Number(tournamentId)}
         divisionName={divisionName}
+        apiService={apiService}
       />
     );
   }
@@ -66,7 +68,8 @@ const TournamentStatsOverlayPage: React.FC = () => {
 const URLBasedStatsDisplay: React.FC<{
   tournamentId: number;
   divisionName?: string;
-}> = ({ tournamentId, divisionName }) => {
+  apiService: ApiService;
+}> = ({ tournamentId, divisionName, apiService }) => {
   const {
     tournamentData,
     getDivisionData,
@@ -75,6 +78,7 @@ const URLBasedStatsDisplay: React.FC<{
   } = useTournamentData({
     tournamentId: tournamentId,
     useUrlParams: false,
+    apiService,
   });
 
   // Calculate stats based on whether we have a specific division or all divisions

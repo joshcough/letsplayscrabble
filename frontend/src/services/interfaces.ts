@@ -7,13 +7,14 @@ import {
   PollingSuccessData,
 } from "@shared/types/api";
 import * as Domain from "@shared/types/domain";
+import { ApiResponse } from "../config/api";
 
 // ============================================================================
 // AUTHENTICATION SERVICE
 // ============================================================================
 
 export interface AuthService {
-  login(request: LoginRequest): Promise<LoginSuccessData>;
+  login(request: LoginRequest): Promise<ApiResponse<LoginSuccessData>>;
 }
 
 // ============================================================================
@@ -25,33 +26,33 @@ export interface TournamentService {
   getTournament(
     userId: number,
     tournamentId: number,
-  ): Promise<Domain.Tournament>;
+  ): Promise<ApiResponse<Domain.Tournament>>;
   getTournamentSummary(
     userId: number,
     tournamentId: number,
-  ): Promise<Domain.TournamentSummary>;
-  listTournaments(): Promise<Domain.TournamentSummary[]>;
-  createTournament(params: any): Promise<any>; // TODO: Add proper types
-  updateTournament(id: number, params: any): Promise<any>;
-  deleteTournament(id: number): Promise<void>;
+  ): Promise<ApiResponse<Domain.TournamentSummary>>;
+  listTournaments(): Promise<ApiResponse<Domain.TournamentSummary[]>>;
+  createTournament(params: any): Promise<ApiResponse<any>>; // TODO: Add proper types
+  updateTournament(id: number, params: any): Promise<ApiResponse<any>>;
+  deleteTournament(id: number): Promise<ApiResponse<void>>;
 
   // Division operations
   getDivisions(
     userId: number,
     tournamentId: number,
-  ): Promise<Domain.Division[]>;
+  ): Promise<ApiResponse<Domain.Division[]>>;
   getPlayersForDivision(
     userId: number,
     tournamentId: number,
     divisionName: string,
-  ): Promise<Domain.Player[]>;
+  ): Promise<ApiResponse<Domain.Player[]>>;
 
   // Polling operations
   enablePolling(
     tournamentId: number,
     request: StartPollingRequest,
-  ): Promise<PollingSuccessData>;
-  disablePolling(tournamentId: number): Promise<void>;
+  ): Promise<ApiResponse<PollingSuccessData>>;
+  disablePolling(tournamentId: number): Promise<ApiResponse<void>>;
 }
 
 // ============================================================================
@@ -59,10 +60,10 @@ export interface TournamentService {
 // ============================================================================
 
 export interface CurrentMatchService {
-  getCurrentMatch(userId: number): Promise<Domain.CurrentMatch | null>;
+  getCurrentMatch(userId: number): Promise<ApiResponse<Domain.CurrentMatch | null>>;
   setCurrentMatch(
     request: Domain.CreateCurrentMatch,
-  ): Promise<Domain.CurrentMatch>;
+  ): Promise<ApiResponse<Domain.CurrentMatch>>;
 }
 
 // ============================================================================

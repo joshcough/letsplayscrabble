@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import BroadcastManager from "../../hooks/BroadcastManager";
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { useTournamentData } from "../../hooks/useTournamentData";
+import { ApiService } from "../../services/interfaces";
 import { TournamentDataIncremental } from "../../types/broadcast";
 
 type RouteParams = {
@@ -21,10 +22,12 @@ export type NotificationDetector = (
 // Tournament notification overlay component
 interface TournamentNotificationOverlayProps {
   notificationDetectors: NotificationDetector[];
+  apiService: ApiService;
 }
 
 const TournamentNotificationOverlay = ({
   notificationDetectors,
+  apiService,
 }: TournamentNotificationOverlayProps) => {
   const {
     userId,
@@ -41,7 +44,7 @@ const TournamentNotificationOverlay = ({
   // Data source logic
   const shouldUseCurrentMatch = !urlTournamentId || !divisionName;
 
-  const { currentMatch, loading: currentMatchLoading } = useCurrentMatch();
+  const { currentMatch, loading: currentMatchLoading } = useCurrentMatch(apiService);
 
   const {
     tournamentData: urlTournamentData,
@@ -50,6 +53,7 @@ const TournamentNotificationOverlay = ({
   } = useTournamentData({
     tournamentId: urlTournamentId ? parseInt(urlTournamentId) : undefined,
     useUrlParams: !shouldUseCurrentMatch,
+    apiService,
   });
 
   const {
@@ -59,6 +63,7 @@ const TournamentNotificationOverlay = ({
     tournamentId: currentMatch?.tournamentId,
     divisionId: currentMatch?.divisionId,
     useUrlParams: false,
+    apiService,
   });
 
   // Effective data

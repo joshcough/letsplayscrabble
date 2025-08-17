@@ -11,7 +11,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Navigation from "./components/common/Navigation";
 import AddTournament from "./components/tournaments/AddTournament";
 import { AuthProvider } from "./context/AuthContext";
-import { ServiceProvider } from "./context/ServiceContext";
+import { HttpApiService } from "./services/httpService";
+import { ApiService } from "./services/interfaces";
 import HomePage from "./pages/HomePage";
 import WorkerPage from "./pages/WorkerPage";
 import AdminPage from "./pages/admin/AdminPage";
@@ -34,7 +35,7 @@ import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
 
 // Wrapper component to conditionally apply theme
-const AppContent: React.FC = () => {
+const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const location = useLocation();
 
   const isOverlay =
@@ -54,108 +55,108 @@ const AppContent: React.FC = () => {
     <div className={getBackgroundClass()}>
       {!isOverlay && <Navigation />}
       <Routes>
-        <Route path="/login" element={<AdminLogin />} />
+        <Route path="/login" element={<AdminLogin apiService={apiService} />} />
         {/* User-scoped overlay routes */}
         <Route
           path="/users/:userId/overlay/ping"
-          element={<PingOverlayPage />}
+          element={<PingOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/misc"
-          element={<MiscOverlayPage />}
+          element={<MiscOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/player/:tournamentId?/:divisionName?"
-          element={<PlayerOverlay />}
+          element={<PlayerOverlay apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/player/:tournamentId/:divisionName/:playerId/test"
-          element={<PlayerOverlayTestingPage />}
+          element={<PlayerOverlayTestingPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/standings/:tournamentId?/:divisionName?"
-          element={<StandingsOverlayPage />}
+          element={<StandingsOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/standings_with_pics/:tournamentId?/:divisionName?"
-          element={<StandingsWithPicsOverlayPage />}
+          element={<StandingsWithPicsOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/rating_gain/:tournamentId?/:divisionName?"
-          element={<RatingGainOverlayPage />}
+          element={<RatingGainOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/rating_gain_with_pics/:tournamentId?/:divisionName?"
-          element={<RatingGainWithPicsOverlayPage />}
+          element={<RatingGainWithPicsOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/high_scores_with_pics/:tournamentId?/:divisionName?"
-          element={<HighScoresWithPicsOverlayPage />}
+          element={<HighScoresWithPicsOverlayPage apiService={apiService} />}
         />
         {/* Animation routes - transparent background */}
         <Route
           path="/users/:userId/notifications/all/:tournamentId?/:divisionName?"
-          element={<AllNotifications />}
+          element={<AllNotifications apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/scoring_leaders/:tournamentId?/:divisionName?"
-          element={<ScoringLeadersOverlayPage />}
+          element={<ScoringLeadersOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/scoring_leaders_with_pics/:tournamentId?/:divisionName?"
-          element={<ScoringLeadersWithPicsOverlayPage />}
+          element={<ScoringLeadersWithPicsOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/tournament_stats/:tournamentId?/:divisionName?"
-          element={<TournamentStatsOverlayPage />}
+          element={<TournamentStatsOverlayPage apiService={apiService} />}
         />
         {/* Legacy overlay routes (backwards compatibility - optional) */}
-        <Route path="/overlay/misc" element={<MiscOverlayPage />} />
+        <Route path="/overlay/misc" element={<MiscOverlayPage apiService={apiService} />} />
         <Route
           path="/overlay/standings/:tournamentId?/:divisionName?"
-          element={<StandingsOverlayPage />}
+          element={<StandingsOverlayPage apiService={apiService} />}
         />
         <Route
           path="/overlay/standings_with_pics/:tournamentId?/:divisionName?"
-          element={<StandingsWithPicsOverlayPage />}
+          element={<StandingsWithPicsOverlayPage apiService={apiService} />}
         />
         <Route
           path="/overlay/rating_gain/:tournamentId?/:divisionName?"
-          element={<RatingGainOverlayPage />}
+          element={<RatingGainOverlayPage apiService={apiService} />}
         />
         <Route
           path="/overlay/rating_gain_with_pics/:tournamentId?/:divisionName?"
-          element={<RatingGainWithPicsOverlayPage />}
+          element={<RatingGainWithPicsOverlayPage apiService={apiService} />}
         />
         <Route
           path="/overlay/high_scores_with_pics/:tournamentId?/:divisionName?"
-          element={<HighScoresWithPicsOverlayPage />}
+          element={<HighScoresWithPicsOverlayPage apiService={apiService} />}
         />
         <Route
           path="/overlay/scoring_leaders/:tournamentId?/:divisionName?"
-          element={<ScoringLeadersOverlayPage />}
+          element={<ScoringLeadersOverlayPage apiService={apiService} />}
         />
         <Route
           path="/overlay/scoring_leaders_with_pics/:tournamentId?/:divisionName?"
-          element={<ScoringLeadersWithPicsOverlayPage />}
+          element={<ScoringLeadersWithPicsOverlayPage apiService={apiService} />}
         />
         <Route
           path="/overlay/tournament_stats/:tournamentId?/:divisionName?"
-          element={<TournamentStatsOverlayPage />}
+          element={<TournamentStatsOverlayPage apiService={apiService} />}
         />
         {/* Other routes */}
-        <Route path="/overlays" element={<OverlaysPage />} />
+        <Route path="/overlays" element={<OverlaysPage apiService={apiService} />} />
         <Route
           path="/overlay/misc_testing"
-          element={<MiscOverlayTestingPage />}
+          element={<MiscOverlayTestingPage apiService={apiService} />}
         />
-        <Route path="/worker" element={<WorkerPage />} />
+        <Route path="/worker" element={<WorkerPage apiService={apiService} />} />
         {/* Protected Routes */}
         <Route
           path="/"
           element={
             <ProtectedRoute>
-              <HomePage />
+              <HomePage apiService={apiService} />
             </ProtectedRoute>
           }
         />
@@ -163,7 +164,7 @@ const AppContent: React.FC = () => {
           path="/admin"
           element={
             <ProtectedRoute>
-              <AdminPage />
+              <AdminPage apiService={apiService} />
             </ProtectedRoute>
           }
         />
@@ -171,7 +172,7 @@ const AppContent: React.FC = () => {
           path="/tournaments/manager"
           element={
             <ProtectedRoute>
-              <TournamentManagerPage />
+              <TournamentManagerPage apiService={apiService} />
             </ProtectedRoute>
           }
         />
@@ -179,7 +180,7 @@ const AppContent: React.FC = () => {
           path="/tournaments/add"
           element={
             <ProtectedRoute>
-              <AddTournament />
+              <AddTournament apiService={apiService} />
             </ProtectedRoute>
           }
         />
@@ -187,7 +188,7 @@ const AppContent: React.FC = () => {
           path="/tournaments/:id"
           element={
             <ProtectedRoute>
-              <TournamentDetailsPage />
+              <TournamentDetailsPage apiService={apiService} />
             </ProtectedRoute>
           }
         />
@@ -195,7 +196,7 @@ const AppContent: React.FC = () => {
           path="/tournaments/name/:name"
           element={
             <ProtectedRoute>
-              <TournamentDetailsPage />
+              <TournamentDetailsPage apiService={apiService} />
             </ProtectedRoute>
           }
         />
@@ -205,13 +206,13 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  const apiService = new HttpApiService();
+  
   return (
     <AuthProvider>
-      <ServiceProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </ServiceProvider>
+      <Router>
+        <AppContent apiService={apiService} />
+      </Router>
     </AuthProvider>
   );
 };

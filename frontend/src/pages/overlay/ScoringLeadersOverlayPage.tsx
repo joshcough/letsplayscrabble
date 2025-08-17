@@ -5,9 +5,10 @@ import {
   UsePlayerStatsCalculation,
   RankedPlayerStats,
 } from "../../hooks/usePlayerStatsCalculation";
+import { ApiService } from "../../services/interfaces";
 import { formatNumberWithSign } from "../../utils/formatUtils";
 
-const ScoringLeadersOverlayPage: React.FC = () => {
+const ScoringLeadersOverlayPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const columns = [
     { key: "rank", label: "Rank" },
     { key: "name", label: "Name" },
@@ -43,7 +44,7 @@ const ScoringLeadersOverlayPage: React.FC = () => {
   };
 
   return (
-    <UsePlayerStatsCalculation sortType="averageScore">
+    <UsePlayerStatsCalculation sortType="averageScore" apiService={apiService}>
       {({ tournament, players, divisionName }) => (
         <TournamentTableOverlay
           tournament={tournament}

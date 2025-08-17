@@ -1,15 +1,15 @@
 import React from "react";
 
-import * as Stats from "../../types/stats";
 import { getPlayerImageUrl, formatPlayerName } from "../../utils/playerUtils";
 import { TournamentDisplayData } from "../shared/BaseOverlay";
+import { RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
 
 interface PictureDisplayProps {
   tournament: TournamentDisplayData;
-  standings: Stats.PlayerStats[];
+  standings: RankedPlayerStats[];
   title: string;
   divisionName: string;
-  renderPlayerContent: (player: Stats.PlayerStats) => React.ReactNode;
+  renderPlayerContent: (player: RankedPlayerStats) => React.ReactNode;
 }
 
 const PictureDisplay: React.FC<PictureDisplayProps> = ({

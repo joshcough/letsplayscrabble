@@ -3,12 +3,7 @@ import React, { useState, useEffect } from "react";
 import * as Domain from "@shared/types/domain";
 
 import { useAuth } from "../../context/AuthContext";
-import {
-  fetchTournament,
-  fetchApiResponseWithAuth,
-  setCurrentMatch,
-  listTournaments,
-} from "../../services/api";
+import { ApiService } from "../../services/interfaces";
 import { ProtectedPage } from "../ProtectedPage";
 
 // UI types for transformed dropdown data
@@ -18,7 +13,7 @@ interface PairingOption {
   player2Name: string;
 }
 
-const AdminInterface: React.FC = () => {
+const AdminInterface: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const { userId } = useAuth(); // Get userId from auth context
   const user_id = userId!;
 
@@ -53,13 +48,12 @@ const AdminInterface: React.FC = () => {
   );
 
   const loadTournaments = async (): Promise<Domain.TournamentSummary[]> => {
-    return await listTournaments();
+    const response = await apiService.listTournaments();
+    return response.success ? response.data : [];
   };
 
   const loadCurrentMatch = async (): Promise<Domain.CurrentMatch | null> => {
-    const response = await fetchApiResponseWithAuth<Domain.CurrentMatch>(
-      `/api/admin/match/current`,
-    );
+    const response = await apiService.getCurrentMatch(user_id);
     return response.success ? response.data : null;
   };
 
@@ -127,7 +121,11 @@ const AdminInterface: React.FC = () => {
 
     // Load the hierarchical tournament data for this match
     try {
-      const tournament = await fetchTournament(user_id, match.tournamentId);
+      const tournamentResponse = await apiService.getTournament(user_id, match.tournamentId);
+      if (!tournamentResponse.success) {
+        throw new Error(tournamentResponse.error);
+      }
+      const tournament = tournamentResponse.data;
       console.log("✅ Loaded tournament with V2 API:", tournament);
 
       setHierarchicalTournament(tournament);
@@ -231,10 +229,14 @@ const AdminInterface: React.FC = () => {
     if (newTournamentId) {
       try {
         setIsLoading(true);
-        const tournament = await fetchTournament(
+        const tournamentResponse = await apiService.getTournament(
           user_id,
           parseInt(newTournamentId),
         );
+        if (!tournamentResponse.success) {
+          throw new Error(tournamentResponse.error);
+        }
+        const tournament = tournamentResponse.data;
         setHierarchicalTournament(tournament);
         updateDropdownData(tournament);
       } catch (error) {
@@ -298,7 +300,10 @@ const AdminInterface: React.FC = () => {
 
       console.log("Updating current match:", requestBody);
 
-      await setCurrentMatch(requestBody);
+      const setMatchResponse = await apiService.setCurrentMatch(requestBody);
+      if (!setMatchResponse.success) {
+        throw new Error(setMatchResponse.error);
+      }
 
       setSuccess("Match updated successfully!");
       setTimeout(() => setSuccess(null), 3000);

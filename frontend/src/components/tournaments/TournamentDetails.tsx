@@ -4,15 +4,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import * as Domain from "@shared/types/domain";
 
 import { useAuth } from "../../context/AuthContext";
-import {
-  fetchTournamentSummary,
-  fetchDivisions,
-  fetchPlayersForDivision,
-  updateTournament,
-  deleteTournament,
-  enableTournamentPolling,
-  disableTournamentPolling,
-} from "../../services/api";
+import { ApiService } from "../../services/interfaces";
 import { ProtectedPage } from "../ProtectedPage";
 
 type RouteParams = {
@@ -20,7 +12,7 @@ type RouteParams = {
   name: string;
 };
 
-const TournamentDetails: React.FC = () => {
+const TournamentDetails: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const { userId } = useAuth();
   const params = useParams<RouteParams>();
   const navigate = useNavigate();
@@ -66,25 +58,25 @@ const TournamentDetails: React.FC = () => {
 
       if (!divisionPlayers[divisionName]) {
         setLoadingPlayers((prev) => new Set(prev).add(divisionName));
-        try {
-          const players = await fetchPlayersForDivision(
-            user_id,
-            tournamentId,
-            divisionName,
-          );
-          setDivisionPlayers((prev) => ({ ...prev, [divisionName]: players }));
-        } catch (error) {
+        const response = await apiService.getPlayersForDivision(
+          user_id,
+          tournamentId,
+          divisionName,
+        );
+        if (response.success) {
+          setDivisionPlayers((prev) => ({ ...prev, [divisionName]: response.data }));
+        } else {
           console.error(
             `Error fetching players for division ${divisionName}:`,
-            error,
+            response.error,
           );
-        } finally {
-          setLoadingPlayers((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(divisionName);
-            return newSet;
-          });
         }
+        // Always update loading state
+        setLoadingPlayers((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(divisionName);
+          return newSet;
+        });
       }
     }
 
@@ -135,45 +127,42 @@ const TournamentDetails: React.FC = () => {
   ];
 
   const handleEnablePolling = async () => {
-    try {
-      const data: string = await enableTournamentPolling(
-        Number(params.id),
-        pollingDays,
-      );
+    const response = await apiService.enablePolling(
+      Number(params.id),
+      { pollUntilMinutes: pollingDays * 24 * 60 }
+    );
 
+    if (response.success) {
       setIsPolling(true);
-      setPollUntil(new Date(data));
-    } catch (error) {
-      console.error("Error enabling polling:", error);
+      setPollUntil(new Date(response.data.pollUntil));
+    } else {
+      console.error("Error enabling polling:", response.error);
     }
   };
 
   const handleDisablePolling = async () => {
-    try {
-      await disableTournamentPolling(Number(params.id));
-
+    const response = await apiService.disablePolling(Number(params.id));
+    if (response.success) {
       setIsPolling(false);
       setPollUntil(null);
-    } catch (error) {
-      console.error("Error disabling polling:", error);
+    } else {
+      console.error("Error disabling polling:", response.error);
     }
   };
 
   const handleDelete = async () => {
-    try {
-      await deleteTournament(Number(params.id));
-
+    const response = await apiService.deleteTournament(Number(params.id));
+    if (response.success) {
       navigate("/tournaments/manager");
-    } catch (error) {
-      console.error("Error deleting tournament:", error);
+    } else {
+      console.error("Error deleting tournament:", response.error);
     }
   };
 
   const handleSaveChanges = async () => {
-    try {
-      if (!editedTournament) return;
+    if (!editedTournament) return;
 
-      const editableFields = {
+    const editableFields = {
         name: editedTournament.name || "",
         city: editedTournament.city || "",
         year: editedTournament.year || 0,
@@ -182,17 +171,22 @@ const TournamentDetails: React.FC = () => {
         dataUrl: editedTournament.dataUrl || "",
       };
 
-      await updateTournament(Number(params.id), editableFields);
-
-      const freshTournamentData = await fetchTournamentSummary(
-        user_id,
-        tournamentId,
-      );
-      setTournament(freshTournamentData);
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Error saving tournament changes:", error);
-    }
+      const updateResponse = await apiService.updateTournament(Number(params.id), editableFields);
+      
+      if (updateResponse.success) {
+        const freshDataResponse = await apiService.getTournamentSummary(
+          user_id,
+          tournamentId,
+        );
+        if (freshDataResponse.success) {
+          setTournament(freshDataResponse.data);
+          setIsEditing(false);
+        } else {
+          console.error("Error refreshing tournament data:", freshDataResponse.error);
+        }
+      } else {
+        console.error("Error saving tournament changes:", updateResponse.error);
+      }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -206,36 +200,36 @@ const TournamentDetails: React.FC = () => {
 
   useEffect(() => {
     const fetchTournamentData = async () => {
-      try {
-        const tournamentData: Domain.TournamentSummary =
-          await fetchTournamentSummary(user_id, tournamentId);
-        setTournament(tournamentData);
+      const response = await apiService.getTournamentSummary(user_id, tournamentId);
+      
+      if (response.success) {
+        setTournament(response.data);
 
-        if (tournamentData.pollUntil) {
-          const pollUntilDate = tournamentData.pollUntil;
+        if (response.data.pollUntil) {
+          const pollUntilDate = response.data.pollUntil;
           setIsPolling(pollUntilDate > new Date());
           setPollUntil(pollUntilDate);
         } else {
           setIsPolling(false);
           setPollUntil(null);
         }
-      } catch (error) {
-        console.error("Error fetching tournament details:", error);
+      } else {
+        console.error("Error fetching tournament details:", response.error);
       }
     };
 
     const fetchDivisionsData = async () => {
-      try {
-        const divisionsData = await fetchDivisions(user_id, tournamentId);
-        setDivisions(divisionsData);
-      } catch (error) {
-        console.error("Error fetching divisions:", error);
+      const response = await apiService.getDivisions(user_id, tournamentId);
+      if (response.success) {
+        setDivisions(response.data);
+      } else {
+        console.error("Error fetching divisions:", response.error);
       }
     };
 
     fetchTournamentData();
     fetchDivisionsData();
-  }, [user_id, tournamentId]);
+  }, [user_id, tournamentId, apiService]);
 
   if (!tournament || !editedTournament) {
     return (

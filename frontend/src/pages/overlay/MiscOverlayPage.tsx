@@ -2,12 +2,11 @@ import React from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { BaseOverlay } from "../../components/shared/BaseOverlay";
+import { ApiService } from "../../services/interfaces";
+import * as Stats from "../../types/stats";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
 import PointsDisplay from "../../components/shared/PointsDisplay";
-import {
-  UsePlayerStatsCalculation,
-  RankedPlayerStats,
-} from "../../hooks/usePlayerStatsCalculation";
+import { RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
 import { getRecentGamesForPlayer } from "../../utils/gameUtils";
 import {
   formatSpread,
@@ -54,7 +53,7 @@ type SourceType =
   | "player2-bo7"
   | "tournament-data";
 
-const MiscOverlay: React.FC = () => {
+const MiscOverlay: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const [searchParams] = useSearchParams();
   const source = searchParams.get("source") as SourceType;
 
@@ -63,7 +62,7 @@ const MiscOverlay: React.FC = () => {
   }
 
   return (
-    <BaseOverlay>
+    <BaseOverlay apiService={apiService}>
       {({ tournament, divisionData, divisionName, currentMatch }) => {
         // Early return for errors
         if (!currentMatch) {
@@ -85,12 +84,12 @@ const MiscOverlay: React.FC = () => {
 
         // Sort by standings and add ranks
         const rankedPlayers = playerStats
-          .sort((a: any, b: any) => {
+          .sort((a: Stats.PlayerStats, b: Stats.PlayerStats) => {
             if (a.wins !== b.wins) return b.wins - a.wins;
             if (a.losses !== b.losses) return a.losses - b.losses;
             return b.spread - a.spread;
           })
-          .map((player: any, index: number) => ({
+          .map((player: Stats.PlayerStats, index: number) => ({
             ...player,
             rank: index + 1,
             rankOrdinal: `${index + 1}${["th", "st", "nd", "rd"][(index + 1) % 100 > 10 && (index + 1) % 100 < 14 ? 0 : (index + 1) % 10] || "th"}`,
@@ -113,10 +112,10 @@ const MiscOverlay: React.FC = () => {
 
         // Find the two players from current game
         const player1Stats = rankedPlayers.find(
-          (p: any) => p.playerId === currentGame.player1Id,
+          (p: RankedPlayerStats) => p.playerId === currentGame.player1Id,
         );
         const player2Stats = rankedPlayers.find(
-          (p: any) => p.playerId === currentGame.player2Id,
+          (p: RankedPlayerStats) => p.playerId === currentGame.player2Id,
         );
 
         if (!player1Stats || !player2Stats) {

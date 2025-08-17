@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 
 import WorkerSocketManager from "../hooks/WorkerSocketManager";
+import { ApiService } from "../services/interfaces";
 
 interface StatusMessage {
   status: string;
@@ -22,7 +23,7 @@ interface BroadcastMessage {
   timestamp: number;
 }
 
-const WorkerPage: React.FC = () => {
+const WorkerPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const [status, setStatus] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<number>(0);
@@ -43,7 +44,7 @@ const WorkerPage: React.FC = () => {
   const extendedMode = urlParams.has("extended");
 
   useEffect(() => {
-    const worker = WorkerSocketManager.getInstance();
+    const worker = WorkerSocketManager.getInstance(apiService);
     const statusChannel = new BroadcastChannel("worker-status");
 
     // Listen for status updates via status channel

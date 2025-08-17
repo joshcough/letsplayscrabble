@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 
 import * as Domain from "@shared/types/domain";
 
-import { fetchCurrentMatch } from "../utils/matchApi";
+import { ApiService } from "../services/interfaces";
 import BroadcastManager from "./BroadcastManager";
 
 interface UseCurrentMatchReturn {
@@ -17,7 +17,7 @@ interface UseCurrentMatchReturn {
  * Hook that provides current match state with real-time updates
  * Perfect for most components that just need the basic current match info
  */
-export const useCurrentMatch = (): UseCurrentMatchReturn => {
+export const useCurrentMatch = (apiService: ApiService): UseCurrentMatchReturn => {
   const { userId } = useParams<{ userId: string }>();
   const [currentMatch, setCurrentMatch] = useState<Domain.CurrentMatch | null>(
     null,
@@ -36,7 +36,8 @@ export const useCurrentMatch = (): UseCurrentMatchReturn => {
     try {
       setLoading(true);
       setError(null);
-      const match = await fetchCurrentMatch(parseInt(userId));
+      const response = await apiService.getCurrentMatch(parseInt(userId));
+      const match = response.success ? response.data : null;
       setCurrentMatch(match);
     } catch (err) {
       console.error("Error fetching current match:", err);

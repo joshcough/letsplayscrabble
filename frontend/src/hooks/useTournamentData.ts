@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import * as Domain from "@shared/types/domain";
 import { GamesAddedMessage } from "@shared/types/websocket";
 
-import { fetchTournament } from "../services/api";
+import { ApiService } from "../services/interfaces";
 import {
   SubscribeMessage,
   TournamentDataResponse,
@@ -18,6 +18,7 @@ interface UseTournamentDataProps {
   tournamentId?: number;
   divisionId?: number;
   useUrlParams?: boolean;
+  apiService: ApiService;
 }
 
 type RouteParams = {
@@ -31,6 +32,7 @@ export const useTournamentData = ({
   tournamentId: propTournamentId,
   divisionId: propDivisionId,
   useUrlParams = false,
+  apiService,
 }: UseTournamentDataProps) => {
   const {
     userId,
@@ -104,21 +106,33 @@ export const useTournamentData = ({
       let finalDivisionId: number | null = null;
 
       if (shouldUseUrlParams) {
-        tournament = await fetchTournament(
+        const response = await apiService.getTournament(
           parseInt(userId),
           effectiveTournamentId,
         );
+        if (!response.success) {
+          throw new Error(response.error);
+        }
+        tournament = response.data;
       } else if (propDivisionId) {
-        tournament = await fetchTournament(
+        const response = await apiService.getTournament(
           parseInt(userId),
           effectiveTournamentId,
         );
+        if (!response.success) {
+          throw new Error(response.error);
+        }
+        tournament = response.data;
         finalDivisionId = propDivisionId;
       } else {
-        tournament = await fetchTournament(
+        const response = await apiService.getTournament(
           parseInt(userId),
           effectiveTournamentId,
         );
+        if (!response.success) {
+          throw new Error(response.error);
+        }
+        tournament = response.data;
       }
 
       if (shouldUseUrlParams && divisionName) {

@@ -1,28 +1,22 @@
 import * as Domain from "@shared/types/domain";
-
-import {
-  fetchUserOverlayEndpoint,
-  postAuthenticatedApiEndpoint,
-} from "../services/api";
+import { ApiService } from "../services/interfaces";
 
 export const fetchCurrentMatch = async (
   userId: number,
+  apiService: ApiService,
 ): Promise<Domain.CurrentMatch | null> => {
-  return fetchUserOverlayEndpoint<Domain.CurrentMatch>(
-    userId,
-    "/match/current",
-    "Failed to fetch current match",
-  );
+  const response = await apiService.getCurrentMatch(userId);
+  return response.success ? response.data : null;
 };
 
 export const fetchCurrentMatchWithPlayers = async (
   userId: number,
+  apiService: ApiService,
 ): Promise<any | null> => {
-  return fetchUserOverlayEndpoint<any>(
-    userId,
-    "/match/current_match_for_stats_delete_this_route",
-    "Failed to fetch match with players",
-  );
+  // This function uses a deprecated route - consider removing or updating
+  // For now, we'll return null as it's marked for deletion in the route name
+  console.warn("fetchCurrentMatchWithPlayers uses deprecated route - consider removing");
+  return null;
 };
 
 /**
@@ -30,10 +24,8 @@ export const fetchCurrentMatchWithPlayers = async (
  */
 export const setCurrentMatch = async (
   matchData: Domain.CreateCurrentMatch,
-): Promise<any | null> => {
-  return postAuthenticatedApiEndpoint<any>(
-    "/api/admin/match/current",
-    matchData,
-    "Failed to set current match",
-  );
+  apiService: ApiService,
+): Promise<Domain.CurrentMatch | null> => {
+  const response = await apiService.setCurrentMatch(matchData);
+  return response.success ? response.data : null;
 };

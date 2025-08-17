@@ -5,6 +5,7 @@ import * as Domain from "@shared/types/domain";
 
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { useTournamentData } from "../../hooks/useTournamentData";
+import { ApiService } from "../../services/interfaces";
 import { LoadingErrorWrapper } from "./LoadingErrorWrapper";
 
 // Simplified tournament display data
@@ -31,6 +32,7 @@ export interface BaseOverlayDataProps {
 
 interface BaseOverlayProps {
   children: (props: BaseOverlayDataProps) => React.ReactNode;
+  apiService: ApiService;
 }
 
 type RouteParams = {
@@ -38,7 +40,7 @@ type RouteParams = {
   divisionName?: string;
 };
 
-export const BaseOverlay: React.FC<BaseOverlayProps> = ({ children }) => {
+export const BaseOverlay: React.FC<BaseOverlayProps> = ({ children, apiService }) => {
   const { tournamentId, divisionName } = useParams<RouteParams>();
   const shouldUseCurrentMatch = !tournamentId || !divisionName;
 
@@ -53,15 +55,17 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({ children }) => {
     currentMatch,
     loading: matchLoading,
     error: matchError,
-  } = useCurrentMatch();
+  } = useCurrentMatch(apiService);
   const currentMatchData = useTournamentData({
     tournamentId: currentMatch?.tournamentId,
     divisionId: currentMatch?.divisionId,
+    apiService,
   });
 
   // URL params approach
   const urlParamsData = useTournamentData({
     useUrlParams: true,
+    apiService,
   });
 
   // Choose which data to use
