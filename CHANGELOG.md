@@ -1,5 +1,73 @@
 # Changelog
 
+## 2025-08-17 - Error Handling Standardization & API Hooks
+
+### 🚀 **Major Developer Experience Improvements**
+
+#### **Reusable UI Components**
+- **NEW**: `ErrorMessage` component with variants (error, warning, info) for consistent error display
+- **NEW**: `LoadingSpinner` component with customizable sizes and messages  
+- **NEW**: `SuccessMessage` component with auto-hide functionality for user feedback
+- **NEW**: `FormFeedback` component for unified loading/error/success states
+- **NEW**: Barrel exports in `components/shared/index.ts` for cleaner imports
+
+#### **API Hooks Suite**
+- **NEW**: `useApiCall` hook for generic API operations with built-in state management
+- **NEW**: `useApiMutation` hook for POST/PUT/DELETE with callbacks and success handling
+- **NEW**: `useApiQuery` hook for GET operations with auto-fetching and refetch capabilities
+- **NEW**: `useApiForm` hook for complete form handling with API integration
+- **NEW**: Barrel exports in `hooks/index.ts` for centralized hook imports
+
+### 🔧 **Error Handling Standardization**
+
+#### **Consistent Error Patterns**
+- **FIXED**: Inconsistent error handling across components (console.error vs state management vs throwing)
+- **STANDARDIZED**: All UI components now use proper error state with user feedback
+- **ENHANCED**: All API calls follow consistent error handling patterns
+- **IMPROVED**: User experience with proper loading states and error messages
+
+#### **Component Refactoring**
+- **REFACTORED**: `AddTournament` to use `useApiForm` (reduced from ~100 to ~75 lines)
+- **REFACTORED**: `TournamentList` to use `useApiQuery` (automatic fetching and error handling)
+- **REFACTORED**: `AdminLogin` to use consistent error feedback patterns
+- **UPDATED**: All overlay components to use proper `RankedPlayerStats` types
+
+### 🎯 **Code Quality Improvements**
+
+#### **TypeScript Enhancements**
+- **ELIMINATED**: Critical `any` types in overlay components and services
+- **FIXED**: Type mismatches between `PlayerStats` and `RankedPlayerStats`
+- **ENHANCED**: `PictureDisplay` component to use `RankedPlayerStats` for type safety
+- **IMPROVED**: Generic type support throughout API hooks
+
+#### **Code Reduction**
+- **ACHIEVED**: 75% reduction in API call boilerplate (from ~45 lines to ~10 lines)
+- **REMOVED**: Duplicate error display code across components
+- **CONSOLIDATED**: Common loading and error patterns into reusable hooks
+- **SIMPLIFIED**: Component logic focused on UI rather than API state management
+
+### 🗂️ **Architecture Cleanup**
+
+#### **Dependency Injection Completion**
+- **COMPLETED**: Removal of `ServiceContext.tsx` (finished prop-based injection migration)
+- **UPDATED**: All components now use prop-based API service injection
+- **ENHANCED**: Type safety across service interfaces
+
+#### **Import Organization**
+- **CREATED**: Centralized exports for shared components and hooks
+- **IMPROVED**: Cleaner import statements across the codebase
+- **STANDARDIZED**: Import patterns for better maintainability
+
+### 🔨 **Build & Development**
+
+#### **Build Optimization**
+- **FIXED**: All TypeScript compilation errors
+- **RESOLVED**: Type safety issues in overlay components
+- **OPTIMIZED**: Build process now passes successfully with full type checking
+- **CLEANED**: Unused imports and variables
+
+---
+
 ## 2025-08-16 - Complete Domain Model Architecture Migration
 
 ### 🏗️ **Major Architecture Refactoring**
