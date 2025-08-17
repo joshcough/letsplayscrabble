@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
 import * as Domain from "@shared/types/domain";
+import { PollingResponse } from "@shared/types/api";
 
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -20,9 +21,6 @@ type RouteParams = {
   name: string;
 };
 
-interface PollingResponse {
-  pollUntil: string;
-}
 
 const TournamentDetails: React.FC = () => {
   const { userId } = useAuth();

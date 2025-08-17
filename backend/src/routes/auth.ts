@@ -9,12 +9,9 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Pool } from "pg";
 
-const router = express.Router();
+import { LoginRequest } from "@shared/types/api";
 
-interface LoginRequest {
-  username: string;
-  password: string;
-}
+const router = express.Router();
 
 interface AdminUser {
   id: number;
