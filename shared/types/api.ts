@@ -1,5 +1,6 @@
 // shared/types/api.ts
 // API request and response types (no generics - those stay in frontend/backend)
+// Note: All endpoints return ApiResponse<T> where T is the success data type
 // Note: Domain types like CreateCurrentMatch are in domain.ts
 // Note: Database types like TournamentMetadata are in backend/src/types/database.ts
 
@@ -12,7 +13,7 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface LoginResponse {
+export interface LoginSuccessData {
   token: string;
   user: {
     id: number;
@@ -28,26 +29,18 @@ export interface StartPollingRequest {
   pollUntilMinutes: number;
 }
 
-export interface PollingResponse {
+export interface PollingSuccessData {
   pollUntil: string;
 }
 
 // ============================================================================
-// ERROR RESPONSES
+// COMMON SUCCESS DATA PATTERNS
 // ============================================================================
 
-export interface ErrorResponse {
-  error: string;
-}
-
-// ============================================================================
-// COMMON RESPONSE PATTERNS
-// ============================================================================
-
-export interface SuccessResponse {
-  success: true;
-}
-
-export interface DeleteResponse {
+// For delete operations that just confirm success
+export interface DeleteSuccessData {
   message: string;
 }
+
+// For operations that just confirm completion
+export interface EmptySuccessData {}

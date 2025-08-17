@@ -11,6 +11,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Navigation from "./components/common/Navigation";
 import AddTournament from "./components/tournaments/AddTournament";
 import { AuthProvider } from "./context/AuthContext";
+import { ServiceProvider } from "./context/ServiceContext";
 import HomePage from "./pages/HomePage";
 import WorkerPage from "./pages/WorkerPage";
 import AdminPage from "./pages/admin/AdminPage";
@@ -206,9 +207,11 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <ServiceProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </ServiceProvider>
     </AuthProvider>
   );
 };

@@ -7,6 +7,7 @@ import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
 import { MatchWithPlayers } from "../types/admin";
 import { CurrentMatch } from "../types/currentMatch";
 import { transformCurrentMatchToDomain } from "../utils/domainTransforms";
+import * as Api from "../utils/apiHelpers";
 
 export default function createOverlayRoutes(
   currentMatchRepository: CurrentMatchRepository,
@@ -22,28 +23,31 @@ export default function createOverlayRoutes(
     return userId;
   };
 
-  const getCurrentMatch: RequestHandler = async (req, res) => {
+  const getCurrentMatch: RequestHandler<
+    { userId: string },
+    Api.ApiResponse<Domain.CurrentMatch>
+  > = async (req, res) => {
     try {
       const userId = getUserIdFromParams(req);
       if (userId === null) {
-        res.status(400).json({ error: "Invalid user ID" });
+        res.status(400).json(Api.failure("Invalid user ID"));
         return;
       }
       const dbCurrentMatch =
         await currentMatchRepository.getCurrentMatch(userId);
       if (!dbCurrentMatch) {
-        res.status(404).json({ error: "No current match found" });
+        res.status(404).json(Api.failure("No current match found"));
         return;
       }
 
       // Transform database result to domain format
       const domainMatch = transformCurrentMatchToDomain(dbCurrentMatch);
-      res.json(domainMatch);
+      res.json(Api.success(domainMatch));
     } catch (error) {
       console.error("Error fetching current match basic data:", error);
-      res.status(500).json({
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
+      res.status(500).json(Api.failure(
+        error instanceof Error ? error.message : "Unknown error"
+      ));
     }
   };
 

@@ -165,7 +165,12 @@ export const fetchUserOverlayEndpoint = async <T>(
 ): Promise<T | null> => {
   try {
     const userScopedEndpoint = `/api/overlay/users/${userId}${endpoint}`;
-    return await fetchWithAuth<T>(userScopedEndpoint);
+    const response = await baseFetch(userScopedEndpoint, {
+      headers: getAuthHeaders(),
+    });
+    // Parse as ApiResponse<T> since overlay endpoints now return standardized format
+    const data = parseApiResponse<T>(response);
+    return data;
   } catch (error) {
     console.error(`Error ${errorContext.toLowerCase()}:`, error);
     return null;
