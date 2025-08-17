@@ -33,6 +33,24 @@ export interface PollingSuccessData {
   pollUntil: string;
 }
 
+export interface EnablePollingRequest {
+  days: number;
+}
+
+// ============================================================================
+// ROUTE PARAMETER INTERFACES
+// ============================================================================
+
+export interface TournamentIdParams {
+  id: string;
+}
+
+export interface UserTournamentParams {
+  userId: string;
+  tournamentId: string;
+  divisionId?: string;
+}
+
 // ============================================================================
 // COMMON SUCCESS DATA PATTERNS
 // ============================================================================
