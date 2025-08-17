@@ -1,4 +1,5 @@
 import * as Domain from "@shared/types/domain";
+
 import { ApiService } from "../services/interfaces";
 
 export const fetchCurrentMatch = async (
@@ -15,7 +16,9 @@ export const fetchCurrentMatchWithPlayers = async (
 ): Promise<any | null> => {
   // This function uses a deprecated route - consider removing or updating
   // For now, we'll return null as it's marked for deletion in the route name
-  console.warn("fetchCurrentMatchWithPlayers uses deprecated route - consider removing");
+  console.warn(
+    "fetchCurrentMatchWithPlayers uses deprecated route - consider removing",
+  );
   return null;
 };
 

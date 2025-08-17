@@ -7,6 +7,7 @@ import {
   PollingSuccessData,
 } from "@shared/types/api";
 import * as Domain from "@shared/types/domain";
+
 import { ApiResponse } from "../config/api";
 
 // ============================================================================
@@ -60,7 +61,9 @@ export interface TournamentService {
 // ============================================================================
 
 export interface CurrentMatchService {
-  getCurrentMatch(userId: number): Promise<ApiResponse<Domain.CurrentMatch | null>>;
+  getCurrentMatch(
+    userId: number,
+  ): Promise<ApiResponse<Domain.CurrentMatch | null>>;
   setCurrentMatch(
     request: Domain.CreateCurrentMatch,
   ): Promise<ApiResponse<Domain.CurrentMatch>>;

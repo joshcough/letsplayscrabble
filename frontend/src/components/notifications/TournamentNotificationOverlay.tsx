@@ -44,7 +44,8 @@ const TournamentNotificationOverlay = ({
   // Data source logic
   const shouldUseCurrentMatch = !urlTournamentId || !divisionName;
 
-  const { currentMatch, loading: currentMatchLoading } = useCurrentMatch(apiService);
+  const { currentMatch, loading: currentMatchLoading } =
+    useCurrentMatch(apiService);
 
   const {
     tournamentData: urlTournamentData,

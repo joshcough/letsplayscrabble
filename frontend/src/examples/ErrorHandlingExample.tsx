@@ -1,13 +1,18 @@
 // frontend/src/examples/ErrorHandlingExample.tsx
 // Example component demonstrating the new error handling pattern
-
 import React, { useState } from "react";
-import { ApiService } from "../services/interfaces";
+
 import * as Domain from "@shared/types/domain";
 
-export const ErrorHandlingExample: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+import { ApiService } from "../services/interfaces";
+
+export const ErrorHandlingExample: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
   const [loading, setLoading] = useState(false);
-  const [tournaments, setTournaments] = useState<Domain.TournamentSummary[]>([]);
+  const [tournaments, setTournaments] = useState<Domain.TournamentSummary[]>(
+    [],
+  );
   const [error, setError] = useState<string | null>(null);
 
   const handleLoadTournaments = async () => {
@@ -21,7 +26,10 @@ export const ErrorHandlingExample: React.FC<{ apiService: ApiService }> = ({ api
       setTournaments(response.data);
     } else {
       // Handle different types of errors appropriately
-      if (response.error.includes("401") || response.error.includes("authentication")) {
+      if (
+        response.error.includes("401") ||
+        response.error.includes("authentication")
+      ) {
         // Handle authentication errors - redirect to login
         setError("Please log in to view tournaments");
       } else if (response.error.includes("500")) {
@@ -41,7 +49,7 @@ export const ErrorHandlingExample: React.FC<{ apiService: ApiService }> = ({ api
 
   const handleLoadCurrentMatch = async (userId: number) => {
     const response = await apiService.getCurrentMatch(userId);
-    
+
     if (response.success) {
       if (response.data) {
         console.log("Current match:", response.data);
@@ -56,15 +64,13 @@ export const ErrorHandlingExample: React.FC<{ apiService: ApiService }> = ({ api
   return (
     <div>
       <h2>Error Handling Example</h2>
-      
+
       <button onClick={handleLoadTournaments} disabled={loading}>
         {loading ? "Loading..." : "Load Tournaments"}
       </button>
 
       {error && (
-        <div style={{ color: "red", marginTop: 10 }}>
-          Error: {error}
-        </div>
+        <div style={{ color: "red", marginTop: 10 }}>Error: {error}</div>
       )}
 
       {tournaments.length > 0 && (
@@ -74,8 +80,8 @@ export const ErrorHandlingExample: React.FC<{ apiService: ApiService }> = ({ api
             {tournaments.map((tournament) => (
               <li key={tournament.id}>
                 {tournament.name} ({tournament.year})
-                <button 
-                  onClick={() => handleLoadCurrentMatch(1)} 
+                <button
+                  onClick={() => handleLoadCurrentMatch(1)}
                   style={{ marginLeft: 10 }}
                 >
                   Get Current Match
@@ -92,8 +98,12 @@ export const ErrorHandlingExample: React.FC<{ apiService: ApiService }> = ({ api
           <li>✅ No exceptions thrown - explicit error handling</li>
           <li>✅ Preserve error context and types</li>
           <li>✅ Components can handle different error types appropriately</li>
-          <li>✅ Easy to test - mock services can return specific error states</li>
-          <li>✅ Type safe - TypeScript knows about success/failure branches</li>
+          <li>
+            ✅ Easy to test - mock services can return specific error states
+          </li>
+          <li>
+            ✅ Type safe - TypeScript knows about success/failure branches
+          </li>
         </ul>
       </div>
     </div>

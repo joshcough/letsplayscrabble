@@ -17,7 +17,9 @@ interface UseCurrentMatchReturn {
  * Hook that provides current match state with real-time updates
  * Perfect for most components that just need the basic current match info
  */
-export const useCurrentMatch = (apiService: ApiService): UseCurrentMatchReturn => {
+export const useCurrentMatch = (
+  apiService: ApiService,
+): UseCurrentMatchReturn => {
   const { userId } = useParams<{ userId: string }>();
   const [currentMatch, setCurrentMatch] = useState<Domain.CurrentMatch | null>(
     null,

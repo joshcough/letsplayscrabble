@@ -11,7 +11,9 @@ type RouteParams = {
   playerId: string;
 };
 
-const PlayerOverlayTestingPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+const PlayerOverlayTestingPage: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
   const { userId, tournamentId, divisionName, playerId } =
     useParams<RouteParams>();
   const { userId: authUserId } = useAuth();

@@ -5,7 +5,9 @@ import { ApiService } from "../../services/interfaces";
 import { highScoreDetector } from "./HighScore";
 import { winningStreakDetector } from "./WinningStreak";
 
-const AllNotifications: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+const AllNotifications: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
   return (
     <TournamentNotificationOverlay
       apiService={apiService}

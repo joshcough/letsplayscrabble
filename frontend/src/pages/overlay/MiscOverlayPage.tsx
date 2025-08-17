@@ -2,11 +2,11 @@ import React from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { BaseOverlay } from "../../components/shared/BaseOverlay";
-import { ApiService } from "../../services/interfaces";
-import * as Stats from "../../types/stats";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
 import PointsDisplay from "../../components/shared/PointsDisplay";
 import { RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
+import { ApiService } from "../../services/interfaces";
+import * as Stats from "../../types/stats";
 import { getRecentGamesForPlayer } from "../../utils/gameUtils";
 import {
   formatSpread,

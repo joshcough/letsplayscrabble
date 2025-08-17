@@ -1,9 +1,10 @@
 import express, { Router, Response, RequestHandler, Request } from "express";
 
+import { UserTournamentParams } from "@shared/types/api";
+
 import { TournamentRepository } from "../../repositories/tournamentRepository";
 import * as DB from "../../types/database";
 import * as Api from "../../utils/apiHelpers";
-import { UserTournamentParams } from "@shared/types/api";
 
 // UserTournamentParams now imported from shared types
 

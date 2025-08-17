@@ -3,9 +3,9 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
+import { useApiForm } from "../hooks/useApiForm";
 import { ApiService } from "../services/interfaces";
 import { FormFeedback } from "./shared";
-import { useApiForm } from "../hooks/useApiForm";
 
 const AdminLogin: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const navigate = useNavigate();
@@ -21,8 +21,8 @@ const AdminLogin: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
       onSuccess: (data) => {
         login(data.token);
         navigate("/");
-      }
-    }
+      },
+    },
   );
 
   return (
@@ -35,10 +35,10 @@ const AdminLogin: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           </p>
         </div>
 
-        <FormFeedback 
-          loading={form.loading} 
-          error={form.error} 
-          success={form.success} 
+        <FormFeedback
+          loading={form.loading}
+          error={form.error}
+          success={form.success}
         />
 
         <form onSubmit={form.handleSubmit} className="space-y-4">

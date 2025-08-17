@@ -1,12 +1,13 @@
 import express, { Router, RequestHandler } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 
+import { TournamentIdParams } from "@shared/types/api";
+
 import { TournamentRepository } from "../../repositories/tournamentRepository";
 import { convertFileToDatabase } from "../../services/fileToDatabaseConversions";
 import { loadTournamentFile } from "../../services/loadTournamentFile";
 import * as DB from "../../types/database";
 import * as Api from "../../utils/apiHelpers";
-import { TournamentIdParams } from "@shared/types/api";
 
 interface TournamentIdParamsDict extends ParamsDictionary, TournamentIdParams {}
 
@@ -80,7 +81,11 @@ export function protectedTournamentRoutes(repo: TournamentRepository): Router {
             } else {
               // Just update metadata fields through repo
               const tournament: DB.TournamentRow =
-                await repo.updateTournamentMetadata(tournamentId, userId, metadata);
+                await repo.updateTournamentMetadata(
+                  tournamentId,
+                  userId,
+                  metadata,
+                );
               const update: DB.TournamentUpdate = {
                 tournament,
                 changes: { added: [], updated: [] },

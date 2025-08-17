@@ -17,7 +17,9 @@ type RouteParams = {
   divisionName?: string;
 };
 
-const TournamentStatsOverlayPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+const TournamentStatsOverlayPage: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
   const { userId, tournamentId, divisionName } = useParams<RouteParams>();
   const [searchParams] = useSearchParams();
   const showAllDivisions = searchParams.get("all_divisions") === "true";

@@ -12,7 +12,9 @@ type RouteParams = {
   name: string;
 };
 
-const TournamentDetails: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
   const { userId } = useAuth();
   const params = useParams<RouteParams>();
   const navigate = useNavigate();
@@ -64,7 +66,10 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({ apiService })
           divisionName,
         );
         if (response.success) {
-          setDivisionPlayers((prev) => ({ ...prev, [divisionName]: response.data }));
+          setDivisionPlayers((prev) => ({
+            ...prev,
+            [divisionName]: response.data,
+          }));
         } else {
           console.error(
             `Error fetching players for division ${divisionName}:`,
@@ -127,10 +132,9 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({ apiService })
   ];
 
   const handleEnablePolling = async () => {
-    const response = await apiService.enablePolling(
-      Number(params.id),
-      { pollUntilMinutes: pollingDays * 24 * 60 }
-    );
+    const response = await apiService.enablePolling(Number(params.id), {
+      pollUntilMinutes: pollingDays * 24 * 60,
+    });
 
     if (response.success) {
       setIsPolling(true);
@@ -163,30 +167,36 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({ apiService })
     if (!editedTournament) return;
 
     const editableFields = {
-        name: editedTournament.name || "",
-        city: editedTournament.city || "",
-        year: editedTournament.year || 0,
-        lexicon: editedTournament.lexicon || "",
-        longFormName: editedTournament.longFormName || "",
-        dataUrl: editedTournament.dataUrl || "",
-      };
+      name: editedTournament.name || "",
+      city: editedTournament.city || "",
+      year: editedTournament.year || 0,
+      lexicon: editedTournament.lexicon || "",
+      longFormName: editedTournament.longFormName || "",
+      dataUrl: editedTournament.dataUrl || "",
+    };
 
-      const updateResponse = await apiService.updateTournament(Number(params.id), editableFields);
-      
-      if (updateResponse.success) {
-        const freshDataResponse = await apiService.getTournamentSummary(
-          user_id,
-          tournamentId,
-        );
-        if (freshDataResponse.success) {
-          setTournament(freshDataResponse.data);
-          setIsEditing(false);
-        } else {
-          console.error("Error refreshing tournament data:", freshDataResponse.error);
-        }
+    const updateResponse = await apiService.updateTournament(
+      Number(params.id),
+      editableFields,
+    );
+
+    if (updateResponse.success) {
+      const freshDataResponse = await apiService.getTournamentSummary(
+        user_id,
+        tournamentId,
+      );
+      if (freshDataResponse.success) {
+        setTournament(freshDataResponse.data);
+        setIsEditing(false);
       } else {
-        console.error("Error saving tournament changes:", updateResponse.error);
+        console.error(
+          "Error refreshing tournament data:",
+          freshDataResponse.error,
+        );
       }
+    } else {
+      console.error("Error saving tournament changes:", updateResponse.error);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -200,8 +210,11 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({ apiService })
 
   useEffect(() => {
     const fetchTournamentData = async () => {
-      const response = await apiService.getTournamentSummary(user_id, tournamentId);
-      
+      const response = await apiService.getTournamentSummary(
+        user_id,
+        tournamentId,
+      );
+
       if (response.success) {
         setTournament(response.data);
 

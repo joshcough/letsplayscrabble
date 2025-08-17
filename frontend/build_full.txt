@@ -1,0 +1,17 @@
+
+> scrabble-stats-frontend@1.0.0 build
+> react-scripts build
+
+Creating an optimized production build...
+Failed to compile.
+
+TS2741: Property 'tournament' is missing in type 'import("/Users/joshuacough/work/letsplayscrabble/shared/types/domain").Tournament' but required in type 'import("/Users/joshuacough/work/letsplayscrabble/shared/types/database").Tournament'.
+    107 |
+    108 |       if (shouldUseUrlParams) {
+  > 109 |         tournament = await fetchTournament(
+        |         ^^^^^^^^^^
+    110 |           parseInt(userId),
+    111 |           effectiveTournamentId,
+    112 |         );
+
+

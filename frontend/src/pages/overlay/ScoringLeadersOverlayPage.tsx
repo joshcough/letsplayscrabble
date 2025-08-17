@@ -8,7 +8,9 @@ import {
 import { ApiService } from "../../services/interfaces";
 import { formatNumberWithSign } from "../../utils/formatUtils";
 
-const ScoringLeadersOverlayPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+const ScoringLeadersOverlayPage: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
   const columns = [
     { key: "rank", label: "Rank" },
     { key: "name", label: "Name" },

@@ -1,7 +1,8 @@
 import React from "react";
+
 import { ErrorMessage } from "./ErrorMessage";
-import { SuccessMessage } from "./SuccessMessage";
 import { LoadingSpinner } from "./LoadingSpinner";
+import { SuccessMessage } from "./SuccessMessage";
 
 interface FormFeedbackProps {
   loading?: boolean;
@@ -20,7 +21,7 @@ export const FormFeedback: React.FC<FormFeedbackProps> = ({
   error = null,
   success = null,
   loadingMessage = "Loading...",
-  className = ""
+  className = "",
 }) => {
   if (loading) {
     return <LoadingSpinner message={loadingMessage} className={className} />;

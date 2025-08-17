@@ -40,7 +40,10 @@ type RouteParams = {
   divisionName?: string;
 };
 
-export const BaseOverlay: React.FC<BaseOverlayProps> = ({ children, apiService }) => {
+export const BaseOverlay: React.FC<BaseOverlayProps> = ({
+  children,
+  apiService,
+}) => {
   const { tournamentId, divisionName } = useParams<RouteParams>();
   const shouldUseCurrentMatch = !tournamentId || !divisionName;
 

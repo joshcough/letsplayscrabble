@@ -1,12 +1,16 @@
 import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
-import { BaseOverlay, TournamentDisplayData, DivisionData } from "../../components/shared/BaseOverlay";
+import {
+  BaseOverlay,
+  TournamentDisplayData,
+  DivisionData,
+} from "../../components/shared/BaseOverlay";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
 import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
 import PointsDisplay from "../../components/shared/PointsDisplay";
-import { useTournamentData } from "../../hooks/useTournamentData";
 import { RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
+import { useTournamentData } from "../../hooks/useTournamentData";
 import { ApiService } from "../../services/interfaces";
 import * as Stats from "../../types/stats";
 import { getRecentGamesForPlayer } from "../../utils/gameUtils";
@@ -190,11 +194,13 @@ const URLBasedPlayerDisplay: React.FC<{
         if (a.losses !== b.losses) return a.losses - b.losses;
         return b.spread - a.spread;
       })
-      .map((player: Stats.PlayerStats, index: number): RankedPlayerStats => ({
-        ...player,
-        rank: index + 1,
-        rankOrdinal: `${index + 1}${["th", "st", "nd", "rd"][(index + 1) % 100 > 10 && (index + 1) % 100 < 14 ? 0 : (index + 1) % 10] || "th"}`,
-      }));
+      .map(
+        (player: Stats.PlayerStats, index: number): RankedPlayerStats => ({
+          ...player,
+          rank: index + 1,
+          rankOrdinal: `${index + 1}${["th", "st", "nd", "rd"][(index + 1) % 100 > 10 && (index + 1) % 100 < 14 ? 0 : (index + 1) % 10] || "th"}`,
+        }),
+      );
   }, [targetDivision]);
 
   // Find the target player
@@ -203,7 +209,10 @@ const URLBasedPlayerDisplay: React.FC<{
 
     if (playerIdParam) {
       const playerId = Number(playerIdParam);
-      return playerStats.find((p: RankedPlayerStats) => p.playerId === playerId) || null;
+      return (
+        playerStats.find((p: RankedPlayerStats) => p.playerId === playerId) ||
+        null
+      );
     }
 
     if (playerNameParam) {
@@ -275,7 +284,9 @@ const URLBasedPlayerDisplay: React.FC<{
   );
 };
 
-const PlayerOverlay: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+const PlayerOverlay: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
   const { userId, tournamentId, divisionName } = useParams<RouteParams>();
   const [searchParams] = useSearchParams();
   const source = searchParams.get("source") as SourceType;
@@ -373,11 +384,16 @@ const PlayerOverlay: React.FC<{ apiService: ApiService }> = ({ apiService }) => 
               if (a.losses !== b.losses) return a.losses - b.losses;
               return b.spread - a.spread;
             })
-            .map((player: Stats.PlayerStats, index: number): RankedPlayerStats => ({
-              ...player,
-              rank: index + 1,
-              rankOrdinal: `${index + 1}${["th", "st", "nd", "rd"][(index + 1) % 100 > 10 && (index + 1) % 100 < 14 ? 0 : (index + 1) % 10] || "th"}`,
-            }));
+            .map(
+              (
+                player: Stats.PlayerStats,
+                index: number,
+              ): RankedPlayerStats => ({
+                ...player,
+                rank: index + 1,
+                rankOrdinal: `${index + 1}${["th", "st", "nd", "rd"][(index + 1) % 100 > 10 && (index + 1) % 100 < 14 ? 0 : (index + 1) % 10] || "th"}`,
+              }),
+            );
 
           // Get the right player based on parameter
           const isPlayer1 = playerParam === "1";

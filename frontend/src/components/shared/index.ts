@@ -5,4 +5,8 @@ export { LoadingSpinner } from "./LoadingSpinner";
 export { FormFeedback } from "./FormFeedback";
 export { BaseOverlay } from "./BaseOverlay";
 export { LoadingErrorWrapper } from "./LoadingErrorWrapper";
-export type { BaseOverlayDataProps, TournamentDisplayData, DivisionData } from "./BaseOverlay";
+export type {
+  BaseOverlayDataProps,
+  TournamentDisplayData,
+  DivisionData,
+} from "./BaseOverlay";

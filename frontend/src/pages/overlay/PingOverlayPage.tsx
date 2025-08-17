@@ -6,10 +6,12 @@ import {
   BaseOverlay,
   BaseOverlayDataProps,
 } from "../../components/shared/BaseOverlay";
-import { ApiService } from "../../services/interfaces";
 import BroadcastManager from "../../hooks/BroadcastManager";
+import { ApiService } from "../../services/interfaces";
 
-const PingOverlayPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+const PingOverlayPage: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
   const [pingData, setPingData] = useState<Ping | null>(null);
   const [lastMessageId, setLastMessageId] = useState<number>(0);
   const [missedMessages, setMissedMessages] = useState<number>(0);

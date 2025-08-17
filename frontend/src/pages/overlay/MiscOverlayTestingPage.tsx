@@ -4,7 +4,9 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ApiService } from "../../services/interfaces";
 
-const MiscOverlayTestingPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+const MiscOverlayTestingPage: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
   const { userId } = useAuth();
 
   const urlGroups = [

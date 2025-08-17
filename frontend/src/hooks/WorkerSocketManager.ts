@@ -156,7 +156,10 @@ class WorkerSocketManager {
       if (!this.apiService) {
         throw new Error("API service not initialized");
       }
-      const response = await this.apiService.getTournament(userId, tournamentId);
+      const response = await this.apiService.getTournament(
+        userId,
+        tournamentId,
+      );
       if (!response.success) {
         throw new Error(response.error);
       }
@@ -402,7 +405,10 @@ class WorkerSocketManager {
       if (!this.apiService) {
         throw new Error("API service not initialized");
       }
-      const response = await this.apiService.getTournament(userId, tournamentId);
+      const response = await this.apiService.getTournament(
+        userId,
+        tournamentId,
+      );
       if (!response.success) {
         throw new Error(response.error);
       }

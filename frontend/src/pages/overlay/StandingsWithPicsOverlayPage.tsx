@@ -1,11 +1,16 @@
 import React from "react";
 
 import PictureDisplay from "../../components/shared/PictureDisplay";
-import { UsePlayerStatsCalculation, RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
+import {
+  UsePlayerStatsCalculation,
+  RankedPlayerStats,
+} from "../../hooks/usePlayerStatsCalculation";
 import { ApiService } from "../../services/interfaces";
 import { formatNumberWithSign } from "../../utils/formatUtils";
 
-const StandingsWithPicsOverlayPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+const StandingsWithPicsOverlayPage: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
   const renderPlayerContent = (player: RankedPlayerStats) => (
     <div className="text-black text-2xl font-bold text-center mb-2">
       {player.wins}-{player.losses}

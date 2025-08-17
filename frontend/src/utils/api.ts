@@ -96,7 +96,9 @@ export const fetchApiResponseWithAuth = async <T>(
 };
 
 // Safe API response parser that doesn't throw - returns ApiResponse<T>
-export const parseApiResponseSafe = async <T>(response: Response): Promise<ApiResponse<T>> => {
+export const parseApiResponseSafe = async <T>(
+  response: Response,
+): Promise<ApiResponse<T>> => {
   try {
     if (response.status === 204) {
       return { success: true, data: null as T };

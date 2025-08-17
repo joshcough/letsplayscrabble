@@ -1,10 +1,11 @@
 import express, { Router, RequestHandler } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 
+import { TournamentIdParams, EnablePollingRequest } from "@shared/types/api";
+
 import { TournamentRepository } from "../../repositories/tournamentRepository";
 import * as DB from "../../types/database";
 import * as Api from "../../utils/apiHelpers";
-import { TournamentIdParams, EnablePollingRequest } from "@shared/types/api";
 
 interface TournamentIdParamsDict extends ParamsDictionary, TournamentIdParams {}
 

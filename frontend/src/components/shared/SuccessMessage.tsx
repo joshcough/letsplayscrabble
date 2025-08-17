@@ -7,11 +7,11 @@ interface SuccessMessageProps {
   duration?: number;
 }
 
-export const SuccessMessage: React.FC<SuccessMessageProps> = ({ 
-  message, 
+export const SuccessMessage: React.FC<SuccessMessageProps> = ({
+  message,
   className = "",
   autoHide = false,
-  duration = 3000
+  duration = 3000,
 }) => {
   const [visible, setVisible] = React.useState(true);
 
@@ -27,7 +27,7 @@ export const SuccessMessage: React.FC<SuccessMessageProps> = ({
   if (!message || !visible) return null;
 
   return (
-    <div 
+    <div
       className={`bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 ${className}`}
       role="status"
     >

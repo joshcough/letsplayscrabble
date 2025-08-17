@@ -4,7 +4,9 @@ import { useNavigate } from "react-router-dom";
 import TournamentList from "../../components/tournaments/TournamentList";
 import { ApiService } from "../../services/interfaces";
 
-const TournamentManagerPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+const TournamentManagerPage: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
   const navigate = useNavigate();
 
   const handleTournamentClick = (id: number) => {
@@ -27,7 +29,10 @@ const TournamentManagerPage: React.FC<{ apiService: ApiService }> = ({ apiServic
           Add New Tournament
         </button>
       </div>
-      <TournamentList onTournamentClick={handleTournamentClick} apiService={apiService} />
+      <TournamentList
+        onTournamentClick={handleTournamentClick}
+        apiService={apiService}
+      />
     </div>
   );
 };

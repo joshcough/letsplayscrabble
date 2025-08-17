@@ -4,8 +4,8 @@ import { Knex } from "knex";
 import { knexDb } from "../config/database";
 import { convertFileToDatabase } from "../services/fileToDatabaseConversions";
 import * as DB from "../types/database";
-import * as File from "../types/scrabbleFileFormat";
 import { GameChanges, TournamentUpdate } from "../types/database";
+import * as File from "../types/scrabbleFileFormat";
 import { debugPrintCreateTournament } from "../utils/debugHelpers";
 import { transformToDomainTournament } from "../utils/domainTransforms";
 

@@ -1,8 +1,8 @@
 import React from "react";
 
+import { RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
 import { getPlayerImageUrl, formatPlayerName } from "../../utils/playerUtils";
 import { TournamentDisplayData } from "../shared/BaseOverlay";
-import { RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
 
 interface PictureDisplayProps {
   tournament: TournamentDisplayData;

@@ -11,8 +11,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Navigation from "./components/common/Navigation";
 import AddTournament from "./components/tournaments/AddTournament";
 import { AuthProvider } from "./context/AuthContext";
-import { HttpApiService } from "./services/httpService";
-import { ApiService } from "./services/interfaces";
 import HomePage from "./pages/HomePage";
 import WorkerPage from "./pages/WorkerPage";
 import AdminPage from "./pages/admin/AdminPage";
@@ -33,6 +31,8 @@ import StandingsWithPicsOverlayPage from "./pages/overlay/StandingsWithPicsOverl
 import TournamentStatsOverlayPage from "./pages/overlay/TournamentStatsOverlayPage";
 import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
+import { HttpApiService } from "./services/httpService";
+import { ApiService } from "./services/interfaces";
 
 // Wrapper component to conditionally apply theme
 const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
@@ -104,14 +104,19 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
         />
         <Route
           path="/users/:userId/overlay/scoring_leaders_with_pics/:tournamentId?/:divisionName?"
-          element={<ScoringLeadersWithPicsOverlayPage apiService={apiService} />}
+          element={
+            <ScoringLeadersWithPicsOverlayPage apiService={apiService} />
+          }
         />
         <Route
           path="/users/:userId/overlay/tournament_stats/:tournamentId?/:divisionName?"
           element={<TournamentStatsOverlayPage apiService={apiService} />}
         />
         {/* Legacy overlay routes (backwards compatibility - optional) */}
-        <Route path="/overlay/misc" element={<MiscOverlayPage apiService={apiService} />} />
+        <Route
+          path="/overlay/misc"
+          element={<MiscOverlayPage apiService={apiService} />}
+        />
         <Route
           path="/overlay/standings/:tournamentId?/:divisionName?"
           element={<StandingsOverlayPage apiService={apiService} />}
@@ -138,19 +143,27 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
         />
         <Route
           path="/overlay/scoring_leaders_with_pics/:tournamentId?/:divisionName?"
-          element={<ScoringLeadersWithPicsOverlayPage apiService={apiService} />}
+          element={
+            <ScoringLeadersWithPicsOverlayPage apiService={apiService} />
+          }
         />
         <Route
           path="/overlay/tournament_stats/:tournamentId?/:divisionName?"
           element={<TournamentStatsOverlayPage apiService={apiService} />}
         />
         {/* Other routes */}
-        <Route path="/overlays" element={<OverlaysPage apiService={apiService} />} />
+        <Route
+          path="/overlays"
+          element={<OverlaysPage apiService={apiService} />}
+        />
         <Route
           path="/overlay/misc_testing"
           element={<MiscOverlayTestingPage apiService={apiService} />}
         />
-        <Route path="/worker" element={<WorkerPage apiService={apiService} />} />
+        <Route
+          path="/worker"
+          element={<WorkerPage apiService={apiService} />}
+        />
         {/* Protected Routes */}
         <Route
           path="/"
@@ -207,7 +220,7 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
 
 const App: React.FC = () => {
   const apiService = new HttpApiService();
-  
+
   return (
     <AuthProvider>
       <Router>

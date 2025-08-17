@@ -13,7 +13,9 @@ interface PairingOption {
   player2Name: string;
 }
 
-const AdminInterface: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+const AdminInterface: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
   const { userId } = useAuth(); // Get userId from auth context
   const user_id = userId!;
 
@@ -121,7 +123,10 @@ const AdminInterface: React.FC<{ apiService: ApiService }> = ({ apiService }) =>
 
     // Load the hierarchical tournament data for this match
     try {
-      const tournamentResponse = await apiService.getTournament(user_id, match.tournamentId);
+      const tournamentResponse = await apiService.getTournament(
+        user_id,
+        match.tournamentId,
+      );
       if (!tournamentResponse.success) {
         throw new Error(tournamentResponse.error);
       }

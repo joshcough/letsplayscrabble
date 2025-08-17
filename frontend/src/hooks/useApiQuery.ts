@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+
 import { ApiResponse } from "../config/api";
 
 interface UseApiQueryState<T> {
@@ -21,7 +22,7 @@ interface UseApiQueryReturn<T> extends UseApiQueryState<T> {
 /**
  * Hook for API queries (GET) with automatic fetching
  * Similar to React Query's useQuery
- * 
+ *
  * @example
  * const { data: tournaments, loading, error } = useApiQuery(
  *   () => apiService.listTournaments(),
@@ -30,10 +31,10 @@ interface UseApiQueryReturn<T> extends UseApiQueryState<T> {
  */
 export function useApiQuery<T>(
   queryFn: () => Promise<ApiResponse<T>>,
-  options: UseApiQueryOptions = {}
+  options: UseApiQueryOptions = {},
 ): UseApiQueryReturn<T> {
   const { enabled = true, refetchInterval, onSuccess, onError } = options;
-  
+
   const [state, setState] = useState<UseApiQueryState<T>>({
     data: null,
     loading: enabled,
@@ -45,11 +46,11 @@ export function useApiQuery<T>(
   const fetchData = useCallback(async () => {
     if (!enabled) return;
 
-    setState(prev => ({ ...prev, loading: true, error: null }));
+    setState((prev) => ({ ...prev, loading: true, error: null }));
 
     try {
       const response = await queryFn();
-      
+
       if (response.success) {
         setState({
           data: response.data,
@@ -66,7 +67,8 @@ export function useApiQuery<T>(
         onError?.(response.error);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+      const errorMessage =
+        err instanceof Error ? err.message : "An unexpected error occurred";
       setState({
         data: null,
         loading: false,
@@ -87,7 +89,7 @@ export function useApiQuery<T>(
   useEffect(() => {
     if (refetchInterval && enabled) {
       intervalRef.current = setInterval(fetchData, refetchInterval);
-      
+
       return () => {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);

@@ -7,17 +7,17 @@ import {
   PollingSuccessData,
 } from "@shared/types/api";
 import * as Domain from "@shared/types/domain";
-import { ApiResponse } from "../config/api";
 
-import { 
-  baseFetchSafe,
-  getAuthHeaders,
-} from "../utils/api";
+import { ApiResponse } from "../config/api";
+import { baseFetchSafe, getAuthHeaders } from "../utils/api";
 import { ApiService } from "./interfaces";
 
 export class HttpApiService implements ApiService {
   // Helper for authenticated requests
-  private async fetchWithAuth<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+  private async fetchWithAuth<T>(
+    endpoint: string,
+    options: RequestInit = {},
+  ): Promise<ApiResponse<T>> {
     return await baseFetchSafe<T>(endpoint, {
       ...options,
       headers: {
@@ -75,9 +75,9 @@ export class HttpApiService implements ApiService {
 
     // Extract just the metadata from the full tournament
     const { divisions, ...summary } = tournamentResponse.data;
-    return { 
-      success: true, 
-      data: { ...summary, pollUntil } 
+    return {
+      success: true,
+      data: { ...summary, pollUntil },
     };
   }
 
@@ -93,7 +93,9 @@ export class HttpApiService implements ApiService {
       poll_until: string | null;
     }
 
-    const response = await this.fetchWithAuth<TournamentRow[]>("/api/private/tournaments/list");
+    const response = await this.fetchWithAuth<TournamentRow[]>(
+      "/api/private/tournaments/list",
+    );
     if (!response.success) {
       return response as ApiResponse<Domain.TournamentSummary[]>;
     }
@@ -143,9 +145,9 @@ export class HttpApiService implements ApiService {
       return tournamentResponse as ApiResponse<Domain.Division[]>;
     }
 
-    return { 
-      success: true, 
-      data: tournamentResponse.data.divisions 
+    return {
+      success: true,
+      data: tournamentResponse.data.divisions,
     };
   }
 
@@ -159,10 +161,12 @@ export class HttpApiService implements ApiService {
       return tournamentResponse as ApiResponse<Domain.Player[]>;
     }
 
-    const division = tournamentResponse.data.divisions.find((d) => d.name === divisionName);
-    return { 
-      success: true, 
-      data: division ? division.players : [] 
+    const division = tournamentResponse.data.divisions.find(
+      (d) => d.name === divisionName,
+    );
+    return {
+      success: true,
+      data: division ? division.players : [],
     };
   }
 
@@ -170,32 +174,40 @@ export class HttpApiService implements ApiService {
     tournamentId: number,
     request: StartPollingRequest,
   ): Promise<ApiResponse<PollingSuccessData>> {
-    return await this.fetchWithAuth(`/api/private/tournaments/${tournamentId}/polling`, {
-      method: "POST",
-      body: JSON.stringify(request),
-    });
+    return await this.fetchWithAuth(
+      `/api/private/tournaments/${tournamentId}/polling`,
+      {
+        method: "POST",
+        body: JSON.stringify(request),
+      },
+    );
   }
 
   async disablePolling(tournamentId: number): Promise<ApiResponse<void>> {
-    return await this.fetchWithAuth(`/api/private/tournaments/${tournamentId}/polling`, {
-      method: "DELETE",
-    });
+    return await this.fetchWithAuth(
+      `/api/private/tournaments/${tournamentId}/polling`,
+      {
+        method: "DELETE",
+      },
+    );
   }
 
   // ============================================================================
   // CURRENT MATCH SERVICE
   // ============================================================================
 
-  async getCurrentMatch(userId: number): Promise<ApiResponse<Domain.CurrentMatch | null>> {
+  async getCurrentMatch(
+    userId: number,
+  ): Promise<ApiResponse<Domain.CurrentMatch | null>> {
     const response = await baseFetchSafe<Domain.CurrentMatch>(
       `/api/overlay/users/${userId}/match/current`,
     );
-    
+
     // Handle 404 as success with null data (no current match)
     if (!response.success && response.error.includes("404")) {
       return { success: true, data: null };
     }
-    
+
     return response as ApiResponse<Domain.CurrentMatch | null>;
   }
 
