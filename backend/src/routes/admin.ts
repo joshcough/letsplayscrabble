@@ -56,7 +56,7 @@ export default function createAdminRoutes(
   const getCurrentMatch: RequestHandler<
     {},
     Api.ApiResponse<Domain.CurrentMatch>
-  > = async (req, res) => {
+  > = withErrorHandling(async (req, res) => {
     await withDataOr404(
       repo.getCurrentMatch(req.user!.id),
       res,
@@ -67,7 +67,7 @@ export default function createAdminRoutes(
         res.json(Api.success(domainMatch));
       },
     );
-  };
+  });
 
   router.get("/match/current", getCurrentMatch);
   router.post("/match/current", createMatch);

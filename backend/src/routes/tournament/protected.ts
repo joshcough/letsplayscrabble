@@ -6,10 +6,9 @@ import { convertFileToDatabase } from "../../services/fileToDatabaseConversions"
 import { loadTournamentFile } from "../../services/loadTournamentFile";
 import * as DB from "../../types/database";
 import * as Api from "../../utils/apiHelpers";
+import { TournamentIdParams } from "@shared/types/api";
 
-interface TournamentIdParams extends ParamsDictionary {
-  id: string;
-}
+interface TournamentIdParamsDict extends ParamsDictionary, TournamentIdParams {}
 
 export function protectedTournamentRoutes(repo: TournamentRepository): Router {
   const router = express.Router();
@@ -35,7 +34,7 @@ export function protectedTournamentRoutes(repo: TournamentRepository): Router {
     res.status(201).json(Api.success(tournament));
   });
 
-  const deleteTournament: RequestHandler<TournamentIdParams> =
+  const deleteTournament: RequestHandler<TournamentIdParamsDict> =
     Api.withErrorHandling(async (req, res) => {
       const { id } = req.params;
       const userId = req.user!.id;
@@ -45,7 +44,7 @@ export function protectedTournamentRoutes(repo: TournamentRepository): Router {
     });
 
   const updateTournament: RequestHandler<
-    TournamentIdParams,
+    TournamentIdParamsDict,
     Api.ApiResponse<DB.TournamentUpdate>,
     DB.TournamentMetadata
   > = Api.withErrorHandling(async (req, res) => {
@@ -60,37 +59,36 @@ export function protectedTournamentRoutes(repo: TournamentRepository): Router {
       "Tournament not found",
       async (existingTournament) => {
         // Get the current tournament data to check if dataUrl changed
-        const existingTournamentData =
-          await repo.getTournamentData(tournamentId);
-
-        if (!existingTournamentData) {
-          res.status(404).json(Api.failure("Tournament data not found"));
-          return;
-        }
-
-        // Check if dataUrl changed - if so, we need to reload and convert the data
-        if (metadata.dataUrl !== existingTournamentData.data_url) {
-          // Load new data from the URL
-          const newData = await loadTournamentFile(metadata.dataUrl);
-          // Update everything in one transaction through repo
-          const update: DB.TournamentUpdate =
-            await repo.updateTournamentWithNewData(
-              tournamentId,
-              userId,
-              metadata,
-              convertFileToDatabase(newData, metadata, userId),
-            );
-          res.json(Api.success(update));
-        } else {
-          // Just update metadata fields through repo
-          const tournament: DB.TournamentRow =
-            await repo.updateTournamentMetadata(tournamentId, userId, metadata);
-          const update: DB.TournamentUpdate = {
-            tournament,
-            changes: { added: [], updated: [] },
-          };
-          res.json(Api.success(update));
-        }
+        await Api.withDataOr404(
+          repo.getTournamentData(tournamentId),
+          res,
+          "Tournament data not found",
+          async (existingTournamentData) => {
+            // Check if dataUrl changed - if so, we need to reload and convert the data
+            if (metadata.dataUrl !== existingTournamentData.data_url) {
+              // Load new data from the URL
+              const newData = await loadTournamentFile(metadata.dataUrl);
+              // Update everything in one transaction through repo
+              const update: DB.TournamentUpdate =
+                await repo.updateTournamentWithNewData(
+                  tournamentId,
+                  userId,
+                  metadata,
+                  convertFileToDatabase(newData, metadata, userId),
+                );
+              res.json(Api.success(update));
+            } else {
+              // Just update metadata fields through repo
+              const tournament: DB.TournamentRow =
+                await repo.updateTournamentMetadata(tournamentId, userId, metadata);
+              const update: DB.TournamentUpdate = {
+                tournament,
+                changes: { added: [], updated: [] },
+              };
+              res.json(Api.success(update));
+            }
+          },
+        );
       },
     );
   });

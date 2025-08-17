@@ -4,23 +4,18 @@ import { ParamsDictionary } from "express-serve-static-core";
 import { TournamentRepository } from "../../repositories/tournamentRepository";
 import * as DB from "../../types/database";
 import * as Api from "../../utils/apiHelpers";
+import { TournamentIdParams, EnablePollingRequest } from "@shared/types/api";
 
-interface TournamentIdParams extends ParamsDictionary {
-  id: string;
-}
-
-interface EnablePollingBody {
-  days: number;
-}
+interface TournamentIdParamsDict extends ParamsDictionary, TournamentIdParams {}
 
 export function protectedPollingRoutes(repo: TournamentRepository): Router {
   const router = express.Router();
 
   // Start or update polling for a tournament (user must own the tournament)
   const startPolling: RequestHandler<
-    TournamentIdParams,
+    TournamentIdParamsDict,
     Api.ApiResponse<Date>,
-    EnablePollingBody
+    EnablePollingRequest
   > = async (req, res) => {
     const { id } = req.params;
     const { days } = req.body;
@@ -41,7 +36,7 @@ export function protectedPollingRoutes(repo: TournamentRepository): Router {
 
   // Stop polling for a tournament (user must own the tournament)
   const stopPolling: RequestHandler<
-    TournamentIdParams,
+    TournamentIdParamsDict,
     Api.ApiResponse<{}>,
     {}
   > = Api.withErrorHandling(async (req, res) => {

@@ -4,6 +4,7 @@ import { Knex } from "knex";
 import { knexDb } from "../config/database";
 import { convertFileToDatabase } from "../services/fileToDatabaseConversions";
 import * as DB from "../types/database";
+import * as File from "../types/scrabbleFileFormat";
 import { GameChanges, TournamentUpdate } from "../types/database";
 import { debugPrintCreateTournament } from "../utils/debugHelpers";
 import { transformToDomainTournament } from "../utils/domainTransforms";
@@ -158,7 +159,7 @@ export class TournamentRepository {
   async updateTournamentData(
     tournamentId: number,
     dataUrl: string,
-    newData: any,
+    newData: File.TournamentData,
   ): Promise<DB.TournamentUpdate> {
     return knexDb.transaction(async (trx) => {
       // Update the tournament_data table
@@ -390,7 +391,7 @@ export class TournamentRepository {
   async getTournamentDataFileContents(
     tournamentId: number,
     userId: number,
-  ): Promise<any> {
+  ): Promise<File.TournamentData | null> {
     const result = await knexDb("tournament_data")
       .select("tournament_data.data")
       .join("tournaments", "tournament_data.tournament_id", "tournaments.id")

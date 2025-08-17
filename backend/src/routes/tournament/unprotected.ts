@@ -1,14 +1,11 @@
-import express, { Router, Response, RequestHandler } from "express";
+import express, { Router, Response, RequestHandler, Request } from "express";
 
 import { TournamentRepository } from "../../repositories/tournamentRepository";
 import * as DB from "../../types/database";
 import * as Api from "../../utils/apiHelpers";
+import { UserTournamentParams } from "@shared/types/api";
 
-interface UserTournamentParams {
-  userId: string;
-  tournamentId: string;
-  divisionId?: string;
-}
+// UserTournamentParams now imported from shared types
 
 interface ParsedParams {
   userId: number;
@@ -23,7 +20,7 @@ export function unprotectedTournamentRoutes(
 
   // Shared validation and error handling wrapper
   const withInputValidation = <T>(
-    handler: (params: ParsedParams, req: any, res: Response) => Promise<T>,
+    handler: (params: ParsedParams, req: Request, res: Response) => Promise<T>,
   ): RequestHandler => {
     return async (req, res) => {
       const userId = parseInt(req.params.userId);

@@ -42,7 +42,7 @@ export function convertFileToDatabase(
         }));
 
       // Convert games for this division
-      const games: any[] = [];
+      const games: DB.CreateGameRow[] = [];
       const processedPairings = new Set<string>();
 
       fileDivision.players.forEach((player) => {

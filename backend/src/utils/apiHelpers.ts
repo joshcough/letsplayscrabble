@@ -47,3 +47,16 @@ export const withErrorHandling = <P = {}, ReqBody = any, ResBody = any>(
     }
   };
 };
+
+export const withValidatedUserId = (
+  handler: (userId: number, req: Request, res: Response) => Promise<void>,
+): RequestHandler => {
+  return withErrorHandling(async (req, res) => {
+    const userId = parseInt(req.params.userId);
+    if (isNaN(userId)) {
+      res.status(400).json(failure("Invalid user ID"));
+      return;
+    }
+    await handler(userId, req, res);
+  });
+};
