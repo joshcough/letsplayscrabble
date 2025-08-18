@@ -1,7 +1,6 @@
 import React from "react";
 
-import * as Stats from "@shared/types/stats";
-
+import * as Stats from "../../types/stats";
 import { TournamentDisplayData } from "./BaseOverlay";
 
 interface Column {

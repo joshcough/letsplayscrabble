@@ -1,9 +1,14 @@
-import * as DB from "@shared/types/database";
+import * as Domain from "@shared/types/domain";
 import { GamesAddedMessage } from "@shared/types/websocket";
 import cron, { ScheduledTask } from "node-cron";
 import { Server as SocketIOServer } from "socket.io";
 
 import { TournamentRepository } from "../repositories/tournamentRepository";
+import * as DB from "../types/database";
+import {
+  transformGameChangesToDomain,
+  transformTournamentRowToSummary,
+} from "../utils/domainTransforms";
 import { convertFileToDatabase } from "./fileToDatabaseConversions";
 import { loadTournamentFile } from "./loadTournamentFile";
 
@@ -85,7 +90,12 @@ export class TournamentPollingService {
           );
 
           const gamesAddedMessage: GamesAddedMessage = {
-            update,
+            userId: tournament.user_id,
+            tournamentId: tournament.id,
+            update: {
+              tournament: transformTournamentRowToSummary(tournament),
+              changes: transformGameChangesToDomain(update.changes),
+            },
             timestamp: Date.now(),
           };
           this.io.emit("GamesAdded", gamesAddedMessage);

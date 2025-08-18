@@ -1,6 +1,11 @@
 import React from "react";
 
-import { GameResult } from "@shared/types/tournament";
+interface GameResult {
+  round: number;
+  opponentName: string;
+  playerScore: number;
+  opponentScore: number;
+}
 
 interface GameHistoryDisplayProps {
   games: GameResult[];

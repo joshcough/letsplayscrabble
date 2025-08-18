@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { CurrentMatch } from "@shared/types/currentMatch";
+import * as Domain from "@shared/types/domain";
 import { Socket } from "socket.io-client";
 
 /**
@@ -8,12 +8,12 @@ import { Socket } from "socket.io-client";
  */
 export const useAdminPanelUpdates = (
   socket: Socket | null,
-  onUpdate: (data: CurrentMatch) => void,
+  onUpdate: (data: Domain.CurrentMatch) => void,
 ) => {
   useEffect(() => {
     if (!socket) return;
 
-    const handleUpdate = (data: CurrentMatch) => {
+    const handleUpdate = (data: Domain.CurrentMatch) => {
       console.log("Received AdminPanelUpdate:", data);
       onUpdate(data);
     };

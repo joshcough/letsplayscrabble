@@ -1,23 +1,24 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
+import * as Domain from "@shared/types/domain";
+import { GamesAddedMessage } from "@shared/types/websocket";
+
+import { ApiService } from "../services/interfaces";
 import {
   SubscribeMessage,
   TournamentDataResponse,
   TournamentDataRefresh,
   TournamentDataIncremental,
   TournamentDataError,
-} from "@shared/types/broadcast";
-import * as DB from "@shared/types/database";
-import { GamesAddedMessage } from "@shared/types/websocket";
-
-import { fetchTournament, fetchTournamentDivision } from "../services/api";
+} from "../types/broadcast";
 import BroadcastManager from "./BroadcastManager";
 
 interface UseTournamentDataProps {
   tournamentId?: number;
   divisionId?: number;
   useUrlParams?: boolean;
+  apiService: ApiService;
 }
 
 type RouteParams = {
@@ -31,6 +32,7 @@ export const useTournamentData = ({
   tournamentId: propTournamentId,
   divisionId: propDivisionId,
   useUrlParams = false,
+  apiService,
 }: UseTournamentDataProps) => {
   const {
     userId,
@@ -38,9 +40,8 @@ export const useTournamentData = ({
     divisionName,
   } = useParams<RouteParams>();
 
-  const [tournamentData, setTournamentData] = useState<DB.Tournament | null>(
-    null,
-  );
+  const [tournamentData, setTournamentData] =
+    useState<Domain.Tournament | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [selectedDivisionId, setSelectedDivisionId] = useState<number | null>(
@@ -101,36 +102,47 @@ export const useTournamentData = ({
       setLoading(true);
       setFetchError(null);
 
-      let tournament: DB.Tournament;
+      let tournament: Domain.Tournament;
       let finalDivisionId: number | null = null;
 
       if (shouldUseUrlParams) {
-        tournament = await fetchTournament(
+        const response = await apiService.getTournament(
           parseInt(userId),
           effectiveTournamentId,
         );
+        if (!response.success) {
+          throw new Error(response.error);
+        }
+        tournament = response.data;
       } else if (propDivisionId) {
-        tournament = await fetchTournamentDivision(
+        const response = await apiService.getTournament(
           parseInt(userId),
           effectiveTournamentId,
-          propDivisionId,
         );
+        if (!response.success) {
+          throw new Error(response.error);
+        }
+        tournament = response.data;
         finalDivisionId = propDivisionId;
       } else {
-        tournament = await fetchTournament(
+        const response = await apiService.getTournament(
           parseInt(userId),
           effectiveTournamentId,
         );
+        if (!response.success) {
+          throw new Error(response.error);
+        }
+        tournament = response.data;
       }
 
       if (shouldUseUrlParams && divisionName) {
         const divisionData = tournament.divisions.find(
-          (d) => d.division.name.toUpperCase() === divisionName.toUpperCase(),
+          (d) => d.name.toUpperCase() === divisionName.toUpperCase(),
         );
         if (!divisionData) {
           throw new Error(`Division "${divisionName}" not found`);
         }
-        finalDivisionId = divisionData.division.id;
+        finalDivisionId = divisionData.id;
       }
 
       setTournamentData(tournament);
@@ -173,8 +185,8 @@ export const useTournamentData = ({
           data,
         );
         if (
-          data.update.tournament.user_id === parseInt(userId) &&
-          data.update.tournament.id === effectiveTournamentId
+          data.userId === parseInt(userId) &&
+          data.tournamentId === effectiveTournamentId
         ) {
           console.log(
             "✅ Matching tournament - re-subscribing for fresh data!",
@@ -277,11 +289,10 @@ export const useTournamentData = ({
               finalDivisionId = propDivisionId;
             } else if (shouldUseUrlParams && divisionName) {
               const divisionData = tournament.divisions.find(
-                (d: any) =>
-                  d.division.name.toUpperCase() === divisionName.toUpperCase(),
+                (d: any) => d.name.toUpperCase() === divisionName.toUpperCase(),
               );
               if (divisionData) {
-                finalDivisionId = divisionData.division.id;
+                finalDivisionId = divisionData.id;
               }
             }
 
@@ -339,11 +350,10 @@ export const useTournamentData = ({
               finalDivisionId = propDivisionId;
             } else if (shouldUseUrlParams && divisionName) {
               const divisionData = tournament.divisions.find(
-                (d: any) =>
-                  d.division.name.toUpperCase() === divisionName.toUpperCase(),
+                (d: any) => d.name.toUpperCase() === divisionName.toUpperCase(),
               );
               if (divisionData) {
-                finalDivisionId = divisionData.division.id;
+                finalDivisionId = divisionData.id;
               }
             }
 
@@ -407,11 +417,10 @@ export const useTournamentData = ({
               } else if (shouldUseUrlParams && divisionName) {
                 const divisionData = tournament.divisions.find(
                   (d: any) =>
-                    d.division.name.toUpperCase() ===
-                    divisionName.toUpperCase(),
+                    d.name.toUpperCase() === divisionName.toUpperCase(),
                 );
                 if (divisionData) {
-                  finalDivisionId = divisionData.division.id;
+                  finalDivisionId = divisionData.id;
                 }
               }
 
@@ -477,17 +486,14 @@ export const useTournamentData = ({
     const targetDivisionId = divisionId || selectedDivisionId;
     if (!targetDivisionId) return null;
     return (
-      tournamentData.divisions.find(
-        (d) => d.division.id === targetDivisionId,
-      ) || null
+      tournamentData.divisions.find((d) => d.id === targetDivisionId) || null
     );
   };
 
   const getDivisionName = (divisionId?: number) => {
     const divisionData = getDivisionData(divisionId);
     return (
-      divisionData?.division.name ||
-      (shouldUseUrlParams ? divisionName : undefined)
+      divisionData?.name || (shouldUseUrlParams ? divisionName : undefined)
     );
   };
 

@@ -1,18 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
-import { TournamentRow, DivisionRow, PlayerRow } from "@shared/types/database";
+import * as Domain from "@shared/types/domain";
 
 import { useAuth } from "../../context/AuthContext";
-import {
-  fetchTournamentRow,
-  fetchDivisions,
-  fetchPlayersForDivision,
-  updateTournament,
-  deleteTournament,
-  enableTournamentPolling,
-  disableTournamentPolling,
-} from "../../services/api";
+import { ApiService } from "../../services/interfaces";
 import { ProtectedPage } from "../ProtectedPage";
 
 type RouteParams = {
@@ -20,11 +12,9 @@ type RouteParams = {
   name: string;
 };
 
-interface PollingResponse {
-  pollUntil: string;
-}
-
-const TournamentDetails: React.FC = () => {
+const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
   const { userId } = useAuth();
   const params = useParams<RouteParams>();
   const navigate = useNavigate();
@@ -33,10 +23,12 @@ const TournamentDetails: React.FC = () => {
   const user_id = userId!;
   const tournamentId = parseInt(params.id!);
 
-  const [tournament, setTournament] = useState<TournamentRow | null>(null);
-  const [divisions, setDivisions] = useState<DivisionRow[]>([]);
+  const [tournament, setTournament] = useState<Domain.TournamentSummary | null>(
+    null,
+  );
+  const [divisions, setDivisions] = useState<Domain.Division[]>([]);
   const [divisionPlayers, setDivisionPlayers] = useState<
-    Record<string, PlayerRow[]>
+    Record<string, Domain.Player[]>
   >({});
   const [expandedDivisions, setExpandedDivisions] = useState<Set<string>>(
     new Set(),
@@ -47,7 +39,7 @@ const TournamentDetails: React.FC = () => {
   const [pollUntil, setPollUntil] = useState<Date | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editedTournament, setEditedTournament] =
-    useState<TournamentRow | null>(null);
+    useState<Domain.TournamentSummary | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
 
   useEffect(() => {
@@ -68,25 +60,28 @@ const TournamentDetails: React.FC = () => {
 
       if (!divisionPlayers[divisionName]) {
         setLoadingPlayers((prev) => new Set(prev).add(divisionName));
-        try {
-          const players = await fetchPlayersForDivision(
-            user_id,
-            tournamentId,
-            divisionName,
-          );
-          setDivisionPlayers((prev) => ({ ...prev, [divisionName]: players }));
-        } catch (error) {
+        const response = await apiService.getPlayersForDivision(
+          user_id,
+          tournamentId,
+          divisionName,
+        );
+        if (response.success) {
+          setDivisionPlayers((prev) => ({
+            ...prev,
+            [divisionName]: response.data,
+          }));
+        } else {
           console.error(
             `Error fetching players for division ${divisionName}:`,
-            error,
+            response.error,
           );
-        } finally {
-          setLoadingPlayers((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(divisionName);
-            return newSet;
-          });
         }
+        // Always update loading state
+        setLoadingPlayers((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(divisionName);
+          return newSet;
+        });
       }
     }
 
@@ -137,63 +132,70 @@ const TournamentDetails: React.FC = () => {
   ];
 
   const handleEnablePolling = async () => {
-    try {
-      const data: string = await enableTournamentPolling(
-        Number(params.id),
-        pollingDays,
-      );
+    const response = await apiService.enablePolling(Number(params.id), {
+      pollUntilMinutes: pollingDays * 24 * 60,
+    });
 
+    if (response.success) {
       setIsPolling(true);
-      setPollUntil(new Date(data));
-    } catch (error) {
-      console.error("Error enabling polling:", error);
+      setPollUntil(new Date(response.data.pollUntil));
+    } else {
+      console.error("Error enabling polling:", response.error);
     }
   };
 
   const handleDisablePolling = async () => {
-    try {
-      await disableTournamentPolling(Number(params.id));
-
+    const response = await apiService.disablePolling(Number(params.id));
+    if (response.success) {
       setIsPolling(false);
       setPollUntil(null);
-    } catch (error) {
-      console.error("Error disabling polling:", error);
+    } else {
+      console.error("Error disabling polling:", response.error);
     }
   };
 
   const handleDelete = async () => {
-    try {
-      await deleteTournament(Number(params.id));
-
+    const response = await apiService.deleteTournament(Number(params.id));
+    if (response.success) {
       navigate("/tournaments/manager");
-    } catch (error) {
-      console.error("Error deleting tournament:", error);
+    } else {
+      console.error("Error deleting tournament:", response.error);
     }
   };
 
   const handleSaveChanges = async () => {
-    try {
-      if (!editedTournament) return;
+    if (!editedTournament) return;
 
-      const editableFields = {
-        name: editedTournament.name || "",
-        city: editedTournament.city || "",
-        year: editedTournament.year || 0,
-        lexicon: editedTournament.lexicon || "",
-        longFormName: editedTournament.long_form_name || "",
-        dataUrl: editedTournament.data_url || "",
-      };
+    const editableFields = {
+      name: editedTournament.name || "",
+      city: editedTournament.city || "",
+      year: editedTournament.year || 0,
+      lexicon: editedTournament.lexicon || "",
+      longFormName: editedTournament.longFormName || "",
+      dataUrl: editedTournament.dataUrl || "",
+    };
 
-      await updateTournament(Number(params.id), editableFields);
+    const updateResponse = await apiService.updateTournament(
+      Number(params.id),
+      editableFields,
+    );
 
-      const freshTournamentData = await fetchTournamentRow(
+    if (updateResponse.success) {
+      const freshDataResponse = await apiService.getTournamentSummary(
         user_id,
         tournamentId,
       );
-      setTournament(freshTournamentData);
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Error saving tournament changes:", error);
+      if (freshDataResponse.success) {
+        setTournament(freshDataResponse.data);
+        setIsEditing(false);
+      } else {
+        console.error(
+          "Error refreshing tournament data:",
+          freshDataResponse.error,
+        );
+      }
+    } else {
+      console.error("Error saving tournament changes:", updateResponse.error);
     }
   };
 
@@ -208,38 +210,39 @@ const TournamentDetails: React.FC = () => {
 
   useEffect(() => {
     const fetchTournamentData = async () => {
-      try {
-        const tournamentData: TournamentRow = await fetchTournamentRow(
-          user_id,
-          tournamentId,
-        );
-        setTournament(tournamentData);
+      const response = await apiService.getTournamentSummary(
+        user_id,
+        tournamentId,
+      );
 
-        if (tournamentData.poll_until) {
-          const pollUntilDate = new Date(tournamentData.poll_until);
+      if (response.success) {
+        setTournament(response.data);
+
+        if (response.data.pollUntil) {
+          const pollUntilDate = response.data.pollUntil;
           setIsPolling(pollUntilDate > new Date());
           setPollUntil(pollUntilDate);
         } else {
           setIsPolling(false);
           setPollUntil(null);
         }
-      } catch (error) {
-        console.error("Error fetching tournament details:", error);
+      } else {
+        console.error("Error fetching tournament details:", response.error);
       }
     };
 
     const fetchDivisionsData = async () => {
-      try {
-        const divisionsData = await fetchDivisions(user_id, tournamentId);
-        setDivisions(divisionsData);
-      } catch (error) {
-        console.error("Error fetching divisions:", error);
+      const response = await apiService.getDivisions(user_id, tournamentId);
+      if (response.success) {
+        setDivisions(response.data);
+      } else {
+        console.error("Error fetching divisions:", response.error);
       }
     };
 
     fetchTournamentData();
     fetchDivisionsData();
-  }, [user_id, tournamentId]);
+  }, [user_id, tournamentId, apiService]);
 
   if (!tournament || !editedTournament) {
     return (
@@ -377,14 +380,14 @@ const TournamentDetails: React.FC = () => {
                 {isEditing ? (
                   <input
                     type="text"
-                    value={editedTournament.long_form_name || ""}
+                    value={editedTournament.longFormName || ""}
                     onChange={(e) =>
-                      handleInputChange("long_form_name", e.target.value)
+                      handleInputChange("longFormName", e.target.value)
                     }
                     className="px-2 py-1 border rounded"
                   />
                 ) : (
-                  <span>{tournament.long_form_name || "N/A"}</span>
+                  <span>{tournament.longFormName || "N/A"}</span>
                 )}
               </div>
               <div className="flex">
@@ -394,14 +397,14 @@ const TournamentDetails: React.FC = () => {
                 {isEditing ? (
                   <input
                     type="text"
-                    value={editedTournament.data_url || ""}
+                    value={editedTournament.dataUrl || ""}
                     onChange={(e) =>
-                      handleInputChange("data_url", e.target.value)
+                      handleInputChange("dataUrl", e.target.value)
                     }
                     className="px-2 py-1 border rounded"
                   />
                 ) : (
-                  <span>{tournament.data_url || "N/A"}</span>
+                  <span>{tournament.dataUrl || "N/A"}</span>
                 )}
               </div>
               <div className="flex">
@@ -517,7 +520,7 @@ const TournamentDetails: React.FC = () => {
                                 <div className="flex items-center gap-4">
                                   <span className="text-gray-500">
                                     ID: {player.id} | Rating:{" "}
-                                    {player.initial_rating}
+                                    {player.initialRating}
                                   </span>
                                   <Link
                                     to={`/users/${user_id}/overlay/player/${tournamentId}/${encodeURIComponent(division.name)}/${player.id}/test`}

@@ -1,7 +1,11 @@
-// shared/types/stats.ts
+// frontend/src/types/stats.ts
 // Computed statistics types (separate from core tournament data)
 
-import * as File from './scrabbleFileFormat';
+// Inline Etc type to avoid file format dependency
+interface Etc {
+  newr: number[]; // Player ratings history
+  p12: number[]; // 1 = player goes first, 2 = opponent goes first, 0 = bye
+}
 
 export interface PlayerStats {
   playerId: number;
@@ -26,6 +30,6 @@ export interface PlayerStats {
   highScore: number;
   rank?: number;
   rankOrdinal?: string;
-  etc: File.Etc; // Use file format since that's what's stored in DB
+  etc: Etc; // Use file format since that's what's stored in DB
   photo: string;
 }

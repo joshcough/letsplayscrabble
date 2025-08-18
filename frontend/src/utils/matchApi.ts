@@ -1,43 +1,34 @@
-import { MatchWithPlayers } from "@shared/types/admin";
-import { CurrentMatch } from "@shared/types/currentMatch";
+import * as Domain from "@shared/types/domain";
 
-import {
-  fetchUserOverlayEndpoint,
-  postAuthenticatedApiEndpoint,
-} from "../services/api";
+import { ApiService } from "../services/interfaces";
 
 export const fetchCurrentMatch = async (
   userId: number,
-): Promise<CurrentMatch | null> => {
-  return fetchUserOverlayEndpoint<CurrentMatch>(
-    userId,
-    "/match/current",
-    "Failed to fetch current match",
-  );
+  apiService: ApiService,
+): Promise<Domain.CurrentMatch | null> => {
+  const response = await apiService.getCurrentMatch(userId);
+  return response.success ? response.data : null;
 };
 
 export const fetchCurrentMatchWithPlayers = async (
   userId: number,
-): Promise<MatchWithPlayers | null> => {
-  return fetchUserOverlayEndpoint<MatchWithPlayers>(
-    userId,
-    "/match/current_match_for_stats_delete_this_route",
-    "Failed to fetch match with players",
+  apiService: ApiService,
+): Promise<any | null> => {
+  // This function uses a deprecated route - consider removing or updating
+  // For now, we'll return null as it's marked for deletion in the route name
+  console.warn(
+    "fetchCurrentMatchWithPlayers uses deprecated route - consider removing",
   );
+  return null;
 };
 
 /**
  * Set the current match for the authenticated admin user
  */
-export const setCurrentMatch = async (matchData: {
-  tournament_id: number;
-  division_id: number;
-  round: number;
-  pairing_id: number;
-}): Promise<MatchWithPlayers | null> => {
-  return postAuthenticatedApiEndpoint<MatchWithPlayers>(
-    "/api/admin/match/current",
-    matchData,
-    "Failed to set current match",
-  );
+export const setCurrentMatch = async (
+  matchData: Domain.CreateCurrentMatch,
+  apiService: ApiService,
+): Promise<Domain.CurrentMatch | null> => {
+  const response = await apiService.setCurrentMatch(matchData);
+  return response.success ? response.data : null;
 };

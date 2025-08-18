@@ -1,4 +1,4 @@
-import { PlayerStats } from "@shared/types/stats";
+import { PlayerStats } from "../types/stats";
 
 const baseUrl = "https://scrabbleplayers.org/directors/AA003954/";
 

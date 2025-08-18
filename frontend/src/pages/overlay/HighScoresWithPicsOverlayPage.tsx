@@ -1,17 +1,23 @@
 import React from "react";
 
 import PictureDisplay from "../../components/shared/PictureDisplay";
-import { UsePlayerStatsCalculation } from "../../hooks/usePlayerStatsCalculation";
+import {
+  UsePlayerStatsCalculation,
+  RankedPlayerStats,
+} from "../../hooks/usePlayerStatsCalculation";
+import { ApiService } from "../../services/interfaces";
 
-const HighScoresWithPicsOverlayPage: React.FC = () => {
-  const renderPlayerContent = (player: any) => (
+const HighScoresWithPicsOverlayPage: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
+  const renderPlayerContent = (player: RankedPlayerStats) => (
     <div className="text-black text-3xl font-bold text-center">
       {player.highScore}
     </div>
   );
 
   return (
-    <UsePlayerStatsCalculation sortType="highScore">
+    <UsePlayerStatsCalculation sortType="highScore" apiService={apiService}>
       {({ tournament, players, divisionName }) => (
         <PictureDisplay
           tournament={tournament}

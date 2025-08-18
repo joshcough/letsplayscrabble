@@ -1,16 +1,15 @@
 import React from "react";
 
-import * as Stats from "@shared/types/stats";
-
+import { RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
 import { getPlayerImageUrl, formatPlayerName } from "../../utils/playerUtils";
 import { TournamentDisplayData } from "../shared/BaseOverlay";
 
 interface PictureDisplayProps {
   tournament: TournamentDisplayData;
-  standings: Stats.PlayerStats[];
+  standings: RankedPlayerStats[];
   title: string;
   divisionName: string;
-  renderPlayerContent: (player: Stats.PlayerStats) => React.ReactNode;
+  renderPlayerContent: (player: RankedPlayerStats) => React.ReactNode;
 }
 
 const PictureDisplay: React.FC<PictureDisplayProps> = ({
@@ -39,7 +38,7 @@ const PictureDisplay: React.FC<PictureDisplayProps> = ({
             {/* Player Image */}
             <div className="w-32 h-32 mb-4 rounded-lg overflow-hidden border-4 border-gray-300 bg-gray-200">
               <img
-                src={getPlayerImageUrl(tournament.data_url, player.photo)}
+                src={getPlayerImageUrl(tournament.dataUrl, player.photo)}
                 alt={player.name}
                 className="w-full h-full object-cover"
               />

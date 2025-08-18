@@ -7,8 +7,11 @@ import {
   BaseOverlayDataProps,
 } from "../../components/shared/BaseOverlay";
 import BroadcastManager from "../../hooks/BroadcastManager";
+import { ApiService } from "../../services/interfaces";
 
-const PingOverlayPage: React.FC = () => {
+const PingOverlayPage: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
   const [pingData, setPingData] = useState<Ping | null>(null);
   const [lastMessageId, setLastMessageId] = useState<number>(0);
   const [missedMessages, setMissedMessages] = useState<number>(0);
@@ -31,7 +34,7 @@ const PingOverlayPage: React.FC = () => {
   }, [lastMessageId]);
 
   return (
-    <BaseOverlay>
+    <BaseOverlay apiService={apiService}>
       {({ tournament, divisionData, divisionName }: BaseOverlayDataProps) => (
         <div className="p-8 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg max-w-md mx-auto mt-8">
           <div className="text-center mb-6">

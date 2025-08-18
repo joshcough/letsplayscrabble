@@ -1,46 +1,25 @@
 import express, { Router } from "express";
-import { RequestHandler } from "express-serve-static-core";
 
-import { MatchWithPlayers } from "@shared/types/admin";
-import { CurrentMatch } from "@shared/types/currentMatch";
+import * as Domain from "@shared/types/domain";
 
 import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
+import * as Api from "../utils/apiHelpers";
 
 export default function createOverlayRoutes(
   currentMatchRepository: CurrentMatchRepository,
 ): Router {
   const router = express.Router();
 
-  // Helper to get userId from params and validate it
-  const getUserIdFromParams = (req: express.Request): number | null => {
-    const userId = parseInt(req.params.userId);
-    if (isNaN(userId)) {
-      return null;
-    }
-    return userId;
-  };
-
-  const getCurrentMatch: RequestHandler = async (req, res) => {
-    try {
-      const userId = getUserIdFromParams(req);
-      if (userId === null) {
-        res.status(400).json({ error: "Invalid user ID" });
-        return;
-      }
-      const currentMatch = await currentMatchRepository.getCurrentMatch(userId);
-      if (!currentMatch) {
-        res.status(404).json({ error: "No current match found" });
-        return;
-      }
-
-      res.json(currentMatch);
-    } catch (error) {
-      console.error("Error fetching current match basic data:", error);
-      res.status(500).json({
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  };
+  const getCurrentMatch = Api.withValidatedUserId(async (userId, req, res) => {
+    await Api.withDataOr404(
+      currentMatchRepository.getCurrentMatch(userId),
+      res,
+      "No current match found",
+      async (currentMatch) => {
+        res.json(Api.success(currentMatch));
+      },
+    );
+  });
 
   router.get("/users/:userId/match/current", getCurrentMatch);
   return router;

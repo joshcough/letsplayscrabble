@@ -1,11 +1,17 @@
 import React from "react";
 
 import PictureDisplay from "../../components/shared/PictureDisplay";
-import { UsePlayerStatsCalculation } from "../../hooks/usePlayerStatsCalculation";
+import {
+  UsePlayerStatsCalculation,
+  RankedPlayerStats,
+} from "../../hooks/usePlayerStatsCalculation";
+import { ApiService } from "../../services/interfaces";
 import { formatNumberWithSign } from "../../utils/formatUtils";
 
-const RatingGainWithPicsOverlayPage: React.FC = () => {
-  const renderPlayerContent = (player: any) => (
+const RatingGainWithPicsOverlayPage: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
+  const renderPlayerContent = (player: RankedPlayerStats) => (
     <>
       <div
         className={`text-3xl font-bold text-center mb-2 ${
@@ -26,7 +32,7 @@ const RatingGainWithPicsOverlayPage: React.FC = () => {
   );
 
   return (
-    <UsePlayerStatsCalculation sortType="ratingGain">
+    <UsePlayerStatsCalculation sortType="ratingGain" apiService={apiService}>
       {({ tournament, players, divisionName }) => (
         <PictureDisplay
           tournament={tournament}

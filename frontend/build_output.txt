@@ -1,0 +1,18 @@
+
+> scrabble-stats-frontend@1.0.0 build
+> react-scripts build
+
+Creating an optimized production build...
+Failed to compile.
+
+TS2322: Type 'import("/Users/joshuacough/work/letsplayscrabble/shared/types/domain").Tournament | null' is not assignable to type 'import("/Users/joshuacough/work/letsplayscrabble/shared/types/database").Tournament | null'.
+  Type 'import("/Users/joshuacough/work/letsplayscrabble/shared/types/domain").Tournament' is not assignable to type 'import("/Users/joshuacough/work/letsplayscrabble/shared/types/database").Tournament'.
+    74 |   if (shouldUseCurrentMatch) {
+    75 |     console.log("🔄 BaseOverlay: Using current match data");
+  > 76 |     tournamentData = currentMatchData.tournamentData;
+       |     ^^^^^^^^^^^^^^
+    77 |     loading = matchLoading || currentMatchData.loading;
+    78 |     fetchError = matchError || currentMatchData.fetchError;
+    79 |     finalDivisionName = currentMatch?.division_name;
+
+

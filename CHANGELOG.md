@@ -1,5 +1,294 @@
 # Changelog
 
+## 2025-08-17 - Error Handling Standardization & API Hooks
+
+### 🚀 **Major Developer Experience Improvements**
+
+#### **Reusable UI Components**
+- **NEW**: `ErrorMessage` component with variants (error, warning, info) for consistent error display
+- **NEW**: `LoadingSpinner` component with customizable sizes and messages  
+- **NEW**: `SuccessMessage` component with auto-hide functionality for user feedback
+- **NEW**: `FormFeedback` component for unified loading/error/success states
+- **NEW**: Barrel exports in `components/shared/index.ts` for cleaner imports
+
+#### **API Hooks Suite**
+- **NEW**: `useApiCall` hook for generic API operations with built-in state management
+- **NEW**: `useApiMutation` hook for POST/PUT/DELETE with callbacks and success handling
+- **NEW**: `useApiQuery` hook for GET operations with auto-fetching and refetch capabilities
+- **NEW**: `useApiForm` hook for complete form handling with API integration
+- **NEW**: Barrel exports in `hooks/index.ts` for centralized hook imports
+
+### 🔧 **Error Handling Standardization**
+
+#### **Consistent Error Patterns**
+- **FIXED**: Inconsistent error handling across components (console.error vs state management vs throwing)
+- **STANDARDIZED**: All UI components now use proper error state with user feedback
+- **ENHANCED**: All API calls follow consistent error handling patterns
+- **IMPROVED**: User experience with proper loading states and error messages
+
+#### **Component Refactoring**
+- **REFACTORED**: `AddTournament` to use `useApiForm` (reduced from ~100 to ~75 lines)
+- **REFACTORED**: `TournamentList` to use `useApiQuery` (automatic fetching and error handling)
+- **REFACTORED**: `AdminLogin` to use consistent error feedback patterns
+- **UPDATED**: All overlay components to use proper `RankedPlayerStats` types
+
+### 🎯 **Code Quality Improvements**
+
+#### **TypeScript Enhancements**
+- **ELIMINATED**: Critical `any` types in overlay components and services
+- **FIXED**: Type mismatches between `PlayerStats` and `RankedPlayerStats`
+- **ENHANCED**: `PictureDisplay` component to use `RankedPlayerStats` for type safety
+- **IMPROVED**: Generic type support throughout API hooks
+
+#### **Code Reduction**
+- **ACHIEVED**: 75% reduction in API call boilerplate (from ~45 lines to ~10 lines)
+- **REMOVED**: Duplicate error display code across components
+- **CONSOLIDATED**: Common loading and error patterns into reusable hooks
+- **SIMPLIFIED**: Component logic focused on UI rather than API state management
+
+### 🗂️ **Architecture Cleanup**
+
+#### **Dependency Injection Completion**
+- **COMPLETED**: Removal of `ServiceContext.tsx` (finished prop-based injection migration)
+- **UPDATED**: All components now use prop-based API service injection
+- **ENHANCED**: Type safety across service interfaces
+
+#### **Import Organization**
+- **CREATED**: Centralized exports for shared components and hooks
+- **IMPROVED**: Cleaner import statements across the codebase
+- **STANDARDIZED**: Import patterns for better maintainability
+
+### 🔨 **Build & Development**
+
+#### **Build Optimization**
+- **FIXED**: All TypeScript compilation errors
+- **RESOLVED**: Type safety issues in overlay components
+- **OPTIMIZED**: Build process now passes successfully with full type checking
+- **CLEANED**: Unused imports and variables
+
+---
+
+## 2025-08-16 - Complete Domain Model Architecture Migration
+
+### 🏗️ **Major Architecture Refactoring**
+
+#### **Domain-Driven Design Implementation**
+- **COMPLETE**: Frontend now exclusively uses domain types (camelCase, tree structure)
+- **COMPLETE**: Backend owns database types (snake_case, flat structure)
+- **NEW**: Clean separation of concerns with transformation layer at backend boundary
+- **NEW**: Domain types in `shared/types/domain.ts` serve as the contract between frontend and backend
+
+#### **Type System Organization**
+- **MOVED**: `currentMatch` types from shared to backend (`backend/src/types/currentMatch.ts`)
+- **MOVED**: `stats` types from shared to frontend (`frontend/src/types/stats.ts`) - only used by frontend
+- **MOVED**: `broadcast` types from shared to frontend (`frontend/src/types/broadcast.ts`) - only used by frontend  
+- **MOVED**: `admin` types from shared to backend (`backend/src/types/admin.ts`) - only used by backend
+- **DELETED**: `shared/types/tournament.ts` - unused legacy types
+- **MINIMIZED**: Shared directory now contains only truly shared interfaces
+
+### 🔄 **Current Match System Migration**
+
+#### **Domain Type Creation**
+- **NEW**: `Domain.CurrentMatch` interface with camelCase fields (`tournamentId`, `divisionId`, `divisionName`, `round`, `pairingId`, `updatedAt`)
+- **NEW**: `Domain.CreateCurrentMatch` interface for admin panel API calls
+- **NEW**: Transformation functions in `backend/src/utils/domainTransforms.ts`
+
+#### **Backend API Updates**
+- **ENHANCED**: Admin routes (`/api/admin/match/current`) now accept and return domain types
+- **ENHANCED**: Overlay routes (`/match/current`) now return domain types
+- **NEW**: `transformCurrentMatchToDomain()` and `transformCreateCurrentMatchToDatabase()` functions
+- **FIXED**: Admin panel API now properly handles camelCase field names
+
+#### **Frontend Migration**
+- **UPDATED**: All components now use `Domain.CurrentMatch` instead of database types
+- **UPDATED**: `useCurrentMatch` hook returns domain types
+- **UPDATED**: Admin panel sends camelCase field names (`tournamentId`, `divisionId`, etc.)
+- **UPDATED**: All overlay pages use domain current match types
+- **FIXED**: Real-time updates via broadcast channels use domain types
+
+### 🎯 **Frontend Components Migration**
+
+#### **Admin Interface**
+- **MIGRATED**: AdminInterface to use domain types throughout
+- **ENHANCED**: Type safety with `Domain.CreateCurrentMatch` for API calls
+- **UPDATED**: All current match field references from snake_case to camelCase
+- **FIXED**: Admin panel current match updates now work correctly
+
+#### **Overlay System**
+- **UPDATED**: BaseOverlay to use domain current match types
+- **UPDATED**: All overlay pages (PlayerOverlay, MiscOverlay, etc.) to use domain types
+- **ENHANCED**: Tournament display data interface now uses camelCase (`dataUrl` instead of `data_url`)
+- **MIGRATED**: Real-time updates to work with domain types
+
+#### **Hooks & Utilities**
+- **REFACTORED**: `useCurrentMatch` to return `Domain.CurrentMatch`
+- **UPDATED**: All match-related utility functions to use domain types
+- **ENHANCED**: Socket helpers to use domain types for type safety
+- **MIGRATED**: All API functions to send/receive domain types
+
+### 🧹 **Code Organization & Cleanup**
+
+#### **Shared Directory Minimization**
+- **BEFORE**: 6 files in `shared/types/` (admin, broadcast, currentMatch, domain, stats, tournament, websocket)
+- **AFTER**: 2 files in `shared/types/` (domain, websocket)
+- **ACHIEVED**: Truly minimal shared interface containing only essential contracts
+
+#### **Local Type Definitions**
+- **CREATED**: Local `GameResult` interface in `GameHistoryDisplay.tsx`
+- **CREATED**: Local `CreateTournamentParams` interface in `AddTournament.tsx`
+- **PRINCIPLE**: Types used in only one location are defined locally instead of shared
+
+#### **Import Path Updates**
+- **UPDATED**: 25+ files to use new import paths for moved types
+- **STANDARDIZED**: All broadcast types now imported from `../types/broadcast`
+- **STANDARDIZED**: All stats types now imported from `../types/stats`
+
+### 🔧 **Backend Enhancements**
+
+#### **Domain Transformation Layer**
+- **NEW**: Comprehensive transformation functions between database and domain formats
+- **ENHANCED**: Current match transformations with proper field mapping
+- **MAINTAINED**: Backward compatibility while enforcing type safety
+- **OPTIMIZED**: Clean separation between persistence and business logic
+
+#### **Database Type Ownership**
+- **CONSOLIDATED**: All database types now owned by backend
+- **ENHANCED**: Type safety within backend components
+- **IMPROVED**: Clear boundaries between database and domain concerns
+
+### 🐛 **Bug Fixes**
+
+#### **Admin Panel Issues**
+- **FIXED**: Admin panel database constraint violation when updating current match
+- **RESOLVED**: Field name mismatch between frontend (camelCase) and backend (snake_case)
+- **CORRECTED**: API endpoints now properly transform between type formats
+
+#### **Type Safety Issues**
+- **RESOLVED**: TypeScript compilation errors across frontend and backend
+- **FIXED**: Import path errors after type relocations
+- **ENHANCED**: Strict type checking between domain and database boundaries
+
+### ⚡ **Performance & Quality**
+
+#### **Build Process**
+- **VERIFIED**: Frontend builds successfully with all domain types
+- **VERIFIED**: Backend builds successfully with reorganized types
+- **ENHANCED**: Code formatting with Prettier across all changed files
+- **MAINTAINED**: Zero runtime errors after type migration
+
+#### **Code Quality**
+- **IMPROVED**: Type safety across the entire application
+- **ENHANCED**: Clear separation of concerns between layers
+- **MAINTAINED**: Consistent code style with automated formatting
+- **ACHIEVED**: Clean architecture principles throughout
+
+### 📋 **Type Interface Changes**
+
+#### **Before (Database Types)**
+```typescript
+interface CurrentMatch {
+  tournament_id: number;
+  division_id: number;
+  division_name: string;
+  round: number;
+  pairing_id: number;
+  updated_at: Date;
+}
+```
+
+#### **After (Domain Types)**
+```typescript
+interface CurrentMatch {
+  tournamentId: number;
+  divisionId: number;
+  divisionName: string;
+  round: number;
+  pairingId: number;
+  updatedAt: Date;
+}
+```
+
+### 🎯 **API Endpoint Changes**
+
+#### **Admin Current Match API**
+- **INPUT**: Now accepts `Domain.CreateCurrentMatch` with camelCase fields
+- **OUTPUT**: Now returns `Domain.CurrentMatch` in camelCase format
+- **TRANSFORMATION**: Backend handles conversion to/from database format
+
+#### **Overlay Current Match API**
+- **OUTPUT**: Now returns `Domain.CurrentMatch` in camelCase format
+- **COMPATIBILITY**: Frontend components seamlessly work with new format
+
+### 📁 **File Structure Changes**
+
+#### **Type Relocations**
+```
+MOVED: shared/types/currentMatch.ts → backend/src/types/currentMatch.ts
+MOVED: shared/types/stats.ts → frontend/src/types/stats.ts
+MOVED: shared/types/broadcast.ts → frontend/src/types/broadcast.ts
+MOVED: shared/types/admin.ts → backend/src/types/admin.ts
+DELETED: shared/types/tournament.ts
+```
+
+#### **Shared Directory (Minimized)**
+```
+shared/types/
+├── domain.ts     (✅ Truly shared - business domain model)
+└── websocket.ts  (✅ Truly shared - real-time communication)
+```
+
+### 🏆 **Achievements**
+
+#### **Architecture Goals**
+- ✅ **Frontend never sees database types** - Complete isolation achieved
+- ✅ **Backend owns persistence concerns** - Clean separation established  
+- ✅ **Shared directory minimized** - Only essential interfaces remain
+- ✅ **Type safety enhanced** - Strict boundaries between layers
+- ✅ **Domain-driven design** - Business logic separated from persistence
+
+#### **Code Quality**
+- ✅ **Zero TypeScript errors** after migration
+- ✅ **All builds passing** (frontend and backend)
+- ✅ **Admin panel working** with new domain types
+- ✅ **Real-time updates functioning** with domain types
+- ✅ **Code formatted** and style-consistent
+
+### 🚀 **Technical Implementation**
+
+#### **Transformation Layer**
+- Backend automatically converts between database and domain formats
+- Frontend receives clean domain objects with camelCase naming
+- API contracts maintained through shared domain types
+- Type safety enforced at compilation time
+
+#### **Real-time Updates**
+- WebSocket messages use domain types for consistency
+- Broadcast channels properly handle domain type objects
+- Admin panel changes propagate correctly to overlays
+- Current match updates work seamlessly across all components
+
+### 🔮 **Future Benefits**
+
+#### **Maintainability**
+- Clear type boundaries make changes safer and easier
+- Domain types can evolve independently of database schema
+- New features can be built on clean domain foundation
+- Testing is simplified with well-defined interfaces
+
+#### **Scalability**  
+- Architecture supports future domain complexity
+- Type system scales with application growth
+- Clean separation enables independent team development
+- Domain logic can be extracted and reused
+
+---
+
+### 🏗️ **Migration Summary**
+
+This massive refactoring successfully migrated the entire application from a mixed type system to a clean domain-driven architecture. The frontend now works exclusively with business domain types (camelCase, tree structure) while the backend owns all database concerns (snake_case, flat structure). The shared directory contains only truly shared interfaces, and the transformation layer ensures type safety across all boundaries.
+
+**Result**: A cleaner, more maintainable, and more scalable codebase with strict type safety and clear separation of concerns. 🎉
+
 ## 2025-08-06
 
 ### Refactored

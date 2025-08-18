@@ -1,36 +1,38 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 
-import { CurrentMatch } from "@shared/types/currentMatch";
-import * as DB from "@shared/types/database";
+import * as Domain from "@shared/types/domain";
 
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { useTournamentData } from "../../hooks/useTournamentData";
+import { ApiService } from "../../services/interfaces";
 import { LoadingErrorWrapper } from "./LoadingErrorWrapper";
 
 // Simplified tournament display data
 export interface TournamentDisplayData {
   name: string;
   lexicon: string;
-  data_url: string;
+  dataUrl: string;
 }
 
 // Raw division data for overlays to calculate from
 export interface DivisionData {
-  division: DB.DivisionRow;
-  players: DB.PlayerRow[];
-  games: DB.GameRow[];
+  id: number;
+  name: string;
+  players: Domain.Player[];
+  games: Domain.Game[];
 }
 
 export interface BaseOverlayDataProps {
   tournament: TournamentDisplayData;
   divisionData: DivisionData;
   divisionName: string;
-  currentMatch: CurrentMatch | null;
+  currentMatch: Domain.CurrentMatch | null;
 }
 
 interface BaseOverlayProps {
   children: (props: BaseOverlayDataProps) => React.ReactNode;
+  apiService: ApiService;
 }
 
 type RouteParams = {
@@ -38,7 +40,10 @@ type RouteParams = {
   divisionName?: string;
 };
 
-export const BaseOverlay: React.FC<BaseOverlayProps> = ({ children }) => {
+export const BaseOverlay: React.FC<BaseOverlayProps> = ({
+  children,
+  apiService,
+}) => {
   const { tournamentId, divisionName } = useParams<RouteParams>();
   const shouldUseCurrentMatch = !tournamentId || !divisionName;
 
@@ -53,19 +58,21 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({ children }) => {
     currentMatch,
     loading: matchLoading,
     error: matchError,
-  } = useCurrentMatch();
+  } = useCurrentMatch(apiService);
   const currentMatchData = useTournamentData({
-    tournamentId: currentMatch?.tournament_id,
-    divisionId: currentMatch?.division_id,
+    tournamentId: currentMatch?.tournamentId,
+    divisionId: currentMatch?.divisionId,
+    apiService,
   });
 
   // URL params approach
   const urlParamsData = useTournamentData({
     useUrlParams: true,
+    apiService,
   });
 
   // Choose which data to use
-  let tournamentData: DB.Tournament | null;
+  let tournamentData: Domain.Tournament | null;
   let loading: boolean;
   let fetchError: string | null;
   let finalDivisionName: string | undefined;
@@ -76,12 +83,12 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({ children }) => {
     tournamentData = currentMatchData.tournamentData;
     loading = matchLoading || currentMatchData.loading;
     fetchError = matchError || currentMatchData.fetchError;
-    finalDivisionName = currentMatch?.division_name;
-    selectedDivisionId = currentMatch?.division_id || null;
+    finalDivisionName = currentMatch?.divisionName;
+    selectedDivisionId = currentMatch?.divisionId || null;
     console.log("🔧 BaseOverlay: Raw tournament data", {
       currentMatchData_tournamentData: currentMatchData.tournamentData,
       currentMatchData_loading: currentMatchData.loading,
-      currentMatch_divisionId: currentMatch?.division_id,
+      currentMatch_divisionId: currentMatch?.divisionId,
       selectedDivisionId,
     });
   } else {
@@ -100,32 +107,33 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({ children }) => {
   if (tournamentData && selectedDivisionId) {
     // Extract tournament display data
     tournament = {
-      name: tournamentData.tournament.name,
-      lexicon: tournamentData.tournament.lexicon,
-      data_url: tournamentData.tournament.data_url,
+      name: tournamentData.name,
+      lexicon: tournamentData.lexicon,
+      dataUrl: tournamentData.dataUrl,
     };
 
     // Get division-specific data
     const rawDivisionData = tournamentData.divisions.find(
-      (d) => d.division.id === selectedDivisionId,
+      (d) => d.id === selectedDivisionId,
     );
 
     if (rawDivisionData) {
       console.log("✅ BaseOverlay: Found division data", {
-        divisionName: rawDivisionData.division.name,
+        divisionName: rawDivisionData.name,
         players: rawDivisionData.players.length,
         games: rawDivisionData.games.length,
       });
 
       divisionData = {
-        division: rawDivisionData.division,
+        id: rawDivisionData.id,
+        name: rawDivisionData.name,
         players: rawDivisionData.players,
         games: rawDivisionData.games,
       };
 
       // Use division name from data if we don't have it from other sources
       if (!finalDivisionName) {
-        finalDivisionName = rawDivisionData.division.name;
+        finalDivisionName = rawDivisionData.name;
       }
     } else {
       console.warn(

@@ -1,11 +1,17 @@
 import React from "react";
 
 import PictureDisplay from "../../components/shared/PictureDisplay";
-import { UsePlayerStatsCalculation } from "../../hooks/usePlayerStatsCalculation";
+import {
+  UsePlayerStatsCalculation,
+  RankedPlayerStats,
+} from "../../hooks/usePlayerStatsCalculation";
+import { ApiService } from "../../services/interfaces";
 import { formatNumberWithSign } from "../../utils/formatUtils";
 
-const StandingsWithPicsOverlayPage: React.FC = () => {
-  const renderPlayerContent = (player: any) => (
+const StandingsWithPicsOverlayPage: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
+  const renderPlayerContent = (player: RankedPlayerStats) => (
     <div className="text-black text-2xl font-bold text-center mb-2">
       {player.wins}-{player.losses}
       {player.ties > 0 ? `-${player.ties}` : ""}{" "}
@@ -14,7 +20,7 @@ const StandingsWithPicsOverlayPage: React.FC = () => {
   );
 
   return (
-    <UsePlayerStatsCalculation sortType="standings">
+    <UsePlayerStatsCalculation sortType="standings" apiService={apiService}>
       {({ tournament, players, divisionName }) => (
         <PictureDisplay
           tournament={tournament}

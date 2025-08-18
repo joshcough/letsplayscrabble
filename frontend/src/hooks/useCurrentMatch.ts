@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
-import { CurrentMatch } from "@shared/types/currentMatch";
+import * as Domain from "@shared/types/domain";
 
-import { fetchCurrentMatch } from "../utils/matchApi";
+import { ApiService } from "../services/interfaces";
 import BroadcastManager from "./BroadcastManager";
 
 interface UseCurrentMatchReturn {
-  currentMatch: CurrentMatch | null;
+  currentMatch: Domain.CurrentMatch | null;
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -17,9 +17,13 @@ interface UseCurrentMatchReturn {
  * Hook that provides current match state with real-time updates
  * Perfect for most components that just need the basic current match info
  */
-export const useCurrentMatch = (): UseCurrentMatchReturn => {
+export const useCurrentMatch = (
+  apiService: ApiService,
+): UseCurrentMatchReturn => {
   const { userId } = useParams<{ userId: string }>();
-  const [currentMatch, setCurrentMatch] = useState<CurrentMatch | null>(null);
+  const [currentMatch, setCurrentMatch] = useState<Domain.CurrentMatch | null>(
+    null,
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +38,8 @@ export const useCurrentMatch = (): UseCurrentMatchReturn => {
     try {
       setLoading(true);
       setError(null);
-      const match = await fetchCurrentMatch(parseInt(userId));
+      const response = await apiService.getCurrentMatch(parseInt(userId));
+      const match = response.success ? response.data : null;
       setCurrentMatch(match);
     } catch (err) {
       console.error("Error fetching current match:", err);
@@ -60,16 +65,15 @@ export const useCurrentMatch = (): UseCurrentMatchReturn => {
       console.log("📥 useCurrentMatch received AdminPanelUpdate:", data);
       // Only process if this update is for our user
       if (data.userId === parseInt(userId)) {
-        const currentMatchData = {
-          tournament_id: data.tournamentId,
-          division_id: data.divisionId,
-          division_name: data.divisionName,
+        const currentMatchData: Domain.CurrentMatch = {
+          tournamentId: data.tournamentId,
+          divisionId: data.divisionId,
+          divisionName: data.divisionName,
           round: data.round,
-          pairing_id: data.pairingId,
-          timestamp: data.timestamp,
-          updated_at: new Date(),
+          pairingId: data.pairingId,
+          updatedAt: new Date(),
         };
-        setCurrentMatch(currentMatchData as CurrentMatch);
+        setCurrentMatch(currentMatchData);
         setError(null); // Clear any previous errors when we get fresh data
       } else {
         console.log("❌ AdminPanelUpdate is for different user, ignoring");

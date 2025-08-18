@@ -1,7 +1,6 @@
 import React from "react";
 
-import { TournamentDataIncremental } from "@shared/types/broadcast";
-
+import { TournamentDataIncremental } from "../../types/broadcast";
 import {
   getHighScoreForDivision,
   getHighScoreFromChanges,
@@ -30,7 +29,7 @@ const detectHighScore = (
 
   // Get the previous high score for the division (0 if no previous data)
   const previousHighScore = update.previousData
-    ? getHighScoreForDivision(update.previousData, divisionData.division.id)
+    ? getHighScoreForDivision(update.previousData, divisionData.id)
     : { score: 0, playerName: "", gameId: 0 };
 
   // Check if the highest score in the changes beats the previous record (or is the first score)

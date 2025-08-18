@@ -2,8 +2,9 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
+import { ApiService } from "../../services/interfaces";
 
-const OverlaysPage: React.FC = () => {
+const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const { userId } = useAuth();
 
   // If user is not authenticated, show error

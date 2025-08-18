@@ -5,16 +5,14 @@ import express, {
   RequestHandler,
 } from "express";
 
+import { LoginRequest, LoginSuccessData } from "@shared/types/api";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Pool } from "pg";
 
-const router = express.Router();
+import * as Api from "../utils/apiHelpers";
 
-interface LoginRequest {
-  username: string;
-  password: string;
-}
+const router = express.Router();
 
 interface AdminUser {
   id: number;
@@ -24,11 +22,11 @@ interface AdminUser {
 
 const db: Pool = require("../config/database").pool;
 
-const loginHandler: RequestHandler = async (
-  req: Request<{}, {}, LoginRequest>,
-  res: Response,
-  next: NextFunction,
-): Promise<void> => {
+const loginHandler: RequestHandler<
+  {},
+  Api.ApiResponse<LoginSuccessData>,
+  LoginRequest
+> = async (req, res) => {
   const { username, password } = req.body;
 
   try {
@@ -39,13 +37,13 @@ const loginHandler: RequestHandler = async (
     const user = result.rows[0];
 
     if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-      res.status(401).json({ error: "Invalid credentials" });
+      res.status(401).json(Api.failure("Invalid credentials"));
       return;
     }
 
     const token = jwt.sign(
       {
-        id: user.id, // Add this
+        id: user.id,
         username: user.username,
       },
       process.env.JWT_SECRET!,
@@ -54,11 +52,19 @@ const loginHandler: RequestHandler = async (
       },
     );
 
-    res.json({ token });
+    res.json(
+      Api.success({
+        token,
+        user: {
+          id: user.id,
+          username: user.username,
+        },
+      }),
+    );
     return;
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json(Api.failure("Server error"));
     return;
   }
 };

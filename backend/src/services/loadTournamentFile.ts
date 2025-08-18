@@ -1,6 +1,7 @@
-import { TournamentData } from "@shared/types/scrabbleFileFormat";
 import axios from "axios";
 import fs from "fs/promises";
+
+import { TournamentData } from "../types/scrabbleFileFormat";
 
 export async function loadTournamentFile(
   source: string,

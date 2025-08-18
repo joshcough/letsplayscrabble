@@ -1,7 +1,6 @@
 // shared/types/database.ts
 // Types that match your database table schemas exactly
-
-import * as File from './scrabbleFileFormat';
+import * as File from "./scrabbleFileFormat";
 
 // Full database row types (after insertion)
 export interface TournamentRow {
@@ -111,7 +110,7 @@ export interface CreateDivisionRow {
 }
 
 export interface CreatePlayerRow {
-  seed: number;  // Division-specific seed (1-8, 1-8, 1-12)
+  seed: number; // Division-specific seed (1-8, 1-8, 1-12)
   name: string;
   initial_rating: number;
   photo: string | null;

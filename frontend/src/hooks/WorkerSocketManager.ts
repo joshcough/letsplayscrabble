@@ -1,13 +1,5 @@
 // WorkerSocketManager.ts - Enhanced SocketManager using TournamentCacheManager with incremental updates
 import {
-  SubscribeMessage,
-  TournamentDataResponse,
-  TournamentDataRefresh,
-  TournamentDataIncremental,
-  TournamentDataError,
-  BroadcastMessage,
-} from "@shared/types/broadcast";
-import {
   AdminPanelUpdateMessage,
   GamesAddedMessage,
   Ping,
@@ -15,7 +7,15 @@ import {
 import io, { Socket } from "socket.io-client";
 
 import { API_BASE } from "../config/api";
-import { fetchTournament } from "../services/api";
+import { ApiService } from "../services/interfaces";
+import {
+  SubscribeMessage,
+  TournamentDataResponse,
+  TournamentDataRefresh,
+  TournamentDataIncremental,
+  TournamentDataError,
+  BroadcastMessage,
+} from "../types/broadcast";
 import TournamentCacheManager from "./TournamentCacheManager";
 
 class WorkerSocketManager {
@@ -28,6 +28,7 @@ class WorkerSocketManager {
   private broadcastChannel: BroadcastChannel;
   private statusChannel: BroadcastChannel;
   private cacheManager: TournamentCacheManager;
+  private apiService: ApiService | null = null;
 
   // Message deduplication - track highest timestamp seen
   private lastSeenTimestamp: number = 0;
@@ -52,9 +53,12 @@ class WorkerSocketManager {
     }, 1000);
   }
 
-  static getInstance(): WorkerSocketManager {
+  static getInstance(apiService?: ApiService): WorkerSocketManager {
     if (!WorkerSocketManager.instance) {
       WorkerSocketManager.instance = new WorkerSocketManager();
+    }
+    if (apiService && !WorkerSocketManager.instance.apiService) {
+      WorkerSocketManager.instance.apiService = apiService;
     }
     return WorkerSocketManager.instance;
   }
@@ -149,7 +153,17 @@ class WorkerSocketManager {
       console.log(
         `🔄 Worker fetching full tournament data for tournament ${tournamentId}...`,
       );
-      const tournamentData = await fetchTournament(userId, tournamentId);
+      if (!this.apiService) {
+        throw new Error("API service not initialized");
+      }
+      const response = await this.apiService.getTournament(
+        userId,
+        tournamentId,
+      );
+      if (!response.success) {
+        throw new Error(response.error);
+      }
+      const tournamentData = response.data;
 
       // Cache the data
       this.cacheManager.set(userId, tournamentId, tournamentData);
@@ -283,8 +297,8 @@ class WorkerSocketManager {
 
       // Get current data before applying changes (for previousData)
       const previousData = this.cacheManager.get(
-        data.update.tournament.user_id,
-        data.update.tournament.id,
+        data.userId,
+        data.tournamentId,
       );
 
       // Clone the previous data to avoid mutation issues
@@ -294,39 +308,40 @@ class WorkerSocketManager {
 
       // Apply incremental changes to cache
       const success = this.cacheManager.applyTournamentUpdate(
-        data.update.tournament.user_id,
-        data.update.tournament.id,
+        data.userId,
+        data.tournamentId,
         data.update,
       );
 
       if (success) {
         // Broadcast incremental update with full tournament data
-        this.broadcastTournamentIncremental(data.update, previousDataSnapshot);
+        this.broadcastTournamentIncremental(
+          data.userId,
+          data.tournamentId,
+          data.update,
+          previousDataSnapshot,
+        );
       } else {
         // Fallback to full refresh if cache update failed
         console.warn("⚠️ Cache update failed, falling back to full refresh");
-        this.fetchAndBroadcastTournamentRefresh(
-          data.update.tournament.id,
-          data.update.tournament.user_id,
-        );
+        this.fetchAndBroadcastTournamentRefresh(data.tournamentId, data.userId);
       }
     });
   }
 
   // New method to broadcast incremental tournament updates
   private broadcastTournamentIncremental(
-    update: import("@shared/types/database").TournamentUpdate,
-    previousData?: import("@shared/types/database").Tournament | null,
+    userId: number,
+    tournamentId: number,
+    update: import("@shared/types/domain").TournamentUpdate,
+    previousData?: import("@shared/types/domain").Tournament | null,
   ) {
     const affectedDivisions = this.cacheManager.getAffectedDivisions(
       update.changes,
     );
 
     // Get updated tournament data from cache (after changes applied)
-    const updatedTournamentData = this.cacheManager.get(
-      update.tournament.user_id,
-      update.tournament.id,
-    );
+    const updatedTournamentData = this.cacheManager.get(userId, tournamentId);
 
     if (!updatedTournamentData) {
       console.error(
@@ -336,8 +351,8 @@ class WorkerSocketManager {
     }
 
     const message: TournamentDataIncremental = {
-      userId: update.tournament.user_id,
-      tournamentId: update.tournament.id,
+      userId: userId,
+      tournamentId: tournamentId,
       data: updatedTournamentData, // Full updated tournament
       previousData: previousData || undefined, // Previous state for comparisons
       changes: update.changes, // What changed
@@ -351,7 +366,7 @@ class WorkerSocketManager {
     };
 
     console.log(
-      `📢 Worker broadcasting TOURNAMENT_DATA_INCREMENTAL for user ${update.tournament.user_id}, tournament ${update.tournament.id}`,
+      `📢 Worker broadcasting TOURNAMENT_DATA_INCREMENTAL for user ${userId}, tournament ${tournamentId}`,
       `- ${message.metadata.addedCount} added, ${message.metadata.updatedCount} updated games`,
       `- Affected divisions: [${affectedDivisions.join(", ")}]`,
       `- Previous data: ${previousData ? "included" : "not available"}`,
@@ -387,7 +402,17 @@ class WorkerSocketManager {
       console.log(
         `🔄 Worker fetching full tournament data for refresh: user ${userId}, tournament ID: ${tournamentId}`,
       );
-      const tournamentData = await fetchTournament(userId, tournamentId);
+      if (!this.apiService) {
+        throw new Error("API service not initialized");
+      }
+      const response = await this.apiService.getTournament(
+        userId,
+        tournamentId,
+      );
+      if (!response.success) {
+        throw new Error(response.error);
+      }
+      const tournamentData = response.data;
 
       // Update cache
       this.cacheManager.set(userId, tournamentId, tournamentData);

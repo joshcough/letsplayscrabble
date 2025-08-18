@@ -1,4 +1,4 @@
-import * as Stats from "@shared/types/stats";
+import * as Stats from "../types/stats";
 
 // Add rank to PlayerStats (since it's needed for display)
 type RankedPlayerStats = Stats.PlayerStats & { rank: number };

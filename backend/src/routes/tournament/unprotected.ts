@@ -1,15 +1,12 @@
-import express, { Router, Response, RequestHandler } from "express";
+import express, { Router, Response, RequestHandler, Request } from "express";
 
-import * as DB from "@shared/types/database";
+import { UserTournamentParams } from "@shared/types/api";
 
 import { TournamentRepository } from "../../repositories/tournamentRepository";
+import * as DB from "../../types/database";
 import * as Api from "../../utils/apiHelpers";
 
-interface UserTournamentParams {
-  userId: string;
-  tournamentId: string;
-  divisionId?: string;
-}
+// UserTournamentParams now imported from shared types
 
 interface ParsedParams {
   userId: number;
@@ -24,7 +21,7 @@ export function unprotectedTournamentRoutes(
 
   // Shared validation and error handling wrapper
   const withInputValidation = <T>(
-    handler: (params: ParsedParams, req: any, res: Response) => Promise<T>,
+    handler: (params: ParsedParams, req: Request, res: Response) => Promise<T>,
   ): RequestHandler => {
     return async (req, res) => {
       const userId = parseInt(req.params.userId);
@@ -47,11 +44,11 @@ export function unprotectedTournamentRoutes(
     };
   };
 
-  // Get full tournament data
+  // Get full tournament data (returns domain model)
   const getTournamentForUser = withInputValidation(
     async ({ userId, tournamentId, divisionId }, req, res) => {
       await Api.withDataOr404(
-        repo.getTournamentAsTree(tournamentId, userId, divisionId),
+        repo.getTournamentAsDomainModel(tournamentId, userId, divisionId),
         res,
         "Tournament or division not found",
         async (tournament) => {
@@ -100,12 +97,13 @@ export function unprotectedTournamentRoutes(
     },
   );
 
-  // Routes
+  // Main tournament routes (return domain model)
   router.get("/users/:userId/tournaments/:tournamentId", getTournamentForUser);
   router.get(
     "/users/:userId/tournaments/:tournamentId/divisions/:divisionId",
     getTournamentForUser,
   );
+
   router.get(
     "/users/:userId/tournaments/:tournamentId/row",
     getTournamentRowForUser,

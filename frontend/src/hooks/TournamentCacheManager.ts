@@ -1,13 +1,8 @@
 // TournamentCacheManager.ts - Enhanced cache with incremental update support
-import {
-  Tournament,
-  GameChanges,
-  GameRow,
-  TournamentUpdate,
-} from "@shared/types/database";
+import * as Domain from "@shared/types/domain";
 
 interface CachedTournament {
-  data: Tournament;
+  data: Domain.Tournament;
   lastUpdated: number;
 }
 
@@ -29,7 +24,7 @@ class TournamentCacheManager {
   }
 
   // Get cached tournament data
-  get(userId: number, tournamentId: number): Tournament | null {
+  get(userId: number, tournamentId: number): Domain.Tournament | null {
     const cacheKey = this.getCacheKey(userId, tournamentId);
     const cached = this.cache.get(cacheKey);
 
@@ -43,7 +38,7 @@ class TournamentCacheManager {
   }
 
   // Store complete tournament data
-  set(userId: number, tournamentId: number, data: Tournament): void {
+  set(userId: number, tournamentId: number, data: Domain.Tournament): void {
     const cacheKey = this.getCacheKey(userId, tournamentId);
     this.cache.set(cacheKey, {
       data: data,
@@ -56,7 +51,7 @@ class TournamentCacheManager {
   applyGameChanges(
     userId: number,
     tournamentId: number,
-    changes: GameChanges,
+    changes: Domain.GameChanges,
   ): boolean {
     const cacheKey = this.getCacheKey(userId, tournamentId);
     const cached = this.cache.get(cacheKey);
@@ -75,8 +70,11 @@ class TournamentCacheManager {
 
     // Apply added games
     for (const addedGame of changes.added) {
-      const targetDivision = cached.data.divisions.find(
-        (div) => div.division.id === addedGame.division_id,
+      // Find the division that contains a player from this game
+      const targetDivision = cached.data.divisions.find((div) =>
+        div.players.some(
+          (p) => p.id === addedGame.player1Id || p.id === addedGame.player2Id,
+        ),
       );
 
       if (targetDivision) {
@@ -84,45 +82,43 @@ class TournamentCacheManager {
         targetDivision.games.push(addedGame);
         changeCount++;
         console.log(
-          `💾 ✅ Added game ${addedGame.id} to division ${addedGame.division_id} (${beforeCount} → ${targetDivision.games.length} games)`,
+          `💾 ✅ Added game ${addedGame.id} to division ${targetDivision.id} (${beforeCount} → ${targetDivision.games.length} games)`,
         );
       } else {
         console.warn(
-          `💾 ❌ Could not find division ${addedGame.division_id} for added game ${addedGame.id}`,
+          `💾 ❌ Could not find division for added game ${addedGame.id} with players ${addedGame.player1Id}, ${addedGame.player2Id}`,
         );
       }
     }
 
     // Apply updated games
     for (const updatedGame of changes.updated) {
-      const targetDivision = cached.data.divisions.find(
-        (div) => div.division.id === updatedGame.division_id,
-      );
+      // Find the division that contains this game
+      let targetDivision: Domain.Division | undefined;
+      let gameIndex = -1;
 
-      if (targetDivision) {
-        const gameIndex = targetDivision.games.findIndex(
+      for (const division of cached.data.divisions) {
+        gameIndex = division.games.findIndex(
           (game) => game.id === updatedGame.id,
         );
-
         if (gameIndex !== -1) {
-          const oldGame = targetDivision.games[gameIndex];
-          targetDivision.games[gameIndex] = updatedGame;
-          changeCount++;
-          console.log(
-            `💾 ✅ Updated game ${updatedGame.id} in division ${updatedGame.division_id}:`,
-            {
-              scores: `${oldGame.player1_score}-${oldGame.player2_score} → ${updatedGame.player1_score}-${updatedGame.player2_score}`,
-            },
-          );
-        } else {
-          console.warn(
-            `💾 ❌ Could not find game ${updatedGame.id} to update in division ${updatedGame.division_id}`,
-          );
+          targetDivision = division;
+          break;
         }
-      } else {
-        console.warn(
-          `💾 ❌ Could not find division ${updatedGame.division_id} for updated game ${updatedGame.id}`,
+      }
+
+      if (targetDivision && gameIndex !== -1) {
+        const oldGame = targetDivision.games[gameIndex];
+        targetDivision.games[gameIndex] = updatedGame;
+        changeCount++;
+        console.log(
+          `💾 ✅ Updated game ${updatedGame.id} in division ${targetDivision.id}:`,
+          {
+            scores: `${oldGame.player1Score}-${oldGame.player2Score} → ${updatedGame.player1Score}-${updatedGame.player2Score}`,
+          },
         );
+      } else {
+        console.warn(`💾 ❌ Could not find game ${updatedGame.id} to update`);
       }
     }
 
@@ -140,7 +136,7 @@ class TournamentCacheManager {
   applyTournamentUpdate(
     userId: number,
     tournamentId: number,
-    update: TournamentUpdate,
+    update: Domain.TournamentUpdate,
   ): boolean {
     const cacheKey = this.getCacheKey(userId, tournamentId);
     const cached = this.cache.get(cacheKey);
@@ -157,9 +153,13 @@ class TournamentCacheManager {
       changes: this.getChangesSummary(update.changes),
     });
 
-    // Update tournament metadata
-    const oldTournamentName = cached.data.tournament.name;
-    cached.data.tournament = update.tournament;
+    // Update tournament metadata (domain model has flat structure)
+    const oldTournamentName = cached.data.name;
+    cached.data.name = update.tournament.name;
+    cached.data.city = update.tournament.city;
+    cached.data.year = update.tournament.year;
+    cached.data.lexicon = update.tournament.lexicon;
+    cached.data.longFormName = update.tournament.longFormName;
 
     if (oldTournamentName !== update.tournament.name) {
       console.log(
@@ -184,17 +184,25 @@ class TournamentCacheManager {
   }
 
   // Get list of affected division IDs from game changes
-  getAffectedDivisions(changes: GameChanges): number[] {
+  getAffectedDivisions(changes: Domain.GameChanges): number[] {
     const divisionIds = new Set<number>();
 
-    // Collect division IDs from added games
-    for (const game of changes.added) {
-      divisionIds.add(game.division_id);
-    }
+    // For domain changes, we need to find which divisions contain the affected games
+    const allGames = [...changes.added, ...changes.updated];
 
-    // Collect division IDs from updated games
-    for (const game of changes.updated) {
-      divisionIds.add(game.division_id);
+    // We need access to cached data to determine division membership
+    for (const [cacheKey, cached] of this.cache.entries()) {
+      for (const division of cached.data.divisions) {
+        for (const game of allGames) {
+          if (
+            division.players.some(
+              (p) => p.id === game.player1Id || p.id === game.player2Id,
+            )
+          ) {
+            divisionIds.add(division.id);
+          }
+        }
+      }
     }
 
     const result = Array.from(divisionIds);
@@ -206,13 +214,13 @@ class TournamentCacheManager {
   }
 
   // Check if specific division is affected by changes
-  isDivisionAffected(divisionId: number, changes: GameChanges): boolean {
+  isDivisionAffected(divisionId: number, changes: Domain.GameChanges): boolean {
     const affectedDivisions = this.getAffectedDivisions(changes);
     return affectedDivisions.includes(divisionId);
   }
 
   // Get change summary for logging/debugging
-  getChangesSummary(changes: GameChanges): string {
+  getChangesSummary(changes: Domain.GameChanges): string {
     const addedCount = changes.added.length;
     const updatedCount = changes.updated.length;
     const affectedDivisions = this.getAffectedDivisions(changes);
@@ -259,7 +267,7 @@ class TournamentCacheManager {
     userId: number,
     tournamentId: number,
   ): {
-    tournament: Tournament | null;
+    tournament: Domain.Tournament | null;
     isStale: boolean;
     age: number;
   } {

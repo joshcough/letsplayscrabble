@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
-import { TournamentDataIncremental } from "@shared/types/broadcast";
-
 import BroadcastManager from "../../hooks/BroadcastManager";
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { useTournamentData } from "../../hooks/useTournamentData";
+import { ApiService } from "../../services/interfaces";
+import { TournamentDataIncremental } from "../../types/broadcast";
 
 type RouteParams = {
   userId: string;
@@ -22,10 +22,12 @@ export type NotificationDetector = (
 // Tournament notification overlay component
 interface TournamentNotificationOverlayProps {
   notificationDetectors: NotificationDetector[];
+  apiService: ApiService;
 }
 
 const TournamentNotificationOverlay = ({
   notificationDetectors,
+  apiService,
 }: TournamentNotificationOverlayProps) => {
   const {
     userId,
@@ -42,7 +44,8 @@ const TournamentNotificationOverlay = ({
   // Data source logic
   const shouldUseCurrentMatch = !urlTournamentId || !divisionName;
 
-  const { currentMatch, loading: currentMatchLoading } = useCurrentMatch();
+  const { currentMatch, loading: currentMatchLoading } =
+    useCurrentMatch(apiService);
 
   const {
     tournamentData: urlTournamentData,
@@ -51,15 +54,17 @@ const TournamentNotificationOverlay = ({
   } = useTournamentData({
     tournamentId: urlTournamentId ? parseInt(urlTournamentId) : undefined,
     useUrlParams: !shouldUseCurrentMatch,
+    apiService,
   });
 
   const {
     tournamentData: currentMatchTournamentData,
     loading: currentMatchTournamentLoading,
   } = useTournamentData({
-    tournamentId: currentMatch?.tournament_id,
-    divisionId: currentMatch?.division_id,
+    tournamentId: currentMatch?.tournamentId,
+    divisionId: currentMatch?.divisionId,
     useUrlParams: false,
+    apiService,
   });
 
   // Effective data
@@ -67,7 +72,7 @@ const TournamentNotificationOverlay = ({
     ? currentMatchTournamentData
     : urlTournamentData;
   const effectiveDivisionId = shouldUseCurrentMatch
-    ? currentMatch?.division_id
+    ? currentMatch?.divisionId
     : urlDivisionId;
   const effectiveLoading = shouldUseCurrentMatch
     ? currentMatchLoading || currentMatchTournamentLoading

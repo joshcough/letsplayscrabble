@@ -1,11 +1,11 @@
 import React from "react";
 
-import * as Stats from "@shared/types/stats";
-
 import {
   BaseOverlay,
   TournamentDisplayData,
 } from "../components/shared/BaseOverlay";
+import { ApiService } from "../services/interfaces";
+import * as Stats from "../types/stats";
 import { calculateStandingsFromGames } from "../utils/calculateStandings";
 
 // Type for PlayerStats with rank added
@@ -28,6 +28,7 @@ interface PlayerStatsData {
 
 interface UsePlayerStatsCalculationProps {
   sortType: SortType;
+  apiService: ApiService;
   children: (data: PlayerStatsData) => React.ReactNode;
 }
 
@@ -83,9 +84,9 @@ const sortPlayersBySortType = (
 
 export const UsePlayerStatsCalculation: React.FC<
   UsePlayerStatsCalculationProps
-> = ({ sortType, children }) => {
+> = ({ sortType, apiService, children }) => {
   return (
-    <BaseOverlay>
+    <BaseOverlay apiService={apiService}>
       {({ tournament, divisionData, divisionName }) => {
         console.log("🔢 UsePlayerStatsCalculation: Calculating stats", {
           tournament: tournament.name,

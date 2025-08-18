@@ -2,6 +2,7 @@ import React from "react";
 import { useParams, Link } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
+import { ApiService } from "../../services/interfaces";
 
 type RouteParams = {
   userId: string;
@@ -10,7 +11,9 @@ type RouteParams = {
   playerId: string;
 };
 
-const PlayerOverlayTestingPage: React.FC = () => {
+const PlayerOverlayTestingPage: React.FC<{ apiService: ApiService }> = ({
+  apiService,
+}) => {
   const { userId, tournamentId, divisionName, playerId } =
     useParams<RouteParams>();
   const { userId: authUserId } = useAuth();

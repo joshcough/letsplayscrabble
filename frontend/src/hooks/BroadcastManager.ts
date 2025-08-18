@@ -1,15 +1,16 @@
 // BroadcastManager.ts - Lightweight manager for display sources with deduplication
 import {
-  TournamentDataResponse,
-  TournamentDataRefresh,
-  TournamentDataIncremental,
-  TournamentDataError,
-} from "@shared/types/broadcast";
-import {
   AdminPanelUpdateMessage,
   GamesAddedMessage,
   Ping,
 } from "@shared/types/websocket";
+
+import {
+  TournamentDataResponse,
+  TournamentDataRefresh,
+  TournamentDataIncremental,
+  TournamentDataError,
+} from "../types/broadcast";
 
 type EventHandler = (data: any) => void;
 
