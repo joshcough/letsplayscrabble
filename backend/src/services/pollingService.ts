@@ -5,7 +5,10 @@ import { Server as SocketIOServer } from "socket.io";
 
 import { TournamentRepository } from "../repositories/tournamentRepository";
 import * as DB from "../types/database";
-import { transformGameChangesToDomain, transformTournamentRowToSummary } from "../utils/domainTransforms";
+import {
+  transformGameChangesToDomain,
+  transformTournamentRowToSummary,
+} from "../utils/domainTransforms";
 import { convertFileToDatabase } from "./fileToDatabaseConversions";
 import { loadTournamentFile } from "./loadTournamentFile";
 

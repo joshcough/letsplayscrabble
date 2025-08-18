@@ -19,7 +19,9 @@ export function transformTournamentRowToSummary(
     lexicon: tournamentRow.lexicon,
     longFormName: tournamentRow.long_form_name,
     dataUrl: tournamentRow.data_url,
-    pollUntil: tournamentRow.poll_until ? new Date(tournamentRow.poll_until) : null,
+    pollUntil: tournamentRow.poll_until
+      ? new Date(tournamentRow.poll_until)
+      : null,
   };
 }
 

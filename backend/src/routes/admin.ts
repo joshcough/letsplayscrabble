@@ -9,9 +9,7 @@ import { CurrentMatchRepository } from "../repositories/currentMatchRepository";
 import { CreateCurrentMatch, CurrentMatch } from "../types/currentMatch";
 import * as Api from "../utils/apiHelpers";
 import { withDataOr404, withErrorHandling } from "../utils/apiHelpers";
-import {
-  transformCreateCurrentMatchToDatabase,
-} from "../utils/domainTransforms";
+import { transformCreateCurrentMatchToDatabase } from "../utils/domainTransforms";
 
 export default function createAdminRoutes(
   repo: CurrentMatchRepository,

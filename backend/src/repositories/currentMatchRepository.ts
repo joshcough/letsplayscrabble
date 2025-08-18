@@ -1,6 +1,6 @@
+import * as Domain from "@shared/types/domain";
 import { Pool } from "pg";
 
-import * as Domain from "@shared/types/domain";
 import { CurrentMatch } from "../types/currentMatch";
 import { transformCurrentMatchToDomain } from "../utils/domainTransforms";
 

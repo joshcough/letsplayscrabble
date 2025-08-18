@@ -110,8 +110,8 @@ export interface GameChanges {
  * Complete tournament update with domain-level changes
  */
 export interface TournamentUpdate {
-  tournament: Tournament;  // Updated tournament metadata
-  changes: GameChanges;    // Domain-level game changes
+  tournament: TournamentSummary;  // Updated tournament metadata only
+  changes: GameChanges;           // Domain-level game changes
 }
 
 /**
