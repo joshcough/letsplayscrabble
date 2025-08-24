@@ -11,7 +11,7 @@ class TournamentGenerator {
       eventName: config.eventName || 'Test Tournament',
       eventDate: config.eventDate || 'January 1, 2025',
       maxRounds: config.maxRounds || 10,
-      outputDir: config.outputDir || './tournament-files',
+      outputDir: config.outputDir || './tools/generated-tournament',
       playerDataFile: config.playerDataFile || null, // Path to CSV player data
       ...config
     };
@@ -616,13 +616,13 @@ if (require.main === module) {
 
   console.log('\n✅ Tournament files generated successfully!');
   console.log('\n📖 Usage:');
-  console.log('  node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division]');
+  console.log('  node tools/tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division]');
   console.log('  divisions: 2-4 (default: 3)');
   console.log('  rounds: number of rounds (default: 7)');
   console.log('  player-data.json: JSON file with player data (required)');
   console.log('  players-per-division: number of players per division (default: 8)');
   console.log('\nExamples:');
-  console.log('  node tournament-generator.js 3 7 players.json     # 3 divisions, 7 rounds, 8 players each');
-  console.log('  node tournament-generator.js 4 5 players.json 6   # 4 divisions, 5 rounds, 6 players each');
-  console.log('  node tournament-generator.js 2 9 players.json 12  # 2 divisions, 9 rounds, 12 players each');
+  console.log('  node tools/tournament-generator.js 3 7 tools/players.json     # 3 divisions, 7 rounds, 8 players each');
+  console.log('  node tools/tournament-generator.js 4 5 tools/players.json 6   # 4 divisions, 5 rounds, 6 players each');
+  console.log('  node tools/tournament-generator.js 2 9 tools/players.json 12  # 2 divisions, 9 rounds, 12 players each');
 }
