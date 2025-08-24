@@ -23,6 +23,7 @@ export interface CrossTablesPlayer {
   // Enhanced data from detailed API
   tournamentCount?: number;
   averageScore?: number;
+  opponentAverageScore?: number;
   results?: TournamentResult[]; // Full tournament history
 }
 

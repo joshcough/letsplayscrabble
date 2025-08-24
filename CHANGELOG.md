@@ -1,5 +1,66 @@
 # Changelog
 
+## 2025-01-24 - Cross-Tables Integration & Enhanced Tournament Creation
+
+### 🌍 **Cross-Tables.com Integration**
+
+#### **Complete External Data Integration**
+- **NEW**: Full integration with cross-tables.com API for player ratings, rankings, and statistics
+- **NEW**: Database table `cross_tables_players` with foreign key relationships to existing players
+- **NEW**: Automated data synchronization during tournament creation and updates
+- **NEW**: Rich player data including TWL/CSW ratings, rankings, career records, geographic location, and photos
+- **NEW**: Tournament history tracking with results and performance data
+
+#### **External API Services**
+- **NEW**: `CrossTablesClient` service for HTTP API communication with cross-tables.com
+- **NEW**: `CrossTablesSyncService` for batch and individual player data synchronization
+- **NEW**: `CrossTablesPlayerRepository` with upsert operations and conflict resolution
+- **NEW**: Database migration `20250824174500_cross_tables_integration.ts` with comprehensive schema
+
+### 🎥 **Enhanced OBS Overlay System**
+
+#### **New Player Profile Overlays**
+- **NEW**: Cross-Tables Player Profile Overlay (`/users/{userId}/overlay/cross_tables_profile`)
+  - Multiple display sources: name, location, rating, ranking, tournament-count, career-record, win-percentage, average-score, tournament-record, current-rating, recent-tournament, photo, full-profile
+  - Works with current match system (specify `?player=1` or `?player=2`)
+  - Professional styling with photos, location data, and comprehensive statistics
+
+- **NEW**: Head-to-Head Comparison Overlay (`/users/{userId}/overlay/head_to_head`)
+  - Side-by-side player comparison with photos and cross-tables data
+  - Head-to-head record calculation from tournament history
+  - Average scores between the specific players
+  - Last match result display with round information
+  - Current tournament standings for both players
+  - Professional layout matching provided mockups
+
+### 🔧 **Technical Enhancements**
+
+#### **Database & Data Management**
+- **NEW**: Foreign key relationships between players and cross-tables data
+- **NEW**: JSON storage for complete tournament history and results
+- **NEW**: Cached tournament count and average score fields for performance
+- **NEW**: Proper indexing and conflict resolution for player data updates
+
+#### **Frontend Architecture**
+- **NEW**: Integration with existing BaseOverlay system for consistent overlay behavior
+- **ENHANCED**: TypeScript interfaces for cross-tables data throughout the application
+- **IMPROVED**: Error boundaries and loading states for new overlay components
+
+#### **Performance Optimizations**
+- **OPTIMIZED**: Cross-tables data synchronization with batch operations
+- **ENHANCED**: Database queries with proper foreign key relationships
+- **CACHED**: Player statistics and tournament data for faster overlay loading
+
+### 🎯 **User Experience**
+
+#### **Broadcast Overlays**
+- **NEW**: Professional player profile displays with comprehensive statistics
+- **NEW**: Head-to-head comparison overlays matching broadcast requirements
+- **ENHANCED**: Cross-tables data integration for richer player information
+- **IMPROVED**: Photo display and location data for enhanced viewer experience
+
+---
+
 ## 2025-08-17 - Error Handling Standardization & API Hooks
 
 ### 🚀 **Major Developer Experience Improvements**

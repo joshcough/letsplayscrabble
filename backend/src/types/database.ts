@@ -68,6 +68,7 @@ export interface PlayerRowWithCrossTables extends PlayerRow {
   tournament_results?: string | null; // JSON string
   tournament_count?: number | null;
   average_score?: number | null;
+  opponent_average_score?: number | null;
 }
 
 export interface GameRow {

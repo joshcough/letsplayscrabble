@@ -76,9 +76,15 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
       description: "Tournament statistics and analytics",
     },
     {
-      title: "Cross-Tables Player Profile",
+      title: "Cross-Tables Player Profile", 
       path: `/users/${userId}/overlay/cross_tables_profile?player=1&source=full-profile`,
       description: "Player profiles with cross-tables ratings, rankings, and career stats",
+      requiresParams: true,
+    },
+    {
+      title: "Head-to-Head Comparison",
+      path: `/users/${userId}/overlay/head_to_head?source=full-comparison`,
+      description: "Compare two players with head-to-head record, average scores, and tournament standings",
       requiresParams: true,
     },
   ];

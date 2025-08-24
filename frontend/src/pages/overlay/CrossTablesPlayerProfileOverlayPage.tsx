@@ -131,7 +131,8 @@ const renderPlayerData = (
       return <div>{winPercentage !== null ? `Win %: ${winPercentage}%` : "Win % not available"}</div>;
 
     case "average-score":
-      return <div>{averageScore ? `Average Score: ${averageScore.toFixed(1)}` : "Average score not available"}</div>;
+      const oppAvg = xtData?.opponentAverageScore;
+      return <div>{averageScore ? `Average Score: ${Math.round(averageScore)}${oppAvg ? `-${Math.round(oppAvg)}` : ''}` : "Average score not available"}</div>;
 
     case "tournament-record":
       return <div>Tournament Record: {tournamentRecord}</div>;
@@ -236,7 +237,7 @@ const renderPlayerData = (
 
               {averageScore && (
                 <div className="mb-2">
-                  <span className="font-semibold">Average Score:</span> {averageScore}-386
+                  <span className="font-semibold">Average Score:</span> {Math.round(averageScore)}{xtData?.opponentAverageScore ? `-${Math.round(xtData.opponentAverageScore)}` : ''}
                 </div>
               )}
 

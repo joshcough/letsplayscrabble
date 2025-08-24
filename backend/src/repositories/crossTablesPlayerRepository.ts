@@ -20,6 +20,7 @@ export interface CrossTablesPlayerRecord {
   tournament_results?: TournamentResult[]; // JSON field
   tournament_count?: number; // Cached count
   average_score?: number; // Cached average
+  opponent_average_score?: number; // Cached opponent average
   created_at: Date;
   updated_at: Date;
 }
@@ -32,12 +33,14 @@ export class CrossTablesPlayerRepository {
   async upsertDetailedPlayer(playerData: DetailedCrossTablesPlayer): Promise<void> {
     const tournamentCount = playerData.results?.length || null;
     const averageScore = playerData.averageScore || null;
+    const opponentAverageScore = playerData.opponentAverageScore || null;
       
     // Only update the detailed fields, don't touch basic player info that might be null in detailed response
     const detailedFields = {
       tournament_results: playerData.results ? JSON.stringify(playerData.results) : null,
       tournament_count: tournamentCount,
       average_score: averageScore,
+      opponent_average_score: opponentAverageScore,
       updated_at: new Date(),
     };
 

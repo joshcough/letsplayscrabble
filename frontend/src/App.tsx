@@ -23,6 +23,7 @@ import PingOverlayPage from "./pages/overlay/PingOverlayPage";
 import PlayerOverlay from "./pages/overlay/PlayerOverlayPage";
 import PlayerOverlayTestingPage from "./pages/overlay/PlayerOverlayTestingPage";
 import CrossTablesPlayerProfileOverlay from "./pages/overlay/CrossTablesPlayerProfileOverlayPage";
+import HeadToHeadOverlay from "./pages/overlay/HeadToHeadOverlayPage";
 import RatingGainOverlayPage from "./pages/overlay/RatingGainOverlayPage";
 import RatingGainWithPicsOverlayPage from "./pages/overlay/RatingGainWithPicsOverlayPage";
 import ScoringLeadersOverlayPage from "./pages/overlay/ScoringLeadersOverlayPage";
@@ -77,6 +78,10 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
         <Route
           path="/users/:userId/overlay/cross_tables_profile"
           element={<CrossTablesPlayerProfileOverlay apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/head_to_head"
+          element={<HeadToHeadOverlay apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/standings/:tournamentId?/:divisionName?"

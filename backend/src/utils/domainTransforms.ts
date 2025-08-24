@@ -54,6 +54,7 @@ export function transformToDomainTournament(
           // Enhanced tournament data
           tournamentCount: playerRow.tournament_count || undefined,
           averageScore: playerRow.average_score || undefined,
+          opponentAverageScore: playerRow.opponent_average_score || undefined,
           results: playerRow.tournament_results ? 
             (typeof playerRow.tournament_results === 'string' ? 
               JSON.parse(playerRow.tournament_results) : 

@@ -483,7 +483,8 @@ export class TournamentRepository {
         "cross_tables_players.country as xt_country",
         "cross_tables_players.tournament_results",
         "cross_tables_players.tournament_count",
-        "cross_tables_players.average_score"
+        "cross_tables_players.average_score",
+        "cross_tables_players.opponent_average_score"
       )
       .where("players.tournament_id", tournamentId)
       .where("players.division_id", divisionId)

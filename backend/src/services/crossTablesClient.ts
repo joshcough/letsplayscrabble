@@ -43,6 +43,7 @@ export class CrossTablesClient {
         country: playerData.country,
         // Use the player-level average scores from the main player data
         averageScore: playerData.scoreavg ? parseInt(playerData.scoreavg) : undefined,
+        opponentAverageScore: playerData.scoreoppavg ? parseInt(playerData.scoreoppavg) : undefined,
         results: playerData.results || []
       };
       
