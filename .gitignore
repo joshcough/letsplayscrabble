@@ -83,3 +83,6 @@ frontend/coverage/
 frontend/.cache/
 /purescript/
 /generated-tournament/
+
+# Other
+**/generated-tournament/

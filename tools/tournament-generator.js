@@ -5,30 +5,95 @@ const path = require('path');
 
 class TournamentGenerator {
   constructor(playersByDivision, config = {}) {
+    console.log(`🏗️  TournamentGenerator constructor called`);
+
     this.config = {
       eventName: config.eventName || 'Test Tournament',
       eventDate: config.eventDate || 'January 1, 2025',
       maxRounds: config.maxRounds || 10,
       outputDir: config.outputDir || './tournament-files',
+      playerDataFile: config.playerDataFile || null, // Path to CSV player data
       ...config
     };
 
+    console.log(`📊 Config: ${JSON.stringify(this.config, null, 2)}`);
+
+    // Load player data from CSV if provided
+    console.log(`📂 Loading player data...`);
+    this.playerData = this.loadPlayerData();
+    console.log(`✅ Player data loaded: ${this.playerData.size} players`);
+
     // Accept either array of arrays or object with division names
+    console.log(`🏗️  Initializing divisions...`);
     this.divisions = this.initializeDivisions(playersByDivision);
+    console.log(`✅ Divisions initialized: ${this.divisions.length} divisions`);
+
     this.currentRound = 0;
     this.completedRounds = [];
 
     // Ensure output directory exists
+    console.log(`📁 Ensuring output directory exists: ${this.config.outputDir}`);
     if (!fs.existsSync(this.config.outputDir)) {
       fs.mkdirSync(this.config.outputDir, { recursive: true });
+      console.log(`✅ Created output directory`);
+    } else {
+      console.log(`✅ Output directory already exists`);
+    }
+
+    console.log(`✅ TournamentGenerator constructor complete`);
+  }
+
+  loadPlayerData() {
+    if (!this.config.playerDataFile || !fs.existsSync(this.config.playerDataFile)) {
+      console.log('⚠️  No player data file provided or file not found. Using generated data.');
+      return new Map();
+    }
+
+    try {
+      const jsonContent = fs.readFileSync(this.config.playerDataFile, 'utf8');
+      const data = JSON.parse(jsonContent);
+
+      // Check if it's the expected format with players array
+      const players = data.players || data;
+
+      if (!Array.isArray(players)) {
+        console.log('⚠️  JSON file does not contain a players array. Using generated data.');
+        return new Map();
+      }
+
+      const playerMap = new Map();
+
+      players.forEach(player => {
+        if (player.name && player.playerid) {
+          playerMap.set(player.name, {
+            playerid: player.playerid.toString(),
+            rating: parseInt(player.twlrating) || 1500,
+            city: player.city || '',
+            country: player.country || '',
+            state: player.state || '',
+            naspa_id: player.naspa_id || '',
+            prizemoney: parseInt(player.prizemoney) || 0
+          });
+        }
+      });
+
+      console.log(`📊 Loaded ${playerMap.size} players from JSON data`);
+      return playerMap;
+    } catch (error) {
+      console.log(`⚠️  Error loading player data: ${error.message}. Using generated data.`);
+      return new Map();
     }
   }
 
   initializeDivisions(playersByDivision) {
+    console.log(`🏗️  initializeDivisions called with:`, typeof playersByDivision, Array.isArray(playersByDivision));
+
     // Convert to array and assign division names A, B, C, etc.
     const divisionsArray = Array.isArray(playersByDivision)
       ? playersByDivision
       : Object.values(playersByDivision);
+
+    console.log(`📊 Processing ${divisionsArray.length} divisions`);
 
     return divisionsArray.map((playerNames, divIndex) => {
       const divName = String.fromCharCode(65 + divIndex); // A, B, C, etc.
@@ -36,20 +101,35 @@ class TournamentGenerator {
 
       // Calculate rating range for division
       const baseRating = 2200 - (divIndex * 400); // A: 2200, B: 1800, C: 1400, etc.
+      console.log(`  📊 Base rating for division: ${baseRating}`);
 
       const players = playerNames.map((name, index) => {
-        const initialRating = baseRating - (index * 20) + Math.floor(Math.random() * 40) - 20;
-        
-        return {
+        // Try to get player data from CSV
+        const playerInfo = this.playerData.get(name);
+
+        let rating, playerid;
+        if (playerInfo) {
+          rating = playerInfo.rating;
+          playerid = playerInfo.playerid;
+          console.log(`    ✅ Found ${name} in player data (ID: ${playerid}, Rating: ${rating})`);
+        } else {
+          // Fallback to generated data
+          rating = baseRating - (index * 20) + Math.floor(Math.random() * 40) - 20;
+          playerid = `GEN${divIndex}${(index + 1).toString().padStart(3, '0')}`; // Generated ID like GEN0001
+          console.log(`    ⚠️  ${name} not found in player data, using generated (ID: ${playerid}, Rating: ${rating})`);
+        }
+
+        const player = {
           etc: {
-            p12: []
+            p12: [],
+            xtid: playerid // Store the external player ID here
           },
           id: index + 1, // Division-specific ID (1-based)
           name: name,
           newr: undefined,
           pairings: [],
           photo: `pix/${name.toLowerCase().replace(/[^a-z]/g, '_')}.jpg`,
-          rating: initialRating, // Decreasing by seed with some randomness
+          rating: rating,
           scores: [],
 
           // Track tournament statistics
@@ -57,16 +137,25 @@ class TournamentGenerator {
           losses: 0,
           spread: 0,
           opponentIds: [], // Track all opponents played within division
-          currentRating: initialRating, // Same as rating field
-          ratingHistory: [initialRating], // Track rating after each round
+          currentRating: rating, // Same as rating field
+          ratingHistory: [rating], // Track rating after each round
         };
+
+        if (index < 2) { // Log first 2 players per division
+          console.log(`    👤 Player ${index + 1}: ${JSON.stringify(player, null, 2)}`);
+        }
+
+        return player;
       });
 
-      return {
+      const division = {
         name: divName,
         players: players,
         playedPairings: new Set() // Track who has played whom in this division
       };
+
+      console.log(`  ✅ Division ${divName} initialized with ${players.length} players`);
+      return division;
     });
   }
 
@@ -255,16 +344,8 @@ class TournamentGenerator {
       const cleanPlayers = division.players.map(player => ({
         etc: {
           p12: isInitial ? [] : [...player.etc.p12],
-          newr: isInitial ? [] : [...player.ratingHistory], // Use the rating history we've been tracking
-          board: [],
-          excwins: [],
-          penalty: [],
-          rcrank: undefined,
-          rmood: undefined,
-          rrank: [],
-          rtime: [],
-          seat: [],
-          time: []
+          newr: isInitial ? [] : [...player.ratingHistory.slice(1)], // Skip the initial rating, only include post-game ratings
+          xtid: player.etc.xtid // Include the external player ID
         },
         id: player.id,
         name: player.name,
@@ -381,91 +462,167 @@ if (require.main === module) {
   const args = process.argv.slice(2);
   const numDivisions = parseInt(args[0]) || 3; // Default to 3 divisions
   const numRounds = parseInt(args[1]) || 7;    // Default to 7 rounds
+  const playerDataFile = args[2] || null;      // Optional player data JSON file
+  const playersPerDivision = parseInt(args[3]) || 8; // Default to 8 players per division
 
   if (numDivisions < 2 || numDivisions > 4) {
     console.error('❌ Number of divisions must be between 2 and 4');
-    console.log('Usage: node tournament-generator.js [divisions] [rounds]');
-    console.log('Example: node tournament-generator.js 3 7');
+    console.log('Usage: node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division]');
+    console.log('Example: node tournament-generator.js 3 7 players.json 8');
     process.exit(1);
   }
 
-  console.log(`\n🏆 Generating tournament with ${numDivisions} divisions and ${numRounds} rounds\n`);
-
-  // Player pools for each division
-  const allPlayers = {
-    A: [
-      "Josh Cough",
-      "Nigel Richards",
-      "Will Anderson",
-      "Dave Wiegand",
-      "Conrad Bassett-Bouchard",
-      "Joel Wapnick",
-      "Joey Mallick",
-      "Chris Lipe"
-    ],
-    B: [
-      "Matthew Tunnicliffe",
-      "Jackson Smylie",
-      "David Gibson",
-      "Jeremy Hall",
-      "Stefan Rau",
-      "Joshua Sokol",
-      "Matt Canik",
-      "Cesar Del Solar"
-    ],
-    C: [
-      "Sam Kantimathi",
-      "Lisa Odom",
-      "Mark Berg",
-      "Terry Kang",
-      "Carol Guest",
-      "Samuel Heiman",
-      "Russell McKinstry",
-      "Joseph Waldbaum",
-      "Sheldon Gartner",
-      "Elizabeth Stoumen",
-      "Dalton Hoffine",
-      "Portia Zwicker"
-    ],
-    D: [
-      "Pat Baron",
-      "Ruth Hamilton",
-      "Daniel Stock",
-      "Mary Rhoades",
-      "Tom Bond",
-      "Jennifer Lee",
-      "Alan Stern",
-      "Barbara Van Alen"
-    ]
-  };
-
-  // Build divisions array based on requested number
-  const divisions = [];
-  const divisionLetters = ['A', 'B', 'C', 'D'];
-  for (let i = 0; i < numDivisions; i++) {
-    divisions.push(allPlayers[divisionLetters[i]]);
+  if (!playerDataFile) {
+    console.error('❌ Player data JSON file is required');
+    console.log('Usage: node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division]');
+    console.log('Example: node tournament-generator.js 3 7 players.json 8');
+    process.exit(1);
   }
 
+  console.log(`\n🏆 Generating tournament with ${numDivisions} divisions, ${numRounds} rounds, ${playersPerDivision} players per division\n`);
+
+  // Function to randomly select players and organize into divisions
+  function selectPlayersForTournament(playerDataFile, numDivisions, playersPerDivision) {
+    console.log(`🔍 Loading player data from: ${playerDataFile}`);
+
+    try {
+      const jsonContent = fs.readFileSync(playerDataFile, 'utf8');
+      console.log(`✅ File read successfully, size: ${jsonContent.length} characters`);
+
+      const data = JSON.parse(jsonContent);
+      console.log(`✅ JSON parsed successfully`);
+
+      const players = data.players || data;
+      console.log(`📊 Raw player count: ${Array.isArray(players) ? players.length : 'Not an array'}`);
+
+      if (!Array.isArray(players)) {
+        console.error('❌ JSON file does not contain a players array');
+        process.exit(1);
+      }
+
+      console.log(`🔍 Filtering valid players...`);
+
+      // Filter out players without valid data
+      const validPlayers = players.filter(p => {
+        const isValid = p.name &&
+                       p.playerid &&
+                       p.twlrating &&
+                       parseInt(p.twlrating) > 0 && // Convert string to number
+                       p.deceased !== "1"; // Check string value, not boolean
+
+        if (!isValid && Math.random() < 0.01) { // Log 1% of invalid players for debugging
+          console.log(`  ⚠️  Invalid player example: ${JSON.stringify({
+            name: p.name || 'MISSING',
+            playerid: p.playerid || 'MISSING',
+            twlrating: p.twlrating || 'MISSING',
+            twlrating_parsed: parseInt(p.twlrating) || 'INVALID',
+            deceased: p.deceased,
+            deceased_check: p.deceased !== "1"
+          })}`);
+        }
+
+        return isValid;
+      });
+
+      console.log(`📊 Found ${validPlayers.length} valid players in database`);
+
+      const totalPlayersNeeded = numDivisions * playersPerDivision;
+      console.log(`🎯 Need ${totalPlayersNeeded} players total (${numDivisions} divisions × ${playersPerDivision} players)`);
+
+      if (validPlayers.length < totalPlayersNeeded) {
+        console.error(`❌ Not enough valid players in database. Need ${totalPlayersNeeded}, have ${validPlayers.length}`);
+        process.exit(1);
+      }
+
+      console.log(`🔄 Sorting players by rating...`);
+      // Sort players by rating (highest first)
+      validPlayers.sort((a, b) => (parseInt(b.twlrating) || 0) - (parseInt(a.twlrating) || 0));
+
+      console.log(`📊 Rating range: ${validPlayers[0].twlrating} (highest) to ${validPlayers[validPlayers.length-1].twlrating} (lowest)`);
+
+      console.log(`🎲 Creating divisions...`);
+      // Divide players into rating tiers for more realistic divisions
+      const divisions = [];
+      const playersPerTier = Math.ceil(validPlayers.length / numDivisions);
+
+      for (let divIndex = 0; divIndex < numDivisions; divIndex++) {
+        console.log(`  📋 Processing Division ${String.fromCharCode(65 + divIndex)}...`);
+
+        const tierStart = divIndex * playersPerTier;
+        const tierEnd = Math.min((divIndex + 1) * playersPerTier, validPlayers.length);
+        const tierPlayers = validPlayers.slice(tierStart, tierEnd);
+
+        console.log(`    🎯 Tier range: players ${tierStart} to ${tierEnd-1} (${tierPlayers.length} available)`);
+        console.log(`    📊 Rating range for this tier: ${tierPlayers[0]?.twlrating} to ${tierPlayers[tierPlayers.length-1]?.twlrating}`);
+
+        // Randomly select players from this tier
+        const selectedPlayers = [];
+        const shuffledTier = [...tierPlayers].sort(() => 0.5 - Math.random());
+
+        console.log(`    🎲 Randomly selecting ${Math.min(playersPerDivision, shuffledTier.length)} players...`);
+
+        for (let i = 0; i < Math.min(playersPerDivision, shuffledTier.length); i++) {
+          selectedPlayers.push(shuffledTier[i].name);
+          if (i < 3) { // Log first 3 selections
+            console.log(`      ✅ Selected: ${shuffledTier[i].name} (Rating: ${shuffledTier[i].twlrating})`);
+          }
+        }
+
+        const divName = String.fromCharCode(65 + divIndex);
+        const avgRating = selectedPlayers.reduce((sum, name) => {
+          const player = validPlayers.find(p => p.name === name);
+          return sum + (parseInt(player.twlrating) || 0);
+        }, 0) / selectedPlayers.length;
+
+        console.log(`    📋 Division ${divName}: ${selectedPlayers.length} players (avg rating: ${Math.round(avgRating)})`);
+        divisions.push(selectedPlayers);
+      }
+
+      console.log(`✅ Player selection complete!`);
+      return divisions;
+    } catch (error) {
+      console.error(`❌ Error reading player data: ${error.message}`);
+      console.error(`Stack trace:`, error.stack);
+      process.exit(1);
+    }
+  }
+
+  // Select random players from the database
+  console.log(`🎲 Starting player selection...`);
+  const divisions = selectPlayersForTournament(playerDataFile, numDivisions, playersPerDivision);
+  console.log(`✅ Player selection complete!`);
+
+  console.log(`🏗️  Creating tournament generator...`);
   const generator = new TournamentGenerator(
     divisions,
     {
-      eventName: `Test Tournament (${numDivisions} Divisions)`,
-      eventDate: 'August 5, 2025',
+      eventName: `Tournament (${numDivisions} Divisions)`,
+      eventDate: new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
       maxRounds: numRounds,
-      outputDir: './generated-tournament'
+      outputDir: './generated-tournament',
+      playerDataFile: playerDataFile
     }
   );
+  console.log(`✅ Tournament generator created!`);
 
   // Generate the full tournament
+  console.log(`🎪 Starting tournament simulation...`);
   generator.simulateFullTournament(numRounds);
+  console.log(`✅ Tournament simulation complete!`);
 
   console.log('\n✅ Tournament files generated successfully!');
   console.log('\n📖 Usage:');
-  console.log('  node tournament-generator.js [divisions] [rounds]');
+  console.log('  node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division]');
   console.log('  divisions: 2-4 (default: 3)');
   console.log('  rounds: number of rounds (default: 7)');
+  console.log('  player-data.json: JSON file with player data (required)');
+  console.log('  players-per-division: number of players per division (default: 8)');
   console.log('\nExamples:');
-  console.log('  node tournament-generator.js        # 3 divisions, 7 rounds');
-  console.log('  node tournament-generator.js 2      # 2 divisions, 7 rounds');
-  console.log('  node tournament-generator.js 4 5    # 4 divisions, 5 rounds');
+  console.log('  node tournament-generator.js 3 7 players.json     # 3 divisions, 7 rounds, 8 players each');
+  console.log('  node tournament-generator.js 4 5 players.json 6   # 4 divisions, 5 rounds, 6 players each');
+  console.log('  node tournament-generator.js 2 9 players.json 12  # 2 divisions, 9 rounds, 12 players each');
 }
