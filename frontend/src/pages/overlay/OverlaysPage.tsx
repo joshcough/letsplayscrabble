@@ -75,6 +75,12 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
       path: `/users/${userId}/overlay/tournament_stats`,
       description: "Tournament statistics and analytics",
     },
+    {
+      title: "Cross-Tables Player Profile",
+      path: `/users/${userId}/overlay/cross_tables_profile?player=1&source=full-profile`,
+      description: "Player profiles with cross-tables ratings, rankings, and career stats",
+      requiresParams: true,
+    },
   ];
 
   return (
@@ -107,6 +113,11 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
               {overlay.isSpecial && (
                 <span className="ml-2 text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded-full">
                   Required
+                </span>
+              )}
+              {overlay.requiresParams && (
+                <span className="ml-2 text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">
+                  Params
                 </span>
               )}
             </h3>
@@ -178,6 +189,9 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           <li>
             • <strong>Misc overlay:</strong> Add ?source=player1-name (or other
             sources) for specific data elements
+          </li>
+          <li>
+            • <strong>Cross-Tables Profile:</strong> Use player=1 or player=2 for current match players. Available sources: name, location, rating, ranking, career-record, win-percentage, tournament-record, current-rating, photo, full-profile
           </li>
         </ul>
       </div>
