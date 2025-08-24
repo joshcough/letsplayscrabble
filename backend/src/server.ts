@@ -9,6 +9,7 @@ import { Server as SocketIOServer } from "socket.io";
 import { pool } from "./config/database";
 import { requireAuth } from "./middleware/auth";
 import { CurrentMatchRepository } from "./repositories/currentMatchRepository";
+import { CrossTablesPlayerRepository } from "./repositories/crossTablesPlayerRepository";
 import { TournamentRepository } from "./repositories/tournamentRepository";
 import createAdminRoutes from "./routes/admin";
 import authRoutes from "./routes/auth";
@@ -16,6 +17,7 @@ import createOverlayRoutes from "./routes/overlay";
 import { protectedPollingRoutes } from "./routes/tournament/polling";
 import { protectedTournamentRoutes } from "./routes/tournament/protected";
 import { unprotectedTournamentRoutes } from "./routes/tournament/unprotected";
+import { CrossTablesSyncService } from "./services/crossTablesSync";
 import { PingService } from "./services/pingService";
 import { TournamentPollingService } from "./services/pollingService";
 
@@ -79,8 +81,10 @@ const io = new SocketIOServer(server, {
 });
 
 const tournamentRepository = new TournamentRepository();
+const crossTablesPlayerRepository = new CrossTablesPlayerRepository();
+const crossTablesSyncService = new CrossTablesSyncService(crossTablesPlayerRepository);
 const currentMatchRepository = new CurrentMatchRepository(pool);
-const pollingService = new TournamentPollingService(tournamentRepository, io);
+const pollingService = new TournamentPollingService(tournamentRepository, crossTablesSyncService, io);
 const pingService = new PingService(io);
 
 app.use(morgan("combined"));
@@ -148,7 +152,7 @@ app.use("/api/public", unprotectedTournamentRoutes(tournamentRepository));
 app.use(
   "/api/private/tournaments",
   requireAuth,
-  protectedTournamentRoutes(tournamentRepository),
+  protectedTournamentRoutes(tournamentRepository, crossTablesSyncService),
 );
 
 app.use(

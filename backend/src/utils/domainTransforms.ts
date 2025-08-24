@@ -34,14 +34,35 @@ export function transformToDomainTournament(
   const divisions = flatTournament.divisions.map((divisionData) => {
     // Transform players and extract ratings from etc_data
     const players = divisionData.players.map(
-      (playerRow): Domain.Player => ({
-        id: playerRow.id,
-        seed: playerRow.seed,
-        name: playerRow.name,
-        initialRating: playerRow.initial_rating,
-        photo: playerRow.photo,
-        ratingsHistory: playerRow.etc_data?.newr || [playerRow.initial_rating], // Extract from etc_data
-      }),
+      (playerRow): Domain.Player => {
+        // Build xtData from joined cross-tables data if available
+        const xtData: Domain.CrossTablesPlayer | null = playerRow.xt_cross_tables_id && playerRow.xt_name ? {
+          playerid: playerRow.xt_cross_tables_id,
+          name: playerRow.xt_name,
+          twlrating: playerRow.twl_rating || undefined,
+          cswrating: playerRow.csw_rating || undefined,
+          twlranking: playerRow.twl_ranking || undefined,
+          cswranking: playerRow.csw_ranking || undefined,
+          w: playerRow.wins || undefined,
+          l: playerRow.losses || undefined,
+          t: playerRow.ties || undefined,
+          b: playerRow.byes || undefined,
+          photourl: playerRow.photo_url || undefined,
+          city: playerRow.xt_city || undefined,
+          state: playerRow.xt_state || undefined,
+          country: playerRow.xt_country || undefined,
+        } : null;
+        
+        return {
+          id: playerRow.id,
+          seed: playerRow.seed,
+          name: playerRow.name,
+          initialRating: playerRow.initial_rating,
+          photo: playerRow.photo,
+          ratingsHistory: playerRow.etc_data?.newr || [playerRow.initial_rating], // Extract from etc_data
+          xtData, // Full cross-tables data
+        };
+      },
     );
 
     // Create player lookup for games

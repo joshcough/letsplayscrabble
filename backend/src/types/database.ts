@@ -44,8 +44,27 @@ export interface PlayerRow {
   initial_rating: number;
   photo: string | null;
   etc_data: File.Etc; // Store original file format as-is
+  xtid: number | null; // Cross-tables ID at top level for easy access
   created_at: Date;
   updated_at: Date;
+}
+
+// PlayerRow with cross-tables data joined
+export interface PlayerRowWithCrossTables extends PlayerRow {
+  xt_cross_tables_id?: number | null;
+  xt_name?: string | null;
+  twl_rating?: number | null;
+  csw_rating?: number | null;
+  twl_ranking?: number | null;
+  csw_ranking?: number | null;
+  wins?: number | null;
+  losses?: number | null;
+  ties?: number | null;
+  byes?: number | null;
+  photo_url?: string | null;
+  xt_city?: string | null;
+  xt_state?: string | null;
+  xt_country?: string | null;
 }
 
 export interface GameRow {
@@ -115,6 +134,7 @@ export interface CreatePlayerRow {
   initial_rating: number;
   photo: string | null;
   etc_data: File.Etc;
+  xtid: number | null;
 }
 
 export interface CreateGameRow {
@@ -143,7 +163,7 @@ export interface Tournament {
   tournament: TournamentRow;
   divisions: {
     division: DivisionRow;
-    players: PlayerRow[];
+    players: PlayerRowWithCrossTables[];
     games: GameRow[];
   }[];
 }

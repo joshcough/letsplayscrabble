@@ -11,6 +11,7 @@ import {
 } from "../utils/domainTransforms";
 import { convertFileToDatabase } from "./fileToDatabaseConversions";
 import { loadTournamentFile } from "./loadTournamentFile";
+import { CrossTablesSyncService } from "./crossTablesSync";
 
 export class TournamentPollingService {
   private isRunning: boolean;
@@ -18,6 +19,7 @@ export class TournamentPollingService {
 
   constructor(
     private readonly repo: TournamentRepository,
+    private readonly crossTablesSync: CrossTablesSyncService,
     private readonly io: SocketIOServer,
   ) {
     this.isRunning = false;
@@ -61,6 +63,18 @@ export class TournamentPollingService {
         // Use a deep comparison of the data - compare with tournamentData.data, not tournament.data
         if (JSON.stringify(newData) !== JSON.stringify(tournamentData.data)) {
           console.log(`Found new data for ${tournament.id}:${tournament.name}`);
+
+          // FIRST: Ensure all cross-tables players exist (synchronous)
+          console.log(`Syncing cross-tables data for polled tournament ${tournament.id}...`);
+          try {
+            await this.crossTablesSync.syncPlayersFromTournament(newData);
+            console.log(`Cross-tables sync completed successfully for polled tournament ${tournament.id}`);
+          } catch (error) {
+            console.error(`ERROR: Failed to sync cross-tables data for polled tournament ${tournament.id}:`, error);
+            console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
+            // Continue anyway - polling shouldn't fail due to cross-tables issues
+            console.log('Continuing with tournament update despite sync errors...');
+          }
 
           // Convert file data to database format
           const createTournamentData = convertFileToDatabase(
