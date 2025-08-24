@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { CrossTablesPlayer } from '@shared/types/domain';
+import { CrossTablesPlayer, DetailedCrossTablesPlayer } from '@shared/types/domain';
 
 export class CrossTablesClient {
   private static readonly BASE_URL = 'https://cross-tables.com/rest';
@@ -7,11 +7,23 @@ export class CrossTablesClient {
   static async getPlayer(playerid: number): Promise<CrossTablesPlayer | null> {
     try {
       const response = await axios.get<CrossTablesPlayer>(
-        `${this.BASE_URL}/player.php?player=${playerid}`
+        `${this.BASE_URL}/players.php?playerlist=${playerid}`
+      );
+      return Array.isArray(response.data) && response.data.length > 0 ? response.data[0] : null;
+    } catch (error) {
+      console.error(`Failed to fetch player ${playerid} from cross-tables:`, error);
+      return null;
+    }
+  }
+
+  static async getDetailedPlayer(playerid: number): Promise<DetailedCrossTablesPlayer | null> {
+    try {
+      const response = await axios.get<DetailedCrossTablesPlayer>(
+        `${this.BASE_URL}/player.php?player=${playerid}&results=1`
       );
       return response.data;
     } catch (error) {
-      console.error(`Failed to fetch player ${playerid} from cross-tables:`, error);
+      console.error(`Failed to fetch detailed player ${playerid} from cross-tables:`, error);
       return null;
     }
   }

@@ -23,6 +23,32 @@ export interface CrossTablesPlayer {
 }
 
 /**
+ * Tournament result from cross-tables.com player.php endpoint
+ */
+export interface TournamentResult {
+  tourneyid: number;
+  name: string;
+  date: string;
+  division: string;
+  wins: number;
+  losses: number;
+  ties: number;
+  place: number;
+  totalplayers: number;
+  rating: number;
+  ratingchange: number;
+  points: number;
+  averagepoints: number;
+}
+
+/**
+ * Detailed player data with tournament results
+ */
+export interface DetailedCrossTablesPlayer extends CrossTablesPlayer {
+  results?: TournamentResult[];
+}
+
+/**
  * Tournament summary for admin list views
  * Contains only metadata without divisions/games data
  */

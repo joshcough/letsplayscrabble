@@ -1,4 +1,4 @@
-import { CrossTablesPlayer } from '@shared/types/domain';
+import { CrossTablesPlayer, DetailedCrossTablesPlayer } from '@shared/types/domain';
 import { CrossTablesClient } from './crossTablesClient';
 import { CrossTablesPlayerRepository } from '../repositories/crossTablesPlayerRepository';
 import { TournamentData } from '../types/scrabbleFileFormat';
@@ -145,5 +145,30 @@ export class CrossTablesSyncService {
   async syncSpecificPlayers(playerIds: number[]): Promise<void> {
     console.log(`Syncing specific players: ${playerIds.join(', ')}`);
     await this.fetchAndStorePlayerData(playerIds);
+  }
+
+  async syncDetailedPlayerData(playerIds: number[]): Promise<void> {
+    console.log(`Syncing detailed data for ${playerIds.length} players...`);
+    
+    // Fetch detailed data one by one since the API endpoint takes single player ID
+    for (const playerId of playerIds) {
+      try {
+        console.log(`Fetching detailed data for player ${playerId}...`);
+        const detailedPlayer = await CrossTablesClient.getDetailedPlayer(playerId);
+        
+        if (detailedPlayer) {
+          console.log(`Successfully fetched detailed data for ${detailedPlayer.name} (${detailedPlayer.results?.length || 0} tournaments)`);
+          await this.repo.upsertDetailedPlayer(detailedPlayer);
+        } else {
+          console.log(`No detailed data returned for player ${playerId}`);
+        }
+      } catch (error) {
+        console.error(`Error fetching detailed data for player ${playerId}:`, error);
+        // Continue with other players
+      }
+      
+      // Add delay between requests to be respectful to the API
+      await this.delay(500); // 0.5 second delay
+    }
   }
 }

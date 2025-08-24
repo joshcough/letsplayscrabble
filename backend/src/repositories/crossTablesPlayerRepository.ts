@@ -1,6 +1,6 @@
 import { Knex } from 'knex';
 import { knexDb } from '../config/database';
-import { CrossTablesPlayer } from '@shared/types/domain';
+import { CrossTablesPlayer, DetailedCrossTablesPlayer, TournamentResult } from '@shared/types/domain';
 
 export interface CrossTablesPlayerRecord {
   cross_tables_id: number;
@@ -17,6 +17,9 @@ export interface CrossTablesPlayerRecord {
   city?: string;
   state?: string;
   country?: string;
+  tournament_results?: TournamentResult[]; // JSON field
+  tournament_count?: number; // Cached count
+  average_score?: number; // Cached average
   created_at: Date;
   updated_at: Date;
 }
@@ -25,6 +28,46 @@ export class CrossTablesPlayerRepository {
   private tableName = 'cross_tables_players';
 
   constructor() {}
+
+  async upsertDetailedPlayer(playerData: DetailedCrossTablesPlayer): Promise<void> {
+    const tournamentCount = playerData.results?.length || null;
+    const averageScore = playerData.results?.length 
+      ? playerData.results.reduce((sum, result) => sum + (result.averagepoints || 0), 0) / playerData.results.length
+      : null;
+
+    const record = {
+      cross_tables_id: playerData.playerid,
+      name: playerData.name,
+      twl_rating: playerData.twlrating || null,
+      csw_rating: playerData.cswrating || null,
+      twl_ranking: playerData.twlranking || null,
+      csw_ranking: playerData.cswranking || null,
+      wins: playerData.w || null,
+      losses: playerData.l || null,
+      ties: playerData.t || null,
+      byes: playerData.b || null,
+      photo_url: playerData.photourl || null,
+      city: playerData.city || null,
+      state: playerData.state || null,
+      country: playerData.country || null,
+      tournament_results: playerData.results ? JSON.stringify(playerData.results) : null,
+      tournament_count: tournamentCount,
+      average_score: averageScore,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+
+    try {
+      await knexDb(this.tableName)
+        .insert(record)
+        .onConflict('cross_tables_id')
+        .merge(record);
+      console.log(`Successfully upserted detailed player ${playerData.name} (ID: ${playerData.playerid}) with ${tournamentCount} tournaments`);
+    } catch (error) {
+      console.error(`ERROR upserting detailed player ${playerData.playerid}:`, error);
+      throw error;
+    }
+  }
 
   async upsertPlayer(playerData: CrossTablesPlayer): Promise<void> {
     const record = {
