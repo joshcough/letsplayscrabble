@@ -51,6 +51,13 @@ export function transformToDomainTournament(
           city: playerRow.xt_city || undefined,
           state: playerRow.xt_state || undefined,
           country: playerRow.xt_country || undefined,
+          // Enhanced tournament data
+          tournamentCount: playerRow.tournament_count || undefined,
+          averageScore: playerRow.average_score || undefined,
+          results: playerRow.tournament_results ? 
+            (typeof playerRow.tournament_results === 'string' ? 
+              JSON.parse(playerRow.tournament_results) : 
+              playerRow.tournament_results) : undefined,
         } : null;
         
         return {

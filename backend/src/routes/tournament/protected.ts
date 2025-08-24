@@ -32,7 +32,7 @@ export function protectedTournamentRoutes(
     // FIRST: Ensure all cross-tables players exist (synchronous)
     console.log('Syncing cross-tables data before tournament creation...');
     try {
-      await crossTablesSync.syncPlayersFromTournament(rawData);
+      await crossTablesSync.syncPlayersFromTournament(rawData, true); // Include detailed data for tournament creation
       console.log('Cross-tables sync completed successfully');
     } catch (error) {
       console.error('ERROR: Failed to sync cross-tables data:', error);
@@ -92,7 +92,7 @@ export function protectedTournamentRoutes(
               // FIRST: Ensure all cross-tables players exist (synchronous)
               console.log(`Syncing cross-tables data before updating tournament ${tournamentId}...`);
               try {
-                await crossTablesSync.syncPlayersFromTournament(newData);
+                await crossTablesSync.syncPlayersFromTournament(newData, true); // Include detailed data for tournament updates
                 console.log(`Cross-tables sync completed successfully for tournament ${tournamentId}`);
               } catch (error) {
                 console.error(`ERROR: Failed to sync cross-tables data for tournament ${tournamentId}:`, error);

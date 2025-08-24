@@ -191,7 +191,7 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
             sources) for specific data elements
           </li>
           <li>
-            • <strong>Cross-Tables Profile:</strong> Use player=1 or player=2 for current match players. Available sources: name, location, rating, ranking, career-record, win-percentage, tournament-record, current-rating, photo, full-profile
+            • <strong>Cross-Tables Profile:</strong> Use player=1 or player=2 for current match players. Available sources: name, location, rating, ranking, tournament-count, career-record, win-percentage, average-score, tournament-record, current-rating, recent-tournament, photo, full-profile
           </li>
         </ul>
       </div>

@@ -20,6 +20,10 @@ export interface CrossTablesPlayer {
   city?: string;
   state?: string;
   country?: string;
+  // Enhanced data from detailed API
+  tournamentCount?: number;
+  averageScore?: number;
+  results?: TournamentResult[]; // Full tournament history
 }
 
 /**

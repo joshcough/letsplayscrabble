@@ -3,7 +3,7 @@
 import {
   LoginRequest,
   LoginSuccessData,
-  StartPollingRequest,
+  EnablePollingRequest,
   PollingSuccessData,
 } from "@shared/types/api";
 import * as Domain from "@shared/types/domain";
@@ -172,7 +172,7 @@ export class HttpApiService implements ApiService {
 
   async enablePolling(
     tournamentId: number,
-    request: StartPollingRequest,
+    request: EnablePollingRequest,
   ): Promise<ApiResponse<PollingSuccessData>> {
     return await this.fetchWithAuth(
       `/api/private/tournaments/${tournamentId}/polling`,

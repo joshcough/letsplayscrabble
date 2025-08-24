@@ -58,10 +58,13 @@ type SourceType =
   | "location" 
   | "rating"
   | "ranking"
+  | "tournament-count"
   | "career-record"
   | "win-percentage"
+  | "average-score"
   | "tournament-record"
   | "current-rating"
+  | "recent-tournament"
   | "photo"
   | "full-profile";
 
@@ -84,6 +87,23 @@ const renderPlayerData = (
     : null;
   const tournamentRecord = calculateTournamentRecord(player.id, divisionData.games);
   const currentRating = player.ratingsHistory[player.ratingsHistory.length - 1] || player.initialRating;
+  
+  // New detailed tournament data
+  const tournamentCount = xtData?.tournamentCount || null;
+  const averageScore = xtData?.averageScore || null;
+  // Find most recent tournament win, or fall back to most recent tournament
+  const recentWin = xtData?.results?.find((result: any) => result.position === '1' || result.position === 1);
+  const recentTournament = recentWin || (xtData?.results && xtData.results.length > 0 ? xtData.results[0] : null);
+  const isWin = recentWin && recentTournament === recentWin;
+    
+  // Debug logging
+  console.log('CrossTables Debug:', {
+    hasXtData: !!xtData,
+    tournamentCount,
+    averageScore,
+    hasResults: xtData?.results?.length || 0,
+    firstResult: recentTournament
+  });
 
   switch (source) {
     case "name":
@@ -98,6 +118,9 @@ const renderPlayerData = (
     case "ranking":
       return <div>{ranking ? `Ranking: ${ranking}` : "Ranking not available"}</div>;
 
+    case "tournament-count":
+      return <div>{tournamentCount ? `Tournaments: ${tournamentCount}` : "Tournament count not available"}</div>;
+
     case "career-record":
       if (xtData?.w !== undefined && xtData?.l !== undefined && xtData?.t !== undefined) {
         return <div>Career Record: {xtData.w}-{xtData.l}-{xtData.t}</div>;
@@ -107,11 +130,28 @@ const renderPlayerData = (
     case "win-percentage":
       return <div>{winPercentage !== null ? `Win %: ${winPercentage}%` : "Win % not available"}</div>;
 
+    case "average-score":
+      return <div>{averageScore ? `Average Score: ${averageScore.toFixed(1)}` : "Average score not available"}</div>;
+
     case "tournament-record":
       return <div>Tournament Record: {tournamentRecord}</div>;
 
     case "current-rating":
       return <div>Current Rating: {currentRating}</div>;
+
+    case "recent-tournament":
+      if (recentTournament) {
+        return (
+          <div>
+            Recent Tournament Win:
+            <br />
+            {recentTournament.name} - {recentTournament.place}/{recentTournament.totalplayers}
+            <br />
+            {recentTournament.wins}-{recentTournament.losses} {recentTournament.ratingchange > 0 ? '+' : ''}{recentTournament.ratingchange}
+          </div>
+        );
+      }
+      return <div>Recent tournament not available</div>;
 
     case "photo":
       const photoUrl = xtData?.photourl || player.photo;
@@ -177,6 +217,12 @@ const renderPlayerData = (
                 </div>
               )}
 
+              {tournamentCount && (
+                <div className="mb-2">
+                  <span className="font-semibold">Tournaments:</span> {tournamentCount}
+                </div>
+              )}
+
               {xtData?.w !== undefined && xtData?.l !== undefined && xtData?.t !== undefined && (
                 <>
                   <div className="mb-2">
@@ -188,13 +234,25 @@ const renderPlayerData = (
                 </>
               )}
 
-              <div className="mb-2">
-                <span className="font-semibold">Current Tournament:</span> {tournamentRecord}
-              </div>
+              {averageScore && (
+                <div className="mb-2">
+                  <span className="font-semibold">Average Score:</span> {averageScore}-386
+                </div>
+              )}
 
-              <div className="mb-2">
-                <span className="font-semibold">Current Rating:</span> {currentRating}
-              </div>
+              {recentTournament && (
+                <div className="mb-2">
+                  <span className="font-semibold">{isWin ? 'Recent Tournament Win:' : 'Recent Tournament:'}</span>
+                  <div className="ml-4">
+                    {recentTournament.tourneyname}
+                    {recentTournament.date && ` (${recentTournament.date})`}
+                  </div>
+                  <div className="ml-4">
+                    {recentTournament.w}-{recentTournament.l} {recentTournament.spread > 0 ? '+' : ''}{recentTournament.spread}
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
         </div>

@@ -14,6 +14,7 @@ export class CrossTablesSyncService {
    * 2. Checks which players we already have in our cross_tables_players table
    * 3. Only fetches missing players from cross-tables.com API (incremental sync)
    * 4. Stores fetched data in cross_tables_players table for future overlay use
+   * 5. Optionally fetches detailed tournament history for enhanced overlays
    * 
    * This allows OBS overlays to join tournament players with rich cross-tables data
    * (ratings, rankings, stats, location, etc.) without hitting the API during broadcasts.
@@ -23,7 +24,7 @@ export class CrossTablesSyncService {
    * - Tournament file is manually updated  
    * - Polling service detects tournament changes
    */
-  async syncPlayersFromTournament(tournamentData: TournamentData): Promise<void> {
+  async syncPlayersFromTournament(tournamentData: TournamentData, includeDetailedData: boolean = false): Promise<void> {
     console.log('Starting cross-tables player sync for tournament...');
     
     // Step 1: Extract all cross-tables IDs from tournament player data
@@ -39,6 +40,12 @@ export class CrossTablesSyncService {
     // Step 2-4: Only fetch players we don't already have (incremental sync)
     await this.ensureGlobalPlayersExist(crossTablesIds);
     
+    // Step 5: Optionally fetch detailed tournament history
+    if (includeDetailedData) {
+      console.log('Fetching detailed tournament history for enhanced overlays...');
+      await this.syncDetailedPlayerData(crossTablesIds);
+    }
+    
     console.log('Cross-tables player sync completed');
   }
 
@@ -46,20 +53,10 @@ export class CrossTablesSyncService {
     if (crossTablesIds.length === 0) return;
     
     try {
-      // Check which players we don't have yet
-      console.log(`Checking database for existing players from IDs: ${crossTablesIds.join(', ')}`);
-      const existingPlayers = await this.repo.getPlayers(crossTablesIds);
-      console.log(`Found ${existingPlayers.length} existing players in database`);
-      
-      const existingIds = new Set(existingPlayers.map(p => p.cross_tables_id));
-      const missingIds = crossTablesIds.filter(id => !existingIds.has(id));
-      
-      if (missingIds.length > 0) {
-        console.log(`Need to fetch ${missingIds.length} missing players: ${missingIds.join(', ')}`);
-        await this.fetchAndStorePlayerData(missingIds);
-      } else {
-        console.log('All players already exist in database, no fetch needed');
-      }
+      // Always update all players (simple approach - one batch call per tournament)
+      console.log(`Updating cross-tables data for ${crossTablesIds.length} players: ${crossTablesIds.join(', ')}`);
+      await this.fetchAndStorePlayerData(crossTablesIds);
+      console.log('Cross-tables basic sync completed');
     } catch (error) {
       console.error('ERROR in ensureGlobalPlayersExist:', error);
       throw error;
@@ -158,6 +155,8 @@ export class CrossTablesSyncService {
         
         if (detailedPlayer) {
           console.log(`Successfully fetched detailed data for ${detailedPlayer.name} (${detailedPlayer.results?.length || 0} tournaments)`);
+          // Ensure the playerid is set since the detailed API might not return it
+          detailedPlayer.playerid = playerId;
           await this.repo.upsertDetailedPlayer(detailedPlayer);
         } else {
           console.log(`No detailed data returned for player ${playerId}`);

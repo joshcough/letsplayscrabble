@@ -3,7 +3,7 @@
 import {
   LoginRequest,
   LoginSuccessData,
-  StartPollingRequest,
+  EnablePollingRequest,
   PollingSuccessData,
 } from "@shared/types/api";
 import * as Domain from "@shared/types/domain";
@@ -51,7 +51,7 @@ export interface TournamentService {
   // Polling operations
   enablePolling(
     tournamentId: number,
-    request: StartPollingRequest,
+    request: EnablePollingRequest,
   ): Promise<ApiResponse<PollingSuccessData>>;
   disablePolling(tournamentId: number): Promise<ApiResponse<void>>;
 }

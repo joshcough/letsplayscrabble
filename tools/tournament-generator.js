@@ -548,20 +548,43 @@ if (require.main === module) {
       for (let divIndex = 0; divIndex < numDivisions; divIndex++) {
         console.log(`  📋 Processing Division ${String.fromCharCode(65 + divIndex)}...`);
 
+        // Always include specific top players in Division A for testing
+        const guaranteedPlayers = [];
+        if (divIndex === 0) { // Division A only
+          const topPlayers = [
+            'Nigel Richards',     // World #1, lots of wins
+            'Joey Krafchick',     // Top US player
+            'Will Anderson',      // Another top player
+            'Jackson Smylie',     // Top Canadian
+            'Brooke Mosesman',    // Low-rated player (54 rating) - likely no wins for testing
+          ];
+          
+          console.log(`    ⭐ Adding guaranteed top players to Division A...`);
+          for (const playerName of topPlayers) {
+            const player = validPlayers.find(p => p.name === playerName);
+            if (player && guaranteedPlayers.length < playersPerDivision - 1) {
+              guaranteedPlayers.push(player);
+              console.log(`    ✅ Added ${playerName} (rating: ${player.twlrating})`);
+            }
+          }
+        }
+
         const tierStart = divIndex * playersPerTier;
         const tierEnd = Math.min((divIndex + 1) * playersPerTier, validPlayers.length);
-        const tierPlayers = validPlayers.slice(tierStart, tierEnd);
+        const tierPlayers = validPlayers.slice(tierStart, tierEnd)
+          .filter(p => !guaranteedPlayers.some(gp => gp.playerid === p.playerid)); // Exclude already selected
 
-        console.log(`    🎯 Tier range: players ${tierStart} to ${tierEnd-1} (${tierPlayers.length} available)`);
+        console.log(`    🎯 Tier range: players ${tierStart} to ${tierEnd-1} (${tierPlayers.length} available after exclusions)`);
         console.log(`    📊 Rating range for this tier: ${tierPlayers[0]?.twlrating} to ${tierPlayers[tierPlayers.length-1]?.twlrating}`);
 
-        // Randomly select players from this tier
-        const selectedPlayers = [];
+        // Start with guaranteed player names, then randomly select from tier
+        const selectedPlayers = guaranteedPlayers.map(p => p.name);
         const shuffledTier = [...tierPlayers].sort(() => 0.5 - Math.random());
 
         console.log(`    🎲 Randomly selecting ${Math.min(playersPerDivision, shuffledTier.length)} players...`);
 
-        for (let i = 0; i < Math.min(playersPerDivision, shuffledTier.length); i++) {
+        const remainingSlots = playersPerDivision - selectedPlayers.length;
+        for (let i = 0; i < Math.min(remainingSlots, shuffledTier.length); i++) {
           selectedPlayers.push(shuffledTier[i].name);
           if (i < 3) { // Log first 3 selections
             console.log(`      ✅ Selected: ${shuffledTier[i].name} (Rating: ${shuffledTier[i].twlrating})`);

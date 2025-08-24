@@ -31,40 +31,28 @@ export class CrossTablesPlayerRepository {
 
   async upsertDetailedPlayer(playerData: DetailedCrossTablesPlayer): Promise<void> {
     const tournamentCount = playerData.results?.length || null;
-    const averageScore = playerData.results?.length 
-      ? playerData.results.reduce((sum, result) => sum + (result.averagepoints || 0), 0) / playerData.results.length
-      : null;
-
-    const record = {
-      cross_tables_id: playerData.playerid,
-      name: playerData.name,
-      twl_rating: playerData.twlrating || null,
-      csw_rating: playerData.cswrating || null,
-      twl_ranking: playerData.twlranking || null,
-      csw_ranking: playerData.cswranking || null,
-      wins: playerData.w || null,
-      losses: playerData.l || null,
-      ties: playerData.t || null,
-      byes: playerData.b || null,
-      photo_url: playerData.photourl || null,
-      city: playerData.city || null,
-      state: playerData.state || null,
-      country: playerData.country || null,
+    const averageScore = playerData.averageScore || null;
+      
+    // Only update the detailed fields, don't touch basic player info that might be null in detailed response
+    const detailedFields = {
       tournament_results: playerData.results ? JSON.stringify(playerData.results) : null,
       tournament_count: tournamentCount,
       average_score: averageScore,
-      created_at: new Date(),
       updated_at: new Date(),
     };
 
     try {
-      await knexDb(this.tableName)
-        .insert(record)
-        .onConflict('cross_tables_id')
-        .merge(record);
-      console.log(`Successfully upserted detailed player ${playerData.name} (ID: ${playerData.playerid}) with ${tournamentCount} tournaments`);
+      const updated = await knexDb(this.tableName)
+        .where('cross_tables_id', playerData.playerid)
+        .update(detailedFields);
+        
+      if (updated === 0) {
+        console.warn(`No existing player found with ID ${playerData.playerid} to update detailed data`);
+      } else {
+        console.log(`Successfully updated detailed data for player ID ${playerData.playerid} (${tournamentCount} tournaments)`);
+      }
     } catch (error) {
-      console.error(`ERROR upserting detailed player ${playerData.playerid}:`, error);
+      console.error(`ERROR updating detailed player ${playerData.playerid}:`, error);
       throw error;
     }
   }

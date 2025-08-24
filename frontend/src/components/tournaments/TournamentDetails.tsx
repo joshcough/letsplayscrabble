@@ -133,7 +133,7 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
 
   const handleEnablePolling = async () => {
     const response = await apiService.enablePolling(Number(params.id), {
-      pollUntilMinutes: pollingDays * 24 * 60,
+      days: pollingDays,
     });
 
     if (response.success) {

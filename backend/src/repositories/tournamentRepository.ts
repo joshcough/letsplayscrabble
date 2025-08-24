@@ -480,7 +480,10 @@ export class TournamentRepository {
         "cross_tables_players.photo_url",
         "cross_tables_players.city as xt_city",
         "cross_tables_players.state as xt_state", 
-        "cross_tables_players.country as xt_country"
+        "cross_tables_players.country as xt_country",
+        "cross_tables_players.tournament_results",
+        "cross_tables_players.tournament_count",
+        "cross_tables_players.average_score"
       )
       .where("players.tournament_id", tournamentId)
       .where("players.division_id", divisionId)

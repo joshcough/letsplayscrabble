@@ -1,0 +1,26 @@
+Project Context:
+This is a Scrabble tournament management system that includes:
+- Tournament management (viewing, adding tournaments)
+- Stats overlay system for OBS
+- Admin interface for managing current matches
+
+Current Stack:
+- Frontend: React
+- Backend: Node/Express
+- Database: Postgres
+- Hosting: Heroku
+
+Priority List for Improvements:
+2. Testing (with TypeScript)
+   - Backend API tests
+   - Frontend component tests
+   - Integration tests
+3. Code Review/Best Practices
+5. Error Alerting
+6. Hosting Platform Review
+7. Metrics
+
+Current Theme:
+- Recently updated with Scrabble-inspired theme
+- Using colors: #FAF1DB (light ivory), #4A3728 (dark brown)
+- Overlay page intentionally keeps white background for OBS
