@@ -2,6 +2,27 @@
 // Pure domain model types - business logic, no persistence concerns
 
 /**
+ * Cross-tables.com player data
+ * External API data structure for player ratings and statistics
+ */
+export interface CrossTablesPlayer {
+  playerid: number;
+  name: string;
+  twlrating?: number;
+  cswrating?: number;
+  twlranking?: number;
+  cswranking?: number;
+  w?: number; // wins
+  l?: number; // losses  
+  t?: number; // ties
+  b?: number; // byes
+  photourl?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+}
+
+/**
  * Tournament summary for admin list views
  * Contains only metadata without divisions/games data
  */
@@ -53,7 +74,7 @@ export interface Player {
   initialRating: number;
   photo: string | null;
   ratingsHistory: number[]; // Player's rating progression throughout tournament
-  // Note: no division_id or tournament_id - structure provides context
+  xtData: CrossTablesPlayer | null; // Full cross-tables data when available
 }
 
 /**
