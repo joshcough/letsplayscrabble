@@ -76,11 +76,11 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           element={<PlayerOverlayTestingPage apiService={apiService} />}
         />
         <Route
-          path="/users/:userId/overlay/cross_tables_profile"
+          path="/users/:userId/overlay/cross_tables_profile/:tournamentId?/:divisionName?/:playerId?"
           element={<CrossTablesPlayerProfileOverlay apiService={apiService} />}
         />
         <Route
-          path="/users/:userId/overlay/head_to_head"
+          path="/users/:userId/overlay/head_to_head/:tournamentId?/:divisionName?/:playerId1?/:playerId2?"
           element={<HeadToHeadOverlay apiService={apiService} />}
         />
         <Route

@@ -1,58 +1,83 @@
 import React from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { 
   BaseOverlay, 
   BaseOverlayDataProps 
 } from '../../components/shared/BaseOverlay';
 import { ApiService } from '../../services/interfaces';
 
-type SourceType = 
-  | "full-comparison"
-  | "player-names"
-  | "head-to-head-record"  
-  | "average-scores"
-  | "last-match"
-  | "current-standings";
+type RouteParams = {
+  userId?: string;
+  tournamentId?: string;
+  divisionName?: string;
+  playerId1?: string;
+  playerId2?: string;
+};
+
+// Simplified to just show full head-to-head comparison
 
 interface HeadToHeadOverlayPageProps {
   apiService: ApiService;
 }
 
 const HeadToHeadOverlayPage: React.FC<HeadToHeadOverlayPageProps> = ({ apiService }) => {
-  const [searchParams] = useSearchParams();
-  const source = (searchParams.get("source") as SourceType) || "full-comparison";
+  const { userId, tournamentId, divisionName, playerId1, playerId2 } = useParams<RouteParams>();
 
+  // Determine mode: specific player IDs vs current match
+  const hasSpecificPlayers = !!(tournamentId && divisionName && playerId1 && playerId2);
+  
   return (
     <BaseOverlay apiService={apiService}>
       {({ tournament, divisionData, divisionName, currentMatch }) => {
-        return renderHeadToHead({ tournament, divisionData, divisionName, currentMatch }, source);
+        return renderHeadToHead({ tournament, divisionData, divisionName, currentMatch }, hasSpecificPlayers, playerId1, playerId2);
       }}
     </BaseOverlay>
   );
 };
 
-const renderHeadToHead = (data: BaseOverlayDataProps, source: SourceType): React.ReactNode => {
+const renderHeadToHead = (
+  data: BaseOverlayDataProps, 
+  hasSpecificPlayers: boolean, 
+  playerId1?: string, 
+  playerId2?: string
+): React.ReactNode => {
   const { divisionData, currentMatch } = data;
 
-  if (!currentMatch) {
-    return <div>No current match selected</div>;
-  }
+  let player1: any, player2: any;
 
-  // Find the current game from the current match
-  const currentGame = divisionData.games.find(game => 
-    game.roundNumber === currentMatch.round && 
-    game.pairingId === currentMatch.pairingId
-  );
+  if (hasSpecificPlayers) {
+    // Specific players mode - find players by ID
+    player1 = divisionData.players.find(p => p.id === parseInt(playerId1!));
+    player2 = divisionData.players.find(p => p.id === parseInt(playerId2!));
 
-  if (!currentGame) {
-    return <div>Current game not found</div>;
-  }
+    if (!player1) {
+      return <div>Player ID {playerId1} not found in tournament data</div>;
+    }
+    if (!player2) {
+      return <div>Player ID {playerId2} not found in tournament data</div>;
+    }
+  } else {
+    // Current match mode
+    if (!currentMatch) {
+      return <div>No current match selected</div>;
+    }
 
-  const player1 = divisionData.players.find(p => p.id === currentGame.player1Id);
-  const player2 = divisionData.players.find(p => p.id === currentGame.player2Id);
+    // Find the current game from the current match
+    const currentGame = divisionData.games.find(game => 
+      game.roundNumber === currentMatch.round && 
+      game.pairingId === currentMatch.pairingId
+    );
 
-  if (!player1 || !player2) {
-    return <div>Players not found in tournament data</div>;
+    if (!currentGame) {
+      return <div>Current game not found</div>;
+    }
+
+    player1 = divisionData.players.find(p => p.id === currentGame.player1Id);
+    player2 = divisionData.players.find(p => p.id === currentGame.player2Id);
+
+    if (!player1 || !player2) {
+      return <div>Players not found in tournament data</div>;
+    }
   }
 
   // Calculate head-to-head record from all games in tournament

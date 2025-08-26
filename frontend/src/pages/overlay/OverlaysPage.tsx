@@ -77,14 +77,20 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
     },
     {
       title: "Cross-Tables Player Profile", 
-      path: `/users/${userId}/overlay/cross_tables_profile?player=1&source=full-profile`,
-      description: "Player profiles with cross-tables ratings, rankings, and career stats",
+      path: `/users/${userId}/overlay/cross_tables_profile?player=1`,
+      description: "Player profiles with cross-tables ratings, rankings, and career stats. Use ?player=1/2 for current match or /tournamentId/divisionName/playerId for specific player",
+      requiresParams: true,
+    },
+    {
+      title: "Player Overlay Testing",
+      path: `/users/${userId}/overlay/player/123/A/1/test`,
+      description: "Test page showing all available player overlay sources for a specific tournament/division/player",
       requiresParams: true,
     },
     {
       title: "Head-to-Head Comparison",
-      path: `/users/${userId}/overlay/head_to_head?source=full-comparison`,
-      description: "Compare two players with head-to-head record, average scores, and tournament standings",
+      path: `/users/${userId}/overlay/head_to_head`,
+      description: "Compare two players with head-to-head record, average scores, and tournament standings. Uses current match players or /tournamentId/divisionName/playerId1/playerId2 for specific players",
       requiresParams: true,
     },
   ];
@@ -197,7 +203,10 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
             sources) for specific data elements
           </li>
           <li>
-            • <strong>Cross-Tables Profile:</strong> Use player=1 or player=2 for current match players. Available sources: name, location, rating, ranking, tournament-count, career-record, win-percentage, average-score, tournament-record, current-rating, recent-tournament, photo, full-profile
+            • <strong>Cross-Tables Profile:</strong> Two modes - Current match: ?player=1 or ?player=2. Specific player: /tournamentId/divisionName/playerId. Available sources: name, location, rating, ranking, tournament-count, career-record, win-percentage, average-score, tournament-record, current-rating, recent-tournament, photo, full-profile.
+          </li>
+          <li>
+            • <strong>Head-to-Head Comparison:</strong> Two modes - Current match players (no params needed). Specific players: /tournamentId/divisionName/playerId1/playerId2. Available sources: full-comparison, player-names, head-to-head-record, average-scores, last-match, current-standings.
           </li>
         </ul>
       </div>
