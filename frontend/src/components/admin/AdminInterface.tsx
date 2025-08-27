@@ -99,7 +99,7 @@ const AdminInterface: React.FC<{ apiService: ApiService }> = ({
             return {
               pairingId: game.pairingId || 0,
               player1Name: player1?.name || "Unknown",
-              player2Name: player2?.name || "Unknown",
+              player2Name: game.isBye ? "BYE" : (player2?.name || "Unknown"),
             };
           });
 

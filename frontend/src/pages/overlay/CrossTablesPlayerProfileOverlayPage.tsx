@@ -112,7 +112,7 @@ const renderPlayerProfile = (
                 <span className="font-semibold">Career Record:</span> {xtData.w}-{xtData.l}-{xtData.t}
               </div>
               <div className="mb-2">
-                <span className="font-semibold">Career Win %:</span> {winPercentage}%
+                <span className="font-semibold">Career Win %:</span> {winPercentage}
               </div>
             </>
           )}

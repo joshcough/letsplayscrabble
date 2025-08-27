@@ -105,6 +105,7 @@ export interface Player {
   initialRating: number;
   photo: string | null;
   ratingsHistory: number[]; // Player's rating progression throughout tournament
+  xtid: number | null; // Cross-tables ID for lookup
   xtData: CrossTablesPlayer | null; // Full cross-tables data when available
 }
 

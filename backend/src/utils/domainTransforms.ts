@@ -68,6 +68,7 @@ export function transformToDomainTournament(
           initialRating: playerRow.initial_rating,
           photo: playerRow.photo,
           ratingsHistory: playerRow.etc_data?.newr || [playerRow.initial_rating], // Extract from etc_data
+          xtid: playerRow.xtid, // Cross-tables ID for lookup
           xtData, // Full cross-tables data
         };
       },

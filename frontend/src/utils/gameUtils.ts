@@ -21,11 +21,18 @@ export const getRecentGamesForPlayer = (
   return sortedGames.slice(0, limit).map((game) => {
     const isPlayer1 = game.player1Id === playerId;
     const opponentId = isPlayer1 ? game.player2Id : game.player1Id;
-    const opponent = players.find((p) => p.id === opponentId);
+    
+    let opponentName: string;
+    if (game.isBye) {
+      opponentName = "BYE";
+    } else {
+      const opponent = players.find((p) => p.id === opponentId);
+      opponentName = opponent?.name || "Unknown";
+    }
 
     return {
       round: game.roundNumber,
-      opponentName: opponent?.name || "Unknown",
+      opponentName,
       playerScore: (isPlayer1 ? game.player1Score : game.player2Score) || 0,
       opponentScore: (isPlayer1 ? game.player2Score : game.player1Score) || 0,
     };

@@ -13,6 +13,7 @@ class TournamentGenerator {
       maxRounds: config.maxRounds || 10,
       outputDir: config.outputDir || './tools/generated-tournament',
       playerDataFile: config.playerDataFile || null, // Path to CSV player data
+      includeXtids: config.includeXtids !== false, // Default to true, can be disabled
       ...config
     };
 
@@ -119,11 +120,15 @@ class TournamentGenerator {
           console.log(`    ⚠️  ${name} not found in player data, using generated (ID: ${playerid}, Rating: ${rating})`);
         }
 
+        const etcData = { p12: [] };
+        
+        // Only include xtid if config allows it
+        if (this.config.includeXtids) {
+          etcData.xtid = playerid;
+        }
+
         const player = {
-          etc: {
-            p12: [],
-            xtid: playerid // Store the external player ID here
-          },
+          etc: etcData,
           id: index + 1, // Division-specific ID (1-based)
           name: name,
           newr: undefined,
@@ -341,21 +346,29 @@ class TournamentGenerator {
     // Create divisions array for the file format
     return this.divisions.map(division => {
       // Clean up the player data (remove our tracking fields)
-      const cleanPlayers = division.players.map(player => ({
-        etc: {
+      const cleanPlayers = division.players.map(player => {
+        const etcData = {
           p12: isInitial ? [] : [...player.etc.p12],
           newr: isInitial ? [] : [...player.ratingHistory.slice(1)], // Skip the initial rating, only include post-game ratings
-          xtid: player.etc.xtid // Include the external player ID
-        },
-        id: player.id,
-        name: player.name,
-        newr: player.newr,
-        pairings: isInitial ? [] : [...player.pairings],
-        photo: player.photo,
-        photomood: undefined,
-        rating: player.rating,
-        scores: isInitial ? [] : [...player.scores]
-      }));
+        };
+        
+        // Only include xtid if config allows it
+        if (this.config.includeXtids && player.etc.xtid) {
+          etcData.xtid = player.etc.xtid;
+        }
+        
+        return {
+          etc: etcData,
+          id: player.id,
+          name: player.name,
+          newr: player.newr,
+          pairings: isInitial ? [] : [...player.pairings],
+          photo: player.photo,
+          photomood: undefined,
+          rating: player.rating,
+          scores: isInitial ? [] : [...player.scores]
+        };
+      });
 
       return {
         name: division.name,
@@ -460,6 +473,16 @@ class TournamentGenerator {
 if (require.main === module) {
   // Parse command line arguments
   const args = process.argv.slice(2);
+  
+  // Check for --no-xt-ids flag
+  const noXtIdsIndex = args.indexOf('--no-xt-ids');
+  const includeXtids = noXtIdsIndex === -1;
+  
+  // Remove the flag from args for positional argument parsing
+  if (noXtIdsIndex !== -1) {
+    args.splice(noXtIdsIndex, 1);
+  }
+  
   const numDivisions = parseInt(args[0]) || 3; // Default to 3 divisions
   const numRounds = parseInt(args[1]) || 7;    // Default to 7 rounds
   const playerDataFile = args[2] || null;      // Optional player data JSON file
@@ -467,16 +490,22 @@ if (require.main === module) {
 
   if (numDivisions < 2 || numDivisions > 4) {
     console.error('❌ Number of divisions must be between 2 and 4');
-    console.log('Usage: node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division]');
+    console.log('Usage: node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division] [--no-xt-ids]');
     console.log('Example: node tournament-generator.js 3 7 players.json 8');
+    console.log('Example: node tournament-generator.js 3 7 players.json 8 --no-xt-ids');
     process.exit(1);
   }
 
   if (!playerDataFile) {
     console.error('❌ Player data JSON file is required');
-    console.log('Usage: node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division]');
+    console.log('Usage: node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division] [--no-xt-ids]');
     console.log('Example: node tournament-generator.js 3 7 players.json 8');
+    console.log('Example: node tournament-generator.js 3 7 players.json 8 --no-xt-ids');
     process.exit(1);
+  }
+  
+  if (!includeXtids) {
+    console.log('🚫 Cross-tables IDs will be excluded from generated tournament files');
   }
 
   console.log(`\n🏆 Generating tournament with ${numDivisions} divisions, ${numRounds} rounds, ${playersPerDivision} players per division\n`);
@@ -627,7 +656,8 @@ if (require.main === module) {
       }),
       maxRounds: numRounds,
       outputDir: './generated-tournament',
-      playerDataFile: playerDataFile
+      playerDataFile: playerDataFile,
+      includeXtids: includeXtids
     }
   );
   console.log(`✅ Tournament generator created!`);
@@ -639,13 +669,15 @@ if (require.main === module) {
 
   console.log('\n✅ Tournament files generated successfully!');
   console.log('\n📖 Usage:');
-  console.log('  node tools/tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division]');
+  console.log('  node tools/tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division] [--no-xt-ids]');
   console.log('  divisions: 2-4 (default: 3)');
   console.log('  rounds: number of rounds (default: 7)');
   console.log('  player-data.json: JSON file with player data (required)');
   console.log('  players-per-division: number of players per division (default: 8)');
+  console.log('  --no-xt-ids: exclude cross-tables IDs from generated files (optional)');
   console.log('\nExamples:');
   console.log('  node tools/tournament-generator.js 3 7 tools/players.json     # 3 divisions, 7 rounds, 8 players each');
   console.log('  node tools/tournament-generator.js 4 5 tools/players.json 6   # 4 divisions, 5 rounds, 6 players each');
   console.log('  node tools/tournament-generator.js 2 9 tools/players.json 12  # 2 divisions, 9 rounds, 12 players each');
+  console.log('  node tools/tournament-generator.js 3 7 tools/players.json 8 --no-xt-ids  # exclude xt-ids for testing enrichment');
 }
