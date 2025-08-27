@@ -182,3 +182,25 @@ export interface TournamentUpdate {
   tournament: TournamentRow;
   changes: GameChanges;
 }
+
+// Cross-tables head-to-head game data
+export interface CrossTablesHeadToHeadRow {
+  id: number;
+  game_id: number;
+  date: string | null;
+  player1_id: number;
+  player1_name: string | null;
+  player1_score: number | null;
+  player1_old_rating: number | null;
+  player1_new_rating: number | null;
+  player1_position: number | null;
+  player2_id: number;
+  player2_name: string | null;
+  player2_score: number | null;
+  player2_old_rating: number | null;
+  player2_new_rating: number | null;
+  player2_position: number | null;
+  annotated: string | null;
+  created_at: Date;
+  updated_at: Date;
+}

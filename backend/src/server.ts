@@ -10,6 +10,7 @@ import { pool } from "./config/database";
 import { requireAuth } from "./middleware/auth";
 import { CurrentMatchRepository } from "./repositories/currentMatchRepository";
 import { CrossTablesPlayerRepository } from "./repositories/crossTablesPlayerRepository";
+import { CrossTablesHeadToHeadRepository } from "./repositories/crossTablesHeadToHeadRepository";
 import { TournamentRepository } from "./repositories/tournamentRepository";
 import createAdminRoutes from "./routes/admin";
 import authRoutes from "./routes/auth";
@@ -18,6 +19,7 @@ import { protectedPollingRoutes } from "./routes/tournament/polling";
 import { protectedTournamentRoutes } from "./routes/tournament/protected";
 import { unprotectedTournamentRoutes } from "./routes/tournament/unprotected";
 import { CrossTablesSyncService } from "./services/crossTablesSync";
+import { CrossTablesHeadToHeadService } from "./services/crossTablesHeadToHeadService";
 import { PingService } from "./services/pingService";
 import { TournamentPollingService } from "./services/pollingService";
 
@@ -80,9 +82,11 @@ const io = new SocketIOServer(server, {
   pingInterval: 25000,
 });
 
-const tournamentRepository = new TournamentRepository();
 const crossTablesPlayerRepository = new CrossTablesPlayerRepository();
 const crossTablesSyncService = new CrossTablesSyncService(crossTablesPlayerRepository);
+const crossTablesHeadToHeadRepository = new CrossTablesHeadToHeadRepository();
+const crossTablesHeadToHeadService = new CrossTablesHeadToHeadService(crossTablesHeadToHeadRepository);
+const tournamentRepository = new TournamentRepository(crossTablesHeadToHeadService);
 const currentMatchRepository = new CurrentMatchRepository(pool);
 const pollingService = new TournamentPollingService(tournamentRepository, crossTablesSyncService, io);
 const pingService = new PingService(io);
@@ -152,7 +156,7 @@ app.use("/api/public", unprotectedTournamentRoutes(tournamentRepository));
 app.use(
   "/api/private/tournaments",
   requireAuth,
-  protectedTournamentRoutes(tournamentRepository, crossTablesSyncService),
+  protectedTournamentRoutes(tournamentRepository, crossTablesSyncService, crossTablesHeadToHeadService),
 );
 
 app.use(

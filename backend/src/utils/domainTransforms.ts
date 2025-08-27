@@ -4,6 +4,7 @@ import * as Domain from "@shared/types/domain";
 
 import * as DBCurrentMatch from "../types/currentMatch";
 import * as DB from "../types/database";
+import { CrossTablesHeadToHeadService } from "../services/crossTablesHeadToHeadService";
 
 /**
  * Transform tournament row to domain summary (metadata only)
@@ -28,10 +29,11 @@ export function transformTournamentRowToSummary(
 /**
  * Transform flat database response into proper domain tree structure
  */
-export function transformToDomainTournament(
+export async function transformToDomainTournament(
   flatTournament: DB.Tournament,
-): Domain.Tournament {
-  const divisions = flatTournament.divisions.map((divisionData) => {
+  crossTablesService?: CrossTablesHeadToHeadService,
+): Promise<Domain.Tournament> {
+  const divisions = await Promise.all(flatTournament.divisions.map(async (divisionData) => {
     // Transform players and extract ratings from etc_data
     const players = divisionData.players.map(
       (playerRow): Domain.Player => {
@@ -91,13 +93,26 @@ export function transformToDomainTournament(
       }),
     );
 
+    // Fetch head-to-head games for this division if service is provided
+    let headToHeadGames: Domain.HeadToHeadGame[] = [];
+    if (crossTablesService) {
+      const playerIds = players
+        .filter(player => player.xtid !== null)
+        .map(player => player.xtid as number);
+      
+      if (playerIds.length > 0) {
+        headToHeadGames = await crossTablesService.getHeadToHeadGamesForDivision(playerIds);
+      }
+    }
+
     return {
       id: divisionData.division.id,
       name: divisionData.division.name,
       players,
       games,
+      headToHeadGames,
     };
-  });
+  }));
 
   return {
     id: flatTournament.tournament.id,

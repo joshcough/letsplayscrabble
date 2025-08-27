@@ -3,6 +3,7 @@ import { Knex } from "knex";
 
 import { knexDb } from "../config/database";
 import { convertFileToDatabase } from "../services/fileToDatabaseConversions";
+import { CrossTablesHeadToHeadService } from "../services/crossTablesHeadToHeadService";
 import * as DB from "../types/database";
 import { GameChanges, TournamentUpdate } from "../types/database";
 import * as File from "../types/scrabbleFileFormat";
@@ -22,6 +23,9 @@ type GameWithSeeds = {
 };
 
 export class TournamentRepository {
+  constructor(
+    private readonly crossTablesHeadToHeadService?: CrossTablesHeadToHeadService,
+  ) {}
   async create(
     createTournament: DB.CreateTournament,
   ): Promise<DB.TournamentRow> {
@@ -327,7 +331,7 @@ export class TournamentRepository {
       return null;
     }
 
-    return transformToDomainTournament(flatTournament);
+    return await transformToDomainTournament(flatTournament, this.crossTablesHeadToHeadService);
   }
 
   async isOwner(id: number, userId: number): Promise<boolean> {

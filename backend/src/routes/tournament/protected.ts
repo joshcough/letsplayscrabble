@@ -7,6 +7,7 @@ import { TournamentRepository } from "../../repositories/tournamentRepository";
 import { convertFileToDatabase } from "../../services/fileToDatabaseConversions";
 import { loadTournamentFile } from "../../services/loadTournamentFile";
 import { CrossTablesSyncService } from "../../services/crossTablesSync";
+import { CrossTablesHeadToHeadService } from "../../services/crossTablesHeadToHeadService";
 import * as DB from "../../types/database";
 import * as Api from "../../utils/apiHelpers";
 
@@ -14,7 +15,8 @@ interface TournamentIdParamsDict extends ParamsDictionary, TournamentIdParams {}
 
 export function protectedTournamentRoutes(
   repo: TournamentRepository,
-  crossTablesSync: CrossTablesSyncService
+  crossTablesSync: CrossTablesSyncService,
+  crossTablesHeadToHeadService: CrossTablesHeadToHeadService
 ): Router {
   const router = express.Router();
 
@@ -39,6 +41,26 @@ export function protectedTournamentRoutes(
       console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
       // Continue anyway - some players might not have cross-tables data
       console.log('Continuing with tournament creation despite sync errors...');
+    }
+    
+    // SECOND: Sync head-to-head data for all divisions
+    console.log('Syncing head-to-head data for tournament divisions...');
+    try {
+      for (const [divisionIndex, division] of rawData.divisions.entries()) {
+        const playerIds = crossTablesHeadToHeadService.extractPlayerIdsFromFileDivision(division);
+        if (playerIds.length > 1) {
+          console.log(`Syncing H2H data for division ${division.name} (${playerIds.length} players with XT IDs)...`);
+          await crossTablesHeadToHeadService.syncHeadToHeadDataForPlayers(playerIds);
+        } else {
+          console.log(`Skipping H2H sync for division ${division.name} - insufficient players with XT IDs`);
+        }
+      }
+      console.log('Head-to-head sync completed successfully');
+    } catch (error) {
+      console.error('ERROR: Failed to sync head-to-head data:', error);
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
+      // Continue anyway - head-to-head data is supplementary
+      console.log('Continuing with tournament creation despite H2H sync errors...');
     }
     
     // Convert to database format
@@ -99,6 +121,26 @@ export function protectedTournamentRoutes(
                 console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
                 // Continue anyway - some players might not have cross-tables data
                 console.log('Continuing with tournament update despite sync errors...');
+              }
+              
+              // SECOND: Sync head-to-head data for all divisions
+              console.log(`Syncing head-to-head data for tournament ${tournamentId} divisions...`);
+              try {
+                for (const [divisionIndex, division] of newData.divisions.entries()) {
+                  const playerIds = crossTablesHeadToHeadService.extractPlayerIdsFromFileDivision(division);
+                  if (playerIds.length > 1) {
+                    console.log(`Syncing H2H data for division ${division.name} (${playerIds.length} players with XT IDs)...`);
+                    await crossTablesHeadToHeadService.syncHeadToHeadDataForPlayers(playerIds);
+                  } else {
+                    console.log(`Skipping H2H sync for division ${division.name} - insufficient players with XT IDs`);
+                  }
+                }
+                console.log(`Head-to-head sync completed successfully for tournament ${tournamentId}`);
+              } catch (error) {
+                console.error(`ERROR: Failed to sync head-to-head data for tournament ${tournamentId}:`, error);
+                console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
+                // Continue anyway - head-to-head data is supplementary
+                console.log('Continuing with tournament update despite H2H sync errors...');
               }
               
               // Update everything in one transaction through repo
