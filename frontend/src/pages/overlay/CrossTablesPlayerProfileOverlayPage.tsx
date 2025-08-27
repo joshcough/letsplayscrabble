@@ -1,10 +1,10 @@
 import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
+import * as Domain from "@shared/types/domain";
 import {
   BaseOverlay,
   TournamentDisplayData,
-  DivisionData,
 } from "../../components/shared/BaseOverlay";
 import { ApiService } from "../../services/interfaces";
 
@@ -39,7 +39,7 @@ const calculateWinPercentage = (wins: number, losses: number, ties: number): num
 
 const renderPlayerProfile = (
   player: any,
-  divisionData: DivisionData,
+  divisionData: Domain.Division,
   tournament: TournamentDisplayData
 ) => {
   if (!player) {

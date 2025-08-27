@@ -1,10 +1,10 @@
 import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
+import * as Domain from "@shared/types/domain";
 import {
   BaseOverlay,
   TournamentDisplayData,
-  DivisionData,
 } from "../../components/shared/BaseOverlay";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
 import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
@@ -53,7 +53,7 @@ type SourceType =
 const renderPlayerData = (
   source: SourceType,
   player: RankedPlayerStats,
-  divisionData?: DivisionData,
+  divisionData?: Domain.Division,
   tournament?: TournamentDisplayData,
 ) => {
   if (!player && source !== "tournament-info") {
