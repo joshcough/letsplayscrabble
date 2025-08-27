@@ -21,6 +21,7 @@ export interface DivisionData {
   name: string;
   players: Domain.Player[];
   games: Domain.Game[];
+  headToHeadGames: Domain.HeadToHeadGame[];
 }
 
 export interface BaseOverlayDataProps {
@@ -129,6 +130,7 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({
         name: rawDivisionData.name,
         players: rawDivisionData.players,
         games: rawDivisionData.games,
+        headToHeadGames: rawDivisionData.headToHeadGames,
       };
 
       // Use division name from data if we don't have it from other sources

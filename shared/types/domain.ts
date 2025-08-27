@@ -47,6 +47,48 @@ export interface TournamentResult {
 }
 
 /**
+ * Head-to-head game record from cross-tables.com
+ * Individual game between two players with full details
+ */
+export interface HeadToHeadGame {
+  gameid: number;
+  date: string;
+  player1: {
+    playerid: number;
+    name: string;
+    score: number;
+    oldrating: number;
+    newrating: number;
+    position?: number;
+  };
+  player2: {
+    playerid: number;
+    name: string;
+    score: number;
+    oldrating: number;
+    newrating: number;
+    position?: number;
+  };
+  annotated?: string; // URL to game replay
+}
+
+/**
+ * Head-to-head record between two specific players
+ * Contains all historical games between them
+ */
+export interface HeadToHeadRecord {
+  player1Id: number;
+  player2Id: number;
+  games: HeadToHeadGame[];
+  // Computed summary stats
+  player1Wins: number;
+  player2Wins: number;
+  ties: number;
+  totalGames: number;
+  lastMeeting?: HeadToHeadGame;
+}
+
+/**
  * Detailed player data with tournament results
  */
 export interface DetailedCrossTablesPlayer extends CrossTablesPlayer {
@@ -92,6 +134,7 @@ export interface Division {
   name: string;
   players: Player[];
   games: Game[];
+  headToHeadGames: HeadToHeadGame[]; // Historical cross-tables H2H games for this division
 }
 
 /**

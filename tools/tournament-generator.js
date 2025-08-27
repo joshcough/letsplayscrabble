@@ -122,9 +122,9 @@ class TournamentGenerator {
 
         const etcData = { p12: [] };
         
-        // Only include xtid if config allows it
-        if (this.config.includeXtids) {
-          etcData.xtid = playerid;
+        // Only include xtid if config allows it and player has a real xtid
+        if (this.config.includeXtids && playerInfo) {
+          etcData.xtid = playerInfo.xtid || null;
         }
 
         const player = {
@@ -478,9 +478,16 @@ if (require.main === module) {
   const noXtIdsIndex = args.indexOf('--no-xt-ids');
   const includeXtids = noXtIdsIndex === -1;
   
-  // Remove the flag from args for positional argument parsing
+  // Check for --custom-players flag
+  const customPlayersIndex = args.indexOf('--custom-players');
+  const customPlayersFile = customPlayersIndex !== -1 ? args[customPlayersIndex + 1] : null;
+  
+  // Remove the flags from args for positional argument parsing
   if (noXtIdsIndex !== -1) {
     args.splice(noXtIdsIndex, 1);
+  }
+  if (customPlayersIndex !== -1) {
+    args.splice(customPlayersIndex, 2); // Remove both flag and filename
   }
   
   const numDivisions = parseInt(args[0]) || 3; // Default to 3 divisions
@@ -488,27 +495,71 @@ if (require.main === module) {
   const playerDataFile = args[2] || null;      // Optional player data JSON file
   const playersPerDivision = parseInt(args[3]) || 8; // Default to 8 players per division
 
-  if (numDivisions < 2 || numDivisions > 4) {
+  // Validation for custom players mode
+  if (customPlayersFile) {
+    if (numDivisions !== 1) {
+      console.error('❌ When using --custom-players, number of divisions must be 1');
+      console.log('Usage: node tournament-generator.js 1 [rounds] [player-data.json] [ignored] --custom-players custom-names.txt [--no-xt-ids]');
+      console.log('Example: node tournament-generator.js 1 7 players.json 8 --custom-players my-players.txt');
+      process.exit(1);
+    }
+    
+    if (!fs.existsSync(customPlayersFile)) {
+      console.error(`❌ Custom players file not found: ${customPlayersFile}`);
+      process.exit(1);
+    }
+  }
+
+  // Regular validation for non-custom mode
+  if (!customPlayersFile && (numDivisions < 2 || numDivisions > 4)) {
     console.error('❌ Number of divisions must be between 2 and 4');
-    console.log('Usage: node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division] [--no-xt-ids]');
+    console.log('Usage: node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division] [--no-xt-ids] [--custom-players file.txt]');
     console.log('Example: node tournament-generator.js 3 7 players.json 8');
     console.log('Example: node tournament-generator.js 3 7 players.json 8 --no-xt-ids');
+    console.log('Example: node tournament-generator.js 1 7 players.json 8 --custom-players my-players.txt');
     process.exit(1);
   }
 
   if (!playerDataFile) {
     console.error('❌ Player data JSON file is required');
-    console.log('Usage: node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division] [--no-xt-ids]');
+    console.log('Usage: node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division] [--no-xt-ids] [--custom-players file.txt]');
     console.log('Example: node tournament-generator.js 3 7 players.json 8');
     console.log('Example: node tournament-generator.js 3 7 players.json 8 --no-xt-ids');
+    console.log('Example: node tournament-generator.js 1 7 players.json 8 --custom-players my-players.txt');
     process.exit(1);
   }
   
   if (!includeXtids) {
     console.log('🚫 Cross-tables IDs will be excluded from generated tournament files');
   }
+  
+  if (customPlayersFile) {
+    console.log(`👥 Using custom players from: ${customPlayersFile}`);
+  }
 
   console.log(`\n🏆 Generating tournament with ${numDivisions} divisions, ${numRounds} rounds, ${playersPerDivision} players per division\n`);
+
+  // Function to load custom players from file
+  function loadCustomPlayers(customPlayersFile) {
+    console.log(`🔍 Loading custom players from: ${customPlayersFile}`);
+    
+    try {
+      const fileContent = fs.readFileSync(customPlayersFile, 'utf8');
+      const lines = fileContent.split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+      
+      console.log(`✅ Found ${lines.length} player names in custom file`);
+      lines.forEach((name, index) => {
+        console.log(`  ${index + 1}. ${name}`);
+      });
+      
+      return [lines]; // Return as single division array
+    } catch (error) {
+      console.error(`❌ Error reading custom players file: ${error.message}`);
+      process.exit(1);
+    }
+  }
 
   // Function to randomly select players and organize into divisions
   function selectPlayersForTournament(playerDataFile, numDivisions, playersPerDivision) {
@@ -639,10 +690,17 @@ if (require.main === module) {
     }
   }
 
-  // Select random players from the database
-  console.log(`🎲 Starting player selection...`);
-  const divisions = selectPlayersForTournament(playerDataFile, numDivisions, playersPerDivision);
-  console.log(`✅ Player selection complete!`);
+  // Select players (either custom or random from database)
+  let divisions;
+  if (customPlayersFile) {
+    console.log(`👥 Loading custom players...`);
+    divisions = loadCustomPlayers(customPlayersFile);
+    console.log(`✅ Custom player loading complete!`);
+  } else {
+    console.log(`🎲 Starting random player selection...`);
+    divisions = selectPlayersForTournament(playerDataFile, numDivisions, playersPerDivision);
+    console.log(`✅ Player selection complete!`);
+  }
 
   console.log(`🏗️  Creating tournament generator...`);
   const generator = new TournamentGenerator(
@@ -655,7 +713,7 @@ if (require.main === module) {
         day: 'numeric'
       }),
       maxRounds: numRounds,
-      outputDir: './generated-tournament',
+      outputDir: './tools/generated-tournament',
       playerDataFile: playerDataFile,
       includeXtids: includeXtids
     }
@@ -669,15 +727,21 @@ if (require.main === module) {
 
   console.log('\n✅ Tournament files generated successfully!');
   console.log('\n📖 Usage:');
-  console.log('  node tools/tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division] [--no-xt-ids]');
-  console.log('  divisions: 2-4 (default: 3)');
+  console.log('  node tools/tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division] [flags...]');
+  console.log('  divisions: 2-4 for random selection, 1 for custom players (default: 3)');
   console.log('  rounds: number of rounds (default: 7)');
   console.log('  player-data.json: JSON file with player data (required)');
-  console.log('  players-per-division: number of players per division (default: 8)');
+  console.log('  players-per-division: number of players per division (default: 8, ignored with --custom-players)');
   console.log('  --no-xt-ids: exclude cross-tables IDs from generated files (optional)');
+  console.log('  --custom-players file.txt: use specific players from file (requires 1 division)');
   console.log('\nExamples:');
   console.log('  node tools/tournament-generator.js 3 7 tools/players.json     # 3 divisions, 7 rounds, 8 players each');
   console.log('  node tools/tournament-generator.js 4 5 tools/players.json 6   # 4 divisions, 5 rounds, 6 players each');
   console.log('  node tools/tournament-generator.js 2 9 tools/players.json 12  # 2 divisions, 9 rounds, 12 players each');
   console.log('  node tools/tournament-generator.js 3 7 tools/players.json 8 --no-xt-ids  # exclude xt-ids for testing enrichment');
+  console.log('  node tools/tournament-generator.js 1 7 tools/players.json 8 --custom-players my-players.txt  # custom players');
+  console.log('\nCustom players file format (one name per line):');
+  console.log('  Smith, John');
+  console.log('  Doe, Jane');
+  console.log('  Johnson, Bob');
 }
