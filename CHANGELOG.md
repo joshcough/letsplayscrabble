@@ -1,5 +1,36 @@
 # Changelog
 
+## 2025-01-27 - Bug Fixes & Tournament Generator Enhancements
+
+### 🐛 **Bug Fixes**
+
+#### **Bye Display Issues**
+- **FIXED**: Admin panel now correctly displays "Player vs BYE" instead of "Player vs Player" for bye games
+- **FIXED**: Game history overlays now show "vs BYE" instead of duplicate player names for byes
+- **FIXED**: Tournament generator database integration fixed to use null xtids instead of invalid string IDs
+
+#### **Cross-Tables Name Matching**
+- **IMPROVED**: Corrected player name from "Max Panitch" to "Maxim Panitch" for perfect cross-tables matching
+- **VERIFIED**: All 7 custom tournament players now successfully match and enrich with cross-tables data
+
+### 🔧 **Tournament Generator Enhancements**
+
+#### **Custom Player Support**
+- **NEW**: `--custom-players` flag allows tournaments with client-provided player lists
+- **NEW**: Support for text files with "Last, First" name format
+- **NEW**: Automatic single-division mode when using custom players
+- **IMPROVED**: Enhanced command-line argument parsing and validation
+
+#### **Output Organization** 
+- **CHANGED**: Tournament files now generated in `tools/generated-tournament/` directory
+- **IMPROVED**: Better file organization and path handling
+- **UPDATED**: Documentation with custom player usage examples
+
+#### **Data Integrity**
+- **FIXED**: Tournament generator no longer creates invalid string xtids like "GEN0001"
+- **IMPROVED**: Proper null handling for players without cross-tables matches
+- **ENHANCED**: Backend enrichment system now works seamlessly with generated tournaments
+
 ## 2025-01-24 - Cross-Tables Integration & Enhanced Tournament Creation
 
 ### 🌍 **Cross-Tables.com Integration**
