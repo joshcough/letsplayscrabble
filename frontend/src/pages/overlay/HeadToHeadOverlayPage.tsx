@@ -5,6 +5,7 @@ import {
   BaseOverlayDataProps 
 } from '../../components/shared/BaseOverlay';
 import { ApiService } from '../../services/interfaces';
+import { formatPlayerName } from '../../utils/playerUtils';
 
 type RouteParams = {
   userId?: string;
@@ -248,130 +249,129 @@ const renderHeadToHead = (
   };
 
   return (
-    <div className="bg-white min-h-screen flex items-center justify-center p-8">
-      <div className="max-w-6xl w-full">
-        {/* Header with player names and locations */}
-        <div className="flex justify-between items-start mb-8">
-          <div className="text-left">
-            <h2 className="text-4xl font-bold mb-2">{player1.name}</h2>
-            {player1.xtData?.city && (
-              <div className="text-xl text-gray-600">
-                {player1.xtData.city}{player1.xtData.state && `, ${player1.xtData.state}`}{player1.xtData.country && !player1.xtData.state && `, ${player1.xtData.country}`}
-              </div>
-            )}
-          </div>
-          
-          <div className="text-center">
-            <h1 className="text-4xl font-bold">Head to head record</h1>
-          </div>
-
-          <div className="text-right">
-            <h2 className="text-4xl font-bold mb-2">{player2.name}</h2>
-            {player2.xtData?.city && (
-              <div className="text-xl text-gray-600">
-                {player2.xtData.city}{player2.xtData.state && `, ${player2.xtData.state}`}{player2.xtData.country && !player2.xtData.state && `, ${player2.xtData.country}`}
-              </div>
-            )}
-          </div>
-        </div>
-
+    <div className="bg-white min-h-screen flex items-center justify-center p-4">
+      <div className="max-w-4xl w-full">
         {/* Main content area */}
-        <div className="flex justify-between items-center">
-          {/* Player 1 Photo */}
-          <div className="flex flex-col items-center">
-            <div className="mb-6">
+        <div className="flex justify-between items-start gap-6">
+          {/* Player 1 Section */}
+          <div className="flex flex-col items-center flex-1">
+            {/* Player 1 Name and Location - Closer to photo */}
+            <div className="text-center mb-3">
+              <h2 className="text-2xl font-bold">{formatPlayerName(player1.name)}</h2>
+              {player1.xtData?.city && (
+                <div className="text-sm text-gray-600">
+                  {player1.xtData.city}{player1.xtData.state && `, ${player1.xtData.state}`}
+                </div>
+              )}
+            </div>
+            
+            {/* Player 1 Photo */}
+            <div className="mb-4">
               {player1.xtData?.photourl || player1.photo ? (
                 <img 
                   src={player1.xtData?.photourl || player1.photo || undefined} 
                   alt={player1.name}
-                  className="w-80 h-96 rounded-3xl object-cover border-4 border-green-500"
+                  className="w-48 h-60 rounded-2xl object-cover border-4 border-green-500"
                   style={{ backgroundColor: '#22c55e' }}
                 />
               ) : (
-                <div className="w-80 h-96 bg-green-500 rounded-3xl flex items-center justify-center text-white font-bold text-6xl border-4 border-green-600">
+                <div className="w-48 h-60 bg-green-500 rounded-2xl flex items-center justify-center text-white font-bold text-4xl border-4 border-green-600">
                   {player1.name.split(' ').map((n: string) => n.charAt(0)).join('')}
                 </div>
               )}
             </div>
+
+            {/* Player 1 Current Tournament Stats */}
+            <div className="text-center">
+              <div className="text-lg font-semibold mb-1">
+                {player1Record.wins}-{player1Record.losses} {player1Spread >= 0 ? '+' : ''}{player1Spread}
+              </div>
+              <div className="text-3xl font-bold">
+                {getOrdinalSuffix(player1Position)} <span className="text-lg">Place</span>
+              </div>
+            </div>
           </div>
 
-          {/* Center Stats */}
-          <div className="flex-grow mx-12 text-center">
-            {/* Head to head record */}
-            <div className="text-8xl font-bold mb-6">
-              {player1Wins}-{player2Wins}
+          {/* Center Stats - More Compact */}
+          <div className="flex-1 text-center px-4">
+            {/* Head to head record title and number together */}
+            <div className="mb-4">
+              <h1 className="text-xl font-bold mb-2">Head to Head Record</h1>
+              <div className="text-6xl font-bold">
+                {player1Wins}-{player2Wins}
+              </div>
             </div>
             
             {/* Average scores */}
-            <div className="mb-8">
-              <div className="text-2xl font-semibold mb-2">Average Score</div>
-              <div className="text-6xl font-bold">
+            <div className="mb-4">
+              <div className="text-lg font-semibold mb-1">Average Score</div>
+              <div className="text-3xl font-bold">
                 {player1AvgScore}-{player2AvgScore}
               </div>
             </div>
 
             {/* Last match details */}
             {lastGame && (
-              <div className="mb-8">
-                <div className="text-2xl font-semibold mb-2">Last Match:</div>
-                <div className="text-xl">{new Date(lastGame.date).toLocaleDateString()}</div>
-                <div className="text-xl">{(lastGame as any).isCurrentTournament ? data.tournament.name : 'Cross-tables.com'}</div>
-                <div className="text-2xl font-semibold">
+              <div className="mb-4">
+                <div className="text-lg font-semibold mb-1">Last Match</div>
+                <div className="text-sm">{new Date(lastGame.date).toLocaleDateString()}</div>
+                <div className="text-sm text-gray-600">{(lastGame as any).isCurrentTournament ? data.tournament.name : 'Cross-tables.com'}</div>
+                <div className="text-lg font-semibold">
                   {lastGame.player1.playerid === player1.xtid 
-                    ? `${player1.name.split(' ')[0]} ${lastGame.player1.score}-${lastGame.player2.score}`
-                    : `${player1.name.split(' ')[0]} ${lastGame.player2.score}-${lastGame.player1.score}`
+                    ? `${lastGame.player1.score}-${lastGame.player2.score}`
+                    : `${lastGame.player2.score}-${lastGame.player1.score}`
                   }
                 </div>
               </div>
             )}
 
-            {/* First/Second Record */}
-            <div className="text-lg text-gray-600 mb-2">
-              {player1.name.split(' ')[0]} going first/second: {player1FirstSecondRecord.goingFirstWins}-{player1FirstSecondRecord.goingFirstLosses} / {player1FirstSecondRecord.goingSecondWins}-{player1FirstSecondRecord.goingSecondLosses}
-            </div>
-            <div className="text-lg text-gray-600">
-              {player2.name.split(' ')[0]} going first/second: {player2FirstSecondRecord.goingFirstWins}-{player2FirstSecondRecord.goingFirstLosses} / {player2FirstSecondRecord.goingSecondWins}-{player2FirstSecondRecord.goingSecondLosses}
+            {/* First/Second Record - Better Format */}
+            <div className="text-sm text-gray-600 space-y-1">
+              <div>
+                <span className="font-semibold">{formatPlayerName(player1.name).split(' ')[0]}:</span> 1st {player1FirstSecondRecord.goingFirstWins}-{player1FirstSecondRecord.goingFirstLosses}, 2nd {player1FirstSecondRecord.goingSecondWins}-{player1FirstSecondRecord.goingSecondLosses}
+              </div>
+              <div>
+                <span className="font-semibold">{formatPlayerName(player2.name).split(' ')[0]}:</span> 1st {player2FirstSecondRecord.goingFirstWins}-{player2FirstSecondRecord.goingFirstLosses}, 2nd {player2FirstSecondRecord.goingSecondWins}-{player2FirstSecondRecord.goingSecondLosses}
+              </div>
             </div>
           </div>
 
-          {/* Player 2 Photo */}
-          <div className="flex flex-col items-center">
-            <div className="mb-6">
+          {/* Player 2 Section */}
+          <div className="flex flex-col items-center flex-1">
+            {/* Player 2 Name and Location - Closer to photo */}
+            <div className="text-center mb-3">
+              <h2 className="text-2xl font-bold">{formatPlayerName(player2.name)}</h2>
+              {player2.xtData?.city && (
+                <div className="text-sm text-gray-600">
+                  {player2.xtData.city}{player2.xtData.state && `, ${player2.xtData.state}`}
+                </div>
+              )}
+            </div>
+
+            {/* Player 2 Photo */}
+            <div className="mb-4">
               {player2.xtData?.photourl || player2.photo ? (
                 <img 
                   src={player2.xtData?.photourl || player2.photo || undefined} 
                   alt={player2.name}
-                  className="w-80 h-96 rounded-3xl object-cover border-4 border-green-500"
+                  className="w-48 h-60 rounded-2xl object-cover border-4 border-green-500"
                   style={{ backgroundColor: '#22c55e' }}
                 />
               ) : (
-                <div className="w-80 h-96 bg-green-500 rounded-3xl flex items-center justify-center text-white font-bold text-6xl border-4 border-green-600">
+                <div className="w-48 h-60 bg-green-500 rounded-2xl flex items-center justify-center text-white font-bold text-4xl border-4 border-green-600">
                   {player2.name.split(' ').map((n: string) => n.charAt(0)).join('')}
                 </div>
               )}
             </div>
-          </div>
-        </div>
 
-        {/* Bottom section with current tournament stats and positions */}
-        <div className="flex justify-between items-end mt-8">
-          {/* Player 1 stats */}
-          <div className="text-center">
-            <div className="text-2xl font-semibold mb-2">
-              {player1Record.wins}-{player1Record.losses} {player1Spread >= 0 ? '+' : ''}{player1Spread}
-            </div>
-            <div className="text-6xl font-bold">
-              {getOrdinalSuffix(player1Position)} <span className="text-3xl">Place</span>
-            </div>
-          </div>
-
-          {/* Player 2 stats */}
-          <div className="text-center">
-            <div className="text-2xl font-semibold mb-2">
-              {player2Record.wins}-{player2Record.losses} {player2Spread >= 0 ? '+' : ''}{player2Spread}
-            </div>
-            <div className="text-6xl font-bold">
-              {getOrdinalSuffix(player2Position)} <span className="text-3xl">Place</span>
+            {/* Player 2 Current Tournament Stats */}
+            <div className="text-center">
+              <div className="text-lg font-semibold mb-1">
+                {player2Record.wins}-{player2Record.losses} {player2Spread >= 0 ? '+' : ''}{player2Spread}
+              </div>
+              <div className="text-3xl font-bold">
+                {getOrdinalSuffix(player2Position)} <span className="text-lg">Place</span>
+              </div>
             </div>
           </div>
         </div>
