@@ -70,6 +70,11 @@ export function protectedTournamentRoutes(
       userId,
     );
     
+    // Set default polling to 4 days from now
+    const fourDaysFromNow = new Date();
+    fourDaysFromNow.setDate(fourDaysFromNow.getDate() + 4);
+    createTournamentData.tournament.poll_until = fourDaysFromNow;
+    
     // Create tournament - foreign keys will be valid now
     const tournament = await repo.create(createTournamentData);
     
