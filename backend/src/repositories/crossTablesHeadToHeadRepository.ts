@@ -13,6 +13,7 @@ export class CrossTablesHeadToHeadRepository {
     const rows = games.map((game): Omit<DB.CrossTablesHeadToHeadRow, 'id' | 'created_at' | 'updated_at'> => ({
       game_id: game.gameid,
       date: game.date,
+      tourney_name: game.tourneyname || null,
       player1_id: game.player1.playerid,
       player1_name: game.player1.name,
       player1_score: game.player1.score,
@@ -33,7 +34,7 @@ export class CrossTablesHeadToHeadRepository {
       .insert(rows)
       .onConflict("game_id")
       .merge([
-        "date",
+        "date", "tourney_name",
         "player1_name", "player1_score", "player1_old_rating", "player1_new_rating", "player1_position",
         "player2_name", "player2_score", "player2_old_rating", "player2_new_rating", "player2_position",
         "annotated", "updated_at"
@@ -76,6 +77,7 @@ export class CrossTablesHeadToHeadRepository {
     const domainGames: Domain.HeadToHeadGame[] = games.map((row: any) => ({
       gameid: row.game_id,
       date: row.date || "",
+      tourneyname: row.tourney_name || undefined,
       player1: {
         playerid: row.player1_id,
         name: row.player1_name || "",

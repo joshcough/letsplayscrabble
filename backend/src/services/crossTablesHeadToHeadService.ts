@@ -48,6 +48,7 @@ export class CrossTablesHeadToHeadService {
     return rows.map(row => ({
       gameid: row.game_id,
       date: row.date || "",
+      tourneyname: row.tourney_name || undefined,
       player1: {
         playerid: row.player1_id,
         name: row.player1_name || "",
@@ -70,75 +71,23 @@ export class CrossTablesHeadToHeadService {
 
   /**
    * Fetch head-to-head data for all combinations of players
-   * Currently makes multiple API calls - will be replaced with bulk endpoint later
+   * Uses the new bulk endpoint that accepts multiple players
    */
   private async fetchBulkHeadToHeadData(playerIds: number[]): Promise<{ games: Domain.HeadToHeadGame[] }> {
-    const allGames: Domain.HeadToHeadGame[] = [];
-    const gameIds = new Set<number>(); // Track game IDs to avoid duplicates
+    // Use the new endpoint that accepts multiple players
+    const url = `https://cross-tables.com/rest/headtohead.php?players=${playerIds.join('+')}`;
     
-    // Generate all unique pairs of players
-    const pairs: [number, number][] = [];
-    for (let i = 0; i < playerIds.length; i++) {
-      for (let j = i + 1; j < playerIds.length; j++) {
-        pairs.push([playerIds[i], playerIds[j]]);
-      }
-    }
-    
-    console.log(`🔄 Fetching head-to-head data for ${pairs.length} player pairs`);
-    console.log(`👥 Player pairs to check:`, pairs.map(([p1, p2]) => `${p1}+${p2}`).join(', '));
-    
-    // Rate limiting: process pairs in batches to avoid overwhelming the API
-    const batchSize = 5;
-    for (let i = 0; i < pairs.length; i += batchSize) {
-      const batch = pairs.slice(i, i + batchSize);
-      console.log(`📦 Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(pairs.length/batchSize)}: ${batch.map(([p1, p2]) => `${p1}+${p2}`).join(', ')}`);
-      
-      // Process batch in parallel
-      const batchPromises = batch.map(([player1Id, player2Id]) => 
-        this.fetchHeadToHeadForPair(player1Id, player2Id)
-      );
-      
-      const batchResults = await Promise.all(batchPromises);
-      console.log(`✅ Batch ${Math.floor(i/batchSize) + 1} completed`);
-      
-      
-      // Combine results and deduplicate
-      for (const games of batchResults) {
-        for (const game of games) {
-          if (!gameIds.has(game.gameid)) {
-            gameIds.add(game.gameid);
-            allGames.push(game);
-          }
-        }
-      }
-      
-      // Small delay between batches to be respectful to the API
-      if (i + batchSize < pairs.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-    }
-    
-    console.log(`✅ Fetched ${allGames.length} unique head-to-head games from ${pairs.length} API calls`);
-    return { games: allGames };
-  }
-
-  /**
-   * Fetch head-to-head data for a single pair of players using existing endpoint
-   */
-  private async fetchHeadToHeadForPair(player1Id: number, player2Id: number): Promise<Domain.HeadToHeadGame[]> {
-    const url = `https://cross-tables.com/rest/headtohead.php?players=${player1Id}+${player2Id}`;
-    
+    console.log(`🔄 Fetching head-to-head data for ${playerIds.length} players with single API call`);
     console.log(`🌐 Fetching H2H data: ${url}`);
     
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        console.error(`❌ HTTP ${response.status} for players ${player1Id}+${player2Id}: ${response.statusText}`);
+        console.error(`❌ HTTP ${response.status} for players ${playerIds.join('+')}: ${response.statusText}`);
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
       const data = await response.json();
-      console.log(`📊 API Response for ${player1Id}+${player2Id}:`, JSON.stringify(data, null, 2));
       
       // Handle both formats: direct array or wrapped in { games: [...] }
       let games: any[];
@@ -147,17 +96,18 @@ export class CrossTablesHeadToHeadService {
       } else if (data && Array.isArray(data.games)) {
         games = data.games;
       } else {
-        console.warn(`⚠️ Unexpected response format for players ${player1Id}+${player2Id}:`, data);
-        return [];
+        console.warn(`⚠️ Unexpected response format for players ${playerIds.join('+')}:`, data);
+        return { games: [] };
       }
       
-      console.log(`🎮 Found ${games.length} historical games between players ${player1Id} and ${player2Id}`);
+      console.log(`📊 API Response: Found ${games.length} games for players ${playerIds.join(', ')}`);
       
       // Convert API response to our domain format
       // API returns flat winner/loser fields, but we store as player1/player2 to handle ties
-      return games.map((apiGame: any): Domain.HeadToHeadGame => ({
+      const allGames: Domain.HeadToHeadGame[] = games.map((apiGame: any): Domain.HeadToHeadGame => ({
         gameid: parseInt(apiGame.gameid),
         date: apiGame.date,
+        tourneyname: apiGame.tourneyname || undefined,
         player1: {
           playerid: parseInt(apiGame.winnerid),
           name: apiGame.winnername,
@@ -177,10 +127,13 @@ export class CrossTablesHeadToHeadService {
         annotated: apiGame.annotatedurl || undefined,
       }));
       
+      console.log(`✅ Fetched ${allGames.length} unique head-to-head games with single API call`);
+      return { games: allGames };
+      
     } catch (error) {
-      console.error(`❌ Error fetching H2H data for players ${player1Id}+${player2Id}:`, error);
+      console.error(`❌ Error fetching H2H data for players ${playerIds.join('+')}:`, error);
       console.error(`🔗 Failed URL: ${url}`);
-      return []; // Return empty array on error, don't fail entire batch
+      throw error; // Re-throw error since this is our only API call now
     }
   }
 

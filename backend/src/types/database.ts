@@ -188,6 +188,7 @@ export interface CrossTablesHeadToHeadRow {
   id: number;
   game_id: number;
   date: string | null;
+  tourney_name: string | null;
   player1_id: number;
   player1_name: string | null;
   player1_score: number | null;

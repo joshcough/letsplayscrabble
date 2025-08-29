@@ -356,7 +356,7 @@ const renderCareerH2H = (
                         ? `${game.player1.score}-${game.player2.score}`
                         : `${game.player2.score}-${game.player1.score}`;
                       const winner = player1Won ? 'W' : 'L';
-                      const location = game.tournamentName || game.tourney || 'Tournament';
+                      const location = game.tournamentName || game.tourneyname || 'Tournament';
 
                       return (
                         <tr key={index} className="border-b border-gray-600/40 last:border-0 hover:bg-gray-700/20 transition-colors">

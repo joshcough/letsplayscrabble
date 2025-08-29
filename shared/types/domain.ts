@@ -53,6 +53,7 @@ export interface TournamentResult {
 export interface HeadToHeadGame {
   gameid: number;
   date: string;
+  tourneyname?: string; // Tournament name from cross-tables
   player1: {
     playerid: number;
     name: string;
