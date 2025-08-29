@@ -81,15 +81,15 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
       description: "Player profiles with cross-tables ratings, rankings, and career stats. Use ?player=1/2 for current match or /tournamentId/divisionName/playerId for specific player",
       requiresParams: true,
     },
-    {
-      title: "Player Overlay Testing",
-      path: `/users/${userId}/overlay/player/123/A/1/test`,
-      description: "Test page showing all available player overlay sources for a specific tournament/division/player",
-      requiresParams: true,
-    },
+//     {
+//       title: "Player Overlay Testing",
+//       path: `/users/${userId}/overlay/player/123/A/1/test`,
+//       description: "Test page showing all available player overlay sources for a specific tournament/division/player",
+//       requiresParams: true,
+//     },
     {
       title: "Head-to-Head Comparison",
-      path: `/users/${userId}/overlay/head_to_head`,
+      path: `/users/${userId}/overlay/head_to_head_modern`,
       description: "Compare two players with head-to-head record, average scores, and tournament standings. Uses current match players or /tournamentId/divisionName/playerId1/playerId2 for specific players",
       requiresParams: true,
     },

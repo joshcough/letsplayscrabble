@@ -25,7 +25,6 @@ import PlayerOverlayTestingPage from "./pages/overlay/PlayerOverlayTestingPage";
 import CrossTablesPlayerProfileOverlay from "./pages/overlay/CrossTablesPlayerProfileOverlayPage";
 import HeadToHeadOverlay from "./pages/overlay/HeadToHeadOverlayPage";
 import HeadToHeadModernOverlay from "./pages/overlay/HeadToHeadModernOverlayPage";
-import HeadToHeadModernScrabbleThemeOverlay from "./pages/overlay/HeadToHeadModernOverlayScrabbleThemePage";
 import RatingGainOverlayPage from "./pages/overlay/RatingGainOverlayPage";
 import RatingGainWithPicsOverlayPage from "./pages/overlay/RatingGainWithPicsOverlayPage";
 import ScoringLeadersOverlayPage from "./pages/overlay/ScoringLeadersOverlayPage";
@@ -88,10 +87,6 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
         <Route
           path="/users/:userId/overlay/head_to_head_modern/:tournamentId?/:divisionName?/:playerId1?/:playerId2?"
           element={<HeadToHeadModernOverlay apiService={apiService} />}
-        />
-        <Route
-          path="/users/:userId/overlay/head_to_head_modern2/:tournamentId?/:divisionName?/:playerId1?/:playerId2?"
-          element={<HeadToHeadModernScrabbleThemeOverlay apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/standings/:tournamentId?/:divisionName?"
