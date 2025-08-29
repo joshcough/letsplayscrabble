@@ -195,17 +195,17 @@ const renderCareerH2H = (
         <div className="grid grid-cols-[2fr_1fr_2fr] gap-2 max-w-6xl mx-auto">
 
           {/* Player 1 Card */}
-          <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-6 border border-cyan-500/30 shadow-2xl shadow-cyan-500/10">
+          <div className="bg-gradient-to-br from-blue-900/50 to-gray-900/60 backdrop-blur-xl rounded-2xl p-6 border-2 border-blue-400/50 shadow-2xl shadow-blue-400/10">
             <div className="flex items-center gap-6 mb-6">
               {/* Photo */}
               {player1.xtData?.photourl || player1.photo ? (
                 <img
                   src={player1.xtData?.photourl || player1.photo || undefined}
                   alt={formatPlayerName(player1.name)}
-                  className="w-28 h-32 rounded-xl object-cover border-2 border-cyan-400/50"
+                  className="w-28 h-32 rounded-xl object-cover border-2 border-blue-400/50"
                 />
               ) : (
-                <div className="w-28 h-32 bg-gradient-to-br from-cyan-500 to-cyan-700 rounded-xl flex items-center justify-center text-white font-bold text-3xl">
+                <div className="w-28 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-3xl shadow-lg">
                   {formatPlayerName(player1.name).split(' ').map((n: string) => n.charAt(0)).join('')}
                 </div>
               )}
@@ -240,11 +240,11 @@ const renderCareerH2H = (
             {/* Score Display */}
             <div className="text-center">
               <div className="flex items-center justify-center gap-3 mb-3">
-                <span className="text-5xl font-black text-cyan-400">{player1Wins}</span>
-                <div className="bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full w-16 h-16 flex items-center justify-center shadow-xl">
+                <span className="text-5xl font-black text-blue-300 drop-shadow-lg">{player1Wins}</span>
+                <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 rounded-full w-16 h-16 flex items-center justify-center shadow-xl ring-2 ring-purple-400/30">
                   <span className="text-white font-black text-lg">VS</span>
                 </div>
-                <span className="text-5xl font-black text-blue-400">{player2Wins}</span>
+                <span className="text-5xl font-black text-blue-300 drop-shadow-lg">{player2Wins}</span>
               </div>
               <div className="text-center">
                 <p className="text-sm text-gray-500">Average Score</p>
@@ -254,7 +254,7 @@ const renderCareerH2H = (
           </div>
 
           {/* Player 2 Card */}
-          <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-6 border border-blue-500/30 shadow-2xl shadow-blue-500/10">
+          <div className="bg-gradient-to-br from-blue-900/50 to-gray-900/60 backdrop-blur-xl rounded-2xl p-6 border-2 border-blue-400/50 shadow-2xl shadow-blue-400/10">
             <div className="flex items-center gap-6 mb-6">
               {/* Name and Location */}
               <div className="text-right flex-1">
@@ -274,7 +274,7 @@ const renderCareerH2H = (
                   className="w-28 h-32 rounded-xl object-cover border-2 border-blue-400/50"
                 />
               ) : (
-                <div className="w-28 h-32 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center text-white font-bold text-3xl">
+                <div className="w-28 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-3xl shadow-lg">
                   {formatPlayerName(player2.name).split(' ').map((n: string) => n.charAt(0)).join('')}
                 </div>
               )}
@@ -295,8 +295,8 @@ const renderCareerH2H = (
           <div className="flex justify-center">
             {/* Latest Games Table */}
             <div className="max-w-3xl w-full">
-              <h3 className="text-sm text-gray-400 uppercase tracking-wider mb-3 text-center">Latest Games</h3>
-              <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-xl rounded-xl p-4 border border-gray-700/30 shadow-2xl">
+              <h3 className="text-sm text-blue-200 uppercase tracking-wider mb-3 text-center font-semibold">Latest Games</h3>
+              <div className="bg-gradient-to-br from-blue-900/50 to-gray-900/60 backdrop-blur-xl rounded-xl p-4 border border-blue-400/50 shadow-2xl shadow-blue-400/10">
                 <table className="w-full text-sm">
                   <tbody>
                     {recentGames.map((game: any, index: number) => {
@@ -310,13 +310,13 @@ const renderCareerH2H = (
                       const location = game.tournamentName || game.tourneyname || 'Tournament';
 
                       return (
-                        <tr key={index} className="border-b border-gray-600/40 last:border-0 hover:bg-gray-700/20 transition-colors">
+                        <tr key={index} className="border-b border-blue-600/20 last:border-0 hover:bg-blue-800/20 transition-colors">
                           <td className="py-3 px-4 text-gray-300">{new Date(game.date).toLocaleDateString()}</td>
-                          <td className={`py-3 px-3 text-center font-semibold ${player1Won ? 'text-cyan-400' : 'text-gray-400'}`}>
+                          <td className={`py-3 px-3 text-center font-bold ${player1Won ? 'text-blue-300' : 'text-gray-400'}`}>
                             {winner}
                           </td>
-                          <td className="py-3 px-3 text-center text-white font-mono font-semibold">{scores}</td>
-                          <td className={`py-3 px-3 text-center font-semibold ${!player1Won ? 'text-blue-400' : 'text-gray-400'}`}>
+                          <td className="py-3 px-3 text-center text-white font-mono font-bold text-lg">{scores}</td>
+                          <td className={`py-3 px-3 text-center font-bold ${!player1Won ? 'text-blue-300' : 'text-gray-400'}`}>
                             {player1Won ? 'L' : 'W'}
                           </td>
                           <td className="py-3 px-4 text-gray-300 text-right truncate max-w-[150px]" title={location}>
