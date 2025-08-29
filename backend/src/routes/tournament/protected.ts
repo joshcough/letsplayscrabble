@@ -6,12 +6,18 @@ import { TournamentIdParams } from "@shared/types/api";
 import { TournamentRepository } from "../../repositories/tournamentRepository";
 import { convertFileToDatabase } from "../../services/fileToDatabaseConversions";
 import { loadTournamentFile } from "../../services/loadTournamentFile";
+import { CrossTablesSyncService } from "../../services/crossTablesSync";
+import { CrossTablesHeadToHeadService } from "../../services/crossTablesHeadToHeadService";
 import * as DB from "../../types/database";
 import * as Api from "../../utils/apiHelpers";
 
 interface TournamentIdParamsDict extends ParamsDictionary, TournamentIdParams {}
 
-export function protectedTournamentRoutes(repo: TournamentRepository): Router {
+export function protectedTournamentRoutes(
+  repo: TournamentRepository,
+  crossTablesSync: CrossTablesSyncService,
+  crossTablesHeadToHeadService: CrossTablesHeadToHeadService
+): Router {
   const router = express.Router();
 
   // Create tournament (automatically assigns to authenticated user)
@@ -24,14 +30,49 @@ export function protectedTournamentRoutes(repo: TournamentRepository): Router {
     const userId = req.user!.id;
     // Load file data
     const rawData = await loadTournamentFile(metadata.dataUrl);
+    
+    // FIRST: Ensure all cross-tables players exist (synchronous)
+    console.log('Syncing cross-tables data before tournament creation...');
+    try {
+      await crossTablesSync.syncPlayersFromTournament(rawData, true); // Include detailed data for tournament creation
+      console.log('Cross-tables sync completed successfully');
+    } catch (error) {
+      console.error('ERROR: Failed to sync cross-tables data:', error);
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
+      // Continue anyway - some players might not have cross-tables data
+      console.log('Continuing with tournament creation despite sync errors...');
+    }
+    
+    // SECOND: Sync head-to-head data for all divisions
+    console.log('Syncing head-to-head data for tournament divisions...');
+    try {
+      for (const [divisionIndex, division] of rawData.divisions.entries()) {
+        const playerIds = crossTablesHeadToHeadService.extractPlayerIdsFromFileDivision(division);
+        if (playerIds.length > 1) {
+          console.log(`Syncing H2H data for division ${division.name} (${playerIds.length} players with XT IDs)...`);
+          await crossTablesHeadToHeadService.syncHeadToHeadDataForPlayers(playerIds);
+        } else {
+          console.log(`Skipping H2H sync for division ${division.name} - insufficient players with XT IDs`);
+        }
+      }
+      console.log('Head-to-head sync completed successfully');
+    } catch (error) {
+      console.error('ERROR: Failed to sync head-to-head data:', error);
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
+      // Continue anyway - head-to-head data is supplementary
+      console.log('Continuing with tournament creation despite H2H sync errors...');
+    }
+    
     // Convert to database format
     const createTournamentData = convertFileToDatabase(
       rawData,
       metadata,
       userId,
     );
-    // Create tournament using clean repository
+    
+    // Create tournament - foreign keys will be valid now
     const tournament = await repo.create(createTournamentData);
+    
     res.status(201).json(Api.success(tournament));
   });
 
@@ -69,6 +110,39 @@ export function protectedTournamentRoutes(repo: TournamentRepository): Router {
             if (metadata.dataUrl !== existingTournamentData.data_url) {
               // Load new data from the URL
               const newData = await loadTournamentFile(metadata.dataUrl);
+              
+              // FIRST: Ensure all cross-tables players exist (synchronous)
+              console.log(`Syncing cross-tables data before updating tournament ${tournamentId}...`);
+              try {
+                await crossTablesSync.syncPlayersFromTournament(newData, true); // Include detailed data for tournament updates
+                console.log(`Cross-tables sync completed successfully for tournament ${tournamentId}`);
+              } catch (error) {
+                console.error(`ERROR: Failed to sync cross-tables data for tournament ${tournamentId}:`, error);
+                console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
+                // Continue anyway - some players might not have cross-tables data
+                console.log('Continuing with tournament update despite sync errors...');
+              }
+              
+              // SECOND: Sync head-to-head data for all divisions
+              console.log(`Syncing head-to-head data for tournament ${tournamentId} divisions...`);
+              try {
+                for (const [divisionIndex, division] of newData.divisions.entries()) {
+                  const playerIds = crossTablesHeadToHeadService.extractPlayerIdsFromFileDivision(division);
+                  if (playerIds.length > 1) {
+                    console.log(`Syncing H2H data for division ${division.name} (${playerIds.length} players with XT IDs)...`);
+                    await crossTablesHeadToHeadService.syncHeadToHeadDataForPlayers(playerIds);
+                  } else {
+                    console.log(`Skipping H2H sync for division ${division.name} - insufficient players with XT IDs`);
+                  }
+                }
+                console.log(`Head-to-head sync completed successfully for tournament ${tournamentId}`);
+              } catch (error) {
+                console.error(`ERROR: Failed to sync head-to-head data for tournament ${tournamentId}:`, error);
+                console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
+                // Continue anyway - head-to-head data is supplementary
+                console.log('Continuing with tournament update despite H2H sync errors...');
+              }
+              
               // Update everything in one transaction through repo
               const update: DB.TournamentUpdate =
                 await repo.updateTournamentWithNewData(
@@ -77,6 +151,7 @@ export function protectedTournamentRoutes(repo: TournamentRepository): Router {
                   metadata,
                   convertFileToDatabase(newData, metadata, userId),
                 );
+              
               res.json(Api.success(update));
             } else {
               // Just update metadata fields through repo

@@ -15,17 +15,9 @@ export interface TournamentDisplayData {
   dataUrl: string;
 }
 
-// Raw division data for overlays to calculate from
-export interface DivisionData {
-  id: number;
-  name: string;
-  players: Domain.Player[];
-  games: Domain.Game[];
-}
-
 export interface BaseOverlayDataProps {
   tournament: TournamentDisplayData;
-  divisionData: DivisionData;
+  divisionData: Domain.Division;
   divisionName: string;
   currentMatch: Domain.CurrentMatch | null;
 }
@@ -102,7 +94,7 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({
 
   // Extract data for overlays
   let tournament: TournamentDisplayData | null = null;
-  let divisionData: DivisionData | null = null;
+  let divisionData: Domain.Division | null = null;
 
   if (tournamentData && selectedDivisionId) {
     // Extract tournament display data
@@ -124,12 +116,7 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({
         games: rawDivisionData.games.length,
       });
 
-      divisionData = {
-        id: rawDivisionData.id,
-        name: rawDivisionData.name,
-        players: rawDivisionData.players,
-        games: rawDivisionData.games,
-      };
+      divisionData = rawDivisionData;
 
       // Use division name from data if we don't have it from other sources
       if (!finalDivisionName) {

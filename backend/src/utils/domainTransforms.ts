@@ -4,6 +4,7 @@ import * as Domain from "@shared/types/domain";
 
 import * as DBCurrentMatch from "../types/currentMatch";
 import * as DB from "../types/database";
+import { CrossTablesHeadToHeadService } from "../services/crossTablesHeadToHeadService";
 
 /**
  * Transform tournament row to domain summary (metadata only)
@@ -28,20 +29,51 @@ export function transformTournamentRowToSummary(
 /**
  * Transform flat database response into proper domain tree structure
  */
-export function transformToDomainTournament(
+export async function transformToDomainTournament(
   flatTournament: DB.Tournament,
-): Domain.Tournament {
-  const divisions = flatTournament.divisions.map((divisionData) => {
+  crossTablesService?: CrossTablesHeadToHeadService,
+): Promise<Domain.Tournament> {
+  const divisions = await Promise.all(flatTournament.divisions.map(async (divisionData) => {
     // Transform players and extract ratings from etc_data
     const players = divisionData.players.map(
-      (playerRow): Domain.Player => ({
-        id: playerRow.id,
-        seed: playerRow.seed,
-        name: playerRow.name,
-        initialRating: playerRow.initial_rating,
-        photo: playerRow.photo,
-        ratingsHistory: playerRow.etc_data?.newr || [playerRow.initial_rating], // Extract from etc_data
-      }),
+      (playerRow): Domain.Player => {
+        // Build xtData from joined cross-tables data if available
+        const xtData: Domain.CrossTablesPlayer | null = playerRow.xt_cross_tables_id && playerRow.xt_name ? {
+          playerid: playerRow.xt_cross_tables_id,
+          name: playerRow.xt_name,
+          twlrating: playerRow.twl_rating || undefined,
+          cswrating: playerRow.csw_rating || undefined,
+          twlranking: playerRow.twl_ranking || undefined,
+          cswranking: playerRow.csw_ranking || undefined,
+          w: playerRow.wins || undefined,
+          l: playerRow.losses || undefined,
+          t: playerRow.ties || undefined,
+          b: playerRow.byes || undefined,
+          photourl: playerRow.photo_url || undefined,
+          city: playerRow.xt_city || undefined,
+          state: playerRow.xt_state || undefined,
+          country: playerRow.xt_country || undefined,
+          // Enhanced tournament data
+          tournamentCount: playerRow.tournament_count || undefined,
+          averageScore: playerRow.average_score || undefined,
+          opponentAverageScore: playerRow.opponent_average_score || undefined,
+          results: playerRow.tournament_results ? 
+            (typeof playerRow.tournament_results === 'string' ? 
+              JSON.parse(playerRow.tournament_results) : 
+              playerRow.tournament_results) : undefined,
+        } : null;
+        
+        return {
+          id: playerRow.id,
+          seed: playerRow.seed,
+          name: playerRow.name,
+          initialRating: playerRow.initial_rating,
+          photo: playerRow.photo,
+          ratingsHistory: playerRow.etc_data?.newr || [playerRow.initial_rating], // Extract from etc_data
+          xtid: playerRow.xtid, // Cross-tables ID for lookup
+          xtData, // Full cross-tables data
+        };
+      },
     );
 
     // Create player lookup for games
@@ -61,13 +93,26 @@ export function transformToDomainTournament(
       }),
     );
 
+    // Fetch head-to-head games for this division if service is provided
+    let headToHeadGames: Domain.HeadToHeadGame[] = [];
+    if (crossTablesService) {
+      const playerIds = players
+        .filter(player => player.xtid !== null)
+        .map(player => player.xtid as number);
+      
+      if (playerIds.length > 0) {
+        headToHeadGames = await crossTablesService.getHeadToHeadGamesForDivision(playerIds);
+      }
+    }
+
     return {
       id: divisionData.division.id,
       name: divisionData.division.name,
       players,
       games,
+      headToHeadGames,
     };
-  });
+  }));
 
   return {
     id: flatTournament.tournament.id,

@@ -44,8 +44,31 @@ export interface PlayerRow {
   initial_rating: number;
   photo: string | null;
   etc_data: File.Etc; // Store original file format as-is
+  xtid: number | null; // Cross-tables ID at top level for easy access
   created_at: Date;
   updated_at: Date;
+}
+
+// PlayerRow with cross-tables data joined
+export interface PlayerRowWithCrossTables extends PlayerRow {
+  xt_cross_tables_id?: number | null;
+  xt_name?: string | null;
+  twl_rating?: number | null;
+  csw_rating?: number | null;
+  twl_ranking?: number | null;
+  csw_ranking?: number | null;
+  wins?: number | null;
+  losses?: number | null;
+  ties?: number | null;
+  byes?: number | null;
+  photo_url?: string | null;
+  xt_city?: string | null;
+  xt_state?: string | null;
+  xt_country?: string | null;
+  tournament_results?: string | null; // JSON string
+  tournament_count?: number | null;
+  average_score?: number | null;
+  opponent_average_score?: number | null;
 }
 
 export interface GameRow {
@@ -115,6 +138,7 @@ export interface CreatePlayerRow {
   initial_rating: number;
   photo: string | null;
   etc_data: File.Etc;
+  xtid: number | null;
 }
 
 export interface CreateGameRow {
@@ -143,7 +167,7 @@ export interface Tournament {
   tournament: TournamentRow;
   divisions: {
     division: DivisionRow;
-    players: PlayerRow[];
+    players: PlayerRowWithCrossTables[];
     games: GameRow[];
   }[];
 }
@@ -157,4 +181,27 @@ export interface GameChanges {
 export interface TournamentUpdate {
   tournament: TournamentRow;
   changes: GameChanges;
+}
+
+// Cross-tables head-to-head game data
+export interface CrossTablesHeadToHeadRow {
+  id: number;
+  game_id: number;
+  date: string | null;
+  tourney_name: string | null;
+  player1_id: number;
+  player1_name: string | null;
+  player1_score: number | null;
+  player1_old_rating: number | null;
+  player1_new_rating: number | null;
+  player1_position: number | null;
+  player2_id: number;
+  player2_name: string | null;
+  player2_score: number | null;
+  player2_old_rating: number | null;
+  player2_new_rating: number | null;
+  player2_position: number | null;
+  annotated: string | null;
+  created_at: Date;
+  updated_at: Date;
 }

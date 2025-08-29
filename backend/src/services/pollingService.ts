@@ -11,6 +11,7 @@ import {
 } from "../utils/domainTransforms";
 import { convertFileToDatabase } from "./fileToDatabaseConversions";
 import { loadTournamentFile } from "./loadTournamentFile";
+import { CrossTablesSyncService } from "./crossTablesSync";
 
 export class TournamentPollingService {
   private isRunning: boolean;
@@ -18,6 +19,7 @@ export class TournamentPollingService {
 
   constructor(
     private readonly repo: TournamentRepository,
+    private readonly crossTablesSync: CrossTablesSyncService,
     private readonly io: SocketIOServer,
   ) {
     this.isRunning = false;
@@ -58,9 +60,26 @@ export class TournamentPollingService {
       try {
         const newData = await loadTournamentFile(tournamentData.data_url);
 
-        // Use a deep comparison of the data - compare with tournamentData.data, not tournament.data
+        // Simple string comparison - if the data changed, update it
         if (JSON.stringify(newData) !== JSON.stringify(tournamentData.data)) {
           console.log(`Found new data for ${tournament.id}:${tournament.name}`);
+
+          // Only sync cross-tables if this looks like a new tournament load (not just score updates)
+          const hasExistingData = tournamentData.data && tournamentData.data.divisions && tournamentData.data.divisions.length > 0;
+          if (!hasExistingData) {
+            console.log(`Syncing cross-tables data for polled tournament ${tournament.id}... (initial tournament setup)`);
+            try {
+              await this.crossTablesSync.syncPlayersFromTournament(newData, true);
+              console.log(`Cross-tables sync completed successfully for polled tournament ${tournament.id}`);
+            } catch (error) {
+              console.error(`ERROR: Failed to sync cross-tables data for polled tournament ${tournament.id}:`, error);
+              console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
+              // Continue anyway - polling shouldn't fail due to cross-tables issues
+              console.log('Continuing with tournament update despite sync errors...');
+            }
+          } else {
+            console.log(`Skipping cross-tables sync for polled tournament ${tournament.id} (score update only)`);
+          }
 
           // Convert file data to database format
           const createTournamentData = convertFileToDatabase(
@@ -109,4 +128,5 @@ export class TournamentPollingService {
   private async clearExpiredPolls(): Promise<void> {
     await this.repo.endInactivePollable();
   }
+
 }

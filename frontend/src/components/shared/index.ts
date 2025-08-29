@@ -8,5 +8,4 @@ export { LoadingErrorWrapper } from "./LoadingErrorWrapper";
 export type {
   BaseOverlayDataProps,
   TournamentDisplayData,
-  DivisionData,
 } from "./BaseOverlay";

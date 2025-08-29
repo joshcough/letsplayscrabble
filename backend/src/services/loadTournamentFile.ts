@@ -2,6 +2,7 @@ import axios from "axios";
 import fs from "fs/promises";
 
 import { TournamentData } from "../types/scrabbleFileFormat";
+import { crossTablesEnrichment } from "./crossTablesEnrichment";
 
 export async function loadTournamentFile(
   source: string,
@@ -31,7 +32,13 @@ export async function loadTournamentFile(
       throw new Error("Could not parse tournament data from the JS file.");
     }
 
-    return data as TournamentData;
+    const tournamentData = data as TournamentData;
+    
+    // Enrich with cross-tables data for any players missing xtid
+    console.log(`🔍 LoadTournamentFile: Checking tournament from ${source} for cross-tables enrichment...`);
+    const enrichedData = await crossTablesEnrichment.enrichTournamentWithCrossTablesData(tournamentData);
+    
+    return enrichedData;
   } catch (error) {
     console.error("Error loading tournament file:", error);
     throw error;

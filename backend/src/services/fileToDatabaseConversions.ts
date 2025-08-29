@@ -39,6 +39,7 @@ export function convertFileToDatabase(
           initial_rating: player.rating,
           photo: player.photo,
           etc_data: player.etc,
+          xtid: player.etc?.xtid || null,
         }));
 
       // Convert games for this division

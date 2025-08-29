@@ -2,6 +2,101 @@
 // Pure domain model types - business logic, no persistence concerns
 
 /**
+ * Cross-tables.com player data
+ * External API data structure for player ratings and statistics
+ */
+export interface CrossTablesPlayer {
+  playerid: number;
+  name: string;
+  twlrating?: number;
+  cswrating?: number;
+  twlranking?: number;
+  cswranking?: number;
+  w?: number; // wins
+  l?: number; // losses  
+  t?: number; // ties
+  b?: number; // byes
+  photourl?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  // Enhanced data from detailed API
+  tournamentCount?: number;
+  averageScore?: number;
+  opponentAverageScore?: number;
+  results?: TournamentResult[]; // Full tournament history
+}
+
+/**
+ * Tournament result from cross-tables.com player.php endpoint
+ */
+export interface TournamentResult {
+  tourneyid: number;
+  name: string;
+  date: string;
+  division: string;
+  wins: number;
+  losses: number;
+  ties: number;
+  place: number;
+  totalplayers: number;
+  rating: number;
+  ratingchange: number;
+  points: number;
+  averagepoints: number;
+}
+
+/**
+ * Head-to-head game record from cross-tables.com
+ * Individual game between two players with full details
+ */
+export interface HeadToHeadGame {
+  gameid: number;
+  date: string;
+  tourneyname?: string; // Tournament name from cross-tables
+  player1: {
+    playerid: number;
+    name: string;
+    score: number;
+    oldrating: number;
+    newrating: number;
+    position?: number;
+  };
+  player2: {
+    playerid: number;
+    name: string;
+    score: number;
+    oldrating: number;
+    newrating: number;
+    position?: number;
+  };
+  annotated?: string; // URL to game replay
+}
+
+/**
+ * Head-to-head record between two specific players
+ * Contains all historical games between them
+ */
+export interface HeadToHeadRecord {
+  player1Id: number;
+  player2Id: number;
+  games: HeadToHeadGame[];
+  // Computed summary stats
+  player1Wins: number;
+  player2Wins: number;
+  ties: number;
+  totalGames: number;
+  lastMeeting?: HeadToHeadGame;
+}
+
+/**
+ * Detailed player data with tournament results
+ */
+export interface DetailedCrossTablesPlayer extends CrossTablesPlayer {
+  results?: TournamentResult[];
+}
+
+/**
  * Tournament summary for admin list views
  * Contains only metadata without divisions/games data
  */
@@ -40,6 +135,7 @@ export interface Division {
   name: string;
   players: Player[];
   games: Game[];
+  headToHeadGames: HeadToHeadGame[]; // Historical cross-tables H2H games for this division
 }
 
 /**
@@ -53,7 +149,8 @@ export interface Player {
   initialRating: number;
   photo: string | null;
   ratingsHistory: number[]; // Player's rating progression throughout tournament
-  // Note: no division_id or tournament_id - structure provides context
+  xtid: number | null; // Cross-tables ID for lookup
+  xtData: CrossTablesPlayer | null; // Full cross-tables data when available
 }
 
 /**

@@ -3,6 +3,7 @@ import { Knex } from "knex";
 
 import { knexDb } from "../config/database";
 import { convertFileToDatabase } from "../services/fileToDatabaseConversions";
+import { CrossTablesHeadToHeadService } from "../services/crossTablesHeadToHeadService";
 import * as DB from "../types/database";
 import { GameChanges, TournamentUpdate } from "../types/database";
 import * as File from "../types/scrabbleFileFormat";
@@ -22,6 +23,9 @@ type GameWithSeeds = {
 };
 
 export class TournamentRepository {
+  constructor(
+    private readonly crossTablesHeadToHeadService?: CrossTablesHeadToHeadService,
+  ) {}
   async create(
     createTournament: DB.CreateTournament,
   ): Promise<DB.TournamentRow> {
@@ -327,7 +331,7 @@ export class TournamentRepository {
       return null;
     }
 
-    return transformToDomainTournament(flatTournament);
+    return await transformToDomainTournament(flatTournament, this.crossTablesHeadToHeadService);
   }
 
   async isOwner(id: number, userId: number): Promise<boolean> {
@@ -444,7 +448,7 @@ export class TournamentRepository {
   ): Promise<
     Array<{
       division: DB.DivisionRow;
-      players: DB.PlayerRow[];
+      players: DB.PlayerRowWithCrossTables[];
       games: DB.GameRow[];
     }>
   > {
@@ -462,12 +466,33 @@ export class TournamentRepository {
   private async getPlayersForDivisionId(
     tournamentId: number,
     divisionId: number,
-  ): Promise<DB.PlayerRow[]> {
+  ): Promise<DB.PlayerRowWithCrossTables[]> {
     return knexDb("players")
-      .select("*")
-      .where("tournament_id", tournamentId)
-      .where("division_id", divisionId)
-      .orderBy("seed");
+      .leftJoin("cross_tables_players", "players.xtid", "cross_tables_players.cross_tables_id")
+      .select(
+        "players.*",
+        "cross_tables_players.cross_tables_id as xt_cross_tables_id",
+        "cross_tables_players.name as xt_name",
+        "cross_tables_players.twl_rating",
+        "cross_tables_players.csw_rating", 
+        "cross_tables_players.twl_ranking",
+        "cross_tables_players.csw_ranking",
+        "cross_tables_players.wins",
+        "cross_tables_players.losses",
+        "cross_tables_players.ties",
+        "cross_tables_players.byes",
+        "cross_tables_players.photo_url",
+        "cross_tables_players.city as xt_city",
+        "cross_tables_players.state as xt_state", 
+        "cross_tables_players.country as xt_country",
+        "cross_tables_players.tournament_results",
+        "cross_tables_players.tournament_count",
+        "cross_tables_players.average_score",
+        "cross_tables_players.opponent_average_score"
+      )
+      .where("players.tournament_id", tournamentId)
+      .where("players.division_id", divisionId)
+      .orderBy("players.seed");
   }
 
   private async getGamesForDivision(divisionId: number): Promise<DB.GameRow[]> {
@@ -692,6 +717,7 @@ export class TournamentRepository {
           initial_rating: playerData.initial_rating,
           photo: playerData.photo,
           etc_data: playerData.etc_data,
+          xtid: playerData.xtid,
         })
         .returning("*");
 

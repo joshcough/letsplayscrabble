@@ -1,340 +1,228 @@
-// 01_round1_pairings
-// Generated: 2025-08-07T02:05:41.045Z
+// 06_round3_complete
+// Generated: 2025-08-27T00:51:26.711Z
 
 newt = {
-  config: {
-    event_name: "Test Tournament (2 Divisions)",
-    event_date: "August 5, 2025",
-    max_rounds: 2,
+  "config": {
+    "event_name": "Tournament (1 Divisions)",
+    "event_date": "August 26, 2025",
+    "max_rounds": 3
   },
-  divisions: [
+  "divisions": [
     {
-      name: "A",
-      players: [
+      "name": "A",
+      "players": [
         null,
         {
-          etc: {
-            p12: [1],
-            newr: [2206],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
+          "etc": {
+            "p12": [
+              2,
+              1,
+              0
+            ],
+            "newr": [
+              2167,
+              2150,
+              2150
+            ]
           },
-          id: 1,
-          name: "Josh Cough",
-          pairings: [2],
-          photo: "pix/josh_cough.jpg",
-          rating: 2206,
-          scores: [],
+          "id": 1,
+          "name": "Pollock Daniel, Robin",
+          "pairings": [
+            2,
+            3,
+            0
+          ],
+          "photo": "pix/pollock_daniel__robin.jpg",
+          "rating": 2183,
+          "scores": [
+            404,
+            434,
+            50
+          ]
         },
         {
-          etc: {
-            p12: [2],
-            newr: [2175],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
+          "etc": {
+            "p12": [
+              1,
+              1,
+              2
+            ],
+            "newr": [
+              2200,
+              2211,
+              2191
+            ]
           },
-          id: 2,
-          name: "Nigel Richards",
-          pairings: [1],
-          photo: "pix/nigel_richards.jpg",
-          rating: 2175,
-          scores: [],
+          "id": 2,
+          "name": "Sinke, Arie",
+          "pairings": [
+            1,
+            7,
+            6
+          ],
+          "photo": "pix/sinke__arie.jpg",
+          "rating": 2184,
+          "scores": [
+            442,
+            544,
+            470
+          ]
         },
         {
-          etc: {
-            p12: [1],
-            newr: [2170],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
+          "etc": {
+            "p12": [
+              1,
+              2,
+              1
+            ],
+            "newr": [
+              2148,
+              2165,
+              2179
+            ]
           },
-          id: 3,
-          name: "Will Anderson",
-          pairings: [4],
-          photo: "pix/will_anderson.jpg",
-          rating: 2170,
-          scores: [],
+          "id": 3,
+          "name": "Panitch, Maxim",
+          "pairings": [
+            4,
+            1,
+            5
+          ],
+          "photo": "pix/panitch__maxim.jpg",
+          "rating": 2165,
+          "scores": [
+            409,
+            486,
+            506
+          ]
         },
         {
-          etc: {
-            p12: [2],
-            newr: [2144],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
+          "etc": {
+            "p12": [
+              2,
+              2,
+              1
+            ],
+            "newr": [
+              2171,
+              2152,
+              2133
+            ]
           },
-          id: 4,
-          name: "Dave Wiegand",
-          pairings: [3],
-          photo: "pix/dave_wiegand.jpg",
-          rating: 2144,
-          scores: [],
+          "id": 4,
+          "name": "Sykes, Christopher",
+          "pairings": [
+            3,
+            6,
+            7
+          ],
+          "photo": "pix/sykes__christopher.jpg",
+          "rating": 2154,
+          "scores": [
+            512,
+            497,
+            401
+          ]
         },
         {
-          etc: {
-            p12: [1],
-            newr: [2121],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
+          "etc": {
+            "p12": [
+              1,
+              0,
+              2
+            ],
+            "newr": [
+              2112,
+              2112,
+              2098
+            ]
           },
-          id: 5,
-          name: "Conrad Bassett-Bouchard",
-          pairings: [6],
-          photo: "pix/conrad_bassett_bouchard.jpg",
-          rating: 2121,
-          scores: [],
+          "id": 5,
+          "name": "Greenberg, Morris",
+          "pairings": [
+            6,
+            0,
+            3
+          ],
+          "photo": "pix/greenberg__morris.jpg",
+          "rating": 2130,
+          "scores": [
+            431,
+            50,
+            475
+          ]
         },
         {
-          etc: {
-            p12: [2],
-            newr: [2086],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
+          "etc": {
+            "p12": [
+              2,
+              1,
+              1
+            ],
+            "newr": [
+              2110,
+              2129,
+              2149
+            ]
           },
-          id: 6,
-          name: "Joel Wapnick",
-          pairings: [5],
-          photo: "pix/joel_wapnick.jpg",
-          rating: 2086,
-          scores: [],
+          "id": 6,
+          "name": "Abbasi, Shan",
+          "pairings": [
+            5,
+            4,
+            2
+          ],
+          "photo": "pix/abbasi__shan.jpg",
+          "rating": 2092,
+          "scores": [
+            539,
+            521,
+            471
+          ]
         },
         {
-          etc: {
-            p12: [1],
-            newr: [2081],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
+          "etc": {
+            "p12": [
+              0,
+              2,
+              2
+            ],
+            "newr": [
+              2092,
+              2081,
+              2100
+            ]
           },
-          id: 7,
-          name: "Joey Mallick",
-          pairings: [8],
-          photo: "pix/joey_mallick.jpg",
-          rating: 2081,
-          scores: [],
-        },
-        {
-          etc: {
-            p12: [2],
-            newr: [2076],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
-          },
-          id: 8,
-          name: "Chris Lipe",
-          pairings: [7],
-          photo: "pix/chris_lipe.jpg",
-          rating: 2076,
-          scores: [],
-        },
+          "id": 7,
+          "name": "Pittman, Caleb",
+          "pairings": [
+            0,
+            2,
+            4
+          ],
+          "photo": "pix/pittman__caleb.jpg",
+          "rating": 2092,
+          "scores": [
+            50,
+            478,
+            429
+          ]
+        }
       ],
-      first_out_of_the_money: [],
-      maxr: 2,
-      maxrp: 0,
-      rating_list: "nsa",
-      rating_system: "nsa2008",
-      seeds: [1, 2, 3, 4, 5, 6, 7, 8],
-    },
-    {
-      name: "B",
-      players: [
-        null,
-        {
-          etc: {
-            p12: [1],
-            newr: [1797],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
-          },
-          id: 1,
-          name: "Matthew Tunnicliffe",
-          pairings: [2],
-          photo: "pix/matthew_tunnicliffe.jpg",
-          rating: 1797,
-          scores: [],
-        },
-        {
-          etc: {
-            p12: [2],
-            newr: [1766],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
-          },
-          id: 2,
-          name: "Jackson Smylie",
-          pairings: [1],
-          photo: "pix/jackson_smylie.jpg",
-          rating: 1766,
-          scores: [],
-        },
-        {
-          etc: {
-            p12: [1],
-            newr: [1742],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
-          },
-          id: 3,
-          name: "David Gibson",
-          pairings: [4],
-          photo: "pix/david_gibson.jpg",
-          rating: 1742,
-          scores: [],
-        },
-        {
-          etc: {
-            p12: [2],
-            newr: [1720],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
-          },
-          id: 4,
-          name: "Jeremy Hall",
-          pairings: [3],
-          photo: "pix/jeremy_hall.jpg",
-          rating: 1720,
-          scores: [],
-        },
-        {
-          etc: {
-            p12: [1],
-            newr: [1705],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
-          },
-          id: 5,
-          name: "Stefan Rau",
-          pairings: [6],
-          photo: "pix/stefan_rau.jpg",
-          rating: 1705,
-          scores: [],
-        },
-        {
-          etc: {
-            p12: [2],
-            newr: [1702],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
-          },
-          id: 6,
-          name: "Joshua Sokol",
-          pairings: [5],
-          photo: "pix/joshua_sokol.jpg",
-          rating: 1702,
-          scores: [],
-        },
-        {
-          etc: {
-            p12: [1],
-            newr: [1696],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
-          },
-          id: 7,
-          name: "Matt Canik",
-          pairings: [8],
-          photo: "pix/matt_canik.jpg",
-          rating: 1696,
-          scores: [],
-        },
-        {
-          etc: {
-            p12: [2],
-            newr: [1655],
-            board: [],
-            excwins: [],
-            penalty: [],
-            rrank: [],
-            rtime: [],
-            seat: [],
-            time: [],
-          },
-          id: 8,
-          name: "Cesar Del Solar",
-          pairings: [7],
-          photo: "pix/cesar_del_solar.jpg",
-          rating: 1655,
-          scores: [],
-        },
-      ],
-      first_out_of_the_money: [],
-      maxr: 2,
-      maxrp: 0,
-      rating_list: "nsa",
-      rating_system: "nsa2008",
-      seeds: [1, 2, 3, 4, 5, 6, 7, 8],
-    },
-  ],
+      "first_out_of_the_money": [],
+      "maxr": 3,
+      "maxrp": 0,
+      "rating_list": "nsa",
+      "rating_system": "nsa2008",
+      "seeds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    }
+  ]
 };

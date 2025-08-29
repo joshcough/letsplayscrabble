@@ -25,16 +25,12 @@ export interface LoginSuccessData {
 // TOURNAMENT POLLING API
 // ============================================================================
 
-export interface StartPollingRequest {
-  pollUntilMinutes: number;
+export interface EnablePollingRequest {
+  days: number;
 }
 
 export interface PollingSuccessData {
   pollUntil: string;
-}
-
-export interface EnablePollingRequest {
-  days: number;
 }
 
 // ============================================================================
