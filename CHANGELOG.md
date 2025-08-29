@@ -1,5 +1,43 @@
 # Changelog
 
+## 2025-08-29 - Cross-Tables API Optimization & Enhanced Overlays
+
+### 🚀 **Cross-Tables API Performance**
+
+#### **Bulk Head-to-Head API Integration**
+- **OPTIMIZED**: Replace multiple API calls with single bulk endpoint for head-to-head data
+- **PERFORMANCE**: Reduced API calls from n*(n-1)/2 to just 1 for division head-to-head sync
+- **NEW**: Tournament names now displayed in overlays instead of generic "Tournament" text
+- **ENHANCED**: Database schema updated to store tournament names from cross-tables data
+- **IMPROVED**: API logging shows concise summaries instead of verbose JSON output
+
+#### **Backend Architecture Improvements**
+- **REFACTORED**: `CrossTablesHeadToHeadService` to use new bulk endpoint accepting multiple player IDs
+- **REMOVED**: `fetchHeadToHeadForPair` method (no longer needed)
+- **ADDED**: `tourneyname` field to `HeadToHeadGame` interface and database schema
+- **MIGRATION**: Added database migration for `tourney_name` column in head-to-head data
+
+### 🎨 **Enhanced Overlay Styling**
+
+#### **Head-to-Head Modern Overlay Redesign**
+- **IMPROVED**: Replaced monotone gray styling with cohesive blue theme
+- **ENHANCED**: Lighter blue accents create better contrast against dark background
+- **ADDED**: Purple/pink gradient VS button as striking accent color
+- **REFINED**: Subtle blue glows and borders for visual depth without distraction
+- **REMOVED**: Going First/Second statistics sections for cleaner layout
+- **RESULT**: More engaging and professional overlay appearance for streaming
+
+### 🔧 **Tournament Management**
+
+#### **Default Polling Configuration**
+- **NEW**: New tournaments automatically enable polling for 4 days from creation
+- **IMPROVED**: Users no longer need to manually enable polling for ongoing tournaments
+- **ARCHITECTURE**: Polling logic properly separated in API endpoints (not in pure conversion functions)
+
+### 🐛 **Bug Fixes**
+- **FIXED**: Tournament name display in head-to-head overlays now uses actual tournament names
+- **RESOLVED**: Color harmony issues in overlay themes
+
 ## 2025-01-27 - Bug Fixes & Tournament Generator Enhancements
 
 ### 🐛 **Bug Fixes**
