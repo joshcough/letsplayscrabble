@@ -169,35 +169,6 @@ const renderCareerH2H = (
   const player1Position = sortedPlayers.findIndex(p => p.id === player1.id) + 1;
   const player2Position = sortedPlayers.findIndex(p => p.id === player2.id) + 1;
 
-  // Calculate going first/second records
-  const calculateFirstSecondRecord = (playerId: number | null) => {
-    let goingFirstWins = 0, goingFirstLosses = 0;
-    let goingSecondWins = 0, goingSecondLosses = 0;
-    
-    headToHeadGames.forEach((game: any) => {
-      const isPlayer1 = game.player1.playerid === playerId;
-      const isPlayer2 = game.player2.playerid === playerId;
-      
-      if (isPlayer1) {
-        if (game.player1.score > game.player2.score) {
-          goingFirstWins++;
-        } else {
-          goingFirstLosses++;
-        }
-      } else if (isPlayer2) {
-        if (game.player2.score > game.player1.score) {
-          goingSecondWins++;
-        } else {
-          goingSecondLosses++;
-        }
-      }
-    });
-    
-    return { goingFirstWins, goingFirstLosses, goingSecondWins, goingSecondLosses };
-  };
-
-  const player1FirstSecondRecord = calculateFirstSecondRecord(player1.xtid);
-  const player2FirstSecondRecord = calculateFirstSecondRecord(player2.xtid);
 
   // Get recent games for display (last 7)
   const recentGames = [...headToHeadGames]
@@ -319,31 +290,11 @@ const renderCareerH2H = (
           </div>
         </div>
 
-        {/* Latest Games Table Section with First/Second Records */}
+        {/* Latest Games Table Section */}
         <div className="mt-8 max-w-6xl mx-auto">
-          <div className="grid grid-cols-[1fr_3fr_1fr] gap-4 items-start">
-
-            {/* Player 1 First/Second Record */}
-            <div className="space-y-3">
-              <h3 className="text-xs text-gray-400 uppercase tracking-wider text-center">{formatPlayerName(player1.name).split(' ')[0]}'s Record</h3>
-
-              <div className="bg-gradient-to-r from-cyan-600/20 to-cyan-500/10 backdrop-blur-sm rounded-lg p-3 border border-cyan-400/30">
-                <p className="text-xs text-cyan-300 mb-1">Going 1st</p>
-                <p className="text-xl font-bold text-cyan-400">
-                  {player1FirstSecondRecord.goingFirstWins}-{player1FirstSecondRecord.goingFirstLosses}
-                </p>
-              </div>
-
-              <div className="bg-gradient-to-r from-gray-600/20 to-gray-500/10 backdrop-blur-sm rounded-lg p-3 border border-gray-400/30">
-                <p className="text-xs text-gray-300 mb-1">Going 2nd</p>
-                <p className="text-xl font-bold text-gray-300">
-                  {player1FirstSecondRecord.goingSecondWins}-{player1FirstSecondRecord.goingSecondLosses}
-                </p>
-              </div>
-            </div>
-
+          <div className="flex justify-center">
             {/* Latest Games Table */}
-            <div>
+            <div className="max-w-3xl w-full">
               <h3 className="text-sm text-gray-400 uppercase tracking-wider mb-3 text-center">Latest Games</h3>
               <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-xl rounded-xl p-4 border border-gray-700/30 shadow-2xl">
                 <table className="w-full text-sm">
@@ -376,25 +327,6 @@ const renderCareerH2H = (
                     })}
                   </tbody>
                 </table>
-              </div>
-            </div>
-
-            {/* Player 2 First/Second Record */}
-            <div className="space-y-3">
-              <h3 className="text-xs text-gray-400 uppercase tracking-wider text-center">{formatPlayerName(player2.name).split(' ')[0]}'s Record</h3>
-
-              <div className="bg-gradient-to-r from-gray-600/20 to-gray-500/10 backdrop-blur-sm rounded-lg p-3 border border-gray-400/30">
-                <p className="text-xs text-gray-300 mb-1 text-right">Going 1st</p>
-                <p className="text-xl font-bold text-gray-300 text-right">
-                  {player2FirstSecondRecord.goingFirstWins}-{player2FirstSecondRecord.goingFirstLosses}
-                </p>
-              </div>
-
-              <div className="bg-gradient-to-r from-blue-600/20 to-blue-500/10 backdrop-blur-sm rounded-lg p-3 border border-blue-400/30">
-                <p className="text-xs text-blue-300 mb-1 text-right">Going 2nd</p>
-                <p className="text-xl font-bold text-blue-400 text-right">
-                  {player2FirstSecondRecord.goingSecondWins}-{player2FirstSecondRecord.goingSecondLosses}
-                </p>
               </div>
             </div>
           </div>
