@@ -13,6 +13,11 @@ export interface ThemeColors {
   textSecondary: string;
   textAccent: string;
   
+  // Text colors for elements directly on page background (not in cards)
+  // If not specified, falls back to textPrimary/textSecondary
+  pageTextPrimary?: string;
+  pageTextSecondary?: string;
+  
   // Status colors
   positiveColor: string;
   negativeColor: string;

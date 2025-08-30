@@ -4,6 +4,7 @@ import { RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
 import { BaseModernOverlay } from "./BaseModernOverlay";
 import { getPlayerImageUrl, formatPlayerName } from "../../utils/playerUtils";
 import { TournamentDisplayData } from "../shared/BaseOverlay";
+import { getPageTextColor } from "../../utils/themeUtils";
 
 interface PictureDisplayModernProps {
   tournament: TournamentDisplayData;
@@ -32,7 +33,7 @@ const PictureDisplayModern: React.FC<PictureDisplayModernProps> = ({
           <h1 className={`text-5xl font-black mb-3 ${theme.name === 'original' ? theme.colors.titleGradient : `text-transparent bg-clip-text ${theme.colors.titleGradient}`}`}>
             {title}
           </h1>
-          <div className={`text-2xl ${theme.colors.textSecondary}`}>
+          <div className={`text-2xl ${getPageTextColor(theme, 'secondary')}`}>
             {tournament.name} {tournament.lexicon} • Division {divisionName}
           </div>
         </div>
@@ -57,7 +58,7 @@ const PictureDisplayModern: React.FC<PictureDisplayModernProps> = ({
               </div>
 
               {/* Player Name */}
-              <div className={`${theme.colors.textPrimary} text-lg font-bold text-center mb-3 max-w-40 min-h-[3rem] flex items-center justify-center`}>
+              <div className={`${getPageTextColor(theme, 'primary')} text-lg font-bold text-center mb-3 max-w-40 min-h-[3rem] flex items-center justify-center`}>
                 {formatPlayerName(player.name)}
               </div>
 

@@ -8,6 +8,16 @@ export const cn = (...classes: (string | undefined | null | false)[]): string =>
 };
 
 /**
+ * Get text color for elements on page background (not in cards)
+ */
+export const getPageTextColor = (theme: Theme, type: 'primary' | 'secondary'): string => {
+  if (type === 'primary') {
+    return theme.colors.pageTextPrimary || theme.colors.textPrimary;
+  }
+  return theme.colors.pageTextSecondary || theme.colors.textSecondary;
+};
+
+/**
  * Helper function to get theme-aware classes
  */
 export const getThemeClasses = (theme: Theme) => ({

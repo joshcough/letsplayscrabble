@@ -78,6 +78,10 @@ export const july4Theme: Theme = {
     textSecondary: 'text-slate-600', // Darker gray for secondary text on light cards
     textAccent: 'text-blue-800',
     
+    // Light text for elements directly on dark page background
+    pageTextPrimary: 'text-white',
+    pageTextSecondary: 'text-gray-300',
+    
     // Strong patriotic colors for gains/losses
     positiveColor: 'text-blue-700',
     negativeColor: 'text-red-700',
