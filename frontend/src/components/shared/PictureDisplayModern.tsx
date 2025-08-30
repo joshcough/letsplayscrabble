@@ -57,7 +57,7 @@ const PictureDisplayModern: React.FC<PictureDisplayModernProps> = ({
               </div>
 
               {/* Player Name */}
-              <div className={`${theme.name === 'july4' ? 'text-white' : theme.colors.textPrimary} text-lg font-bold text-center mb-3 max-w-40 min-h-[3rem] flex items-center justify-center`}>
+              <div className={`${theme.colors.textPrimary} text-lg font-bold text-center mb-3 max-w-40 min-h-[3rem] flex items-center justify-center`}>
                 {formatPlayerName(player.name)}
               </div>
 

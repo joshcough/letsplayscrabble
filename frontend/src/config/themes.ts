@@ -75,7 +75,7 @@ export const july4Theme: Theme = {
     titleGradient: 'bg-gradient-to-r from-blue-600 via-red-600 to-blue-600',
     // Dark text on light cards for contrast
     textPrimary: 'text-slate-900',
-    textSecondary: 'text-white', // Changed this to white for tournament/division names on dark background
+    textSecondary: 'text-slate-600', // Darker gray for secondary text on light cards
     textAccent: 'text-blue-800',
     
     // Strong patriotic colors for gains/losses
