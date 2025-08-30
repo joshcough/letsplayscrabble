@@ -170,14 +170,14 @@ const renderCareerH2H = (
   const player2Position = sortedPlayers.findIndex(p => p.id === player2.id) + 1;
 
 
-  // Get recent games for display (last 7)
+  // Get recent games for display (last 6)
   const recentGames = [...headToHeadGames]
     .sort((a: any, b: any) => {
       if (a.isCurrentTournament && !b.isCurrentTournament) return -1;
       if (!a.isCurrentTournament && b.isCurrentTournament) return 1;
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     })
-    .slice(0, 7);
+    .slice(0, 6);
 
   const getOrdinalSuffix = (num: number) => {
     const j = num % 10;
