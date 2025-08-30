@@ -7,6 +7,8 @@ import { ApiService } from "../../services/interfaces";
 import { ProtectedPage } from "../ProtectedPage";
 import { FormFeedback } from "../shared";
 import { useThemeContext } from "../../context/ThemeContext";
+import { themes } from "../../config/themes";
+import { ThemeName } from "../../types/theme";
 
 const AddTournament: React.FC<{ apiService: ApiService }> = ({
   apiService,
@@ -22,6 +24,7 @@ const AddTournament: React.FC<{ apiService: ApiService }> = ({
       lexicon: "",
       longFormName: "",
       dataUrl: "",
+      theme: "scrabble" as ThemeName, // Default to scrabble theme
     },
     (data) => apiService.createTournament(data),
     {
@@ -35,6 +38,13 @@ const AddTournament: React.FC<{ apiService: ApiService }> = ({
     form.setFormData((prev) => ({
       ...prev,
       [id]: id === "year" ? Number(value) || 0 : value,
+    }));
+  };
+
+  const handleThemeChange = (selectedTheme: ThemeName) => {
+    form.setFormData((prev) => ({
+      ...prev,
+      theme: selectedTheme,
     }));
   };
 
@@ -55,7 +65,7 @@ const AddTournament: React.FC<{ apiService: ApiService }> = ({
 
         <form onSubmit={form.handleSubmit} className="space-y-4">
           {(
-            Object.keys(form.formData) as Array<keyof typeof form.formData>
+            Object.keys(form.formData).filter(key => key !== 'theme') as Array<keyof Omit<typeof form.formData, 'theme'>>
           ).map((key) => (
             <div key={key}>
               <label
@@ -81,6 +91,53 @@ const AddTournament: React.FC<{ apiService: ApiService }> = ({
               />
             </div>
           ))}
+          
+          {/* Theme Selection */}
+          <div>
+            <label className={`block ${theme.colors.textPrimary} font-medium mb-3`}>
+              Tournament Theme
+            </label>
+            <p className={`${theme.colors.textSecondary} text-sm mb-4`}>
+              Choose the theme that will be used for this tournament's overlays
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {Object.values(themes).map((themeOption) => (
+                <div
+                  key={themeOption.name}
+                  className={`
+                    border-2 rounded-lg p-3 cursor-pointer transition-all duration-200
+                    ${form.formData.theme === themeOption.name
+                      ? `${theme.colors.primaryBorder} bg-blue-50`
+                      : `${theme.colors.secondaryBorder} ${theme.colors.cardBackground} ${theme.colors.hoverBackground}`
+                    }
+                    ${form.loading ? 'opacity-50 cursor-not-allowed' : ''}
+                  `}
+                  onClick={() => !form.loading && handleThemeChange(themeOption.name as ThemeName)}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className={`text-sm font-medium ${theme.colors.textPrimary}`}>{themeOption.displayName}</h4>
+                    {form.formData.theme === themeOption.name && (
+                      <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Mini Theme Preview */}
+                  <div className="h-12 rounded border overflow-hidden">
+                    <div className={`h-full ${themeOption.colors.pageBackground} relative`}>
+                      <div className={`absolute inset-1 ${themeOption.colors.cardBackground} rounded border ${themeOption.colors.primaryBorder}`}>
+                        <div className={`absolute top-0.5 left-0.5 right-0.5 h-1 ${themeOption.colors.titleGradient} rounded-sm`}></div>
+                        <div className={`absolute bottom-0.5 left-0.5 w-6 h-1 ${themeOption.colors.positiveColor} rounded-sm`}></div>
+                        <div className={`absolute bottom-0.5 right-0.5 w-4 h-1 ${themeOption.colors.negativeColor} rounded-sm`}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <button
             type="submit"
             disabled={form.loading}

@@ -4,8 +4,11 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import * as Domain from "@shared/types/domain";
 
 import { useAuth } from "../../context/AuthContext";
+import { useThemeContext } from "../../context/ThemeContext";
 import { ApiService } from "../../services/interfaces";
 import { ProtectedPage } from "../ProtectedPage";
+import { themes } from "../../config/themes";
+import { ThemeName } from "../../types/theme";
 
 type RouteParams = {
   id: string;
@@ -16,6 +19,7 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
   const { userId } = useAuth();
+  const { theme } = useThemeContext();
   const params = useParams<RouteParams>();
   const navigate = useNavigate();
 
@@ -208,6 +212,15 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
     }
   };
 
+  const handleThemeChange = (selectedTheme: ThemeName) => {
+    if (editedTournament) {
+      setEditedTournament({
+        ...editedTournament,
+        theme: selectedTheme,
+      });
+    }
+  };
+
   useEffect(() => {
     const fetchTournamentData = async () => {
       const response = await apiService.getTournamentSummary(
@@ -254,9 +267,9 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
 
   return (
     <ProtectedPage>
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className={`${theme.colors.cardBackground} p-6 rounded-lg shadow-md`}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">
+          <h2 className={`text-2xl font-bold ${theme.colors.textPrimary}`}>
             {isEditing ? (
               <input
                 type="text"
@@ -445,6 +458,64 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
                         Start
                       </button>
                     </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Theme Selection */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex">
+                  <span className="text-gray-600 font-medium w-32">
+                    Overlay Theme:
+                  </span>
+                  {isEditing ? (
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-500 mb-3">
+                        Choose the theme for this tournament's overlays
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {Object.values(themes).map((themeOption) => (
+                          <div
+                            key={themeOption.name}
+                            className={`
+                              border-2 rounded-lg p-2 cursor-pointer transition-all duration-200
+                              ${editedTournament?.theme === themeOption.name
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+                              }
+                            `}
+                            onClick={() => handleThemeChange(themeOption.name as ThemeName)}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <h5 className="text-sm font-medium text-gray-900">{themeOption.displayName}</h5>
+                              {editedTournament?.theme === themeOption.name && (
+                                <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
+                                  <div className="w-1 h-1 bg-white rounded-full"></div>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Mini Theme Preview */}
+                            <div className="h-8 rounded border overflow-hidden">
+                              <div className={`h-full ${themeOption.colors.pageBackground} relative`}>
+                                <div className={`absolute inset-0.5 ${themeOption.colors.cardBackground} rounded border ${themeOption.colors.primaryBorder}`}>
+                                  <div className={`absolute top-0.5 left-0.5 right-0.5 h-0.5 ${themeOption.colors.titleGradient} rounded-sm`}></div>
+                                  <div className={`absolute bottom-0.5 left-0.5 w-4 h-0.5 ${themeOption.colors.positiveColor} rounded-sm`}></div>
+                                  <div className={`absolute bottom-0.5 right-0.5 w-3 h-0.5 ${themeOption.colors.negativeColor} rounded-sm`}></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="capitalize">
+                      {tournament?.theme 
+                        ? themes[tournament.theme as ThemeName]?.displayName || tournament.theme
+                        : 'Default (Scrabble)'
+                      }
+                    </span>
                   )}
                 </div>
               </div>

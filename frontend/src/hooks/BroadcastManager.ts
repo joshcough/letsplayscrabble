@@ -3,6 +3,7 @@ import {
   AdminPanelUpdateMessage,
   GamesAddedMessage,
   Ping,
+  TournamentThemeChangedMessage,
 } from "@shared/types/websocket";
 
 import {
@@ -84,6 +85,8 @@ class BroadcastManager {
         shouldSkip = this.shouldSkipDuplicateMessage(data, "AdminPanelUpdate");
       } else if (type === "GamesAdded" && data?.timestamp) {
         shouldSkip = this.shouldSkipDuplicateMessage(data, "GamesAdded");
+      } else if (type === "TournamentThemeChanged" && data?.timestamp) {
+        shouldSkip = this.shouldSkipDuplicateMessage(data, "TournamentThemeChanged");
       }
 
       if (shouldSkip) {
@@ -115,6 +118,9 @@ class BroadcastManager {
               break;
             case "Ping":
               handler(data as Ping);
+              break;
+            case "TournamentThemeChanged":
+              handler(data as TournamentThemeChangedMessage);
               break;
             default:
               handler(data);
@@ -184,6 +190,11 @@ class BroadcastManager {
   onPing(handler: (data: Ping) => void) {
     this.on("Ping", handler);
     return () => this.off("Ping", handler);
+  }
+
+  onTournamentThemeChanged(handler: (data: TournamentThemeChangedMessage) => void) {
+    this.on("TournamentThemeChanged", handler);
+    return () => this.off("TournamentThemeChanged", handler);
   }
 
   // Mock methods to maintain compatibility with existing SocketManager interface

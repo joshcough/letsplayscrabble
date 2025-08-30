@@ -160,7 +160,7 @@ app.use("/api/users/settings", requireAuth, userSettingsRoutes);
 app.use(
   "/api/private/tournaments",
   requireAuth,
-  protectedTournamentRoutes(tournamentRepository, crossTablesSyncService, crossTablesHeadToHeadService),
+  protectedTournamentRoutes(tournamentRepository, crossTablesSyncService, crossTablesHeadToHeadService, io),
 );
 
 app.use(
