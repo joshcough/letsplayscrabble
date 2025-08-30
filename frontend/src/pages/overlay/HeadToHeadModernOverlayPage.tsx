@@ -301,11 +301,11 @@ const renderCareerH2H = (
               <div className="bg-gradient-to-br from-blue-900/50 to-gray-900/60 backdrop-blur-xl rounded-xl p-4 border border-blue-400/50 shadow-2xl shadow-blue-400/10">
                 <table className="w-full text-sm table-fixed">
                   <colgroup>
-                    <col className="w-[25%]" />
-                    <col className="w-[10%]" />
-                    <col className="w-[30%]" />
-                    <col className="w-[10%]" />
-                    <col className="w-[25%]" />
+                    <col className="w-[20%]" />
+                    <col className="w-[8%]" />
+                    <col className="w-[24%]" />
+                    <col className="w-[8%]" />
+                    <col className="w-[40%]" />
                   </colgroup>
                   <tbody>
                     {recentGames.map((game: any, index: number) => {
@@ -328,8 +328,10 @@ const renderCareerH2H = (
                           <td className={`py-3 px-2 text-center font-bold ${!player1Won ? 'text-blue-300' : 'text-gray-400'}`}>
                             {player1Won ? 'L' : 'W'}
                           </td>
-                          <td className="py-3 px-4 text-gray-300 text-right truncate" title={location}>
-                            {location}
+                          <td className="py-3 px-4 text-gray-300 text-right" title={location}>
+                            <div className="overflow-hidden text-ellipsis whitespace-nowrap">
+                              {location}
+                            </div>
                           </td>
                         </tr>
                       );
