@@ -346,7 +346,7 @@ const renderCareerH2H = (
                           <td className={`py-3 px-2 text-center font-bold ${player1Won ? theme.colors.positiveColor : theme.colors.neutralColor}`}>
                             {winner}
                           </td>
-                          <td className={`py-3 px-2 text-center ${theme.name === 'july4' ? 'text-white' : theme.colors.textPrimary} font-mono font-bold text-lg`}>{scores}</td>
+                          <td className={`py-3 px-2 text-center ${theme.colors.textPrimary} font-mono font-bold text-lg`}>{scores}</td>
                           <td className={`py-3 px-2 text-center font-bold ${!player1Won ? theme.colors.positiveColor : theme.colors.neutralColor}`}>
                             {player1Won ? 'L' : 'W'}
                           </td>
