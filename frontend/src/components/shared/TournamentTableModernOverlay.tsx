@@ -4,6 +4,7 @@ import * as Stats from "../../types/stats";
 import { BaseModernOverlay } from "./BaseModernOverlay";
 import { TournamentDisplayData } from "./BaseOverlay";
 import { Theme } from "../../types/theme";
+import { getPageTextColor } from "../../utils/themeUtils";
 
 interface Column {
   key: string;
@@ -41,7 +42,7 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
           <h1 className={`${themeClasses.title} mb-3`}>
             {title}
           </h1>
-          <div className={themeClasses.subtitle}>
+          <div className={`text-xl ${getPageTextColor(theme, 'secondary')}`}>
             {tournament.name} {tournament.lexicon} • Division {divisionName}
           </div>
         </div>

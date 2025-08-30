@@ -8,6 +8,7 @@ import { ApiService } from '../../../services/interfaces';
 import { BaseModernOverlay } from '../../../components/shared/BaseModernOverlay';
 import { Theme } from '../../../types/theme';
 import { formatPlayerName, getCurrentRating } from '../../../utils/playerUtils';
+import { getPageTextColor } from '../../../utils/themeUtils';
 
 type RouteParams = {
   userId?: string;
@@ -257,7 +258,7 @@ const renderCareerH2H = (
           <div className="flex flex-col items-center justify-center">
             {/* Title */}
             <div className="text-center mb-6">
-              <h1 className={`text-xl font-bold ${theme.colors.textPrimary} opacity-90 tracking-wide`}>Career Head-to-Head</h1>
+              <h1 className={`text-xl font-bold ${getPageTextColor(theme, 'primary')} opacity-90 tracking-wide`}>Career Head-to-Head</h1>
             </div>
 
             {/* Score Display */}
@@ -265,13 +266,13 @@ const renderCareerH2H = (
               <div className="flex items-center justify-center gap-3 mb-3">
                 <span className={`text-5xl font-black drop-shadow-lg ${theme.colors.textAccent}`}>{player1Wins}</span>
                 <div className={`rounded-full w-16 h-16 flex items-center justify-center shadow-xl ring-2 ${theme.colors.accentGradient} ${theme.colors.ringColor}`}>
-                  <span className={`${theme.colors.textPrimary} font-black text-lg`}>VS</span>
+                  <span className="text-white font-black text-lg">VS</span>
                 </div>
                 <span className={`text-5xl font-black drop-shadow-lg ${theme.colors.textAccent}`}>{player2Wins}</span>
               </div>
               <div className="text-center">
-                <p className="text-sm text-gray-500">Average Score</p>
-                <p className={`text-xl font-semibold ${theme.colors.textPrimary}`}>{player1AvgScore}-{player2AvgScore}</p>
+                <p className={`text-sm ${getPageTextColor(theme, 'secondary')}`}>Average Score</p>
+                <p className={`text-xl font-semibold ${getPageTextColor(theme, 'primary')}`}>{player1AvgScore}-{player2AvgScore}</p>
               </div>
             </div>
           </div>
