@@ -5,9 +5,9 @@ import { Ping } from "@shared/types/websocket";
 import {
   BaseOverlay,
   BaseOverlayDataProps,
-} from "../../components/shared/BaseOverlay";
-import BroadcastManager from "../../hooks/BroadcastManager";
-import { ApiService } from "../../services/interfaces";
+} from "../../../components/shared/BaseOverlay";
+import BroadcastManager from "../../../hooks/BroadcastManager";
+import { ApiService } from "../../../services/interfaces";
 
 const PingOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,

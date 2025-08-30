@@ -1,5 +1,37 @@
 # Changelog
 
+## 2025-08-30 - Modern Overlay Theme System & Text Visibility Fixes
+
+### 🎨 **Modern Overlay Theme System**
+
+#### **Dynamic Theme Support**
+- **NEW**: Complete theme system for all modern overlays with scrabble, modern, and july4 themes
+- **NEW**: User settings page for theme selection with real-time preview
+- **NEW**: Database-backed theme persistence per user
+- **ENHANCED**: BaseModernOverlay component provides centralized theme distribution
+- **IMPROVED**: All 14 modern overlay pages now support dynamic theming
+
+#### **Scrabble Theme Implementation**
+- **NEW**: Warm beige/brown scrabble theme matching main site design (#E4C6A0, #4A3728, #FAF1DB)
+- **DEFAULT**: Scrabble theme is now the default theme for all users
+- **FIXED**: Text visibility issues - replaced hardcoded `text-white` with theme-aware colors
+- **IMPROVED**: Table headers, cell content, and information boxes now readable on light backgrounds
+- **ENHANCED**: Tournament names, division names, and overlay descriptions use proper contrast colors
+
+#### **Theme Architecture**
+- **NEW**: Theme type definitions with comprehensive color palettes
+- **NEW**: Theme utility functions for consistent class generation
+- **NEW**: User settings API endpoints for theme preference storage
+- **REFACTORED**: All overlay components to accept theme parameters in renderCell functions
+- **STANDARDIZED**: Consistent theme color usage across modern/scrabble/july4 themes
+
+#### **Text Readability Improvements**
+- **FIXED**: Rating gain table columns (Old Rating, Wins, Losses, Ties) now use dark colors
+- **FIXED**: High score columns changed from light yellow to theme primary text
+- **FIXED**: Average points columns use theme colors instead of hardcoded light green
+- **FIXED**: Information boxes on overlay listing page use proper theme backgrounds and text
+- **REMOVED**: Gradient backgrounds from top 3 table rows (trophies provide sufficient distinction)
+
 ## 2025-08-29 - Cross-Tables API Optimization & Enhanced Overlays
 
 ### 🚀 **Cross-Tables API Performance**

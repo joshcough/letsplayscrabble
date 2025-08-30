@@ -3,9 +3,9 @@ import { useParams } from 'react-router-dom';
 import { 
   BaseOverlay, 
   BaseOverlayDataProps 
-} from '../../components/shared/BaseOverlay';
-import { ApiService } from '../../services/interfaces';
-import { formatPlayerName } from '../../utils/playerUtils';
+} from '../../../components/shared/BaseOverlay';
+import { ApiService } from '../../../services/interfaces';
+import { formatPlayerName } from '../../../utils/playerUtils';
 
 type RouteParams = {
   userId?: string;

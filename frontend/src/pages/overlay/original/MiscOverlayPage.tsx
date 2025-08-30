@@ -1,13 +1,13 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { BaseOverlay } from "../../components/shared/BaseOverlay";
-import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
-import PointsDisplay from "../../components/shared/PointsDisplay";
-import { RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
-import { ApiService } from "../../services/interfaces";
-import * as Stats from "../../types/stats";
-import { getRecentGamesForPlayer } from "../../utils/gameUtils";
+import { BaseOverlay } from "../../../components/shared/BaseOverlay";
+import GameHistoryDisplay from "../../../components/shared/GameHistoryDisplay";
+import PointsDisplay from "../../../components/shared/PointsDisplay";
+import { RankedPlayerStats } from "../../../hooks/usePlayerStatsCalculation";
+import { ApiService } from "../../../services/interfaces";
+import * as Stats from "../../../types/stats";
+import { getRecentGamesForPlayer } from "../../../utils/gameUtils";
 import {
   formatSpread,
   formatRecord,
@@ -16,7 +16,7 @@ import {
   formatUnderCamNoSeed,
   formatFullUnderCamWithRating,
   formatBestOf7,
-} from "../../utils/playerUtils";
+} from "../../../utils/playerUtils";
 
 type SourceType =
   | "player1-name"
@@ -76,7 +76,7 @@ const MiscOverlay: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
         // Calculate player stats from raw data (same as UsePlayerStatsCalculation does)
         const {
           calculateStandingsFromGames,
-        } = require("../../utils/calculateStandings");
+        } = require("../../../utils/calculateStandings");
         const playerStats = calculateStandingsFromGames(
           divisionData.games,
           divisionData.players,

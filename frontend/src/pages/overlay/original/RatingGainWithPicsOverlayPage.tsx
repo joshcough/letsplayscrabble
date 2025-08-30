@@ -1,12 +1,12 @@
 import React from "react";
 
-import PictureDisplay from "../../components/shared/PictureDisplay";
+import PictureDisplay from "../../../components/shared/PictureDisplay";
 import {
   UsePlayerStatsCalculation,
   RankedPlayerStats,
-} from "../../hooks/usePlayerStatsCalculation";
-import { ApiService } from "../../services/interfaces";
-import { formatNumberWithSign } from "../../utils/formatUtils";
+} from "../../../hooks/usePlayerStatsCalculation";
+import { ApiService } from "../../../services/interfaces";
+import { formatNumberWithSign } from "../../../utils/formatUtils";
 
 const RatingGainWithPicsOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,

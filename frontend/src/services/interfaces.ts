@@ -5,6 +5,8 @@ import {
   LoginSuccessData,
   EnablePollingRequest,
   PollingSuccessData,
+  UserSettingsSuccessData,
+  UpdateUserSettingsRequest,
 } from "@shared/types/api";
 import * as Domain from "@shared/types/domain";
 
@@ -70,12 +72,24 @@ export interface CurrentMatchService {
 }
 
 // ============================================================================
+// USER SETTINGS SERVICE
+// ============================================================================
+
+export interface UserSettingsService {
+  getUserSettings(): Promise<ApiResponse<UserSettingsSuccessData>>;
+  updateUserSettings(
+    request: UpdateUserSettingsRequest,
+  ): Promise<ApiResponse<UserSettingsSuccessData>>;
+}
+
+// ============================================================================
 // COMBINED API SERVICE
 // ============================================================================
 
 export interface ApiService
   extends AuthService,
     TournamentService,
-    CurrentMatchService {
+    CurrentMatchService,
+    UserSettingsService {
   // This combines all services into one interface for convenience
 }

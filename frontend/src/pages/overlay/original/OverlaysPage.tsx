@@ -1,8 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-import { useAuth } from "../../context/AuthContext";
-import { ApiService } from "../../services/interfaces";
+import { useAuth } from "../../../context/AuthContext";
+import { ApiService } from "../../../services/interfaces";
 
 const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const { userId } = useAuth();
@@ -89,7 +89,7 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
 //     },
     {
       title: "Head-to-Head Comparison",
-      path: `/users/${userId}/overlay/head_to_head_modern`,
+      path: `/users/${userId}/overlay/head_to_head`,
       description: "Compare two players with head-to-head record, average scores, and tournament standings. Uses current match players or /tournamentId/divisionName/playerId1/playerId2 for specific players",
       requiresParams: true,
     },
