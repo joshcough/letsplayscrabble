@@ -91,4 +91,4 @@ export const themes: Record<string, Theme> = {
   july4: july4Theme,
 };
 
-export const defaultTheme = modernTheme;
+export const defaultTheme = scrabbleTheme;
