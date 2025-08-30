@@ -38,6 +38,11 @@
 - **FIXED**: Tournament name display in head-to-head overlays now uses actual tournament names
 - **RESOLVED**: Color harmony issues in overlay themes
 
+### ✨ **User Experience Improvements**
+- **ENHANCED**: Head-to-head overlay now displays current tournament ratings under player names
+- **IMPROVED**: Games table layout with centered scores directly under "Latest Games" heading
+- **ADDED**: getCurrentRating utility function for accurate current rating display (last rating in history or initial rating)
+
 ## 2025-01-27 - Bug Fixes & Tournament Generator Enhancements
 
 ### 🐛 **Bug Fixes**

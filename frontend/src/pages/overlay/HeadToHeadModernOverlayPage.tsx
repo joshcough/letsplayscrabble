@@ -5,7 +5,7 @@ import {
   BaseOverlayDataProps 
 } from '../../components/shared/BaseOverlay';
 import { ApiService } from '../../services/interfaces';
-import { formatPlayerName } from '../../utils/playerUtils';
+import { formatPlayerName, getCurrentRating } from '../../utils/playerUtils';
 
 type RouteParams = {
   userId?: string;
@@ -218,6 +218,7 @@ const renderCareerH2H = (
                     {player1.xtData.city}{player1.xtData.state && `, ${player1.xtData.state}`}
                   </p>
                 )}
+                <p className="text-sm text-gray-300 mt-1">Rating: {getCurrentRating(player1)}</p>
               </div>
             </div>
 
@@ -264,6 +265,7 @@ const renderCareerH2H = (
                     {player2.xtData.city}{player2.xtData.state && `, ${player2.xtData.state}`}
                   </p>
                 )}
+                <p className="text-sm text-gray-300 mt-1">Rating: {getCurrentRating(player2)}</p>
               </div>
 
               {/* Photo */}
@@ -297,7 +299,14 @@ const renderCareerH2H = (
             <div className="max-w-3xl w-full">
               <h3 className="text-sm text-blue-200 uppercase tracking-wider mb-3 text-center font-semibold">Latest Games</h3>
               <div className="bg-gradient-to-br from-blue-900/50 to-gray-900/60 backdrop-blur-xl rounded-xl p-4 border border-blue-400/50 shadow-2xl shadow-blue-400/10">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm table-fixed">
+                  <colgroup>
+                    <col className="w-[25%]" />
+                    <col className="w-[10%]" />
+                    <col className="w-[30%]" />
+                    <col className="w-[10%]" />
+                    <col className="w-[25%]" />
+                  </colgroup>
                   <tbody>
                     {recentGames.map((game: any, index: number) => {
                       const player1Won = game.player1.playerid === player1.xtid
@@ -311,15 +320,15 @@ const renderCareerH2H = (
 
                       return (
                         <tr key={index} className="border-b border-blue-600/20 last:border-0 hover:bg-blue-800/20 transition-colors">
-                          <td className="py-3 px-4 text-gray-300">{new Date(game.date).toLocaleDateString()}</td>
-                          <td className={`py-3 px-3 text-center font-bold ${player1Won ? 'text-blue-300' : 'text-gray-400'}`}>
+                          <td className="py-3 px-4 text-gray-300 text-left">{new Date(game.date).toLocaleDateString()}</td>
+                          <td className={`py-3 px-2 text-center font-bold ${player1Won ? 'text-blue-300' : 'text-gray-400'}`}>
                             {winner}
                           </td>
-                          <td className="py-3 px-3 text-center text-white font-mono font-bold text-lg">{scores}</td>
-                          <td className={`py-3 px-3 text-center font-bold ${!player1Won ? 'text-blue-300' : 'text-gray-400'}`}>
+                          <td className="py-3 px-2 text-center text-white font-mono font-bold text-lg">{scores}</td>
+                          <td className={`py-3 px-2 text-center font-bold ${!player1Won ? 'text-blue-300' : 'text-gray-400'}`}>
                             {player1Won ? 'L' : 'W'}
                           </td>
-                          <td className="py-3 px-4 text-gray-300 text-right truncate max-w-[150px]" title={location}>
+                          <td className="py-3 px-4 text-gray-300 text-right truncate" title={location}>
                             {location}
                           </td>
                         </tr>

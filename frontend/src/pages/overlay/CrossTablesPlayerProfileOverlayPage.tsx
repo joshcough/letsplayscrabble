@@ -7,6 +7,7 @@ import {
   TournamentDisplayData,
 } from "../../components/shared/BaseOverlay";
 import { ApiService } from "../../services/interfaces";
+import { getCurrentRating } from "../../utils/playerUtils";
 
 type RouteParams = {
   userId?: string;
@@ -48,9 +49,10 @@ const renderPlayerProfile = (
 
   const { xtData } = player;
   const location = xtData ? formatLocation(xtData) : null;
-  const rating = xtData?.twlrating || xtData?.cswrating || null;
+  const rating = getCurrentRating(player); // Use current rating from ratings history or initial rating
+  // const rating = xtData?.twlrating || xtData?.cswrating || null;
   const ranking = xtData?.twlranking || xtData?.cswranking || null;
-  const winPercentage = (xtData?.w !== undefined && xtData?.l !== undefined && xtData?.t !== undefined) 
+  const winPercentage = (xtData?.w !== undefined && xtData?.l !== undefined && xtData?.t !== undefined)
     ? calculateWinPercentage(xtData.w, xtData.l, xtData.t) 
     : null;
   const tournamentCount = xtData?.tournamentCount || null;

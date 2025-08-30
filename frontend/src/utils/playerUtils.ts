@@ -1,4 +1,5 @@
 import { PlayerStats } from "../types/stats";
+import * as Domain from "@shared/types/domain";
 
 const baseUrl = "https://scrabbleplayers.org/directors/AA003954/";
 
@@ -65,4 +66,14 @@ export const formatFullUnderCamWithRating = (player: PlayerStats): string => {
 // Helper for best of 7 format
 export const formatBestOf7 = (player: PlayerStats): string => {
   return `Best of 7 Record: ${formatUnderCamRecord(player)}`;
+};
+
+// Get current rating from player's rating history or initial rating
+export const getCurrentRating = (player: Domain.Player): number => {
+  // If player has ratings history (etc.newr array) with values, use the last one
+  if (player.ratingsHistory && player.ratingsHistory.length > 0) {
+    return player.ratingsHistory[player.ratingsHistory.length - 1];
+  }
+  // Otherwise fall back to initial rating
+  return player.initialRating;
 };
