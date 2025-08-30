@@ -19,6 +19,7 @@ import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOve
 import MiscOverlayPage from "./pages/overlay/MiscOverlayPage";
 import MiscOverlayTestingPage from "./pages/overlay/MiscOverlayTestingPage";
 import OverlaysPage from "./pages/overlay/OverlaysPage";
+import ModernOverlaysPage from "./pages/overlay/ModernOverlaysPage";
 import PingOverlayPage from "./pages/overlay/PingOverlayPage";
 import PlayerOverlay from "./pages/overlay/PlayerOverlayPage";
 import PlayerOverlayTestingPage from "./pages/overlay/PlayerOverlayTestingPage";
@@ -32,6 +33,19 @@ import ScoringLeadersWithPicsOverlayPage from "./pages/overlay/ScoringLeadersWit
 import StandingsOverlayPage from "./pages/overlay/StandingsOverlayPage";
 import StandingsWithPicsOverlayPage from "./pages/overlay/StandingsWithPicsOverlayPage";
 import TournamentStatsOverlayPage from "./pages/overlay/TournamentStatsOverlayPage";
+// Modern overlay imports
+import CrossTablesPlayerProfileModernOverlay from "./pages/overlay/CrossTablesPlayerProfileModernOverlayPage";
+import HighScoresWithPicsModernOverlayPage from "./pages/overlay/HighScoresWithPicsModernOverlayPage";
+import MiscModernOverlayPage from "./pages/overlay/MiscModernOverlayPage";
+import PingModernOverlayPage from "./pages/overlay/PingModernOverlayPage";
+import PlayerModernOverlay from "./pages/overlay/PlayerModernOverlayPage";
+import RatingGainModernOverlayPage from "./pages/overlay/RatingGainModernOverlayPage";
+import RatingGainWithPicsModernOverlayPage from "./pages/overlay/RatingGainWithPicsModernOverlayPage";
+import ScoringLeadersModernOverlayPage from "./pages/overlay/ScoringLeadersModernOverlayPage";
+import ScoringLeadersWithPicsModernOverlayPage from "./pages/overlay/ScoringLeadersWithPicsModernOverlayPage";
+import StandingsModernOverlayPage from "./pages/overlay/StandingsModernOverlayPage";
+import StandingsWithPicsModernOverlayPage from "./pages/overlay/StandingsWithPicsModernOverlayPage";
+import TournamentStatsModernOverlayPage from "./pages/overlay/TournamentStatsModernOverlayPage";
 import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
 import { HttpApiService } from "./services/httpService";
@@ -127,6 +141,57 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           path="/users/:userId/overlay/tournament_stats/:tournamentId?/:divisionName?"
           element={<TournamentStatsOverlayPage apiService={apiService} />}
         />
+        
+        {/* Modern overlay routes */}
+        <Route
+          path="/users/:userId/overlay/ping_modern"
+          element={<PingModernOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/misc_modern"
+          element={<MiscModernOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/player_modern/:tournamentId?/:divisionName?"
+          element={<PlayerModernOverlay apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/cross_tables_profile_modern/:tournamentId?/:divisionName?/:playerId?"
+          element={<CrossTablesPlayerProfileModernOverlay apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/standings_modern/:tournamentId?/:divisionName?"
+          element={<StandingsModernOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/standings_with_pics_modern/:tournamentId?/:divisionName?"
+          element={<StandingsWithPicsModernOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/rating_gain_modern/:tournamentId?/:divisionName?"
+          element={<RatingGainModernOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/rating_gain_with_pics_modern/:tournamentId?/:divisionName?"
+          element={<RatingGainWithPicsModernOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/high_scores_with_pics_modern/:tournamentId?/:divisionName?"
+          element={<HighScoresWithPicsModernOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/scoring_leaders_modern/:tournamentId?/:divisionName?"
+          element={<ScoringLeadersModernOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/scoring_leaders_with_pics_modern/:tournamentId?/:divisionName?"
+          element={<ScoringLeadersWithPicsModernOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/tournament_stats_modern/:tournamentId?/:divisionName?"
+          element={<TournamentStatsModernOverlayPage apiService={apiService} />}
+        />
+        
         {/* Legacy overlay routes (backwards compatibility - optional) */}
         <Route
           path="/overlay/misc"
@@ -170,6 +235,10 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
         <Route
           path="/overlays"
           element={<OverlaysPage apiService={apiService} />}
+        />
+        <Route
+          path="/overlays/modern"
+          element={<ModernOverlaysPage apiService={apiService} />}
         />
         <Route
           path="/overlay/misc_testing"
