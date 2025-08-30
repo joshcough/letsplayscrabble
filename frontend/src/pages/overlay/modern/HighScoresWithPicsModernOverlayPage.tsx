@@ -1,11 +1,11 @@
 import React from "react";
 
-import PictureDisplayModern from "../../components/shared/PictureDisplayModern";
+import PictureDisplayModern from "../../../components/shared/PictureDisplayModern";
 import {
   UsePlayerStatsCalculation,
   RankedPlayerStats,
-} from "../../hooks/usePlayerStatsCalculation";
-import { ApiService } from "../../services/interfaces";
+} from "../../../hooks/usePlayerStatsCalculation";
+import { ApiService } from "../../../services/interfaces";
 
 const HighScoresWithPicsModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,

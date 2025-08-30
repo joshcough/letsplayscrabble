@@ -1,12 +1,12 @@
 import React from "react";
 
-import PictureDisplayModern from "../../components/shared/PictureDisplayModern";
+import PictureDisplayModern from "../../../components/shared/PictureDisplayModern";
 import {
   UsePlayerStatsCalculation,
   RankedPlayerStats,
-} from "../../hooks/usePlayerStatsCalculation";
-import { ApiService } from "../../services/interfaces";
-import { formatNumberWithSign } from "../../utils/formatUtils";
+} from "../../../hooks/usePlayerStatsCalculation";
+import { ApiService } from "../../../services/interfaces";
+import { formatNumberWithSign } from "../../../utils/formatUtils";
 
 const StandingsWithPicsModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
