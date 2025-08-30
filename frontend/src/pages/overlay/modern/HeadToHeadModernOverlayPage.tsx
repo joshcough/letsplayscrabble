@@ -106,22 +106,27 @@ const renderCareerH2H = (
     (game.player1Id === player1.id && game.player2Id === player2.id) ||
     (game.player1Id === player2.id && game.player2Id === player1.id)
   ).filter(game => game.player1Score !== null && game.player2Score !== null)
-  .map(game => ({
-    gameid: game.id,
-    date: new Date().toISOString().split('T')[0],
-    isCurrentTournament: true,
-    tournamentName: data.tournament.name,
-    player1: {
-      playerid: game.player1Id === player1.id ? player1.xtid : player2.xtid,
-      name: game.player1Id === player1.id ? player1.name : player2.name,
-      score: game.player1Id === player1.id ? game.player1Score : game.player2Score,
-    },
-    player2: {
-      playerid: game.player2Id === player1.id ? player1.xtid : player2.xtid,
-      name: game.player2Id === player1.id ? player1.name : player2.name,
-      score: game.player2Id === player1.id ? game.player1Score : game.player2Score,
-    }
-  }));
+  .map(game => {
+    // Figure out which player is which in this game
+    const headToHeadPlayer1IsGamePlayer1 = game.player1Id === player1.id;
+    
+    return {
+      gameid: game.id,
+      date: new Date().toISOString().split('T')[0],
+      isCurrentTournament: true,
+      tournamentName: data.tournament.name,
+      player1: {
+        playerid: player1.xtid,
+        name: player1.name,
+        score: headToHeadPlayer1IsGamePlayer1 ? game.player1Score : game.player2Score,
+      },
+      player2: {
+        playerid: player2.xtid,
+        name: player2.name,
+        score: headToHeadPlayer1IsGamePlayer1 ? game.player2Score : game.player1Score,
+      }
+    };
+  });
 
   const headToHeadGames = [...historicalGames, ...currentTournamentGames];
 

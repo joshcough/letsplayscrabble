@@ -1,5 +1,33 @@
 # Changelog
 
+## 2025-08-30 - Modern Overlays Are Now Default & Theme System Implementation
+
+### 🚀 **Modern Overlays Made Default**
+
+#### **URL Structure Changes**
+- **MAJOR**: Modern overlays are now the official overlays using standard URLs:
+  - `/users/:userId/overlay/standings` (was `standings_modern`)
+  - `/users/:userId/overlay/rating_gain` (was `rating_gain_modern`) 
+  - `/users/:userId/overlay/head_to_head` (was `head_to_head_modern`)
+  - All content overlays now use clean URLs without `_modern` suffix
+
+#### **OBS Compatibility Preserved** 
+- **PRESERVED**: Misc and Player overlays remain as original versions by default for OBS integration
+  - `/users/:userId/overlay/misc` - keeps white boxes with black text for OBS
+  - `/users/:userId/overlay/player` - keeps original OBS-compatible design
+  - Modern versions available at `misc_modern` and `player_modern` for those who want theming
+
+#### **Original Overlays Moved**
+- **MOVED**: Original overlays now available with `_original` suffix:
+  - `/users/:userId/overlay/standings_original` (was `standings`)
+  - `/users/:userId/overlay/rating_gain_original` (was `rating_gain`)
+  - All original overlays preserve backward compatibility
+
+#### **Navigation Updates**
+- **UPDATED**: `/overlays` now shows modern overlays (the new default)
+- **ADDED**: `/overlays/original` shows original overlays listing
+- **FIXED**: Navigation menu updated to reflect new structure
+
 ## 2025-08-30 - Modern Overlay Theme System & Text Visibility Fixes
 
 ### 🎨 **Modern Overlay Theme System**
