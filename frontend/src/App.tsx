@@ -77,8 +77,77 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
         <Route path="/login" element={<AdminLogin apiService={apiService} />} />
         {/* User-scoped overlay routes */}
         <Route
-          path="/users/:userId/overlay/ping"
+          path="/users/:userId/overlay/ping_original"
           element={<PingOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/misc_original"
+          element={<MiscOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/player_original/:tournamentId?/:divisionName?"
+          element={<PlayerOverlay apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/player_original/:tournamentId/:divisionName/:playerId/test"
+          element={<PlayerOverlayTestingPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/cross_tables_profile_original/:tournamentId?/:divisionName?/:playerId?"
+          element={<CrossTablesPlayerProfileOverlay apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/head_to_head_original/:tournamentId?/:divisionName?/:playerId1?/:playerId2?"
+          element={<HeadToHeadOverlay apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/head_to_head/:tournamentId?/:divisionName?/:playerId1?/:playerId2?"
+          element={<HeadToHeadModernOverlay apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/standings_original/:tournamentId?/:divisionName?"
+          element={<StandingsOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/standings_with_pics_original/:tournamentId?/:divisionName?"
+          element={<StandingsWithPicsOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/rating_gain_original/:tournamentId?/:divisionName?"
+          element={<RatingGainOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/rating_gain_with_pics_original/:tournamentId?/:divisionName?"
+          element={<RatingGainWithPicsOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/high_scores_with_pics_original/:tournamentId?/:divisionName?"
+          element={<HighScoresWithPicsOverlayPage apiService={apiService} />}
+        />
+        {/* Animation routes - transparent background */}
+        <Route
+          path="/users/:userId/notifications/all/:tournamentId?/:divisionName?"
+          element={<AllNotifications apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/scoring_leaders_original/:tournamentId?/:divisionName?"
+          element={<ScoringLeadersOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/scoring_leaders_with_pics_original/:tournamentId?/:divisionName?"
+          element={
+            <ScoringLeadersWithPicsOverlayPage apiService={apiService} />
+          }
+        />
+        <Route
+          path="/users/:userId/overlay/tournament_stats_original/:tournamentId?/:divisionName?"
+          element={<TournamentStatsOverlayPage apiService={apiService} />}
+        />
+        
+        {/* Modern overlay routes */}
+        <Route
+          path="/users/:userId/overlay/ping"
+          element={<PingModernOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/misc"
@@ -89,66 +158,43 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           element={<PlayerOverlay apiService={apiService} />}
         />
         <Route
-          path="/users/:userId/overlay/player/:tournamentId/:divisionName/:playerId/test"
-          element={<PlayerOverlayTestingPage apiService={apiService} />}
-        />
-        <Route
           path="/users/:userId/overlay/cross_tables_profile/:tournamentId?/:divisionName?/:playerId?"
-          element={<CrossTablesPlayerProfileOverlay apiService={apiService} />}
-        />
-        <Route
-          path="/users/:userId/overlay/head_to_head/:tournamentId?/:divisionName?/:playerId1?/:playerId2?"
-          element={<HeadToHeadOverlay apiService={apiService} />}
-        />
-        <Route
-          path="/users/:userId/overlay/head_to_head_modern/:tournamentId?/:divisionName?/:playerId1?/:playerId2?"
-          element={<HeadToHeadModernOverlay apiService={apiService} />}
+          element={<CrossTablesPlayerProfileModernOverlay apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/standings/:tournamentId?/:divisionName?"
-          element={<StandingsOverlayPage apiService={apiService} />}
+          element={<StandingsModernOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/standings_with_pics/:tournamentId?/:divisionName?"
-          element={<StandingsWithPicsOverlayPage apiService={apiService} />}
+          element={<StandingsWithPicsModernOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/rating_gain/:tournamentId?/:divisionName?"
-          element={<RatingGainOverlayPage apiService={apiService} />}
+          element={<RatingGainModernOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/rating_gain_with_pics/:tournamentId?/:divisionName?"
-          element={<RatingGainWithPicsOverlayPage apiService={apiService} />}
+          element={<RatingGainWithPicsModernOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/high_scores_with_pics/:tournamentId?/:divisionName?"
-          element={<HighScoresWithPicsOverlayPage apiService={apiService} />}
-        />
-        {/* Animation routes - transparent background */}
-        <Route
-          path="/users/:userId/notifications/all/:tournamentId?/:divisionName?"
-          element={<AllNotifications apiService={apiService} />}
+          element={<HighScoresWithPicsModernOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/scoring_leaders/:tournamentId?/:divisionName?"
-          element={<ScoringLeadersOverlayPage apiService={apiService} />}
+          element={<ScoringLeadersModernOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/scoring_leaders_with_pics/:tournamentId?/:divisionName?"
-          element={
-            <ScoringLeadersWithPicsOverlayPage apiService={apiService} />
-          }
+          element={<ScoringLeadersWithPicsModernOverlayPage apiService={apiService} />}
         />
         <Route
           path="/users/:userId/overlay/tournament_stats/:tournamentId?/:divisionName?"
-          element={<TournamentStatsOverlayPage apiService={apiService} />}
+          element={<TournamentStatsModernOverlayPage apiService={apiService} />}
         />
         
-        {/* Modern overlay routes */}
-        <Route
-          path="/users/:userId/overlay/ping_modern"
-          element={<PingModernOverlayPage apiService={apiService} />}
-        />
+        {/* Modern versions of utility overlays (misc/player use original by default for OBS compatibility) */}
         <Route
           path="/users/:userId/overlay/misc_modern"
           element={<MiscModernOverlayPage apiService={apiService} />}
@@ -156,42 +202,6 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
         <Route
           path="/users/:userId/overlay/player_modern/:tournamentId?/:divisionName?"
           element={<PlayerModernOverlay apiService={apiService} />}
-        />
-        <Route
-          path="/users/:userId/overlay/cross_tables_profile_modern/:tournamentId?/:divisionName?/:playerId?"
-          element={<CrossTablesPlayerProfileModernOverlay apiService={apiService} />}
-        />
-        <Route
-          path="/users/:userId/overlay/standings_modern/:tournamentId?/:divisionName?"
-          element={<StandingsModernOverlayPage apiService={apiService} />}
-        />
-        <Route
-          path="/users/:userId/overlay/standings_with_pics_modern/:tournamentId?/:divisionName?"
-          element={<StandingsWithPicsModernOverlayPage apiService={apiService} />}
-        />
-        <Route
-          path="/users/:userId/overlay/rating_gain_modern/:tournamentId?/:divisionName?"
-          element={<RatingGainModernOverlayPage apiService={apiService} />}
-        />
-        <Route
-          path="/users/:userId/overlay/rating_gain_with_pics_modern/:tournamentId?/:divisionName?"
-          element={<RatingGainWithPicsModernOverlayPage apiService={apiService} />}
-        />
-        <Route
-          path="/users/:userId/overlay/high_scores_with_pics_modern/:tournamentId?/:divisionName?"
-          element={<HighScoresWithPicsModernOverlayPage apiService={apiService} />}
-        />
-        <Route
-          path="/users/:userId/overlay/scoring_leaders_modern/:tournamentId?/:divisionName?"
-          element={<ScoringLeadersModernOverlayPage apiService={apiService} />}
-        />
-        <Route
-          path="/users/:userId/overlay/scoring_leaders_with_pics_modern/:tournamentId?/:divisionName?"
-          element={<ScoringLeadersWithPicsModernOverlayPage apiService={apiService} />}
-        />
-        <Route
-          path="/users/:userId/overlay/tournament_stats_modern/:tournamentId?/:divisionName?"
-          element={<TournamentStatsModernOverlayPage apiService={apiService} />}
         />
         
         {/* Legacy overlay routes (backwards compatibility - optional) */}
@@ -236,11 +246,11 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
         {/* Other routes */}
         <Route
           path="/overlays"
-          element={<OverlaysPage apiService={apiService} />}
+          element={<ModernOverlaysPage apiService={apiService} />}
         />
         <Route
-          path="/overlays/modern"
-          element={<ModernOverlaysPage apiService={apiService} />}
+          path="/overlays/original"
+          element={<OverlaysPage apiService={apiService} />}
         />
         <Route
           path="/overlay/misc_testing"

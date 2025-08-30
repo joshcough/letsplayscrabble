@@ -44,57 +44,57 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
     },
     {
       title: "Rating Gain Leaders",
-      path: `/users/${userId}/overlay/rating_gain_modern`,
+      path: `/users/${userId}/overlay/rating_gain`,
       description: "Players ranked by rating change - modern dark theme",
     },
     {
       title: "Rating Gain with Pictures",
-      path: `/users/${userId}/overlay/rating_gain_with_pics_modern`,
+      path: `/users/${userId}/overlay/rating_gain_with_pics`,
       description: "Rating gain leaders with player photos - modern dark theme",
     },
     {
       title: "High Scores with Pictures",
-      path: `/users/${userId}/overlay/high_scores_with_pics_modern`,
+      path: `/users/${userId}/overlay/high_scores_with_pics`,
       description: "High score leaders with player photos - modern dark theme",
     },
     {
       title: "Standings",
-      path: `/users/${userId}/overlay/standings_modern`,
+      path: `/users/${userId}/overlay/standings`,
       description: "Division standings in table - modern dark theme",
     },
     {
       title: "Standings with Pictures",
-      path: `/users/${userId}/overlay/standings_with_pics_modern`,
+      path: `/users/${userId}/overlay/standings_with_pics`,
       description: "Division standings with pictures - modern dark theme",
     },
     {
       title: "Scoring Leaders",
-      path: `/users/${userId}/overlay/scoring_leaders_modern`,
+      path: `/users/${userId}/overlay/scoring_leaders`,
       description: "Players ranked by average score - modern dark theme",
     },
     {
       title: "Scoring Leaders with Pictures",
-      path: `/users/${userId}/overlay/scoring_leaders_with_pics_modern`,
+      path: `/users/${userId}/overlay/scoring_leaders_with_pics`,
       description: "Scoring leaders with player photos - modern dark theme",
     },
     {
       title: "Tournament Stats",
-      path: `/users/${userId}/overlay/tournament_stats_modern`,
+      path: `/users/${userId}/overlay/tournament_stats`,
       description: "Tournament statistics and analytics - modern dark theme",
     },
     {
       title: "Cross-Tables Player Profile",
-      path: `/users/${userId}/overlay/cross_tables_profile_modern?player=1`,
+      path: `/users/${userId}/overlay/cross_tables_profile?player=1`,
       description: "Player profiles with cross-tables ratings, rankings, and career stats - modern dark theme. Use ?player=1/2 for current match or /tournamentId/divisionName/playerId for specific player",
       requiresParams: true,
     },
     {
       title: "Head-to-Head Comparison",
-      path: `/users/${userId}/overlay/head_to_head_modern`,
+      path: `/users/${userId}/overlay/head_to_head`,
       description: "Compare two players with head-to-head record, average scores, and tournament standings - modern dark theme. Uses current match players or /tournamentId/divisionName/playerId1/playerId2 for specific players",
       requiresParams: true,
     },
-    {
+/*    {
       title: "Player Data Display",
       path: `/users/${userId}/overlay/player_modern?player=1&source=name`,
       description: "Display specific player data (name, record, scores, etc.) - modern dark theme. Add ?player=1/2 and &source=name/record/rank etc.",
@@ -108,9 +108,9 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
     },
     {
       title: "Ping Test",
-      path: `/users/${userId}/overlay/ping_modern`,
+      path: `/users/${userId}/overlay/ping`,
       description: "WebSocket connectivity test - modern dark theme",
-    },
+    },*/
   ];
 
         return (
@@ -166,9 +166,6 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
                     : `${theme.colors.textAccent} hover:opacity-80`
                 } transition-colors`}
               >
-                {overlay.isSpecial
-                  ? "Add as Browser Source →"
-                  : "Add as Browser Source →"}
               </div>
             </Link>
           ))}
@@ -235,7 +232,7 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
               /tournamentId/divisionName for specific tournament data
             </li>
             <li>
-              • <strong>Example:</strong> /users/{userId}/overlay/standings_modern/123/A
+              • <strong>Example:</strong> /users/{userId}/overlay/standings/123/A
               shows standings for tournament 123, division A
             </li>
             <li>

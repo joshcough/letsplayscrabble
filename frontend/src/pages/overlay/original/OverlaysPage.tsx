@@ -35,49 +35,64 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
       description:
         "Test page showing all available misc overlay sources and examples",
     },
+/*    {
+      title: "Ping Test",
+      path: `/users/${userId}/overlay/ping_original`,
+      description: "Test connectivity and websocket performance - original style",
+    },
+    {
+      title: "Misc Data Display",
+      path: `/users/${userId}/overlay/misc`,
+      description: "Miscellaneous tournament data and information - designed for OBS integration (white boxes, black text)",
+    },
+    {
+      title: "Player Data Display",
+      path: `/users/${userId}/overlay/player`,
+      description: "Current player information and stats - designed for OBS integration (white boxes, black text)",
+    },*/
     {
       title: "Rating Gain Leaders",
-      path: `/users/${userId}/overlay/rating_gain`,
+      path: `/users/${userId}/overlay/rating_gain_original`,
       description: "Players ranked by rating change",
     },
     {
       title: "Rating Gain with Pictures",
-      path: `/users/${userId}/overlay/rating_gain_with_pics`,
+      path: `/users/${userId}/overlay/rating_gain_with_pics_original`,
       description: "Rating gain leaders with player photos",
     },
     {
       title: "High Scores with Pictures",
-      path: `/users/${userId}/overlay/high_scores_with_pics`,
+      path: `/users/${userId}/overlay/high_scores_with_pics_original`,
       description: "High score leaders with player photos",
     },
     {
       title: "Standings",
-      path: `/users/${userId}/overlay/standings`,
+      path: `/users/${userId}/overlay/standings_original`,
       description: "Division standings in table",
     },
     {
       title: "Standings with Pictures",
-      path: `/users/${userId}/overlay/standings_with_pics`,
+      path: `/users/${userId}/overlay/standings_with_pics_original`,
       description: "Division standings with pictures",
     },
     {
       title: "Scoring Leaders",
-      path: `/users/${userId}/overlay/scoring_leaders`,
+      path: `/users/${userId}/overlay/scoring_leaders_original`,
       description: "Players ranked by average score",
     },
     {
       title: "Scoring Leaders with Pictures",
-      path: `/users/${userId}/overlay/scoring_leaders_with_pics`,
+      path: `/users/${userId}/overlay/scoring_leaders_with_pics_original`,
       description: "Scoring leaders with player photos",
     },
     {
       title: "Tournament Stats",
-      path: `/users/${userId}/overlay/tournament_stats`,
+      path: `/users/${userId}/overlay/tournament_stats_original`,
       description: "Tournament statistics and analytics",
     },
     {
       title: "Cross-Tables Player Profile", 
-      path: `/users/${userId}/overlay/cross_tables_profile?player=1`,
+      path: `/users/${userId}/overlay/cross_tables_profile_original?player=1`,
       description: "Player profiles with cross-tables ratings, rankings, and career stats. Use ?player=1/2 for current match or /tournamentId/divisionName/playerId for specific player",
       requiresParams: true,
     },
@@ -89,7 +104,7 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
 //     },
     {
       title: "Head-to-Head Comparison",
-      path: `/users/${userId}/overlay/head_to_head`,
+      path: `/users/${userId}/overlay/head_to_head_original`,
       description: "Compare two players with head-to-head record, average scores, and tournament standings. Uses current match players or /tournamentId/divisionName/playerId1/playerId2 for specific players",
       requiresParams: true,
     },
@@ -98,7 +113,7 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   return (
     <div className="container mx-auto p-8">
       <h1 className="text-3xl font-bold mb-8 text-center text-[#4A3728]">
-        Tournament Overlays & Worker
+        Original Tournament Overlays & Worker
       </h1>
 
       <p className="text-lg mb-6 text-center text-[#6B5744]">
@@ -147,9 +162,6 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
                   : "text-[#4A3728] hover:text-[#4A3728]/80"
               }`}
             >
-              {overlay.isSpecial
-                ? "Add as Browser Source →"
-                : "Add as Browser Source →"}
             </div>
           </Link>
         ))}
