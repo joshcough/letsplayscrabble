@@ -33,4 +33,4 @@ export interface Theme {
   colors: ThemeColors;
 }
 
-export type ThemeName = 'modern' | 'scrabble' | 'july4';
+export type ThemeName = 'modern' | 'scrabble' | 'july4' | 'original';

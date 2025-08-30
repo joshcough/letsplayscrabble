@@ -31,11 +31,10 @@ export const getThemeClasses = (theme: Theme) => ({
     theme.colors.shadowColor
   ),
   
-  // Typography
-  title: cn(
-    'text-4xl font-black text-transparent bg-clip-text',
-    theme.colors.titleGradient
-  ),
+  // Typography  
+  title: theme.name === 'original' 
+    ? cn('text-4xl font-black', theme.colors.titleGradient)
+    : cn('text-4xl font-black text-transparent bg-clip-text', theme.colors.titleGradient),
   
   subtitle: cn(
     'text-xl',

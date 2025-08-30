@@ -116,7 +116,7 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
         return (
           <div className={`${theme.colors.pageBackground} min-h-screen`}>
             <div className="container mx-auto p-8">
-              <h1 className={`text-4xl font-bold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r ${theme.colors.titleGradient}`}>
+              <h1 className={`text-4xl font-bold mb-8 text-center ${theme.name === 'original' ? theme.colors.titleGradient : `text-transparent bg-clip-text bg-gradient-to-r ${theme.colors.titleGradient}`}`}>
                 Modern Tournament Overlays & Worker
               </h1>
 

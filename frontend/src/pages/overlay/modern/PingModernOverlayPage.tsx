@@ -43,7 +43,7 @@ const PingModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
             <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
               <div className={`${theme.colors.cardBackground} rounded-3xl p-8 border-2 ${theme.colors.primaryBorder} shadow-2xl ${theme.colors.shadowColor} max-w-md w-full`}>
                 <div className="text-center mb-8">
-                  <h1 className={`text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r ${theme.colors.titleGradient}`}>
+                  <h1 className={`text-4xl font-bold ${theme.name === 'original' ? theme.colors.titleGradient : `text-transparent bg-clip-text bg-gradient-to-r ${theme.colors.titleGradient}`}`}>
                     🏓 Ping Test
                   </h1>
                 </div>

@@ -187,7 +187,7 @@ const StatsDisplay: React.FC<{
           <div className={`${theme.colors.textAccent} text-sm font-semibold uppercase tracking-wider mb-3`}>
             {label}
           </div>
-          <div className={`text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r ${color}`}>
+          <div className={`text-4xl font-black ${theme.name === 'original' ? theme.colors.textPrimary : `text-transparent bg-clip-text bg-gradient-to-r ${color}`}`}>
             {value}
           </div>
         </div>
@@ -199,7 +199,7 @@ const StatsDisplay: React.FC<{
     <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
       <div className="max-w-7xl w-full">
         <div className="text-center mb-10">
-          <h1 className={`text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r ${theme.colors.titleGradient} mb-3`}>
+          <h1 className={`text-4xl font-black mb-3 ${theme.name === 'original' ? theme.colors.titleGradient : `text-transparent bg-clip-text bg-gradient-to-r ${theme.colors.titleGradient}`}`}>
             Tournament Statistics
           </h1>
           <div className={`text-xl ${theme.colors.textSecondary}`}>

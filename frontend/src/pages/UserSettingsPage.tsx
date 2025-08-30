@@ -148,6 +148,7 @@ const UserSettingsPage: React.FC<UserSettingsPageProps> = ({ apiService }) => {
                     {theme.name === 'modern' && 'Clean, modern design with blue accents'}
                     {theme.name === 'scrabble' && 'Classic Scrabble-inspired golden theme'}
                     {theme.name === 'july4' && 'Patriotic red, white, and blue theme'}
+                    {theme.name === 'original' && 'Simple black and white design like original overlays'}
                   </p>
                 </div>
               ))}

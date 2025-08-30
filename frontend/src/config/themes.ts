@@ -91,10 +91,42 @@ export const july4Theme: Theme = {
   }
 };
 
+export const originalTheme: Theme = {
+  name: 'original',
+  displayName: 'Original',
+  colors: {
+    // Pure white background like original overlays
+    pageBackground: 'bg-white',
+    cardBackground: 'bg-white',
+    
+    // Simple black borders
+    primaryBorder: 'border-black',
+    secondaryBorder: 'border-gray-300',
+    
+    // Simple black title
+    titleGradient: 'text-black',
+    textPrimary: 'text-black',
+    textSecondary: 'text-gray-600', // Used for locations and secondary info
+    textAccent: 'text-black',
+    
+    // Original color coding: red for positive (gains), blue for negative (losses)
+    positiveColor: 'text-red-600',
+    negativeColor: 'text-blue-600', 
+    neutralColor: 'text-gray-600',
+    
+    hoverBackground: 'hover:bg-gray-50',
+    shadowColor: 'shadow-gray-200',
+    
+    accentGradient: 'bg-black',
+    ringColor: 'ring-gray-300',
+  }
+};
+
 export const themes: Record<string, Theme> = {
   modern: modernTheme,
   scrabble: scrabbleTheme,
   july4: july4Theme,
+  original: originalTheme,
 };
 
 export const defaultTheme = scrabbleTheme;
