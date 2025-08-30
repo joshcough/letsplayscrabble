@@ -301,11 +301,11 @@ const renderCareerH2H = (
               <div className="bg-gradient-to-br from-blue-900/50 to-gray-900/60 backdrop-blur-xl rounded-xl p-4 border border-blue-400/50 shadow-2xl shadow-blue-400/10">
                 <table className="w-full text-sm table-fixed">
                   <colgroup>
-                    <col className="w-[20%]" />
+                    <col className="w-[18%]" />
                     <col className="w-[8%]" />
-                    <col className="w-[24%]" />
+                    <col className="w-[28%]" />
                     <col className="w-[8%]" />
-                    <col className="w-[40%]" />
+                    <col className="w-[38%]" />
                   </colgroup>
                   <tbody>
                     {recentGames.map((game: any, index: number) => {
