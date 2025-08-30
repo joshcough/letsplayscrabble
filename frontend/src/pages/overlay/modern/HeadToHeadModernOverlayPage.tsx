@@ -240,7 +240,7 @@ const renderCareerH2H = (
                     {player1.xtData.city}{player1.xtData.state && `, ${player1.xtData.state}`}
                   </p>
                 )}
-                <p className={`text-sm mt-1 ${theme.name === 'july4' ? 'text-slate-700' : 'text-gray-300'}`}>Rating: {getCurrentRating(player1)}</p>
+                <p className={`text-sm mt-1 ${theme.colors.textSecondary}`}>Rating: {getCurrentRating(player1)}</p>
               </div>
             </div>
 
@@ -287,7 +287,7 @@ const renderCareerH2H = (
                     {player2.xtData.city}{player2.xtData.state && `, ${player2.xtData.state}`}
                   </p>
                 )}
-                <p className={`text-sm mt-1 ${theme.name === 'july4' ? 'text-slate-700' : 'text-gray-300'}`}>Rating: {getCurrentRating(player2)}</p>
+                <p className={`text-sm mt-1 ${theme.colors.textSecondary}`}>Rating: {getCurrentRating(player2)}</p>
               </div>
 
               {/* Photo */}
@@ -319,8 +319,8 @@ const renderCareerH2H = (
           <div className="flex justify-center">
             {/* Latest Games Table */}
             <div className="w-full" style={{maxWidth: '56rem'}}>
-              <h3 className="text-sm text-blue-200 uppercase tracking-wider mb-3 text-center font-semibold">Latest Games</h3>
-              <div className="bg-gradient-to-br from-blue-900/50 to-gray-900/60 backdrop-blur-xl rounded-xl p-4 border border-blue-400/50 shadow-2xl shadow-blue-400/10">
+              <h3 className={`text-sm ${theme.colors.textSecondary} uppercase tracking-wider mb-3 text-center font-semibold`}>Latest Games</h3>
+              <div className={`${theme.colors.cardBackground} rounded-xl p-4 border ${theme.colors.primaryBorder} shadow-2xl ${theme.colors.shadowColor}`}>
                 <table className="w-full text-sm table-fixed">
                   <colgroup>
                     <col className="w-[25%]" />
@@ -341,16 +341,16 @@ const renderCareerH2H = (
                       const location = game.tournamentName || game.tourneyname || 'Tournament';
 
                       return (
-                        <tr key={index} className="border-b border-blue-600/20 last:border-0 hover:bg-blue-800/20 transition-colors">
-                          <td className="py-3 px-4 text-gray-300 text-left">{new Date(game.date).toLocaleDateString()}</td>
-                          <td className={`py-3 px-2 text-center font-bold ${player1Won ? 'text-blue-300' : 'text-gray-400'}`}>
+                        <tr key={index} className={`border-b ${theme.colors.secondaryBorder} last:border-0 ${theme.colors.hoverBackground} transition-colors`}>
+                          <td className={`py-3 px-4 ${theme.colors.textSecondary} text-left`}>{new Date(game.date).toLocaleDateString()}</td>
+                          <td className={`py-3 px-2 text-center font-bold ${player1Won ? theme.colors.positiveColor : theme.colors.neutralColor}`}>
                             {winner}
                           </td>
                           <td className={`py-3 px-2 text-center ${theme.name === 'july4' ? 'text-white' : theme.colors.textPrimary} font-mono font-bold text-lg`}>{scores}</td>
-                          <td className={`py-3 px-2 text-center font-bold ${!player1Won ? 'text-blue-300' : 'text-gray-400'}`}>
+                          <td className={`py-3 px-2 text-center font-bold ${!player1Won ? theme.colors.positiveColor : theme.colors.neutralColor}`}>
                             {player1Won ? 'L' : 'W'}
                           </td>
-                          <td className="py-3 px-4 text-gray-300 text-right" title={location}>
+                          <td className={`py-3 px-4 ${theme.colors.textSecondary} text-right`} title={location}>
                             <div className="overflow-hidden text-ellipsis whitespace-nowrap">
                               {abbreviateTournamentName(location)}
                             </div>
