@@ -15,6 +15,21 @@ type RouteParams = {
   playerId2?: string;
 };
 
+// Abbreviate common tournament words to save space
+const abbreviateTournamentName = (name: string): string => {
+  return name
+    .replace(/\bInternational\b/gi, 'Int\'l')
+    .replace(/\bTournament\b/gi, 'Tourney')
+    .replace(/\bChampionship\b/gi, 'Championship') // Keep full - important
+    .replace(/\bNational\b/gi, 'Nat\'l')
+    .replace(/\bRegional\b/gi, 'Regional')
+    .replace(/\bInvitational\b/gi, 'Invit\'l')
+    .replace(/\bClassic\b/gi, 'Classic')
+    .replace(/\bFestival\b/gi, 'Festival')
+    .replace(/\bOpen\b/gi, 'Open')
+    .replace(/\bMemorial\b/gi, 'Memorial');
+};
+
 interface HeadToHeadModernOverlayPageProps {
   apiService: ApiService;
 }
@@ -330,7 +345,7 @@ const renderCareerH2H = (
                           </td>
                           <td className="py-3 px-4 text-gray-300 text-right" title={location}>
                             <div className="overflow-hidden text-ellipsis whitespace-nowrap">
-                              {location}
+                              {abbreviateTournamentName(location)}
                             </div>
                           </td>
                         </tr>
