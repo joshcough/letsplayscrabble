@@ -3,14 +3,17 @@ import { Link } from "react-router-dom";
 
 import AdminInterface from "../../components/admin/AdminInterface";
 import { ApiService } from "../../services/interfaces";
+import { useThemeContext } from "../../context/ThemeContext";
 
 const AdminPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+  const { theme } = useThemeContext();
+  
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6 flex justify-end">
         <Link
           to="/overlay/misc"
-          className="bg-[#FAF1DB] text-[#4A3728] px-4 py-2 rounded-md hover:bg-[#4A3728] hover:text-[#FAF1DB] transition-colors border-2 border-[#4A3728]"
+          className={`${theme.colors.cardBackground} ${theme.colors.textPrimary} px-4 py-2 rounded-md ${theme.colors.hoverBackground} transition-colors border-2 ${theme.colors.primaryBorder}`}
         >
           Open Stats Overlay
         </Link>

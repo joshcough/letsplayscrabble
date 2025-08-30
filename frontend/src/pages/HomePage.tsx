@@ -2,10 +2,13 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 import { ApiService } from "../services/interfaces";
+import { useThemeContext } from "../context/ThemeContext";
 
 const HomePage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+  const { theme } = useThemeContext();
+  
   return (
-    <div className="min-h-screen bg-[#E4C6A0]">
+    <div>
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="flex justify-center mb-12">
           <a
@@ -23,10 +26,10 @@ const HomePage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
         </div>
 
         <div className="text-center mb-12">
-          <h2 className="text-[#4A3728] text-2xl font-bold">
+          <h2 className={`${theme.colors.pageTextPrimary || theme.colors.textPrimary} text-2xl font-bold`}>
             Tournament Manager
           </h2>
-          <p className="text-[#6B5744] mt-2">
+          <p className={`${theme.colors.pageTextSecondary || theme.colors.textSecondary} mt-2`}>
             A companion app for LetsPlayScrabble.com
           </p>
         </div>
@@ -38,13 +41,13 @@ const HomePage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           >
             <div className="absolute inset-0 bg-red-600 opacity-10 group-hover:opacity-20 transition-opacity" />
             <div
-              className="relative bg-[#FAF1DB] p-8 rounded border-2 border-[#4A3728] shadow-lg
-                          transform group-hover:-translate-y-1 transition-transform flex-1 flex flex-col"
+              className={`relative ${theme.colors.cardBackground} p-8 rounded border-2 ${theme.colors.primaryBorder} ${theme.colors.shadowColor} shadow-lg
+                          transform group-hover:-translate-y-1 transition-transform flex-1 flex flex-col`}
             >
-              <h2 className="text-xl font-bold text-[#4A3728] mb-3">
+              <h2 className={`text-xl font-bold ${theme.colors.textPrimary} mb-3`}>
                 Tournament Manager
               </h2>
-              <p className="text-[#6B5744]">
+              <p className={theme.colors.textSecondary}>
                 Manage tournaments, view standings, and track results
               </p>
             </div>
@@ -53,40 +56,40 @@ const HomePage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           <Link to="/admin" className="group relative h-[200px] flex">
             <div className="absolute inset-0 bg-blue-600 opacity-10 group-hover:opacity-20 transition-opacity" />
             <div
-              className="relative bg-[#FAF1DB] p-8 rounded border-2 border-[#4A3728] shadow-lg
-                          transform group-hover:-translate-y-1 transition-transform flex-1 flex flex-col"
+              className={`relative ${theme.colors.cardBackground} p-8 rounded border-2 ${theme.colors.primaryBorder} ${theme.colors.shadowColor} shadow-lg
+                          transform group-hover:-translate-y-1 transition-transform flex-1 flex flex-col`}
             >
-              <h2 className="text-xl font-bold text-[#4A3728] mb-3">
+              <h2 className={`text-xl font-bold ${theme.colors.textPrimary} mb-3`}>
                 Admin Interface
               </h2>
-              <p className="text-[#6B5744]">Choose the current live pairing</p>
+              <p className={theme.colors.textSecondary}>Choose the current live pairing</p>
             </div>
           </Link>
 
           <Link to="/overlays" className="group relative h-[200px] flex">
             <div className="absolute inset-0 bg-green-600 opacity-10 group-hover:opacity-20 transition-opacity" />
             <div
-              className="relative bg-[#FAF1DB] p-8 rounded border-2 border-[#4A3728] shadow-lg
-                          transform group-hover:-translate-y-1 transition-transform flex-1 flex flex-col"
+              className={`relative ${theme.colors.cardBackground} p-8 rounded border-2 ${theme.colors.primaryBorder} ${theme.colors.shadowColor} shadow-lg
+                          transform group-hover:-translate-y-1 transition-transform flex-1 flex flex-col`}
             >
-              <h2 className="text-xl font-bold text-[#4A3728] mb-3">
+              <h2 className={`text-xl font-bold ${theme.colors.textPrimary} mb-3`}>
                 Tournament Overlays
               </h2>
-              <p className="text-[#6B5744]">
+              <p className={theme.colors.textSecondary}>
                 OBS overlays for live streaming tournaments
               </p>
             </div>
           </Link>
         </div>
 
-        <div className="text-center mt-12 text-[#4A3728] text-sm">
+        <div className={`text-center mt-12 ${theme.colors.pageTextPrimary || theme.colors.textPrimary} text-sm`}>
           <p>
             Built for{" "}
             <a
               href="https://letsplayscrabble.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline hover:text-[#6B5744]"
+              className={`underline hover:${theme.colors.pageTextSecondary || theme.colors.textSecondary}`}
             >
               LetsPlayScrabble.com
             </a>

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import * as Domain from "@shared/types/domain";
 
 import { useAuth } from "../../context/AuthContext";
+import { useThemeContext } from "../../context/ThemeContext";
 import { ApiService } from "../../services/interfaces";
 import { ProtectedPage } from "../ProtectedPage";
 
@@ -17,6 +18,7 @@ const AdminInterface: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
   const { userId } = useAuth(); // Get userId from auth context
+  const { theme } = useThemeContext();
   const user_id = userId!;
 
   // State for dropdown options
@@ -321,11 +323,11 @@ const AdminInterface: React.FC<{ apiService: ApiService }> = ({
   };
 
   const inputStyles = `
-    w-full p-2 border-2 border-[#4A3728]/20 rounded
-    bg-[#FFF8E7] text-[#4A3728]
-    focus:ring-2 focus:ring-[#4A3728]/30 focus:border-[#4A3728]
+    w-full p-2 border-2 ${theme.colors.secondaryBorder} rounded
+    ${theme.colors.cardBackground} ${theme.colors.textPrimary}
+    focus:ring-2 ${theme.colors.ringColor} focus:${theme.colors.primaryBorder}
     outline-none transition-colors
-    disabled:bg-[#4A3728]/10 disabled:cursor-not-allowed
+    disabled:opacity-50 disabled:cursor-not-allowed
   `;
 
   // Show loading state during initialization
@@ -333,12 +335,12 @@ const AdminInterface: React.FC<{ apiService: ApiService }> = ({
     return (
       <ProtectedPage>
         <div className="p-8 max-w-4xl mx-auto">
-          <div className="bg-[#FAF1DB] shadow-md rounded-lg p-6">
-            <h1 className="text-2xl font-bold mb-6 text-[#4A3728]">
+          <div className={`${theme.colors.cardBackground} shadow-md rounded-lg p-6`}>
+            <h1 className={`text-2xl font-bold mb-6 ${theme.colors.textPrimary}`}>
               Tournament Admin Panel
             </h1>
             <div className="flex items-center justify-center py-8">
-              <div className="text-[#4A3728]">
+              <div className={theme.colors.textPrimary}>
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4A3728] mx-auto mb-4"></div>
                 <p>{initializationStatus}</p>
               </div>
@@ -352,8 +354,8 @@ const AdminInterface: React.FC<{ apiService: ApiService }> = ({
   return (
     <ProtectedPage>
       <div className="p-8 max-w-4xl mx-auto">
-        <div className="bg-[#FAF1DB] shadow-md rounded-lg p-6">
-          <h1 className="text-2xl font-bold mb-6 text-[#4A3728]">
+        <div className={`${theme.colors.cardBackground} shadow-md rounded-lg p-6`}>
+          <h1 className={`text-2xl font-bold mb-6 ${theme.colors.textPrimary}`}>
             Tournament Admin Panel
           </h1>
 
@@ -377,7 +379,7 @@ const AdminInterface: React.FC<{ apiService: ApiService }> = ({
 
           <div className="space-y-6">
             <div>
-              <label className="block text-[#4A3728] font-medium mb-2">
+              <label className={`block ${theme.colors.textPrimary} font-medium mb-2`}>
                 Tournament ({tournaments.length} available)
               </label>
               <select
@@ -398,7 +400,7 @@ const AdminInterface: React.FC<{ apiService: ApiService }> = ({
             </div>
 
             <div>
-              <label className="block text-[#4A3728] font-medium mb-2">
+              <label className={`block ${theme.colors.textPrimary} font-medium mb-2`}>
                 Division ({availableDivisions.length} available)
               </label>
               <select
@@ -417,7 +419,7 @@ const AdminInterface: React.FC<{ apiService: ApiService }> = ({
             </div>
 
             <div>
-              <label className="block text-[#4A3728] font-medium mb-2">
+              <label className={`block ${theme.colors.textPrimary} font-medium mb-2`}>
                 Round ({availableRounds.length} available)
               </label>
               <select
@@ -436,7 +438,7 @@ const AdminInterface: React.FC<{ apiService: ApiService }> = ({
             </div>
 
             <div>
-              <label className="block text-[#4A3728] font-medium mb-2">
+              <label className={`block ${theme.colors.textPrimary} font-medium mb-2`}>
                 Pairing ({availablePairings.length} available)
               </label>
               <select
@@ -464,8 +466,8 @@ const AdminInterface: React.FC<{ apiService: ApiService }> = ({
               className={`w-full py-2 px-4 rounded-md transition-colors
                 ${
                   isLoading || selectedPairing === null
-                    ? "bg-[#4A3728]/40 text-[#4A3728]/60 cursor-not-allowed"
-                    : "bg-[#4A3728] hover:bg-[#6B5744] text-[#FAF1DB] shadow-md border-2 border-[#4A3728]"
+                    ? `${theme.colors.cardBackground} opacity-50 cursor-not-allowed`
+                    : `${theme.colors.cardBackground} ${theme.colors.hoverBackground} ${theme.colors.textPrimary} ${theme.colors.shadowColor} shadow-md border-2 ${theme.colors.primaryBorder}`
                 }`}
             >
               {isLoading ? "Updating..." : "Update Match"}

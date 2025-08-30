@@ -6,11 +6,13 @@ import { useApiForm } from "../../hooks/useApiForm";
 import { ApiService } from "../../services/interfaces";
 import { ProtectedPage } from "../ProtectedPage";
 import { FormFeedback } from "../shared";
+import { useThemeContext } from "../../context/ThemeContext";
 
 const AddTournament: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
   const navigate = useNavigate();
+  const { theme } = useThemeContext();
 
   const form = useApiForm(
     {
@@ -38,9 +40,9 @@ const AddTournament: React.FC<{ apiService: ApiService }> = ({
 
   return (
     <ProtectedPage>
-      <div className="bg-[#FAF1DB] p-6 rounded-lg shadow-md">
+      <div className={`${theme.colors.cardBackground} p-6 rounded-lg shadow-md`}>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-[#4A3728]">
+          <h2 className={`text-2xl font-bold ${theme.colors.textPrimary}`}>
             Add New Tournament
           </h2>
         </div>
@@ -58,7 +60,7 @@ const AddTournament: React.FC<{ apiService: ApiService }> = ({
             <div key={key}>
               <label
                 htmlFor={key}
-                className="block text-[#4A3728] font-medium mb-1"
+                className={`block ${theme.colors.textPrimary} font-medium mb-1`}
               >
                 {key === "longFormName"
                   ? "Display Name"
@@ -69,10 +71,10 @@ const AddTournament: React.FC<{ apiService: ApiService }> = ({
               <input
                 type={key === "year" ? "number" : "text"}
                 id={key}
-                className="w-full p-2 border-2 border-[#4A3728]/20 rounded
-                       bg-[#FFF8E7] text-[#4A3728]
-                       focus:ring-2 focus:ring-[#4A3728]/30 focus:border-[#4A3728]
-                       outline-none transition-colors"
+                className={`w-full p-2 border-2 ${theme.colors.secondaryBorder} rounded
+                       ${theme.colors.cardBackground} ${theme.colors.textPrimary}
+                       focus:ring-2 ${theme.colors.ringColor} focus:${theme.colors.primaryBorder}
+                       outline-none transition-colors`}
                 value={form.formData[key]}
                 onChange={handleInputChange}
                 required
@@ -82,9 +84,9 @@ const AddTournament: React.FC<{ apiService: ApiService }> = ({
           <button
             type="submit"
             disabled={form.loading}
-            className="w-full bg-[#4A3728] text-[#FAF1DB] py-2 px-4 rounded
-                   hover:bg-[#6B5744] transition-colors shadow-md
-                   border-2 border-[#4A3728] mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`w-full ${theme.colors.cardBackground} ${theme.colors.textPrimary} py-2 px-4 rounded
+                   ${theme.colors.hoverBackground} transition-colors ${theme.colors.shadowColor} shadow-md
+                   border-2 ${theme.colors.primaryBorder} mt-6 disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {form.loading ? "Adding Tournament..." : "Add Tournament"}
           </button>

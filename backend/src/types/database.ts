@@ -15,6 +15,7 @@ export interface TournamentRow {
   user_id: number;
   poll_until: Date | null; // TODO: doesnt actually live in this table
   data_url: string; // TODO: doesnt actually live in this table.
+  theme?: string | null; // Theme name for this tournament
 }
 
 export interface TournamentDataRow {
@@ -105,6 +106,7 @@ export interface CreateTournamentRow {
   data: File.TournamentData;
   poll_until: Date | null;
   user_id: number;
+  theme?: string | null; // Theme name for this tournament
 }
 
 // For creating tournaments - takes file data
@@ -125,6 +127,7 @@ export interface TournamentMetadata {
   lexicon: string;
   longFormName: string;
   dataUrl: string;
+  theme?: string; // Theme name for this tournament
 }
 
 export interface CreateDivisionRow {

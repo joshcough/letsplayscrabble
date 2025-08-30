@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 
 import TournamentList from "../../components/tournaments/TournamentList";
 import { ApiService } from "../../services/interfaces";
+import { useThemeContext } from "../../context/ThemeContext";
 
 const TournamentManagerPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
   const navigate = useNavigate();
+  const { theme } = useThemeContext();
 
   const handleTournamentClick = (id: number) => {
     navigate(`/tournaments/${id}`);
@@ -18,13 +20,13 @@ const TournamentManagerPage: React.FC<{ apiService: ApiService }> = ({
       <div className="mb-6 flex gap-4">
         <button
           onClick={() => navigate("/tournaments/manager")}
-          className="px-6 py-2 bg-[#4A3728] text-[#FAF1DB] rounded-md hover:bg-[#6B5744] transition-colors shadow-md border-2 border-[#4A3728]"
+          className={`px-6 py-2 ${theme.colors.cardBackground} ${theme.colors.textPrimary} rounded-md ${theme.colors.hoverBackground} transition-colors ${theme.colors.shadowColor} shadow-md border-2 ${theme.colors.primaryBorder}`}
         >
           View All Tournaments
         </button>
         <button
           onClick={() => navigate("/tournaments/add")}
-          className="px-6 py-2 bg-[#FAF1DB] text-[#4A3728] rounded-md hover:bg-[#FFF8E7] transition-colors shadow-md border-2 border-[#4A3728]"
+          className={`px-6 py-2 ${theme.colors.cardBackground} ${theme.colors.textPrimary} rounded-md ${theme.colors.hoverBackground} transition-colors ${theme.colors.shadowColor} shadow-md border-2 ${theme.colors.primaryBorder}`}
         >
           Add New Tournament
         </button>

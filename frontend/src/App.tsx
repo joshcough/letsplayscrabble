@@ -11,6 +11,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Navigation from "./components/common/Navigation";
 import AddTournament from "./components/tournaments/AddTournament";
 import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import HomePage from "./pages/HomePage";
 import WorkerPage from "./pages/WorkerPage";
 import AdminPage from "./pages/admin/AdminPage";
@@ -52,10 +53,12 @@ import UserSettingsPage from "./pages/UserSettingsPage";
 import { HttpApiService } from "./services/httpService";
 import { ApiService } from "./services/interfaces";
 import { setApiServiceForTheme } from "./hooks/useTheme";
+import { useThemeContext } from "./context/ThemeContext";
 
 // Wrapper component to conditionally apply theme
 const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const location = useLocation();
+  const { theme, loading } = useThemeContext();
 
   const isOverlay =
     location.pathname.startsWith("/overlay/") ||
@@ -67,8 +70,20 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
     if (location.pathname.includes("/notifications/")) {
       return "min-h-screen bg-transparent";
     }
-    return isOverlay ? "min-h-screen bg-white" : "min-h-screen bg-[#E4C6A0]";
+    if (isOverlay) {
+      return "min-h-screen bg-white";
+    }
+    // For non-overlay pages, use the theme background
+    return `min-h-screen ${theme.colors.pageBackground}`;
   };
+
+  if (loading && !isOverlay) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-amber-100 via-orange-100 to-yellow-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-amber-900"></div>
+      </div>
+    );
+  }
 
   return (
     <div className={getBackgroundClass()}>
@@ -330,9 +345,11 @@ const App: React.FC = () => {
 
   return (
     <AuthProvider>
-      <Router>
-        <AppContent apiService={apiService} />
-      </Router>
+      <ThemeProvider>
+        <Router>
+          <AppContent apiService={apiService} />
+        </Router>
+      </ThemeProvider>
     </AuthProvider>
   );
 };
