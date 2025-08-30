@@ -66,7 +66,7 @@ const updateUserSettingsHandler: RequestHandler<
     }
 
     // Validate theme
-    const validThemes = ["modern", "scrabble", "july4"];
+    const validThemes = ["modern", "scrabble", "july4", "original"];
     if (!validThemes.includes(theme)) {
       res.status(400).json(Api.failure("Invalid theme"));
       return;
