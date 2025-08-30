@@ -1,12 +1,12 @@
 import React from "react";
 
-import { TournamentTableOverlay } from "../../components/shared/TournamentTableOverlay";
+import { TournamentTableOverlay } from "../../../components/shared/TournamentTableOverlay";
 import {
   UsePlayerStatsCalculation,
   RankedPlayerStats,
-} from "../../hooks/usePlayerStatsCalculation";
-import { ApiService } from "../../services/interfaces";
-import { formatNumberWithSign } from "../../utils/formatUtils";
+} from "../../../hooks/usePlayerStatsCalculation";
+import { ApiService } from "../../../services/interfaces";
+import { formatNumberWithSign } from "../../../utils/formatUtils";
 
 const StandingsOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,

@@ -5,15 +5,15 @@ import * as Domain from "@shared/types/domain";
 import {
   BaseOverlay,
   TournamentDisplayData,
-} from "../../components/shared/BaseOverlay";
-import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
-import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
-import PointsDisplay from "../../components/shared/PointsDisplay";
-import { RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
-import { useTournamentData } from "../../hooks/useTournamentData";
-import { ApiService } from "../../services/interfaces";
-import * as Stats from "../../types/stats";
-import { getRecentGamesForPlayer } from "../../utils/gameUtils";
+} from "../../../components/shared/BaseOverlay";
+import GameHistoryDisplay from "../../../components/shared/GameHistoryDisplay";
+import { LoadingErrorWrapper } from "../../../components/shared/LoadingErrorWrapper";
+import PointsDisplay from "../../../components/shared/PointsDisplay";
+import { RankedPlayerStats } from "../../../hooks/usePlayerStatsCalculation";
+import { useTournamentData } from "../../../hooks/useTournamentData";
+import { ApiService } from "../../../services/interfaces";
+import * as Stats from "../../../types/stats";
+import { getRecentGamesForPlayer } from "../../../utils/gameUtils";
 import {
   formatSpread,
   formatRecord,
@@ -22,7 +22,7 @@ import {
   formatUnderCamNoSeed,
   formatFullUnderCamWithRating,
   formatBestOf7,
-} from "../../utils/playerUtils";
+} from "../../../utils/playerUtils";
 
 type RouteParams = {
   userId?: string;
@@ -181,7 +181,7 @@ const URLBasedPlayerDisplay: React.FC<{
 
     const {
       calculateStandingsFromGames,
-    } = require("../../utils/calculateStandings");
+    } = require("../../../utils/calculateStandings");
     const stats = calculateStandingsFromGames(
       targetDivision.games,
       targetDivision.players,
@@ -371,7 +371,7 @@ const PlayerOverlay: React.FC<{ apiService: ApiService }> = ({
           // Calculate player stats
           const {
             calculateStandingsFromGames,
-          } = require("../../utils/calculateStandings");
+          } = require("../../../utils/calculateStandings");
           const playerStats = calculateStandingsFromGames(
             divisionData.games,
             divisionData.players,
