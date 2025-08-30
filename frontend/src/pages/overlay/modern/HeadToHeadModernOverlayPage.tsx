@@ -227,27 +227,27 @@ const renderCareerH2H = (
                   className={`w-28 h-32 ${themeClasses.playerImage}`}
                 />
               ) : (
-                <div className="w-28 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center ${theme.colors.textPrimary} font-bold text-3xl shadow-lg">
+                <div className={`w-28 h-32 rounded-xl flex items-center justify-center font-bold text-3xl shadow-lg ${theme.name === 'july4' ? 'bg-gradient-to-br from-blue-600 to-blue-800 text-white' : 'bg-gradient-to-br from-blue-400 to-blue-600 text-white'}`}>
                   {formatPlayerName(player1.name).split(' ').map((n: string) => n.charAt(0)).join('')}
                 </div>
               )}
 
               {/* Name and Location */}
               <div>
-                <h2 className="text-xl font-bold ${theme.colors.textPrimary}">{formatPlayerName(player1.name)}</h2>
+                <h2 className={`text-xl font-bold ${theme.name === 'july4' ? 'text-slate-900' : theme.colors.textPrimary}`}>{formatPlayerName(player1.name)}</h2>
                 {player1.xtData?.city && (
                   <p className="text-sm text-gray-400">
                     {player1.xtData.city}{player1.xtData.state && `, ${player1.xtData.state}`}
                   </p>
                 )}
-                <p className="text-sm text-gray-300 mt-1">Rating: {getCurrentRating(player1)}</p>
+                <p className={`text-sm mt-1 ${theme.name === 'july4' ? 'text-slate-700' : 'text-gray-300'}`}>Rating: {getCurrentRating(player1)}</p>
               </div>
             </div>
 
             {/* Current Record */}
             <div className="mb-6">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Current Record</p>
-              <p className="text-lg font-semibold ${theme.colors.textPrimary}">
+              <p className={`text-lg font-semibold ${theme.name === 'july4' ? 'text-slate-900' : theme.colors.textPrimary}`}>
                 {player1Record.wins}-{player1Record.losses} {player1Record.spread >= 0 ? '+' : ''}{player1Record.spread}, {player1Position}{getOrdinalSuffix(player1Position)} Place
               </p>
             </div>
@@ -257,21 +257,21 @@ const renderCareerH2H = (
           <div className="flex flex-col items-center justify-center">
             {/* Title */}
             <div className="text-center mb-6">
-              <h1 className="text-xl font-bold ${theme.colors.textPrimary}/90 tracking-wide">Career Head-to-Head</h1>
+              <h1 className={`text-xl font-bold ${theme.name === 'july4' ? 'text-white' : theme.colors.textPrimary} opacity-90 tracking-wide`}>Career Head-to-Head</h1>
             </div>
 
             {/* Score Display */}
             <div className="text-center">
               <div className="flex items-center justify-center gap-3 mb-3">
-                <span className="text-5xl font-black text-blue-300 drop-shadow-lg">{player1Wins}</span>
-                <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 rounded-full w-16 h-16 flex items-center justify-center shadow-xl ring-2 ring-purple-400/30">
-                  <span className="${theme.colors.textPrimary} font-black text-lg">VS</span>
+                <span className={`text-5xl font-black drop-shadow-lg ${theme.name === 'july4' ? 'text-blue-400' : 'text-blue-300'}`}>{player1Wins}</span>
+                <div className={`rounded-full w-16 h-16 flex items-center justify-center shadow-xl ring-2 ${theme.name === 'july4' ? 'bg-gradient-to-r from-blue-600 via-white to-red-600 ring-red-400/40' : 'bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 ring-purple-400/30'}`}>
+                  <span className={`${theme.name === 'july4' ? 'text-slate-800' : theme.colors.textPrimary} font-black text-lg`}>VS</span>
                 </div>
-                <span className="text-5xl font-black text-blue-300 drop-shadow-lg">{player2Wins}</span>
+                <span className={`text-5xl font-black drop-shadow-lg ${theme.name === 'july4' ? 'text-red-400' : 'text-blue-300'}`}>{player2Wins}</span>
               </div>
               <div className="text-center">
                 <p className="text-sm text-gray-500">Average Score</p>
-                <p className="text-xl font-semibold ${theme.colors.textPrimary}">{player1AvgScore}-{player2AvgScore}</p>
+                <p className={`text-xl font-semibold ${theme.name === 'july4' ? 'text-white' : theme.colors.textPrimary}`}>{player1AvgScore}-{player2AvgScore}</p>
               </div>
             </div>
           </div>
@@ -281,13 +281,13 @@ const renderCareerH2H = (
             <div className="flex items-center gap-6 mb-6">
               {/* Name and Location */}
               <div className="text-right flex-1">
-                <h2 className="text-xl font-bold ${theme.colors.textPrimary}">{formatPlayerName(player2.name)}</h2>
+                <h2 className={`text-xl font-bold ${theme.name === 'july4' ? 'text-slate-900' : theme.colors.textPrimary}`}>{formatPlayerName(player2.name)}</h2>
                 {player2.xtData?.city && (
                   <p className="text-sm text-gray-400">
                     {player2.xtData.city}{player2.xtData.state && `, ${player2.xtData.state}`}
                   </p>
                 )}
-                <p className="text-sm text-gray-300 mt-1">Rating: {getCurrentRating(player2)}</p>
+                <p className={`text-sm mt-1 ${theme.name === 'july4' ? 'text-slate-700' : 'text-gray-300'}`}>Rating: {getCurrentRating(player2)}</p>
               </div>
 
               {/* Photo */}
@@ -298,7 +298,7 @@ const renderCareerH2H = (
                   className={`w-28 h-32 ${themeClasses.playerImage}`}
                 />
               ) : (
-                <div className="w-28 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center ${theme.colors.textPrimary} font-bold text-3xl shadow-lg">
+                <div className={`w-28 h-32 rounded-xl flex items-center justify-center font-bold text-3xl shadow-lg ${theme.name === 'july4' ? 'bg-gradient-to-br from-red-600 to-red-800 text-white' : 'bg-gradient-to-br from-blue-400 to-blue-600 text-white'}`}>
                   {formatPlayerName(player2.name).split(' ').map((n: string) => n.charAt(0)).join('')}
                 </div>
               )}
@@ -307,7 +307,7 @@ const renderCareerH2H = (
             {/* Current Record */}
             <div className="mb-6 text-right">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Current Record</p>
-              <p className="text-lg font-semibold ${theme.colors.textPrimary}">
+              <p className={`text-lg font-semibold ${theme.name === 'july4' ? 'text-slate-900' : theme.colors.textPrimary}`}>
                 {player2Record.wins}-{player2Record.losses} {player2Record.spread >= 0 ? '+' : ''}{player2Record.spread}, {player2Position}{getOrdinalSuffix(player2Position)} Place
               </p>
             </div>
@@ -346,7 +346,7 @@ const renderCareerH2H = (
                           <td className={`py-3 px-2 text-center font-bold ${player1Won ? 'text-blue-300' : 'text-gray-400'}`}>
                             {winner}
                           </td>
-                          <td className="py-3 px-2 text-center ${theme.colors.textPrimary} font-mono font-bold text-lg">{scores}</td>
+                          <td className={`py-3 px-2 text-center ${theme.name === 'july4' ? 'text-white' : theme.colors.textPrimary} font-mono font-bold text-lg`}>{scores}</td>
                           <td className={`py-3 px-2 text-center font-bold ${!player1Won ? 'text-blue-300' : 'text-gray-400'}`}>
                             {player1Won ? 'L' : 'W'}
                           </td>

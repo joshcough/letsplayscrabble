@@ -132,7 +132,7 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
                 className={`block p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border backdrop-blur-xl ${
                   overlay.isSpecial
                     ? "bg-gradient-to-br from-orange-900/50 to-red-900/50 border-orange-400/50 hover:border-orange-300/70 hover:from-orange-900/60 hover:to-red-900/60"
-                    : `${theme.colors.cardBackground} ${theme.colors.primaryBorder} hover:border-blue-300/70`
+                    : `${theme.colors.cardBackground} ${theme.colors.primaryBorder} ${theme.colors.hoverBackground}`
                 }`}
             >
               <h3
@@ -142,19 +142,19 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
               >
                 {overlay.title}
                 {overlay.isSpecial && (
-                  <span className="ml-2 text-xs bg-orange-500/30 text-orange-200 px-2 py-1 rounded-full border border-orange-400/30">
+                  <span className="ml-2 text-xs bg-orange-500/30 text-orange-800 px-2 py-1 rounded-full border border-orange-400/30">
                     Required
                   </span>
                 )}
                 {overlay.requiresParams && (
-                  <span className="ml-2 text-xs bg-blue-500/30 text-blue-200 px-2 py-1 rounded-full border border-blue-400/30">
+                  <span className={`ml-2 text-xs bg-blue-500/30 ${theme.colors.textPrimary} px-2 py-1 rounded-full border border-blue-400/30`}>
                     Params
                   </span>
                 )}
               </h3>
               <p
                 className={`text-sm mb-4 ${
-                  overlay.isSpecial ? "text-orange-200" : theme.colors.textSecondary
+                  overlay.isSpecial ? "text-orange-200" : theme.colors.textPrimary
                 }`}
               >
                 {overlay.description}
@@ -163,7 +163,7 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
                 className={`text-sm font-medium ${
                   overlay.isSpecial
                     ? "text-orange-200 hover:text-orange-100"
-                    : "text-blue-200 hover:text-blue-100"
+                    : `${theme.colors.textAccent} hover:opacity-80`
                 } transition-colors`}
               >
                 {overlay.isSpecial
@@ -178,7 +178,7 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
           <h3 className={`font-semibold ${theme.colors.textAccent} mb-3 text-lg`}>
             ⚠️ Important - Worker Browser Source Required:
           </h3>
-          <ul className={`${theme.colors.textSecondary} text-sm space-y-2`}>
+          <ul className={`${theme.colors.textPrimary} text-sm space-y-2`}>
             <li>
               • <strong>Must add the Worker Page as a Browser Source</strong> in
               OBS for real-time updates to work
@@ -204,7 +204,7 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
 
         <div className={`mt-6 p-6 ${theme.colors.cardBackground} border ${theme.colors.primaryBorder} rounded-2xl backdrop-blur-xl`}>
           <h3 className={`font-semibold ${theme.colors.textAccent} mb-3 text-lg`}>Modern Theme Features:</h3>
-          <ul className={`${theme.colors.textSecondary} text-sm space-y-2`}>
+          <ul className={`${theme.colors.textPrimary} text-sm space-y-2`}>
             <li>
               • <strong>Dark gradient backgrounds</strong> with glass-morphism effects
             </li>
@@ -225,7 +225,7 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
 
         <div className={`mt-6 p-6 ${theme.colors.cardBackground} border ${theme.colors.primaryBorder} rounded-2xl backdrop-blur-xl`}>
           <h3 className={`font-semibold ${theme.colors.textAccent} mb-3 text-lg`}>How it works:</h3>
-          <ul className={`${theme.colors.textSecondary} text-sm space-y-2`}>
+          <ul className={`${theme.colors.textPrimary} text-sm space-y-2`}>
             <li>
               • <strong>Default:</strong> Uses currently selected match in admin
               interface
@@ -253,7 +253,7 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
 
         <div className={`mt-6 p-6 ${theme.colors.cardBackground} border ${theme.colors.primaryBorder} rounded-2xl backdrop-blur-xl`}>
           <h3 className={`font-semibold ${theme.colors.textAccent} mb-3 text-lg`}>For OBS Setup:</h3>
-          <ul className={`${theme.colors.textSecondary} text-sm space-y-2`}>
+          <ul className={`${theme.colors.textPrimary} text-sm space-y-2`}>
             <li>
               • <strong>Step 1:</strong> Add Worker Page as a Browser Source (can
               be in any scene, even if not visible)

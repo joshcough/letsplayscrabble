@@ -62,26 +62,32 @@ export const july4Theme: Theme = {
   name: 'july4',
   displayName: 'July 4th',
   colors: {
-    pageBackground: 'bg-gradient-to-br from-blue-950 via-red-950 to-blue-900',
-    cardBackground: 'bg-gradient-to-br from-blue-800/50 to-red-800/50 backdrop-blur-xl',
+    // Darker navy background for better contrast
+    pageBackground: 'bg-gradient-to-br from-slate-900 via-blue-950 to-slate-800',
+    // Lighter, more opaque cards for better readability
+    cardBackground: 'bg-gradient-to-br from-white/95 to-blue-50/90 backdrop-blur-xl',
     
-    primaryBorder: 'border-red-400/60',
-    secondaryBorder: 'border-blue-400/30',
+    // Strong borders for definition
+    primaryBorder: 'border-blue-800/80',
+    secondaryBorder: 'border-slate-600/70', // Darker lines between table rows
     
-    titleGradient: 'bg-gradient-to-r from-blue-300 via-white to-red-400',
-    textPrimary: 'text-white',
-    textSecondary: 'text-blue-200',
-    textAccent: 'text-red-300',
+    // Patriotic gradient title
+    titleGradient: 'bg-gradient-to-r from-blue-600 via-red-600 to-blue-600',
+    // Dark text on light cards for contrast
+    textPrimary: 'text-slate-900',
+    textSecondary: 'text-white', // Changed this to white for tournament/division names on dark background
+    textAccent: 'text-blue-800',
     
-    positiveColor: 'text-blue-300',
-    negativeColor: 'text-red-300',
-    neutralColor: 'text-white',
+    // Strong patriotic colors for gains/losses
+    positiveColor: 'text-blue-700',
+    negativeColor: 'text-red-700',
+    neutralColor: 'text-slate-800',
     
-    hoverBackground: 'hover:bg-red-700/20',
-    shadowColor: 'shadow-red-400/15',
+    hoverBackground: 'hover:bg-blue-100/30',
+    shadowColor: 'shadow-blue-900/20',
     
-    accentGradient: 'bg-gradient-to-r from-blue-600 via-white to-red-600',
-    ringColor: 'ring-red-400/40',
+    accentGradient: 'bg-gradient-to-r from-blue-700 via-red-600 to-blue-700',
+    ringColor: 'ring-blue-600/40',
   }
 };
 

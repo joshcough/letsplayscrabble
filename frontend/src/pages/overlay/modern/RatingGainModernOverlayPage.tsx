@@ -42,7 +42,7 @@ const RatingGainModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
       case "currentRating":
         return <span className={`font-mono ${theme.colors.textPrimary}`}>{player.currentRating}</span>;
       case "initialRating":
-        return <span className={`font-mono ${theme.colors.textSecondary}`}>{player.initialRating}</span>;
+        return <span className={`font-mono ${theme.colors.textPrimary}`}>{player.initialRating}</span>;
       case "wins":
         return <span className={theme.colors.positiveColor}>{player.wins}</span>;
       case "losses":

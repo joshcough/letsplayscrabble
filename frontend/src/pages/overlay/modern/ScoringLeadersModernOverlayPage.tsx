@@ -30,7 +30,7 @@ const ScoringLeadersModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
       case "averageScoreRounded":
         return <span className={`text-lg font-mono ${theme.colors.textPrimary}`}>{player.averageScoreRounded}</span>;
       case "averageOpponentScore":
-        return <span className={`font-mono ${theme.colors.textSecondary}`}>{player.averageOpponentScore}</span>;
+        return <span className={`font-mono ${theme.colors.textPrimary}`}>{player.averageOpponentScore}</span>;
       case "spread":
         return (
           <span className={`font-bold text-lg ${
