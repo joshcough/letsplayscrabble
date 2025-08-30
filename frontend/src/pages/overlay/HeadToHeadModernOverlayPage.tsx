@@ -296,7 +296,7 @@ const renderCareerH2H = (
         <div className="mt-8 max-w-6xl mx-auto">
           <div className="flex justify-center">
             {/* Latest Games Table */}
-            <div className="w-full" style={{maxWidth: '52rem'}}>
+            <div className="w-full" style={{maxWidth: '54rem'}}>
               <h3 className="text-sm text-blue-200 uppercase tracking-wider mb-3 text-center font-semibold">Latest Games</h3>
               <div className="bg-gradient-to-br from-blue-900/50 to-gray-900/60 backdrop-blur-xl rounded-xl p-4 border border-blue-400/50 shadow-2xl shadow-blue-400/10">
                 <table className="w-full text-sm table-fixed">
