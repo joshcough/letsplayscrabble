@@ -7,6 +7,7 @@ import {
 } from "../../../hooks/usePlayerStatsCalculation";
 import { ApiService } from "../../../services/interfaces";
 import { formatNumberWithSign } from "../../../utils/formatUtils";
+import { Theme } from "../../../types/theme";
 
 const RatingGainModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
@@ -24,7 +25,7 @@ const RatingGainModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
 
   const renderPlayerName = (player: RankedPlayerStats) => player.name;
 
-  const renderCell = (player: RankedPlayerStats, columnKey: string) => {
+  const renderCell = (player: RankedPlayerStats, columnKey: string, theme: Theme) => {
     switch (columnKey) {
       case "rank":
         return <span className="text-lg font-bold">#{player.rank}</span>;
@@ -32,22 +33,22 @@ const RatingGainModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
         return (
           <span
             className={`font-bold text-lg ${
-              player.ratingDiff > 0 ? "text-green-400" : "text-red-400"
+              player.ratingDiff > 0 ? theme.colors.positiveColor : theme.colors.negativeColor
             }`}
           >
             {formatNumberWithSign(player.ratingDiff)}
           </span>
         );
       case "currentRating":
-        return <span className="font-mono">{player.currentRating}</span>;
+        return <span className={`font-mono ${theme.colors.textPrimary}`}>{player.currentRating}</span>;
       case "initialRating":
-        return <span className="font-mono text-gray-400">{player.initialRating}</span>;
+        return <span className={`font-mono ${theme.colors.textSecondary}`}>{player.initialRating}</span>;
       case "wins":
-        return <span className="text-green-300">{player.wins}</span>;
+        return <span className={theme.colors.positiveColor}>{player.wins}</span>;
       case "losses":
-        return <span className="text-red-300">{player.losses}</span>;
+        return <span className={theme.colors.negativeColor}>{player.losses}</span>;
       case "ties":
-        return <span className="text-yellow-300">{player.ties}</span>;
+        return <span className={theme.colors.textPrimary}>{player.ties}</span>;
       default:
         return "";
     }

@@ -2,11 +2,13 @@ import React from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { BaseOverlay } from "../../../components/shared/BaseOverlay";
+import { BaseModernOverlay } from "../../../components/shared/BaseModernOverlay";
 import GameHistoryDisplay from "../../../components/shared/GameHistoryDisplay";
 import PointsDisplay from "../../../components/shared/PointsDisplay";
 import { RankedPlayerStats } from "../../../hooks/usePlayerStatsCalculation";
 import { ApiService } from "../../../services/interfaces";
 import * as Stats from "../../../types/stats";
+import { Theme } from "../../../types/theme";
 import { getRecentGamesForPlayer } from "../../../utils/gameUtils";
 import {
   formatSpread,
@@ -57,25 +59,28 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
   const [searchParams] = useSearchParams();
   const source = searchParams.get("source") as SourceType;
 
-  if (!source) {
-    return (
-      <div className="bg-gradient-to-br from-gray-950 via-gray-900 to-black min-h-screen flex items-center justify-center p-6">
-        <div className="text-white">No source parameter provided</div>
-      </div>
-    );
-  }
-
   return (
-    <BaseOverlay apiService={apiService}>
-      {({ tournament, divisionData, divisionName, currentMatch }) => {
-        // Early return for errors
-        if (!currentMatch) {
+    <BaseModernOverlay>
+      {(theme, themeClasses) => {
+        if (!source) {
           return (
-            <div className="bg-gradient-to-br from-gray-950 via-gray-900 to-black min-h-screen flex items-center justify-center p-6">
-              <div className="text-white">No current match data available</div>
+            <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
+              <div className={`${theme.colors.textPrimary}`}>No source parameter provided</div>
             </div>
           );
         }
+
+        return (
+          <BaseOverlay apiService={apiService}>
+            {({ tournament, divisionData, divisionName, currentMatch }) => {
+              // Early return for errors
+              if (!currentMatch) {
+                return (
+                  <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
+                    <div className={`${theme.colors.textPrimary}`}>No current match data available</div>
+                  </div>
+                );
+              }
 
         // Calculate player stats from raw data (same as UsePlayerStatsCalculation does)
         const {
@@ -106,13 +111,13 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
             game.roundNumber === currentMatch.round,
         );
 
-        if (!currentGame) {
-          return (
-            <div className="bg-gradient-to-br from-gray-950 via-gray-900 to-black min-h-screen flex items-center justify-center p-6">
-              <div className="text-white">Current game not found in tournament data</div>
-            </div>
-          );
-        }
+              if (!currentGame) {
+                return (
+                  <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
+                    <div className={`${theme.colors.textPrimary}`}>Current game not found in tournament data</div>
+                  </div>
+                );
+              }
 
         // Find the two players from current game
         const player1Stats = rankedPlayers.find(
@@ -122,13 +127,13 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
           (p: RankedPlayerStats) => p.playerId === currentGame.player2Id,
         );
 
-        if (!player1Stats || !player2Stats) {
-          return (
-            <div className="bg-gradient-to-br from-gray-950 via-gray-900 to-black min-h-screen flex items-center justify-center p-6">
-              <div className="text-white">Players not found in tournament data</div>
-            </div>
-          );
-        }
+              if (!player1Stats || !player2Stats) {
+                return (
+                  <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
+                    <div className={`${theme.colors.textPrimary}`}>Players not found in tournament data</div>
+                  </div>
+                );
+              }
 
         const renderPlayerData = (source: SourceType) => {
           const isPlayer1 = source.startsWith("player1");
@@ -138,14 +143,14 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
             ? currentGame.player1Id
             : currentGame.player2Id;
 
-          // Style wrapper for modern look
-          const wrapInModernStyle = (content: React.ReactNode, large: boolean = false) => (
-            <div className="bg-gradient-to-br from-blue-900/50 to-gray-900/60 backdrop-blur-xl rounded-2xl p-6 border-2 border-blue-400/50 shadow-2xl shadow-blue-400/10">
-              <div className={`text-white ${large ? 'text-2xl' : 'text-xl'} font-bold`}>
-                {content}
-              </div>
-            </div>
-          );
+              // Style wrapper for modern look
+              const wrapInModernStyle = (content: React.ReactNode, large: boolean = false) => (
+                <div className={`${theme.colors.cardBackground} rounded-2xl p-6 border-2 ${theme.colors.primaryBorder} shadow-2xl ${theme.colors.shadowColor}`}>
+                  <div className={`${theme.colors.textPrimary} ${large ? 'text-2xl' : 'text-xl'} font-bold`}>
+                    {content}
+                  </div>
+                </div>
+              );
 
           switch (source) {
             case "player1-name":
@@ -156,7 +161,7 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
             case "player2-record":
               return wrapInModernStyle(
                 <div>
-                  <span className="text-blue-300">Record:</span> {formatRecord(player)}
+                  <span className={theme.colors.textAccent}>Record:</span> {formatRecord(player)}
                 </div>
               );
 
@@ -164,7 +169,7 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
             case "player2-average-score":
               return wrapInModernStyle(
                 <div>
-                  <span className="text-blue-300">Average Score:</span> {player.averageScoreRounded || "N/A"}
+                  <span className={theme.colors.textAccent}>Average Score:</span> {player.averageScoreRounded || "N/A"}
                 </div>
               );
 
@@ -172,7 +177,7 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
             case "player2-high-score":
               return wrapInModernStyle(
                 <div>
-                  <span className="text-blue-300">High Score:</span> {player.highScore || "N/A"}
+                  <span className={theme.colors.textAccent}>High Score:</span> {player.highScore || "N/A"}
                 </div>
               );
 
@@ -180,7 +185,7 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
             case "player2-spread":
               return wrapInModernStyle(
                 <div>
-                  <span className="text-blue-300">Spread:</span> {formatSpread(player.spread)}
+                  <span className={theme.colors.textAccent}>Spread:</span> {formatSpread(player.spread)}
                 </div>
               );
 
@@ -188,7 +193,7 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
             case "player2-rank":
               return wrapInModernStyle(
                 <div>
-                  <span className="text-blue-300">Rank:</span> {player.rank || "N/A"}
+                  <span className={theme.colors.textAccent}>Rank:</span> {player.rank || "N/A"}
                 </div>
               );
 
@@ -200,7 +205,7 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
             case "player2-rating":
               return wrapInModernStyle(
                 <div>
-                  <span className="text-blue-300">Rating:</span> {player.currentRating || "N/A"}
+                  <span className={theme.colors.textAccent}>Rating:</span> {player.currentRating || "N/A"}
                 </div>
               );
 
@@ -234,11 +239,11 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
                 divisionData.players,
               );
               return (
-                <div className="bg-gradient-to-br from-blue-900/50 to-gray-900/60 backdrop-blur-xl rounded-2xl p-6 border-2 border-blue-400/50 shadow-2xl shadow-blue-400/10">
-                  <div className="text-white mb-4">
+                <div className={`${theme.colors.cardBackground} rounded-2xl p-6 border-2 ${theme.colors.primaryBorder} shadow-2xl ${theme.colors.shadowColor}`}>
+                  <div className={`${theme.colors.textPrimary} mb-4`}>
                     <PointsDisplay stats={player} side={side} />
                   </div>
-                  <div className="text-white">
+                  <div className={`${theme.colors.textPrimary}`}>
                     <GameHistoryDisplay games={recentGames} side={side} />
                   </div>
                 </div>
@@ -252,8 +257,8 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
                 divisionData.players,
               );
               return (
-                <div className="bg-gradient-to-br from-blue-900/50 to-gray-900/60 backdrop-blur-xl rounded-2xl p-6 border-2 border-blue-400/50 shadow-2xl shadow-blue-400/10">
-                  <div className="text-white">
+                <div className={`${theme.colors.cardBackground} rounded-2xl p-6 border-2 ${theme.colors.primaryBorder} shadow-2xl ${theme.colors.shadowColor}`}>
+                  <div className={`${theme.colors.textPrimary}`}>
                     <GameHistoryDisplay games={recentGamesSmall} side={side} />
                   </div>
                 </div>
@@ -262,11 +267,11 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
             case "tournament-data":
               return wrapInModernStyle(
                 <div>
-                  <span className="text-blue-300">{tournament.name || "N/A"}</span>
-                  <span className="text-gray-400"> | </span>
-                  <span className="text-purple-300">{tournament.lexicon || "N/A"}</span>
-                  <span className="text-gray-400"> | </span>
-                  <span className="text-green-300">Round {currentMatch.round || "N/A"}</span>
+                  <span className={theme.colors.textAccent}>{tournament.name || "N/A"}</span>
+                  <span className={theme.colors.textSecondary}> | </span>
+                  <span className={theme.colors.textAccent}>{tournament.lexicon || "N/A"}</span>
+                  <span className={theme.colors.textSecondary}> | </span>
+                  <span className={theme.colors.textAccent}>Round {currentMatch.round || "N/A"}</span>
                 </div>
               );
 
@@ -275,13 +280,16 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
           }
         };
 
-        return (
-          <div className="bg-gradient-to-br from-gray-950 via-gray-900 to-black min-h-screen flex items-center justify-center p-6">
-            {renderPlayerData(source)}
-          </div>
+              return (
+                <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
+                  {renderPlayerData(source)}
+                </div>
+              );
+            }}
+          </BaseOverlay>
         );
       }}
-    </BaseOverlay>
+    </BaseModernOverlay>
   );
 };
 

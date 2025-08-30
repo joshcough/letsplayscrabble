@@ -1,7 +1,9 @@
 import React from "react";
 
 import * as Stats from "../../types/stats";
+import { BaseModernOverlay } from "./BaseModernOverlay";
 import { TournamentDisplayData } from "./BaseOverlay";
+import { Theme } from "../../types/theme";
 
 interface Column {
   key: string;
@@ -18,7 +20,7 @@ interface TournamentTableModernOverlayProps {
   title: string;
   divisionName: string;
   renderPlayerName: (player: RankedPlayerStats) => React.ReactNode;
-  renderCell: (player: RankedPlayerStats, columnKey: string) => React.ReactNode;
+  renderCell: (player: RankedPlayerStats, columnKey: string, theme: Theme) => React.ReactNode;
 }
 
 export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlayProps> = ({
@@ -31,26 +33,28 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
   renderCell,
 }) => {
   return (
-    <div className="bg-gradient-to-br from-gray-950 via-gray-900 to-black min-h-screen flex items-center justify-center p-6">
+    <BaseModernOverlay>
+      {(theme, themeClasses) => (
+        <div className={`${themeClasses.pageBackground} min-h-screen flex items-center justify-center p-6`}>
       <div className="max-w-7xl w-full">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 mb-3">
+          <h1 className={`${themeClasses.title} mb-3`}>
             {title}
           </h1>
-          <div className="text-xl text-gray-300">
+          <div className={themeClasses.subtitle}>
             {tournament.name} {tournament.lexicon} • Division {divisionName}
           </div>
         </div>
         
-        <div className="bg-gradient-to-br from-blue-900/50 to-gray-900/60 backdrop-blur-xl rounded-2xl p-6 border-2 border-blue-400/50 shadow-2xl shadow-blue-400/10">
+        <div className={themeClasses.card}>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b-2 border-blue-400/30">
+                <tr className={`border-b-2 ${theme.colors.primaryBorder}`}>
                   {columns.map((column) => (
                     <th
                       key={column.key}
-                      className={`px-4 py-3 text-blue-300 font-semibold uppercase tracking-wider text-sm ${
+                      className={`px-4 py-3 ${themeClasses.text} font-black uppercase tracking-wider text-sm ${
                         column.key === "name" ? "text-left" : "text-center"
                       }`}
                       style={{
@@ -66,14 +70,12 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
                 {standings.slice(0, 20).map((player, index) => (
                   <tr
                     key={player.playerId}
-                    className={`border-b border-blue-600/20 hover:bg-blue-800/20 transition-colors ${
-                      index < 3 ? "bg-gradient-to-r from-purple-900/20 to-transparent" : ""
-                    }`}
+                    className={themeClasses.tableRow}
                   >
                     {columns.map((column) => (
                       <td
                         key={column.key}
-                        className={`px-4 py-3 text-white ${
+                        className={`px-4 py-3 ${themeClasses.text} ${
                           column.key === "name" ? "text-left font-semibold" : "text-center"
                         }`}
                       >
@@ -87,7 +89,7 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
                             {renderPlayerName(player)}
                           </div>
                         ) : (
-                          renderCell(player, column.key)
+                          renderCell(player, column.key, theme)
                         )}
                       </td>
                     ))}
@@ -98,7 +100,9 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
           </div>
         </div>
       </div>
-    </div>
+        </div>
+      )}
+    </BaseModernOverlay>
   );
 };
 

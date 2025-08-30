@@ -5,6 +5,8 @@ import {
   LoginSuccessData,
   EnablePollingRequest,
   PollingSuccessData,
+  UserSettingsSuccessData,
+  UpdateUserSettingsRequest,
 } from "@shared/types/api";
 import * as Domain from "@shared/types/domain";
 
@@ -216,6 +218,23 @@ export class HttpApiService implements ApiService {
   ): Promise<ApiResponse<Domain.CurrentMatch>> {
     return await this.fetchWithAuth("/api/admin/match/current", {
       method: "POST",
+      body: JSON.stringify(request),
+    });
+  }
+
+  // ============================================================================
+  // USER SETTINGS SERVICE
+  // ============================================================================
+
+  async getUserSettings(): Promise<ApiResponse<UserSettingsSuccessData>> {
+    return await this.fetchWithAuth("/api/users/settings");
+  }
+
+  async updateUserSettings(
+    request: UpdateUserSettingsRequest,
+  ): Promise<ApiResponse<UserSettingsSuccessData>> {
+    return await this.fetchWithAuth("/api/users/settings", {
+      method: "PUT",
       body: JSON.stringify(request),
     });
   }

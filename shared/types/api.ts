@@ -34,6 +34,18 @@ export interface PollingSuccessData {
 }
 
 // ============================================================================
+// USER SETTINGS API
+// ============================================================================
+
+export interface UserSettingsSuccessData {
+  theme: string;
+}
+
+export interface UpdateUserSettingsRequest {
+  theme: string;
+}
+
+// ============================================================================
 // ROUTE PARAMETER INTERFACES
 // ============================================================================
 

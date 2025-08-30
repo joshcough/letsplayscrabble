@@ -48,8 +48,10 @@ import StandingsWithPicsModernOverlayPage from "./pages/overlay/modern/Standings
 import TournamentStatsModernOverlayPage from "./pages/overlay/modern/TournamentStatsModernOverlayPage";
 import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
+import UserSettingsPage from "./pages/UserSettingsPage";
 import { HttpApiService } from "./services/httpService";
 import { ApiService } from "./services/interfaces";
+import { setApiServiceForTheme } from "./hooks/useTheme";
 
 // Wrapper component to conditionally apply theme
 const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
@@ -297,6 +299,14 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <UserSettingsPage apiService={apiService} />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </div>
   );
@@ -304,6 +314,9 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
 
 const App: React.FC = () => {
   const apiService = new HttpApiService();
+  
+  // Initialize the theme system with the API service
+  setApiServiceForTheme(apiService);
 
   return (
     <AuthProvider>

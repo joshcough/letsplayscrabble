@@ -7,6 +7,7 @@ import {
 } from "../../../hooks/usePlayerStatsCalculation";
 import { ApiService } from "../../../services/interfaces";
 import { formatNumberWithSign } from "../../../utils/formatUtils";
+import { Theme } from "../../../types/theme";
 
 const ScoringLeadersModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
@@ -22,24 +23,24 @@ const ScoringLeadersModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
 
   const renderPlayerName = (player: RankedPlayerStats) => player.name;
 
-  const renderCell = (player: RankedPlayerStats, columnKey: string) => {
+  const renderCell = (player: RankedPlayerStats, columnKey: string, theme: Theme) => {
     switch (columnKey) {
       case "rank":
         return <span className="text-lg font-bold">#{player.rank}</span>;
       case "averageScoreRounded":
-        return <span className="text-lg font-mono text-green-300">{player.averageScoreRounded}</span>;
+        return <span className={`text-lg font-mono ${theme.colors.textPrimary}`}>{player.averageScoreRounded}</span>;
       case "averageOpponentScore":
-        return <span className="font-mono text-gray-400">{player.averageOpponentScore}</span>;
+        return <span className={`font-mono ${theme.colors.textSecondary}`}>{player.averageOpponentScore}</span>;
       case "spread":
         return (
           <span className={`font-bold text-lg ${
-            player.spread > 0 ? "text-green-400" : "text-red-400"
+            player.spread > 0 ? theme.colors.positiveColor : theme.colors.negativeColor
           }`}>
             {formatNumberWithSign(player.spread)}
           </span>
         );
       case "highScore":
-        return <span className="font-bold text-yellow-300">{player.highScore}</span>;
+        return <span className={`font-bold ${theme.colors.textPrimary}`}>{player.highScore}</span>;
       default:
         return "";
     }

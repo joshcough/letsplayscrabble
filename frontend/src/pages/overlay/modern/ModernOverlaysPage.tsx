@@ -1,25 +1,32 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+import { BaseModernOverlay } from "../../../components/shared/BaseModernOverlay";
 import { useAuth } from "../../../context/AuthContext";
 import { ApiService } from "../../../services/interfaces";
+import { Theme } from "../../../types/theme";
 
 const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const { userId } = useAuth();
 
-  // If user is not authenticated, show error
-  if (!userId) {
-    return (
-      <div className="container mx-auto p-8">
-        <h1 className="text-3xl font-bold mb-8 text-center text-red-600">
-          Authentication Required
-        </h1>
-        <p className="text-center text-gray-600">
-          Please log in to access overlay URLs.
-        </p>
-      </div>
-    );
-  }
+  return (
+    <BaseModernOverlay>
+      {(theme, themeClasses) => {
+        // If user is not authenticated, show error
+        if (!userId) {
+          return (
+            <div className={`${theme.colors.pageBackground} min-h-screen`}>
+              <div className="container mx-auto p-8">
+                <h1 className="text-3xl font-bold mb-8 text-center text-red-600">
+                  Authentication Required
+                </h1>
+                <p className="text-center text-gray-600">
+                  Please log in to access overlay URLs.
+                </p>
+              </div>
+            </div>
+          );
+        }
 
   const modernOverlays = [
     {
@@ -106,31 +113,31 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
     },
   ];
 
-  return (
-    <div className="bg-gradient-to-br from-gray-950 via-gray-900 to-black min-h-screen">
-      <div className="container mx-auto p-8">
-        <h1 className="text-4xl font-bold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
-          Modern Tournament Overlays & Worker
-        </h1>
+        return (
+          <div className={`${theme.colors.pageBackground} min-h-screen`}>
+            <div className="container mx-auto p-8">
+              <h1 className={`text-4xl font-bold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r ${theme.colors.titleGradient}`}>
+                Modern Tournament Overlays & Worker
+              </h1>
 
-        <p className="text-xl mb-8 text-center text-gray-300">
+        <p className={`text-xl mb-8 text-center ${theme.colors.textSecondary}`}>
           Dark theme overlays with modern glass-morphism design
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {modernOverlays.map((overlay) => (
-            <Link
-              key={overlay.path}
-              to={overlay.path}
-              className={`block p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border backdrop-blur-xl ${
-                overlay.isSpecial
-                  ? "bg-gradient-to-br from-orange-900/50 to-red-900/50 border-orange-400/50 hover:border-orange-300/70 hover:from-orange-900/60 hover:to-red-900/60"
-                  : "bg-gradient-to-br from-blue-900/50 to-gray-900/60 border-blue-400/50 hover:border-blue-300/70 hover:from-blue-900/60 hover:to-gray-900/70"
-              }`}
+              <Link
+                key={overlay.path}
+                to={overlay.path}
+                className={`block p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border backdrop-blur-xl ${
+                  overlay.isSpecial
+                    ? "bg-gradient-to-br from-orange-900/50 to-red-900/50 border-orange-400/50 hover:border-orange-300/70 hover:from-orange-900/60 hover:to-red-900/60"
+                    : `${theme.colors.cardBackground} ${theme.colors.primaryBorder} hover:border-blue-300/70`
+                }`}
             >
               <h3
                 className={`text-xl font-semibold mb-3 ${
-                  overlay.isSpecial ? "text-orange-300" : "text-blue-300"
+                  overlay.isSpecial ? "text-orange-300" : theme.colors.textAccent
                 }`}
               >
                 {overlay.title}
@@ -147,7 +154,7 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
               </h3>
               <p
                 className={`text-sm mb-4 ${
-                  overlay.isSpecial ? "text-orange-200" : "text-gray-300"
+                  overlay.isSpecial ? "text-orange-200" : theme.colors.textSecondary
                 }`}
               >
                 {overlay.description}
@@ -167,11 +174,11 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
           ))}
         </div>
 
-        <div className="mt-8 p-6 bg-gradient-to-br from-orange-900/30 to-red-900/30 border border-orange-400/30 rounded-2xl backdrop-blur-xl">
-          <h3 className="font-semibold text-orange-300 mb-3 text-lg">
+        <div className={`mt-8 p-6 ${theme.colors.cardBackground} border ${theme.colors.primaryBorder} rounded-2xl backdrop-blur-xl`}>
+          <h3 className={`font-semibold ${theme.colors.textAccent} mb-3 text-lg`}>
             ⚠️ Important - Worker Browser Source Required:
           </h3>
-          <ul className="text-orange-200 text-sm space-y-2">
+          <ul className={`${theme.colors.textSecondary} text-sm space-y-2`}>
             <li>
               • <strong>Must add the Worker Page as a Browser Source</strong> in
               OBS for real-time updates to work
@@ -195,9 +202,9 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
           </ul>
         </div>
 
-        <div className="mt-6 p-6 bg-gradient-to-br from-blue-900/30 to-gray-900/30 border border-blue-400/30 rounded-2xl backdrop-blur-xl">
-          <h3 className="font-semibold text-blue-300 mb-3 text-lg">Modern Theme Features:</h3>
-          <ul className="text-gray-300 text-sm space-y-2">
+        <div className={`mt-6 p-6 ${theme.colors.cardBackground} border ${theme.colors.primaryBorder} rounded-2xl backdrop-blur-xl`}>
+          <h3 className={`font-semibold ${theme.colors.textAccent} mb-3 text-lg`}>Modern Theme Features:</h3>
+          <ul className={`${theme.colors.textSecondary} text-sm space-y-2`}>
             <li>
               • <strong>Dark gradient backgrounds</strong> with glass-morphism effects
             </li>
@@ -216,9 +223,9 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
           </ul>
         </div>
 
-        <div className="mt-6 p-6 bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-400/30 rounded-2xl backdrop-blur-xl">
-          <h3 className="font-semibold text-purple-300 mb-3 text-lg">How it works:</h3>
-          <ul className="text-gray-300 text-sm space-y-2">
+        <div className={`mt-6 p-6 ${theme.colors.cardBackground} border ${theme.colors.primaryBorder} rounded-2xl backdrop-blur-xl`}>
+          <h3 className={`font-semibold ${theme.colors.textAccent} mb-3 text-lg`}>How it works:</h3>
+          <ul className={`${theme.colors.textSecondary} text-sm space-y-2`}>
             <li>
               • <strong>Default:</strong> Uses currently selected match in admin
               interface
@@ -244,9 +251,9 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
           </ul>
         </div>
 
-        <div className="mt-6 p-6 bg-gradient-to-br from-green-900/30 to-teal-900/30 border border-green-400/30 rounded-2xl backdrop-blur-xl">
-          <h3 className="font-semibold text-green-300 mb-3 text-lg">For OBS Setup:</h3>
-          <ul className="text-gray-300 text-sm space-y-2">
+        <div className={`mt-6 p-6 ${theme.colors.cardBackground} border ${theme.colors.primaryBorder} rounded-2xl backdrop-blur-xl`}>
+          <h3 className={`font-semibold ${theme.colors.textAccent} mb-3 text-lg`}>For OBS Setup:</h3>
+          <ul className={`${theme.colors.textSecondary} text-sm space-y-2`}>
             <li>
               • <strong>Step 1:</strong> Add Worker Page as a Browser Source (can
               be in any scene, even if not visible)
@@ -268,10 +275,13 @@ const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }
               • <strong>Modern overlays work best</strong> with transparent backgrounds
               in OBS for the glass effects
             </li>
-          </ul>
+            </ul>
+          </div>
         </div>
       </div>
-    </div>
+        );
+      }}
+    </BaseModernOverlay>
   );
 };
 

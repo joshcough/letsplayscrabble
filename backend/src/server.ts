@@ -15,6 +15,7 @@ import { TournamentRepository } from "./repositories/tournamentRepository";
 import createAdminRoutes from "./routes/admin";
 import authRoutes from "./routes/auth";
 import createOverlayRoutes from "./routes/overlay";
+import userSettingsRoutes from "./routes/userSettings";
 import { protectedPollingRoutes } from "./routes/tournament/polling";
 import { protectedTournamentRoutes } from "./routes/tournament/protected";
 import { unprotectedTournamentRoutes } from "./routes/tournament/unprotected";
@@ -151,6 +152,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/overlay", createOverlayRoutes(currentMatchRepository));
 
 app.use("/api/public", unprotectedTournamentRoutes(tournamentRepository));
+
+// Protected user routes
+app.use("/api/users/settings", requireAuth, userSettingsRoutes);
 
 // Protected routes
 app.use(
