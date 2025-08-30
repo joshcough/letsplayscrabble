@@ -320,7 +320,7 @@ const renderCareerH2H = (
           <div className="flex justify-center">
             {/* Latest Games Table */}
             <div className="w-full" style={{maxWidth: '56rem'}}>
-              <h3 className={`text-sm ${theme.colors.textSecondary} uppercase tracking-wider mb-3 text-center font-semibold`}>Latest Games</h3>
+              <h3 className={`text-sm ${getPageTextColor(theme, 'secondary')} uppercase tracking-wider mb-3 text-center font-semibold`}>Latest Games</h3>
               <div className={`${theme.colors.cardBackground} rounded-xl p-4 border ${theme.colors.primaryBorder} shadow-2xl ${theme.colors.shadowColor}`}>
                 <table className="w-full text-sm table-fixed">
                   <colgroup>
