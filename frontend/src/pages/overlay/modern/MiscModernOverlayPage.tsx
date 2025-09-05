@@ -60,8 +60,13 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
   const source = searchParams.get("source") as SourceType;
 
   return (
-    <BaseModernOverlay>
-      {(theme, themeClasses) => {
+    <BaseOverlay apiService={apiService}>
+      {({ tournament, divisionData, divisionName, currentMatch }) => (
+        <BaseModernOverlay
+          tournamentId={tournament.id}
+          tournamentTheme={tournament.theme || 'scrabble'}
+        >
+          {(theme, themeClasses) => {
         if (!source) {
           return (
             <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
@@ -70,17 +75,13 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
           );
         }
 
-        return (
-          <BaseOverlay apiService={apiService}>
-            {({ tournament, divisionData, divisionName, currentMatch }) => {
-              // Early return for errors
-              if (!currentMatch) {
-                return (
-                  <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
-                    <div className={`${theme.colors.textPrimary}`}>No current match data available</div>
-                  </div>
-                );
-              }
+            if (!currentMatch) {
+              return (
+                <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
+                  <div className={`${theme.colors.textPrimary}`}>No current match data available</div>
+                </div>
+              );
+            }
 
         // Calculate player stats from raw data (same as UsePlayerStatsCalculation does)
         const {
@@ -285,11 +286,10 @@ const MiscModernOverlay: React.FC<{ apiService: ApiService }> = ({ apiService })
                   {renderPlayerData(source)}
                 </div>
               );
-            }}
-          </BaseOverlay>
-        );
-      }}
-    </BaseModernOverlay>
+          }}
+        </BaseModernOverlay>
+      )}
+    </BaseOverlay>
   );
 };
 

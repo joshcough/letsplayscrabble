@@ -10,9 +10,11 @@ import { LoadingErrorWrapper } from "./LoadingErrorWrapper";
 
 // Simplified tournament display data
 export interface TournamentDisplayData {
+  id: number;
   name: string;
   lexicon: string;
   dataUrl: string;
+  theme?: string;
 }
 
 export interface BaseOverlayDataProps {
@@ -99,9 +101,11 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({
   if (tournamentData && selectedDivisionId) {
     // Extract tournament display data
     tournament = {
+      id: tournamentData.id,
       name: tournamentData.name,
       lexicon: tournamentData.lexicon,
       dataUrl: tournamentData.dataUrl,
+      theme: tournamentData.theme,
     };
 
     // Get division-specific data

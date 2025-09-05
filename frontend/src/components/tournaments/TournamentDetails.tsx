@@ -177,6 +177,7 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
       lexicon: editedTournament.lexicon || "",
       longFormName: editedTournament.longFormName || "",
       dataUrl: editedTournament.dataUrl || "",
+      theme: editedTournament.theme || "scrabble",
     };
 
     const updateResponse = await apiService.updateTournament(

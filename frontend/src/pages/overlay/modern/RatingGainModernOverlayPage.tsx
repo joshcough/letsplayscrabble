@@ -56,17 +56,19 @@ const RatingGainModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
 
   return (
     <UsePlayerStatsCalculation sortType="ratingGain" apiService={apiService}>
-      {({ tournament, players, divisionName }) => (
-        <TournamentTableModernOverlay
-          tournament={tournament}
-          standings={players}
-          columns={columns}
-          title="Rating Gain Leaders"
-          divisionName={divisionName}
-          renderPlayerName={renderPlayerName}
-          renderCell={renderCell}
-        />
-      )}
+      {({ tournament, players, divisionName }) => {
+        return (
+          <TournamentTableModernOverlay
+            tournament={tournament}
+            standings={players}
+            columns={columns}
+            title="Rating Gain Leaders"
+            divisionName={divisionName}
+            renderPlayerName={renderPlayerName}
+            renderCell={renderCell}
+          />
+        );
+      }}
     </UsePlayerStatsCalculation>
   );
 };

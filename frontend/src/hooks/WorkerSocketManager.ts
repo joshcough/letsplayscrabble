@@ -3,6 +3,7 @@ import {
   AdminPanelUpdateMessage,
   GamesAddedMessage,
   Ping,
+  TournamentThemeChangedMessage,
 } from "@shared/types/websocket";
 import io, { Socket } from "socket.io-client";
 
@@ -286,6 +287,18 @@ class WorkerSocketManager {
         this.fetchAndBroadcastTournamentRefresh(data.tournamentId, data.userId);
       },
     );
+
+    this.withDeduplication("tournament-theme-changed", (data: TournamentThemeChangedMessage) => {
+      // Broadcast the theme change message
+      this.broadcastWebSocketMessage("TournamentThemeChanged", {
+        ...data,
+        timestamp: data.timestamp || Date.now(),
+      });
+
+      // Refresh the tournament data to get the new theme
+      // The theme change affects the tournament metadata
+      this.fetchAndBroadcastTournamentRefresh(data.tournamentId, data.userId);
+    });
 
     this.withDeduplication("GamesAdded", (data: GamesAddedMessage) => {
       console.log("📡 Worker received GamesAdded:", data);

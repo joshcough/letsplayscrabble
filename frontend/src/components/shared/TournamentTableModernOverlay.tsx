@@ -34,7 +34,10 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
   renderCell,
 }) => {
   return (
-    <BaseModernOverlay>
+    <BaseModernOverlay
+      tournamentId={tournament.id}
+      tournamentTheme={tournament.theme || 'scrabble'}
+    >
       {(theme, themeClasses) => (
         <div className={`${themeClasses.pageBackground} min-h-screen flex items-center justify-center p-6`}>
       <div className="max-w-7xl w-full">
