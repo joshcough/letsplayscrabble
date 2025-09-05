@@ -9,7 +9,7 @@ import { ApiService } from "../../../services/interfaces";
 import { formatNumberWithSign } from "../../../utils/formatUtils";
 import { Theme } from "../../../types/theme";
 
-const RatingGainModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
+const RatingGainOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
   const columns = [
@@ -73,4 +73,4 @@ const RatingGainModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
   );
 };
 
-export default RatingGainModernOverlayPage;
+export default RatingGainOverlayPage;

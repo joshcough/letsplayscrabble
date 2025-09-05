@@ -6,27 +6,34 @@ import {
   RankedPlayerStats,
 } from "../../../hooks/usePlayerStatsCalculation";
 import { ApiService } from "../../../services/interfaces";
+import { formatNumberWithSign } from "../../../utils/formatUtils";
 import { BaseModernOverlay } from "../../../components/shared/BaseModernOverlay";
 
-const HighScoresWithPicsModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
+const StandingsWithPicsOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
   return (
     <BaseModernOverlay>
       {(theme, themeClasses) => {
         const renderPlayerContent = (player: RankedPlayerStats) => (
-          <div className={`${theme.colors.textPrimary} text-3xl font-bold text-center`}>
-            {player.highScore}
+          <div className={`${theme.colors.textPrimary} text-2xl font-bold text-center`}>
+            <div className="mb-1">
+              {player.wins}-{player.losses}
+              {player.ties > 0 ? `-${player.ties}` : ""}
+            </div>
+            <div className={player.spread > 0 ? theme.colors.positiveColor : theme.colors.negativeColor}>
+              {formatNumberWithSign(player.spread)}
+            </div>
           </div>
         );
 
         return (
-          <UsePlayerStatsCalculation sortType="highScore" apiService={apiService}>
+          <UsePlayerStatsCalculation sortType="standings" apiService={apiService}>
             {({ tournament, players, divisionName }) => (
               <PictureDisplayModern
                 tournament={tournament}
-                standings={players.slice(0, 5)} // Top 5 high scores
-                title="High Scores"
+                standings={players.slice(0, 5)} // Top 5 only
+                title="Standings"
                 divisionName={divisionName}
                 renderPlayerContent={renderPlayerContent}
               />
@@ -38,4 +45,4 @@ const HighScoresWithPicsModernOverlayPage: React.FC<{ apiService: ApiService }> 
   );
 };
 
-export default HighScoresWithPicsModernOverlayPage;
+export default StandingsWithPicsOverlayPage;

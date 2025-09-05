@@ -11,7 +11,7 @@ import BroadcastManager from "../../../hooks/BroadcastManager";
 import { ApiService } from "../../../services/interfaces";
 import { Theme } from "../../../types/theme";
 
-const PingModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
+const PingOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
   const [pingData, setPingData] = useState<Ping | null>(null);
@@ -20,7 +20,7 @@ const PingModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
 
   useEffect(() => {
     const cleanup = BroadcastManager.getInstance().onPing((data: Ping) => {
-      console.log(`🏓 PingModernOverlayPage received messageId: ${data.messageId}`);
+      console.log(`🏓 PingOverlayPage received messageId: ${data.messageId}`);
 
       // Check for missed messages
       if (lastMessageId > 0 && data.messageId > lastMessageId + 1) {
@@ -101,4 +101,4 @@ const PingModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
   );
 };
 
-export default PingModernOverlayPage;
+export default PingOverlayPage;

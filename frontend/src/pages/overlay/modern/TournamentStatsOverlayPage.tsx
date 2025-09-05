@@ -19,7 +19,7 @@ type RouteParams = {
   divisionName?: string;
 };
 
-const TournamentStatsModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
+const TournamentStatsOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
   const { userId, tournamentId, divisionName } = useParams<RouteParams>();
@@ -244,4 +244,4 @@ const StatsDisplay: React.FC<{
   );
 };
 
-export default TournamentStatsModernOverlayPage;
+export default TournamentStatsOverlayPage;

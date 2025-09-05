@@ -33,11 +33,11 @@ const abbreviateTournamentName = (name: string): string => {
     .replace(/\bMemorial\b/gi, 'Memorial');
 };
 
-interface HeadToHeadModernOverlayPageProps {
+interface HeadToHeadOverlayPageProps {
   apiService: ApiService;
 }
 
-const HeadToHeadModernOverlayPage: React.FC<HeadToHeadModernOverlayPageProps> = ({ apiService }) => {
+const HeadToHeadOverlayPage: React.FC<HeadToHeadOverlayPageProps> = ({ apiService }) => {
   const { tournamentId, divisionName, playerId1, playerId2 } = useParams<RouteParams>();
   const hasSpecificPlayers = !!(tournamentId && divisionName && playerId1 && playerId2);
   
@@ -375,4 +375,4 @@ const renderCareerH2H = (
   );
 };
 
-export default HeadToHeadModernOverlayPage;
+export default HeadToHeadOverlayPage;

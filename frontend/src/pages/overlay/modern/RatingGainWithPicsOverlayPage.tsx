@@ -9,7 +9,7 @@ import { ApiService } from "../../../services/interfaces";
 import { formatNumberWithSign } from "../../../utils/formatUtils";
 import { BaseModernOverlay } from "../../../components/shared/BaseModernOverlay";
 
-const RatingGainWithPicsModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
+const RatingGainWithPicsOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
 
@@ -54,4 +54,4 @@ const RatingGainWithPicsModernOverlayPage: React.FC<{ apiService: ApiService }> 
   );
 };
 
-export default RatingGainWithPicsModernOverlayPage;
+export default RatingGainWithPicsOverlayPage;

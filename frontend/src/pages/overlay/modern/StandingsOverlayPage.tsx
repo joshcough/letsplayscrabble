@@ -9,7 +9,7 @@ import { ApiService } from "../../../services/interfaces";
 import { formatNumberWithSign } from "../../../utils/formatUtils";
 import { Theme } from "../../../types/theme";
 
-const StandingsModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
+const StandingsOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
   const columns = [
@@ -63,4 +63,4 @@ const StandingsModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
   );
 };
 
-export default StandingsModernOverlayPage;
+export default StandingsOverlayPage;

@@ -9,7 +9,7 @@ import { ApiService } from "../../../services/interfaces";
 import { formatNumberWithSign } from "../../../utils/formatUtils";
 import { BaseModernOverlay } from "../../../components/shared/BaseModernOverlay";
 
-const ScoringLeadersWithPicsModernOverlayPage: React.FC<{
+const ScoringLeadersWithPicsOverlayPage: React.FC<{
   apiService: ApiService;
 }> = ({ apiService }) => {
   return (
@@ -53,4 +53,4 @@ const ScoringLeadersWithPicsModernOverlayPage: React.FC<{
   );
 };
 
-export default ScoringLeadersWithPicsModernOverlayPage;
+export default ScoringLeadersWithPicsOverlayPage;
