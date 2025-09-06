@@ -1,21 +1,22 @@
 import React from "react";
 
-import { TournamentTableModernOverlay } from "../../../components/shared/TournamentTableModernOverlay";
+import { TournamentTableModernOverlay } from "../../components/shared/TournamentTableModernOverlay";
 import {
   UsePlayerStatsCalculation,
   RankedPlayerStats,
-} from "../../../hooks/usePlayerStatsCalculation";
-import { ApiService } from "../../../services/interfaces";
-import { formatNumberWithSign } from "../../../utils/formatUtils";
-import { Theme } from "../../../types/theme";
+} from "../../hooks/usePlayerStatsCalculation";
+import { ApiService } from "../../services/interfaces";
+import { formatNumberWithSign } from "../../utils/formatUtils";
+import { Theme } from "../../types/theme";
 
-const StandingsModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
+const ScoringLeadersOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
   const columns = [
     { key: "rank", label: "Rank" },
     { key: "name", label: "Name" },
-    { key: "record", label: "Record" },
+    { key: "averageScoreRounded", label: "Avg Pts For" },
+    { key: "averageOpponentScore", label: "Avg Pts Ag" },
     { key: "spread", label: "Spread" },
     { key: "highScore", label: "High" },
   ];
@@ -26,11 +27,10 @@ const StandingsModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
     switch (columnKey) {
       case "rank":
         return <span className="text-lg font-bold">#{player.rank}</span>;
-      case "record":
-        const record = player.ties === 0 
-          ? `${player.wins}-${player.losses}`
-          : `${player.wins}-${player.losses}-${player.ties}`;
-        return <span className="font-mono text-lg">{record}</span>;
+      case "averageScoreRounded":
+        return <span className={`text-lg font-mono ${theme.colors.textPrimary}`}>{player.averageScoreRounded}</span>;
+      case "averageOpponentScore":
+        return <span className={`font-mono ${theme.colors.textPrimary}`}>{player.averageOpponentScore}</span>;
       case "spread":
         return (
           <span className={`font-bold text-lg ${
@@ -47,13 +47,13 @@ const StandingsModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
   };
 
   return (
-    <UsePlayerStatsCalculation sortType="standings" apiService={apiService}>
+    <UsePlayerStatsCalculation sortType="averageScore" apiService={apiService}>
       {({ tournament, players, divisionName }) => (
         <TournamentTableModernOverlay
           tournament={tournament}
           standings={players}
           columns={columns}
-          title="Standings"
+          title="Scoring Leaders"
           divisionName={divisionName}
           renderPlayerName={renderPlayerName}
           renderCell={renderCell}
@@ -63,4 +63,4 @@ const StandingsModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
   );
 };
 
-export default StandingsModernOverlayPage;
+export default ScoringLeadersOverlayPage;

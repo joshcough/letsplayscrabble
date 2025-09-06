@@ -1,14 +1,31 @@
 import React from 'react';
-import { useTheme } from '../../hooks/useTheme';
+import { useTournamentTheme } from '../../hooks/useTournamentTheme';
 import { getThemeClasses } from '../../utils/themeUtils';
 import { Theme } from '../../types/theme';
 
 interface BaseModernOverlayProps {
   children: (theme: Theme, themeClasses: ReturnType<typeof getThemeClasses>) => React.ReactNode;
+  tournamentId?: number;
+  tournamentTheme?: string; // Optional - fallback to default if not provided
 }
 
-export const BaseModernOverlay: React.FC<BaseModernOverlayProps> = ({ children }) => {
-  const { theme, loading, error } = useTheme();
+export const BaseModernOverlay: React.FC<BaseModernOverlayProps> = ({ 
+  children, 
+  tournamentId, 
+  tournamentTheme = 'scrabble' // Default theme
+}) => {
+  console.log("🔍 BaseModernOverlay: Props received", {
+    tournamentId,
+    tournamentIdType: typeof tournamentId,
+    tournamentTheme,
+  });
+
+  // Get tournament theme (listens for theme changes via websocket)
+  const { theme, loading } = useTournamentTheme({
+    tournamentId,
+    tournamentTheme,
+  });
+  
   const themeClasses = getThemeClasses(theme);
   
   if (loading) {
@@ -17,11 +34,6 @@ export const BaseModernOverlay: React.FC<BaseModernOverlayProps> = ({ children }
         <div className="text-gray-300 text-xl">Loading theme...</div>
       </div>
     );
-  }
-  
-  if (error) {
-    console.error('Theme error:', error);
-    // Continue with default theme
   }
   
   return <>{children(theme, themeClasses)}</>;

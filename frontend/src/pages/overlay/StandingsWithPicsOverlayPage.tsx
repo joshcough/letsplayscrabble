@@ -1,15 +1,15 @@
 import React from "react";
 
-import PictureDisplayModern from "../../../components/shared/PictureDisplayModern";
+import PictureDisplayModern from "../../components/shared/PictureDisplayModern";
 import {
   UsePlayerStatsCalculation,
   RankedPlayerStats,
-} from "../../../hooks/usePlayerStatsCalculation";
-import { ApiService } from "../../../services/interfaces";
-import { formatNumberWithSign } from "../../../utils/formatUtils";
-import { BaseModernOverlay } from "../../../components/shared/BaseModernOverlay";
+} from "../../hooks/usePlayerStatsCalculation";
+import { ApiService } from "../../services/interfaces";
+import { formatNumberWithSign } from "../../utils/formatUtils";
+import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
 
-const StandingsWithPicsModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
+const StandingsWithPicsOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
   return (
@@ -45,4 +45,4 @@ const StandingsWithPicsModernOverlayPage: React.FC<{ apiService: ApiService }> =
   );
 };
 
-export default StandingsWithPicsModernOverlayPage;
+export default StandingsWithPicsOverlayPage;

@@ -1,33 +1,59 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
+import { useThemeContext } from "../../context/ThemeContext";
 
-type NavPath = "/" | "/tournaments/manager" | "/admin" | "/overlays" | "/overlays/original";
+type NavPath = "/" | "/tournaments/manager" | "/admin" | "/overlays";
 
 const Navigation: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout, username, userId } = useAuth();
+  const { theme } = useThemeContext();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside or on window resize/scroll
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) && 
+          buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    const handleWindowEvents = () => {
+      if (isDropdownOpen) {
+        calculateDropdownPosition();
+      }
+    };
+
+    const handleScroll = () => {
+      setIsDropdownOpen(false);
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      window.addEventListener('resize', handleWindowEvents);
+      window.addEventListener('scroll', handleScroll, true);
+    }
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('resize', handleWindowEvents);
+      window.removeEventListener('scroll', handleScroll, true);
     };
-  }, []);
+  }, [isDropdownOpen]);
 
-  const isActive = (path: NavPath): string => {
-    return location.pathname === path ? "bg-[#4A3728] text-[#FAF1DB]" : "";
+  const getActiveClass = (path: NavPath): string => {
+    if (location.pathname === path) {
+      return `${theme.colors.hoverBackground} ${theme.colors.pageTextPrimary || theme.colors.textPrimary}`;
+    }
+    return "";
   };
 
   const getLabel = (path: NavPath): string => {
@@ -40,8 +66,6 @@ const Navigation: React.FC = () => {
         return "Admin";
       case "/overlays":
         return "Overlays";
-      case "/overlays/original":
-        return "Original Overlays";
     }
   };
 
@@ -50,10 +74,27 @@ const Navigation: React.FC = () => {
     navigate("/login");
   };
 
-  const paths: NavPath[] = ["/", "/tournaments/manager", "/admin", "/overlays", "/overlays/original"];
+  const calculateDropdownPosition = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 8, // 8px gap below button
+        right: window.innerWidth - rect.right, // Distance from right edge
+      });
+    }
+  };
+
+  const toggleDropdown = () => {
+    if (!isDropdownOpen) {
+      calculateDropdownPosition();
+    }
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const paths: NavPath[] = ["/", "/tournaments/manager", "/admin", "/overlays"];
 
   return (
-    <nav className="bg-[#E4C6A0] border-b-4 border-[#4A3728]">
+    <nav className={`${theme.colors.cardBackground} border-b-4 ${theme.colors.primaryBorder}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex space-x-2">
@@ -62,9 +103,9 @@ const Navigation: React.FC = () => {
                 key={path}
                 to={path}
                 className={`inline-flex items-center px-4 py-2 mt-3 mb-3
-                          text-[#4A3728] font-medium rounded
-                          hover:bg-[#4A3728] hover:text-[#FAF1DB]
-                          transition-colors duration-200 ${isActive(path)}`}
+                          ${theme.colors.pageTextPrimary || theme.colors.textPrimary} font-medium rounded
+                          ${theme.colors.hoverBackground} hover:${theme.colors.pageTextSecondary || theme.colors.textSecondary}
+                          transition-colors duration-200 ${getActiveClass(path)}`}
               >
                 {getLabel(path)}
               </Link>
@@ -72,13 +113,14 @@ const Navigation: React.FC = () => {
           </div>
           <div className="flex items-center">
             {username && userId && (
-              <div className="relative" ref={dropdownRef}>
+              <div className="relative">
                 <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="inline-flex items-center px-4 py-2
-                            text-[#4A3728] font-medium rounded
-                            hover:bg-[#4A3728] hover:text-[#FAF1DB]
-                            transition-colors duration-200"
+                  ref={buttonRef}
+                  onClick={toggleDropdown}
+                  className={`inline-flex items-center px-4 py-2
+                            ${theme.colors.pageTextPrimary || theme.colors.textPrimary} font-medium rounded
+                            ${theme.colors.hoverBackground} hover:${theme.colors.pageTextSecondary || theme.colors.textSecondary}
+                            transition-colors duration-200`}
                 >
                   {username}
                   <svg 
@@ -91,8 +133,15 @@ const Navigation: React.FC = () => {
                   </svg>
                 </button>
 
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                {isDropdownOpen && createPortal(
+                  <div 
+                    ref={dropdownRef}
+                    className="fixed w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-[9999]"
+                    style={{
+                      top: `${dropdownPosition.top}px`,
+                      right: `${dropdownPosition.right}px`,
+                    }}
+                  >
                     <div className="py-1">
                       <div className="px-4 py-2 text-xs text-gray-500 border-b">
                         ID: {userId}
@@ -114,7 +163,8 @@ const Navigation: React.FC = () => {
                         Logout
                       </button>
                     </div>
-                  </div>
+                  </div>,
+                  document.body
                 )}
               </div>
             )}

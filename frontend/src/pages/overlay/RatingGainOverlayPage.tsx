@@ -1,15 +1,15 @@
 import React from "react";
 
-import { TournamentTableModernOverlay } from "../../../components/shared/TournamentTableModernOverlay";
+import { TournamentTableModernOverlay } from "../../components/shared/TournamentTableModernOverlay";
 import {
   UsePlayerStatsCalculation,
   RankedPlayerStats,
-} from "../../../hooks/usePlayerStatsCalculation";
-import { ApiService } from "../../../services/interfaces";
-import { formatNumberWithSign } from "../../../utils/formatUtils";
-import { Theme } from "../../../types/theme";
+} from "../../hooks/usePlayerStatsCalculation";
+import { ApiService } from "../../services/interfaces";
+import { formatNumberWithSign } from "../../utils/formatUtils";
+import { Theme } from "../../types/theme";
 
-const RatingGainModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
+const RatingGainOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
   const columns = [
@@ -56,19 +56,21 @@ const RatingGainModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
 
   return (
     <UsePlayerStatsCalculation sortType="ratingGain" apiService={apiService}>
-      {({ tournament, players, divisionName }) => (
-        <TournamentTableModernOverlay
-          tournament={tournament}
-          standings={players}
-          columns={columns}
-          title="Rating Gain Leaders"
-          divisionName={divisionName}
-          renderPlayerName={renderPlayerName}
-          renderCell={renderCell}
-        />
-      )}
+      {({ tournament, players, divisionName }) => {
+        return (
+          <TournamentTableModernOverlay
+            tournament={tournament}
+            standings={players}
+            columns={columns}
+            title="Rating Gain Leaders"
+            divisionName={divisionName}
+            renderPlayerName={renderPlayerName}
+            renderCell={renderCell}
+          />
+        );
+      }}
     </UsePlayerStatsCalculation>
   );
 };
 
-export default RatingGainModernOverlayPage;
+export default RatingGainOverlayPage;

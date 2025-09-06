@@ -109,6 +109,7 @@ export interface TournamentSummary {
   longFormName: string;
   dataUrl: string;
   pollUntil?: Date | null; // When polling expires (for admin monitoring)
+  theme?: string; // Theme name for this tournament
 }
 
 /**
@@ -124,6 +125,7 @@ export interface Tournament {
   longFormName: string;
   dataUrl: string;
   divisions: Division[];
+  theme?: string; // Theme name for this tournament
 }
 
 /**

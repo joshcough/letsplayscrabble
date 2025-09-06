@@ -1,5 +1,35 @@
 # Changelog
 
+## 2025-09-06 - Overlay Structure Consolidation & File Organization
+
+### 🧹 **Major File Structure Cleanup**
+
+#### **Overlay Directory Reorganization**
+- **REMOVED**: `/pages/overlay/original/` directory and all original overlay files
+- **MOVED**: All modern overlay files from `/pages/overlay/modern/` to `/pages/overlay/`
+- **RENAMED**: All `*ModernOverlayPage.tsx` files to `*OverlayPage.tsx` (removed "Modern" naming)
+- **UNIFIED**: Single overlay directory structure - no more modern/original split
+
+#### **Navigation & Routes Simplified**
+- **REMOVED**: "Original Overlays" link from navigation menu
+- **UPDATED**: `/overlays` page now shows unified overlay listing without "Modern" branding
+- **RESTORED**: `MiscOverlayTestingPage` for testing misc overlay sources
+- **FIXED**: All overlay routes now use clean paths without subdirectories
+
+#### **Import Path Corrections**
+- **FIXED**: All import paths updated from `../../../` to `../../` after directory restructure
+- **RESOLVED**: Build compilation errors from incorrect relative imports
+- **RESTORED**: Original misc overlay functionality (replaced modern version that was broken for OBS)
+
+#### **Breaking Changes**
+- **REMOVED**: All original overlay routes (`*_original`) - only current overlays remain
+- **SIMPLIFIED**: Overlay navigation now shows single set of overlays instead of modern/original split
+
+### 🎯 **User Impact**
+- **CLEANER**: Simplified overlay selection without confusing modern/original choices
+- **WORKING**: All overlay functionality preserved and working correctly
+- **COMPATIBLE**: OBS compatibility maintained through proper misc overlay restoration
+
 ## 2025-08-30 - Modern Overlays Are Now Default & Theme System Implementation
 
 ### 🚀 **Modern Overlays Made Default**

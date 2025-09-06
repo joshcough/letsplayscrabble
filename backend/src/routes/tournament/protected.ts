@@ -1,5 +1,6 @@
 import express, { Router, RequestHandler } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
+import { Server as SocketIOServer } from "socket.io";
 
 import { TournamentIdParams } from "@shared/types/api";
 
@@ -16,7 +17,8 @@ interface TournamentIdParamsDict extends ParamsDictionary, TournamentIdParams {}
 export function protectedTournamentRoutes(
   repo: TournamentRepository,
   crossTablesSync: CrossTablesSyncService,
-  crossTablesHeadToHeadService: CrossTablesHeadToHeadService
+  crossTablesHeadToHeadService: CrossTablesHeadToHeadService,
+  io: SocketIOServer
 ): Router {
   const router = express.Router();
 
@@ -100,6 +102,11 @@ export function protectedTournamentRoutes(
     const userId = req.user!.id;
     const tournamentId = parseInt(id, 10);
 
+    // Get existing tournament to check for theme changes
+    const existingTournament = await repo.findByIdForUser(tournamentId, userId);
+    const oldTheme = existingTournament?.theme;
+    const newTheme = metadata.theme;
+
     await Api.withDataOr404(
       repo.findByIdForUser(tournamentId, userId),
       res,
@@ -157,6 +164,17 @@ export function protectedTournamentRoutes(
                   convertFileToDatabase(newData, metadata, userId),
                 );
               
+              // Check for theme changes and broadcast via websocket
+              if (oldTheme !== newTheme && newTheme) {
+                console.log(`🎨 Tournament ${tournamentId} theme changed from ${oldTheme || 'default'} to ${newTheme}`);
+                io.emit('tournament-theme-changed', {
+                  tournamentId,
+                  theme: newTheme,
+                  tournamentName: update.tournament.name,
+                  userId
+                });
+              }
+              
               res.json(Api.success(update));
             } else {
               // Just update metadata fields through repo
@@ -170,6 +188,18 @@ export function protectedTournamentRoutes(
                 tournament,
                 changes: { added: [], updated: [] },
               };
+              
+              // Check for theme changes and broadcast via websocket
+              if (oldTheme !== newTheme && newTheme) {
+                console.log(`🎨 Tournament ${tournamentId} theme changed from ${oldTheme || 'default'} to ${newTheme}`);
+                io.emit('tournament-theme-changed', {
+                  tournamentId,
+                  theme: newTheme,
+                  tournamentName: tournament.name,
+                  userId
+                });
+              }
+              
               res.json(Api.success(update));
             }
           },

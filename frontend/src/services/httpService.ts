@@ -126,8 +126,12 @@ export class HttpApiService implements ApiService {
   }
 
   async updateTournament(id: number, params: any): Promise<ApiResponse<any>> {
+    console.log("🚀 Sending tournament update:", { id, params });
     return await this.fetchWithAuth(`/api/private/tournaments/${id}`, {
       method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(params),
     });
   }

@@ -1,14 +1,14 @@
 import React from "react";
 
-import PictureDisplayModern from "../../../components/shared/PictureDisplayModern";
+import PictureDisplayModern from "../../components/shared/PictureDisplayModern";
 import {
   UsePlayerStatsCalculation,
   RankedPlayerStats,
-} from "../../../hooks/usePlayerStatsCalculation";
-import { ApiService } from "../../../services/interfaces";
-import { BaseModernOverlay } from "../../../components/shared/BaseModernOverlay";
+} from "../../hooks/usePlayerStatsCalculation";
+import { ApiService } from "../../services/interfaces";
+import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
 
-const HighScoresWithPicsModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
+const HighScoresWithPicsOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
   return (
@@ -38,4 +38,4 @@ const HighScoresWithPicsModernOverlayPage: React.FC<{ apiService: ApiService }> 
   );
 };
 
-export default HighScoresWithPicsModernOverlayPage;
+export default HighScoresWithPicsOverlayPage;

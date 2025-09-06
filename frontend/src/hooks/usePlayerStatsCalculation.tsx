@@ -90,6 +90,7 @@ export const UsePlayerStatsCalculation: React.FC<
       {({ tournament, divisionData, divisionName }) => {
         console.log("🔢 UsePlayerStatsCalculation: Calculating stats", {
           tournament: tournament.name,
+          tournamentId: tournament.id,
           divisionName,
           sortType,
           players: divisionData.players.length,

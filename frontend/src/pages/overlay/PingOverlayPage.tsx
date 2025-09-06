@@ -5,13 +5,13 @@ import { Ping } from "@shared/types/websocket";
 import {
   BaseOverlay,
   BaseOverlayDataProps,
-} from "../../../components/shared/BaseOverlay";
-import { BaseModernOverlay } from "../../../components/shared/BaseModernOverlay";
-import BroadcastManager from "../../../hooks/BroadcastManager";
-import { ApiService } from "../../../services/interfaces";
-import { Theme } from "../../../types/theme";
+} from "../../components/shared/BaseOverlay";
+import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
+import BroadcastManager from "../../hooks/BroadcastManager";
+import { ApiService } from "../../services/interfaces";
+import { Theme } from "../../types/theme";
 
-const PingModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
+const PingOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
   const [pingData, setPingData] = useState<Ping | null>(null);
@@ -20,7 +20,7 @@ const PingModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
 
   useEffect(() => {
     const cleanup = BroadcastManager.getInstance().onPing((data: Ping) => {
-      console.log(`🏓 PingModernOverlayPage received messageId: ${data.messageId}`);
+      console.log(`🏓 PingOverlayPage received messageId: ${data.messageId}`);
 
       // Check for missed messages
       if (lastMessageId > 0 && data.messageId > lastMessageId + 1) {
@@ -36,10 +36,13 @@ const PingModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
   }, [lastMessageId]);
 
   return (
-    <BaseModernOverlay>
-      {(theme, themeClasses) => (
-        <BaseOverlay apiService={apiService}>
-          {({ tournament, divisionData, divisionName }: BaseOverlayDataProps) => (
+    <BaseOverlay apiService={apiService}>
+      {({ tournament, divisionData, divisionName }: BaseOverlayDataProps) => (
+        <BaseModernOverlay
+          tournamentId={tournament.id}
+          tournamentTheme={tournament.theme || 'scrabble'}
+        >
+          {(theme, themeClasses) => (
             <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
               <div className={`${theme.colors.cardBackground} rounded-3xl p-8 border-2 ${theme.colors.primaryBorder} shadow-2xl ${theme.colors.shadowColor} max-w-md w-full`}>
                 <div className="text-center mb-8">
@@ -92,10 +95,10 @@ const PingModernOverlayPage: React.FC<{ apiService: ApiService }> = ({
               </div>
             </div>
           )}
-        </BaseOverlay>
+        </BaseModernOverlay>
       )}
-    </BaseModernOverlay>
+    </BaseOverlay>
   );
 };
 
-export default PingModernOverlayPage;
+export default PingOverlayPage;

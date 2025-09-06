@@ -41,6 +41,7 @@ export class TournamentRepository {
           lexicon: createTournament.tournament.lexicon,
           long_form_name: createTournament.tournament.long_form_name,
           user_id: createTournament.tournament.user_id,
+          theme: createTournament.tournament.theme,
         })
         .returning("*");
 
@@ -273,6 +274,7 @@ export class TournamentRepository {
           year: metadata.year,
           lexicon: metadata.lexicon,
           long_form_name: metadata.longFormName,
+          theme: metadata.theme,
         })
         .returning("*");
 

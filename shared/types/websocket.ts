@@ -25,8 +25,16 @@ export interface Ping extends WebSocketMessage {
   messageId: number;
 }
 
+export interface TournamentThemeChangedMessage extends WebSocketMessage {
+  tournamentId: number;
+  theme: string;
+  tournamentName: string;
+  userId: number;
+}
+
 // Union type for all possible WebSocket messages from server
 export type WebSocketMessageType =
   | { type: 'Ping'; data: Ping }
+  | { type: 'TournamentThemeChanged'; data: TournamentThemeChangedMessage }
   | { type: 'AdminPanelUpdate'; data: AdminPanelUpdateMessage }
   | { type: 'GamesAdded'; data: GamesAddedMessage };

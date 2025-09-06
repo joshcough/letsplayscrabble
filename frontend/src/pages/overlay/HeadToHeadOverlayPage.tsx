@@ -3,12 +3,12 @@ import { useParams } from 'react-router-dom';
 import { 
   BaseOverlay, 
   BaseOverlayDataProps 
-} from '../../../components/shared/BaseOverlay';
-import { ApiService } from '../../../services/interfaces';
-import { BaseModernOverlay } from '../../../components/shared/BaseModernOverlay';
-import { Theme } from '../../../types/theme';
-import { formatPlayerName, getCurrentRating } from '../../../utils/playerUtils';
-import { getPageTextColor } from '../../../utils/themeUtils';
+} from '../../components/shared/BaseOverlay';
+import { ApiService } from '../../services/interfaces';
+import { BaseModernOverlay } from '../../components/shared/BaseModernOverlay';
+import { Theme } from '../../types/theme';
+import { formatPlayerName, getCurrentRating } from '../../utils/playerUtils';
+import { getPageTextColor } from '../../utils/themeUtils';
 
 type RouteParams = {
   userId?: string;
@@ -33,11 +33,11 @@ const abbreviateTournamentName = (name: string): string => {
     .replace(/\bMemorial\b/gi, 'Memorial');
 };
 
-interface HeadToHeadModernOverlayPageProps {
+interface HeadToHeadOverlayPageProps {
   apiService: ApiService;
 }
 
-const HeadToHeadModernOverlayPage: React.FC<HeadToHeadModernOverlayPageProps> = ({ apiService }) => {
+const HeadToHeadOverlayPage: React.FC<HeadToHeadOverlayPageProps> = ({ apiService }) => {
   const { tournamentId, divisionName, playerId1, playerId2 } = useParams<RouteParams>();
   const hasSpecificPlayers = !!(tournamentId && divisionName && playerId1 && playerId2);
   
@@ -58,7 +58,7 @@ const renderCareerH2H = (
   data: BaseOverlayDataProps, 
   hasSpecificPlayers: boolean, 
   theme: Theme,
-  themeClasses: ReturnType<typeof import('../../../utils/themeUtils').getThemeClasses>,
+  themeClasses: ReturnType<typeof import('../../utils/themeUtils').getThemeClasses>,
   playerId1?: string, 
   playerId2?: string
 ): React.ReactNode => {
@@ -375,4 +375,4 @@ const renderCareerH2H = (
   );
 };
 
-export default HeadToHeadModernOverlayPage;
+export default HeadToHeadOverlayPage;
