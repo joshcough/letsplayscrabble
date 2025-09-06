@@ -246,7 +246,12 @@ const GameBoardDisplay: React.FC<{
       <div className="absolute" style={{ top: '44px', right: '400px' }}>
         <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-2 relative`} style={{ width: '280px', height: '120px' }}>
           <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-2 py-0.5 absolute`} style={{ top: '-10px', left: '20px', right: '20px', zIndex: 1, backgroundColor: 'var(--bg-color, #f5f5dc)' }}>
-            <div className="text-green-500 text-xs font-bold text-center">letsplayscrabble.com</div>
+            <div className="text-xs font-bold text-center">
+              <span className="text-red-500">lets</span>
+              <span className="text-yellow-500">play</span>
+              <span className="text-green-500">scrabble</span>
+              <span className="text-blue-500">.com</span>
+            </div>
           </div>
           <div className={`${theme.colors.textSecondary} text-center`} style={{ fontSize: '14px', lineHeight: '1.3', marginTop: '15px' }}>
             <div className={`${theme.colors.textPrimary} font-bold`}>T O R O N T O</div>
@@ -349,7 +354,11 @@ const GameBoardDisplay: React.FC<{
         
         {/* Center space with LPS */}
         <div className="flex items-center justify-center" style={{ width: '160px' }}>
-          <div className="text-green-500 text-sm font-bold">LPS</div>
+          <div className="text-6xl font-bold">
+            <span className="text-red-500">L</span>
+            <span className="text-yellow-500">P</span>
+            <span className="text-green-500">S</span>
+          </div>
         </div>
         
         {/* Player 2 Tile Rack - right aligned, extended left */}
