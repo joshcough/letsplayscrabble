@@ -32,6 +32,7 @@ import ScoringLeadersWithPicsOverlayPage from "./pages/overlay/ScoringLeadersWit
 import StandingsOverlayPage from "./pages/overlay/StandingsOverlayPage";
 import StandingsWithPicsOverlayPage from "./pages/overlay/StandingsWithPicsOverlayPage";
 import TournamentStatsOverlayPage from "./pages/overlay/TournamentStatsOverlayPage";
+import GameBoardOverlay from "./pages/overlay/GameBoardOverlayPage";
 import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
 import UserSettingsPage from "./pages/UserSettingsPage";
@@ -147,6 +148,10 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
         <Route
           path="/users/:userId/overlay/tournament_stats/:tournamentId?/:divisionName?"
           element={<TournamentStatsOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/users/:userId/overlay/game_board/:tournamentId?/:divisionName?"
+          element={<GameBoardOverlay apiService={apiService} />}
         />
         
         {/* Legacy overlay routes (backwards compatibility - optional) */}
