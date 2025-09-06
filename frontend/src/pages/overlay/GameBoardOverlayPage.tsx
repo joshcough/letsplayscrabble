@@ -213,7 +213,8 @@ const GameBoardDisplay: React.FC<{
   theme: any;
 }> = ({ tournament, round, player1, player2, theme }) => {
   return (
-    <div className={`${theme.colors.pageBackground} relative`} style={{ width: '1920px', height: '1080px', overflow: 'hidden' }}>
+    <div className={`${theme.colors.pageBackground}`} style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+      <div className="relative" style={{ width: '1920px', height: '1080px', marginLeft: '-372px', marginTop: '-12px' }}>
       
       {/* EXACT POSITIONING BASED ON ORIGINAL SCREENSHOT */}
       
@@ -367,6 +368,7 @@ const GameBoardDisplay: React.FC<{
         }} />
       </div>
 
+      </div>
     </div>
   );
 };
