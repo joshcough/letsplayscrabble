@@ -1,0 +1,37 @@
+i dropped a new screenshot
+   here: other/Screenshot      
+   2025-09-06 at               
+   8.49.51 AM.png
+                               
+   a few thoughts:             
+                               
+   i changed the theme for     
+   the tournament to the       
+   scrabble theme, and         
+   nothing changed so im not   
+   sure youre using the theme  
+   correctly.                  
+                               
+   there are several black     
+   boxes, but in the original  
+   they are white boxes with   
+   black text. but ideally     
+   we would use the theme for  
+   those colors.               
+                               
+   the tiles that appear that  
+   the bottom, you have a      
+   box for each tile, but the  
+   players whole rack comes    
+   from a camera so it should  
+   just be a single            
+   rectangular box per         
+   player.                     
+                               
+   we need to get their score  
+   underneath the player box   
+   instead of under the game board.
+
+   the whole thing is too wide, its not fitting on my screen, so its cutting off
+
+   you have two black boxes above the tiles, presumably for the players timer. those should be under the players as well instead of under the game board.

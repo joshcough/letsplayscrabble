@@ -281,11 +281,13 @@ const GameBoardDisplay: React.FC<{
       </div>
 
       {/* Player 1 Timer and Score - Side by Side */}
-      <div className="absolute flex gap-2" style={{ top: '570px', left: '400px' }}>
-        <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-3 flex items-center justify-center`} style={{ width: '137px', height: '50px' }}>
+      <div className="absolute" style={{ top: '570px', left: '400px', width: '280px' }}>
+        {/* Player 1 Timer Box - left aligned */}
+        <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-3 flex items-center justify-center absolute`} style={{ width: '137px', height: '50px', left: '0px' }}>
           <div className={`${theme.colors.textPrimary} text-lg font-mono font-bold text-center`}>21:34</div>
         </div>
-        <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-3 flex items-center justify-center`} style={{ width: '137px', height: '50px' }}>
+        {/* Player 1 Score Box - right aligned */}
+        <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-3 flex items-center justify-center absolute`} style={{ width: '137px', height: '50px', right: '0px' }}>
           <div className={`${theme.colors.textPrimary} text-xl font-bold text-center`}>456</div>
         </div>
       </div>
@@ -327,11 +329,13 @@ const GameBoardDisplay: React.FC<{
       </div>
 
       {/* Player 2 Timer and Score - Side by Side */}
-      <div className="absolute flex gap-2" style={{ top: '570px', right: '398px' }}>
-        <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-3 flex items-center justify-center`} style={{ width: '137px', height: '50px' }}>
+      <div className="absolute" style={{ top: '570px', right: '400px', width: '280px' }}>
+        {/* Player 2 Timer Box */}
+        <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-3 flex items-center justify-center absolute`} style={{ width: '137px', height: '50px', left: '0px' }}>
           <div className={`${theme.colors.textPrimary} text-lg font-mono font-bold text-center`}>17:56</div>
         </div>
-        <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-3 flex items-center justify-center`} style={{ width: '137px', height: '50px' }}>
+        {/* Player 2 Score Box - right aligned */}
+        <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-3 flex items-center justify-center absolute`} style={{ width: '137px', height: '50px', right: '0px' }}>
           <div className={`${theme.colors.textPrimary} text-xl font-bold text-center`}>399</div>
         </div>
       </div>
