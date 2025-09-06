@@ -218,7 +218,7 @@ const GameBoardDisplay: React.FC<{
       {/* EXACT POSITIONING BASED ON ORIGINAL SCREENSHOT */}
       
       {/* Tournament Name and Info - Overlapping Game Board */}
-      <div className="absolute" style={{ top: '70px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
+      <div className="absolute" style={{ top: '34px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
         <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-4 py-1`}>
           <div className={`${theme.colors.textPrimary} text-lg font-bold text-center`}>
             {tournament?.name || ""} - {tournament?.lexicon || ""} | Round {round}
@@ -227,7 +227,7 @@ const GameBoardDisplay: React.FC<{
       </div>
 
       {/* Remaining Tiles Box - Upper Left */}
-      <div className="absolute" style={{ top: '80px', left: '400px' }}>
+      <div className="absolute" style={{ top: '44px', left: '400px' }}>
         <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-2 relative`} style={{ width: '280px', height: '120px' }}>
           <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-2 py-0.5 absolute`} style={{ top: '-10px', left: '20px', right: '20px', zIndex: 1, backgroundColor: 'var(--bg-color, #f5f5dc)' }}>
             <div className={`${theme.colors.textPrimary} text-xs font-bold text-center`}>Remaining Tiles</div>
@@ -243,7 +243,7 @@ const GameBoardDisplay: React.FC<{
       </div>
 
       {/* LPS Info Box - Upper Right */}
-      <div className="absolute" style={{ top: '80px', right: '400px' }}>
+      <div className="absolute" style={{ top: '44px', right: '400px' }}>
         <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-2 relative`} style={{ width: '280px', height: '120px' }}>
           <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-2 py-0.5 absolute`} style={{ top: '-10px', left: '20px', right: '20px', zIndex: 1, backgroundColor: 'var(--bg-color, #f5f5dc)' }}>
             <div className="text-green-500 text-xs font-bold text-center">letsplayscrabble.com</div>
@@ -259,11 +259,11 @@ const GameBoardDisplay: React.FC<{
       {/* Player 1 - Left Side */}
       {/* Player 1 Camera - Transparent */}
       <div className="absolute border-2 border-gray-500 rounded-lg bg-transparent" style={{ 
-        top: '230px', left: '400px', width: '280px', height: '280px' 
+        top: '194px', left: '400px', width: '280px', height: '280px' 
       }} />
 
       {/* Player 1 Name - Overlapping Camera */}
-      <div className="absolute" style={{ top: '220px', left: '420px', width: '240px' }}>
+      <div className="absolute" style={{ top: '184px', left: '420px', width: '240px' }}>
         <div className={`${theme.colors.cardBackground} border-2 border-blue-500 rounded-lg px-3 py-0.5`}>
           <div className={`${theme.colors.textPrimary} text-base font-bold text-center`}>
             {player1?.firstLast || ""}
@@ -272,7 +272,7 @@ const GameBoardDisplay: React.FC<{
       </div>
 
       {/* Player 1 Stats */}
-      <div className="absolute" style={{ top: '515px', left: '400px' }}>
+      <div className="absolute" style={{ top: '479px', left: '400px' }}>
         <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-2`} style={{ width: '280px' }}>
           <div className={`${theme.colors.textPrimary} text-sm text-center`}>
             {player1 ? formatRecord(player1) : ""} | {player1?.rankOrdinal || ""} Place | Rating {player1?.currentRating || ""}
@@ -281,7 +281,7 @@ const GameBoardDisplay: React.FC<{
       </div>
 
       {/* Player 1 Timer and Score - Side by Side */}
-      <div className="absolute" style={{ top: '570px', left: '400px', width: '280px' }}>
+      <div className="absolute" style={{ top: '534px', left: '400px', width: '280px' }}>
         {/* Player 1 Timer Box - left aligned */}
         <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-3 flex items-center justify-center absolute`} style={{ width: '137px', height: '50px', left: '0px' }}>
           <div className={`${theme.colors.textPrimary} text-lg font-mono font-bold text-center`}>21:34</div>
@@ -294,11 +294,11 @@ const GameBoardDisplay: React.FC<{
 
       {/* Game Board - Center */}
       <div className="absolute border-4 border-purple-700 rounded-2xl bg-transparent" style={{ 
-        top: '80px', left: '50%', transform: 'translateX(-50%)', width: '540px', height: '540px' 
+        top: '44px', left: '50%', transform: 'translateX(-50%)', width: '540px', height: '540px' 
       }} />
 
       {/* Last Move Box */}
-      <div className="absolute" style={{ top: '630px', left: '50%', transform: 'translateX(-50%)' }}>
+      <div className="absolute" style={{ top: '594px', left: '50%', transform: 'translateX(-50%)' }}>
         <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-4 py-2`} style={{ width: '540px' }}>
           <div className={`${theme.colors.textSecondary} text-xs text-center`}>ST PLAY: Morris 76 PA +16.16 | a lather [n PAS]     LAST</div>
         </div>
@@ -307,11 +307,11 @@ const GameBoardDisplay: React.FC<{
       {/* Player 2 - Right Side */}
       {/* Player 2 Camera - Transparent */}
       <div className="absolute border-2 border-gray-500 rounded-lg bg-transparent" style={{ 
-        top: '230px', right: '400px', width: '280px', height: '280px' 
+        top: '194px', right: '400px', width: '280px', height: '280px' 
       }} />
 
       {/* Player 2 Name - Overlapping Camera */}
-      <div className="absolute" style={{ top: '220px', right: '420px', width: '240px' }}>
+      <div className="absolute" style={{ top: '184px', right: '420px', width: '240px' }}>
         <div className={`${theme.colors.cardBackground} border-2 border-red-500 rounded-lg px-3 py-0.5`}>
           <div className={`${theme.colors.textPrimary} text-base font-bold text-center`}>
             {player2?.firstLast || ""}
@@ -320,7 +320,7 @@ const GameBoardDisplay: React.FC<{
       </div>
 
       {/* Player 2 Stats */}
-      <div className="absolute" style={{ top: '515px', right: '400px' }}>
+      <div className="absolute" style={{ top: '479px', right: '400px' }}>
         <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-2`} style={{ width: '280px' }}>
           <div className={`${theme.colors.textPrimary} text-sm text-center`}>
             {player2 ? formatRecord(player2) : ""} | {player2?.rankOrdinal || ""} Place | Rating {player2?.currentRating || ""}
@@ -329,7 +329,7 @@ const GameBoardDisplay: React.FC<{
       </div>
 
       {/* Player 2 Timer and Score - Side by Side */}
-      <div className="absolute" style={{ top: '570px', right: '400px', width: '280px' }}>
+      <div className="absolute" style={{ top: '534px', right: '400px', width: '280px' }}>
         {/* Player 2 Timer Box */}
         <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-3 flex items-center justify-center absolute`} style={{ width: '137px', height: '50px', left: '0px' }}>
           <div className={`${theme.colors.textPrimary} text-lg font-mono font-bold text-center`}>17:56</div>
@@ -341,7 +341,7 @@ const GameBoardDisplay: React.FC<{
       </div>
 
       {/* Tile Racks - Extended toward center */}
-      <div className="absolute flex" style={{ top: '685px', left: '400px', right: '400px' }}>
+      <div className="absolute flex" style={{ top: '649px', left: '400px', right: '400px' }}>
         {/* Player 1 Tile Rack - left aligned, extended right */}
         <div className="border-2 border-yellow-700 rounded bg-transparent" style={{ 
           width: '480px', height: '80px' 
