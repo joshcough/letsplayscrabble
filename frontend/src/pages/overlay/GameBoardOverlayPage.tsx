@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { BaseOverlay } from "../../components/shared/BaseOverlay";
 import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
@@ -7,6 +7,10 @@ import { ApiService } from "../../services/interfaces";
 import { RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
 import * as Stats from "../../types/stats";
 import { formatRecord } from "../../utils/playerUtils";
+import BroadcastManager from "../../hooks/BroadcastManager";
+import { NotificationData } from "../../types/notifications";
+import { HighScore } from "../notifications/HighScore";
+import { WinningStreak } from "../notifications/WinningStreak";
 
 type RouteParams = {
   userId?: string;
@@ -17,7 +21,7 @@ type RouteParams = {
 const GameBoardOverlay: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
-  const { tournamentId, divisionName } = useParams<RouteParams>();
+  const { userId, tournamentId, divisionName } = useParams<RouteParams>();
 
   const shouldUseCurrentMatch = !tournamentId;
 
@@ -108,6 +112,8 @@ const GameBoardOverlay: React.FC<{ apiService: ApiService }> = ({
                   player2={player2}
                   theme={theme}
                   themeClasses={themeClasses}
+                  divisionData={divisionData}
+                  userId={userId}
                 />;
               }}
             </BaseModernOverlay>
@@ -125,6 +131,7 @@ const GameBoardOverlay: React.FC<{ apiService: ApiService }> = ({
             apiService={apiService}
             theme={theme}
             themeClasses={themeClasses}
+            userId={userId}
           />
         )}
       </BaseModernOverlay>
@@ -138,7 +145,8 @@ const URLBasedGameBoard: React.FC<{
   apiService: ApiService;
   theme: any;
   themeClasses: any;
-}> = ({ tournamentId, divisionName, apiService, theme, themeClasses }) => {
+  userId?: string;
+}> = ({ tournamentId, divisionName, apiService, theme, themeClasses, userId }) => {
   const [searchParams] = useSearchParams();
   const round = searchParams.get("round");
   const player1Id = searchParams.get("player1Id");
@@ -212,6 +220,10 @@ const URLBasedGameBoard: React.FC<{
   const player1 = rankedPlayers.find((p: RankedPlayerStats) => p.playerId === Number(player1Id));
   const player2 = rankedPlayers.find((p: RankedPlayerStats) => p.playerId === Number(player2Id));
 
+  const targetDivisionData = tournamentData?.divisions.find(
+    (div) => div.name.toUpperCase() === divisionName.toUpperCase(),
+  );
+
   return <GameBoardDisplay 
     tournament={tournamentData}
     divisionName={divisionName}
@@ -220,6 +232,8 @@ const URLBasedGameBoard: React.FC<{
     player2={player2}
     theme={theme}
     themeClasses={themeClasses}
+    divisionData={targetDivisionData}
+    userId={userId}
   />;
 };
 
@@ -231,16 +245,110 @@ const GameBoardDisplay: React.FC<{
   player2?: RankedPlayerStats;
   theme: any;
   themeClasses: any;
-}> = ({ tournament, round, player1, player2, theme, themeClasses }) => {
+  divisionData?: any;
+  userId?: string;
+}> = ({ tournament, round, player1, player2, theme, themeClasses, divisionData, userId }) => {
+  // Notification state
+  const [currentNotification, setCurrentNotification] = useState<JSX.Element | null>(null);
+  const [isNotificationVisible, setIsNotificationVisible] = useState(false);
+
+  // Listen for notifications
+  useEffect(() => {
+    if (!userId || !divisionData || !tournament?.id) {
+      return;
+    }
+
+    console.log("🎯 GameBoardDisplay: Setting up notification listener");
+
+    const cleanup = BroadcastManager.getInstance().onNotification(
+      (notification: NotificationData) => {
+        console.log("🎯 GameBoardDisplay: Raw notification received", {
+          notification,
+          expectedUserId: parseInt(userId),
+          expectedTournamentId: tournament.id,
+          expectedDivisionId: divisionData.id,
+          userMatch: notification.userId === parseInt(userId),
+          tournamentMatch: notification.tournamentId === tournament.id,
+          divisionMatch: notification.divisionId === divisionData.id
+        });
+
+        // Filter for our user, tournament, and division
+        if (notification.userId !== parseInt(userId)) {
+          console.log("🎯 GameBoardDisplay: User ID mismatch, ignoring");
+          return;
+        }
+        if (notification.tournamentId !== tournament.id) {
+          console.log("🎯 GameBoardDisplay: Tournament ID mismatch, ignoring");
+          return;
+        }
+        if (notification.divisionId !== divisionData.id) {
+          console.log("🎯 GameBoardDisplay: Division ID mismatch, ignoring");
+          return;
+        }
+
+        console.log("🎯 GameBoardDisplay: Notification passed filters - showing in commentator box", notification);
+        
+        // Create the appropriate notification component
+        let notificationElement: JSX.Element;
+        if (notification.type === 'high_score') {
+          notificationElement = (
+            <HighScore 
+              playerName={notification.playerName}
+              score={notification.score}
+              previousHighScore={notification.previousHighScore}
+              playerPhoto={notification.playerPhoto}
+            />
+          );
+        } else if (notification.type === 'winning_streak') {
+          console.log("🔥 Creating WinningStreak component with:", {
+            playerName: notification.playerName,
+            streakLength: notification.streakLength,
+            playerPhoto: notification.playerPhoto
+          });
+          notificationElement = (
+            <WinningStreak 
+              playerName={notification.playerName}
+              streakLength={notification.streakLength}
+              playerPhoto={notification.playerPhoto}
+            />
+          );
+        } else {
+          console.warn("🎯 GameBoardDisplay: Unknown notification type:", (notification as any).type);
+          return;
+        }
+        
+        showNotification(notificationElement);
+      }
+    );
+
+    return cleanup;
+  }, [userId, divisionData, tournament?.id]);
+
+  const showNotification = (notification: JSX.Element) => {
+    setCurrentNotification(notification);
+    // Start with notification off-screen, then slide in after a brief delay
+    setTimeout(() => {
+      setIsNotificationVisible(true);
+    }, 50);
+
+    // Hide after 15 seconds
+    setTimeout(() => {
+      setIsNotificationVisible(false);
+      setTimeout(() => {
+        setCurrentNotification(null);
+      }, 500); // Allow slide-out animation to complete
+    }, 15000);
+  };
+  
   return (
-    <div className={`${theme.colors.pageBackground}`} style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+    <div className={`${theme.colors.pageBackground}`} style={{ width: '100vw', height: '100vh' }}>
       <div className="relative" style={{ width: '1920px', height: '1080px', marginLeft: '-372px', marginTop: '-12px' }}>
       
       {/* EXACT POSITIONING BASED ON ORIGINAL SCREENSHOT */}
       
       {/* Tournament Name and Info - Overlapping Game Board */}
       <div className="absolute" style={{ top: '34px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
-        <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-4 py-1`}>
+        <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-4 py-1`} style={{ width: '500px' }}>
           <div className={`${theme.colors.textPrimary} text-lg font-bold text-center`}>
             {tournament?.name || ""} - {tournament?.lexicon || ""} | Round {round}
           </div>
@@ -249,7 +357,7 @@ const GameBoardDisplay: React.FC<{
 
       {/* Remaining Tiles Box - Upper Left */}
       <div className="absolute" style={{ top: '44px', left: '400px' }}>
-        <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-2 relative`} style={{ width: '280px', height: '120px' }}>
+        <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-2 relative`} style={{ width: '280px', height: '180px' }}>
           <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-2 py-0.5 absolute`} style={{ top: '-10px', left: '20px', right: '20px', zIndex: 1, backgroundColor: 'var(--bg-color, #f5f5dc)' }}>
             <div className={`${theme.colors.textPrimary} text-xs font-bold text-center`}>Remaining Tiles</div>
           </div>
@@ -263,33 +371,58 @@ const GameBoardDisplay: React.FC<{
         </div>
       </div>
 
-      {/* LPS Info Box - Upper Right */}
+      {/* LPS Info/Commentator Box - Upper Right (shows notification when active) */}
       <div className="absolute" style={{ top: '44px', right: '400px' }}>
-        <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-2 relative`} style={{ width: '280px', height: '120px' }}>
-          <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-2 py-0.5 absolute`} style={{ top: '-10px', left: '20px', right: '20px', zIndex: 1, backgroundColor: 'var(--bg-color, #f5f5dc)' }}>
-            <div className="text-xs font-bold text-center">
-              <span className="text-red-500">lets</span>
-              <span className="text-yellow-500">play</span>
-              <span className="text-green-500">scrabble</span>
-              <span className="text-blue-500">.com</span>
+        <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg relative`} style={{ width: '280px', height: '180px' }}>
+          {/* Normal content - stays in place, gets covered by notification */}
+          <div className="absolute inset-0 px-3 py-2"
+          >
+            <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-2 py-0.5 absolute`} style={{ top: '-10px', left: '20px', right: '20px', zIndex: 10, backgroundColor: 'var(--bg-color, #f5f5dc)' }}>
+              <div className="text-xs font-bold text-center">
+                <span className="text-red-500">lets</span>
+                <span className="text-yellow-500">play</span>
+                <span className="text-green-500">scrabble</span>
+                <span className="text-blue-500">.com</span>
+              </div>
+            </div>
+            <div className={`${theme.colors.textSecondary} text-center`} style={{ fontSize: '14px', lineHeight: '1.3', marginTop: '15px' }}>
+              <div className={`${theme.colors.textPrimary} font-bold`}>T O R O N T O</div>
+              <div><span className="text-blue-500">tile</span> <span className="text-red-500">slingers</span></div>
+              <div style={{ fontSize: '12px', marginTop: '4px' }}>Commentary: Josh Sokol & David Spargo</div>
             </div>
           </div>
-          <div className={`${theme.colors.textSecondary} text-center`} style={{ fontSize: '14px', lineHeight: '1.3', marginTop: '15px' }}>
-            <div className={`${theme.colors.textPrimary} font-bold`}>T O R O N T O</div>
-            <div><span className="text-blue-500">tile</span> <span className="text-red-500">slingers</span></div>
-            <div style={{ fontSize: '12px', marginTop: '4px' }}>Commentary: Josh Sokol & David Spargo</div>
-          </div>
+          
+          {/* Notification content - slides in from right, covers normal content */}
+          {currentNotification && (
+            <div 
+              className={`absolute inset-0 transition-transform duration-500 ${
+                isNotificationVisible ? 'transform translate-x-0' : 'transform translate-x-full'
+              }`}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center'
+              }}
+            >
+              <div style={{ 
+                width: '300px',
+                height: '180px'
+              }}>
+                {currentNotification}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Player 1 - Left Side */}
       {/* Player 1 Camera - Transparent */}
       <div className="absolute border-2 border-gray-500 rounded-lg bg-transparent" style={{ 
-        top: '194px', left: '400px', width: '280px', height: '280px' 
+        top: '244px', left: '400px', width: '280px', height: '280px' 
       }} />
 
       {/* Player 1 Name - Overlapping Camera */}
-      <div className="absolute" style={{ top: '184px', left: '420px', width: '240px' }}>
+      <div className="absolute" style={{ top: '234px', left: '420px', width: '240px' }}>
         <div className={`${theme.colors.cardBackground} border-2 border-blue-500 rounded-lg px-3 py-0.5`}>
           <div className={`${theme.colors.textPrimary} text-base font-bold text-center`}>
             {player1?.firstLast || ""}
@@ -298,7 +431,7 @@ const GameBoardDisplay: React.FC<{
       </div>
 
       {/* Player 1 Stats */}
-      <div className="absolute" style={{ top: '479px', left: '400px' }}>
+      <div className="absolute" style={{ top: '536px', left: '400px' }}>
         <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-2`} style={{ width: '280px' }}>
           <div className={`${theme.colors.textPrimary} text-sm text-center`}>
             {player1 ? formatRecord(player1) : ""} | {player1?.rankOrdinal || ""} Place | Rating {player1?.currentRating || ""}
@@ -307,7 +440,7 @@ const GameBoardDisplay: React.FC<{
       </div>
 
       {/* Player 1 Timer and Score - Side by Side */}
-      <div className="absolute" style={{ top: '534px', left: '400px', width: '280px' }}>
+      <div className="absolute" style={{ top: '591px', left: '400px', width: '280px' }}>
         {/* Player 1 Timer Box - left aligned */}
         <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-3 flex items-center justify-center absolute`} style={{ width: '137px', height: '50px', left: '0px' }}>
           <div className={`${theme.colors.textPrimary} text-lg font-mono font-bold text-center`}>21:34</div>
@@ -333,11 +466,11 @@ const GameBoardDisplay: React.FC<{
       {/* Player 2 - Right Side */}
       {/* Player 2 Camera - Transparent */}
       <div className="absolute border-2 border-gray-500 rounded-lg bg-transparent" style={{ 
-        top: '194px', right: '400px', width: '280px', height: '280px' 
+        top: '244px', right: '400px', width: '280px', height: '280px' 
       }} />
 
       {/* Player 2 Name - Overlapping Camera */}
-      <div className="absolute" style={{ top: '184px', right: '420px', width: '240px' }}>
+      <div className="absolute" style={{ top: '234px', right: '420px', width: '240px' }}>
         <div className={`${theme.colors.cardBackground} border-2 border-red-500 rounded-lg px-3 py-0.5`}>
           <div className={`${theme.colors.textPrimary} text-base font-bold text-center`}>
             {player2?.firstLast || ""}
@@ -346,7 +479,7 @@ const GameBoardDisplay: React.FC<{
       </div>
 
       {/* Player 2 Stats */}
-      <div className="absolute" style={{ top: '479px', right: '400px' }}>
+      <div className="absolute" style={{ top: '536px', right: '400px' }}>
         <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-2`} style={{ width: '280px' }}>
           <div className={`${theme.colors.textPrimary} text-sm text-center`}>
             {player2 ? formatRecord(player2) : ""} | {player2?.rankOrdinal || ""} Place | Rating {player2?.currentRating || ""}
@@ -355,7 +488,7 @@ const GameBoardDisplay: React.FC<{
       </div>
 
       {/* Player 2 Timer and Score - Side by Side */}
-      <div className="absolute" style={{ top: '534px', right: '400px', width: '280px' }}>
+      <div className="absolute" style={{ top: '591px', right: '400px', width: '280px' }}>
         {/* Player 2 Timer Box */}
         <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-3 flex items-center justify-center absolute`} style={{ width: '137px', height: '50px', left: '0px' }}>
           <div className={`${theme.colors.textPrimary} text-lg font-mono font-bold text-center`}>17:56</div>

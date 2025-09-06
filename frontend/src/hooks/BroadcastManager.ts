@@ -13,6 +13,8 @@ import {
   TournamentDataError,
 } from "../types/broadcast";
 
+import { NotificationBroadcastMessage } from "../types/notifications";
+
 type EventHandler = (data: any) => void;
 
 class BroadcastManager {
@@ -122,6 +124,9 @@ class BroadcastManager {
             case "TournamentThemeChanged":
               handler(data as TournamentThemeChangedMessage);
               break;
+            case "NOTIFICATION":
+              handler(data as NotificationBroadcastMessage['data']);
+              break;
             default:
               handler(data);
           }
@@ -195,6 +200,11 @@ class BroadcastManager {
   onTournamentThemeChanged(handler: (data: TournamentThemeChangedMessage) => void) {
     this.on("TournamentThemeChanged", handler);
     return () => this.off("TournamentThemeChanged", handler);
+  }
+
+  onNotification(handler: (data: NotificationBroadcastMessage['data']) => void) {
+    this.on("NOTIFICATION", handler);
+    return () => this.off("NOTIFICATION", handler);
   }
 
   // Mock methods to maintain compatibility with existing SocketManager interface

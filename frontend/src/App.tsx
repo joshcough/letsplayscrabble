@@ -16,6 +16,7 @@ import HomePage from "./pages/HomePage";
 import WorkerPage from "./pages/WorkerPage";
 import AdminPage from "./pages/admin/AdminPage";
 import AllNotifications from "./pages/notifications/AllNotifications";
+import NotificationTestPage from "./pages/NotificationTestPage";
 // Overlay imports
 import CrossTablesPlayerProfileOverlay from "./pages/overlay/CrossTablesPlayerProfileOverlayPage";
 import HeadToHeadOverlay from "./pages/overlay/HeadToHeadOverlayPage";
@@ -220,6 +221,14 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           element={
             <ProtectedRoute>
               <AdminPage apiService={apiService} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notification-test"
+          element={
+            <ProtectedRoute>
+              <NotificationTestPage />
             </ProtectedRoute>
           }
         />
