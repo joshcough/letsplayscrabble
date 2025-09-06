@@ -19,20 +19,29 @@ const GameBoardOverlay: React.FC<{ apiService: ApiService }> = ({
 }) => {
   const { tournamentId, divisionName } = useParams<RouteParams>();
 
-  return (
-    <BaseModernOverlay>
-      {(theme) => {
-        const shouldUseCurrentMatch = !tournamentId;
+  const shouldUseCurrentMatch = !tournamentId;
 
-        if (shouldUseCurrentMatch) {
+  if (shouldUseCurrentMatch) {
+    return (
+      <BaseOverlay apiService={apiService}>
+        {({
+          tournament,
+          divisionData,
+          divisionName: currentDivisionName,
+          currentMatch,
+        }) => {
+          console.log("🎮 GameBoardOverlay: Tournament from BaseOverlay", { 
+            id: tournament?.id, 
+            theme: tournament?.theme,
+            name: tournament?.name 
+          });
+          
           return (
-            <BaseOverlay apiService={apiService}>
-              {({
-                tournament,
-                divisionData,
-                divisionName: currentDivisionName,
-                currentMatch,
-              }) => {
+            <BaseModernOverlay 
+              tournamentId={tournament?.id}
+              tournamentTheme={tournament?.theme || 'scrabble'}
+            >
+              {(theme, themeClasses) => {
                 if (!currentMatch) {
                   return (
                     <div className="min-h-screen flex items-center justify-center">
@@ -98,21 +107,29 @@ const GameBoardOverlay: React.FC<{ apiService: ApiService }> = ({
                   player1={player1}
                   player2={player2}
                   theme={theme}
+                  themeClasses={themeClasses}
                 />;
               }}
-            </BaseOverlay>
+            </BaseModernOverlay>
           );
-        } else {
-          return <URLBasedGameBoard 
+        }}
+      </BaseOverlay>
+    );
+  } else {
+    return (
+      <BaseModernOverlay tournamentId={Number(tournamentId)}>
+        {(theme, themeClasses) => (
+          <URLBasedGameBoard 
             tournamentId={Number(tournamentId)}
             divisionName={divisionName || ""}
             apiService={apiService}
             theme={theme}
-          />;
-        }
-      }}
-    </BaseModernOverlay>
-  );
+            themeClasses={themeClasses}
+          />
+        )}
+      </BaseModernOverlay>
+    );
+  }
 };
 
 const URLBasedGameBoard: React.FC<{
@@ -120,7 +137,8 @@ const URLBasedGameBoard: React.FC<{
   divisionName: string;
   apiService: ApiService;
   theme: any;
-}> = ({ tournamentId, divisionName, apiService, theme }) => {
+  themeClasses: any;
+}> = ({ tournamentId, divisionName, apiService, theme, themeClasses }) => {
   const [searchParams] = useSearchParams();
   const round = searchParams.get("round");
   const player1Id = searchParams.get("player1Id");
@@ -201,6 +219,7 @@ const URLBasedGameBoard: React.FC<{
     player1={player1}
     player2={player2}
     theme={theme}
+    themeClasses={themeClasses}
   />;
 };
 
@@ -211,7 +230,8 @@ const GameBoardDisplay: React.FC<{
   player1?: RankedPlayerStats;
   player2?: RankedPlayerStats;
   theme: any;
-}> = ({ tournament, round, player1, player2, theme }) => {
+  themeClasses: any;
+}> = ({ tournament, round, player1, player2, theme, themeClasses }) => {
   return (
     <div className={`${theme.colors.pageBackground}`} style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
       <div className="relative" style={{ width: '1920px', height: '1080px', marginLeft: '-372px', marginTop: '-12px' }}>
