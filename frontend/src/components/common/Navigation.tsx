@@ -5,7 +5,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useThemeContext } from "../../context/ThemeContext";
 
-type NavPath = "/" | "/tournaments/manager" | "/admin" | "/overlays" | "/overlays/original";
+type NavPath = "/" | "/tournaments/manager" | "/admin" | "/overlays";
 
 const Navigation: React.FC = () => {
   const location = useLocation();
@@ -66,8 +66,6 @@ const Navigation: React.FC = () => {
         return "Admin";
       case "/overlays":
         return "Overlays";
-      case "/overlays/original":
-        return "Original Overlays";
     }
   };
 
@@ -93,7 +91,7 @@ const Navigation: React.FC = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  const paths: NavPath[] = ["/", "/tournaments/manager", "/admin", "/overlays", "/overlays/original"];
+  const paths: NavPath[] = ["/", "/tournaments/manager", "/admin", "/overlays"];
 
   return (
     <nav className={`${theme.colors.cardBackground} border-b-4 ${theme.colors.primaryBorder}`}>

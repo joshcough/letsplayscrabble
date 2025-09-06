@@ -3,12 +3,12 @@ import { useParams } from 'react-router-dom';
 import { 
   BaseOverlay, 
   BaseOverlayDataProps 
-} from '../../../components/shared/BaseOverlay';
-import { ApiService } from '../../../services/interfaces';
-import { BaseModernOverlay } from '../../../components/shared/BaseModernOverlay';
-import { Theme } from '../../../types/theme';
-import { formatPlayerName, getCurrentRating } from '../../../utils/playerUtils';
-import { getPageTextColor } from '../../../utils/themeUtils';
+} from '../../components/shared/BaseOverlay';
+import { ApiService } from '../../services/interfaces';
+import { BaseModernOverlay } from '../../components/shared/BaseModernOverlay';
+import { Theme } from '../../types/theme';
+import { formatPlayerName, getCurrentRating } from '../../utils/playerUtils';
+import { getPageTextColor } from '../../utils/themeUtils';
 
 type RouteParams = {
   userId?: string;
@@ -58,7 +58,7 @@ const renderCareerH2H = (
   data: BaseOverlayDataProps, 
   hasSpecificPlayers: boolean, 
   theme: Theme,
-  themeClasses: ReturnType<typeof import('../../../utils/themeUtils').getThemeClasses>,
+  themeClasses: ReturnType<typeof import('../../utils/themeUtils').getThemeClasses>,
   playerId1?: string, 
   playerId2?: string
 ): React.ReactNode => {

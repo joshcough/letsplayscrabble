@@ -1,10 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-import { BaseModernOverlay } from "../../../components/shared/BaseModernOverlay";
-import { useAuth } from "../../../context/AuthContext";
-import { ApiService } from "../../../services/interfaces";
-import { Theme } from "../../../types/theme";
+import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
+import { useAuth } from "../../context/AuthContext";
+import { ApiService } from "../../services/interfaces";
+import { Theme } from "../../types/theme";
 
 const ModernOverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const { userId } = useAuth();

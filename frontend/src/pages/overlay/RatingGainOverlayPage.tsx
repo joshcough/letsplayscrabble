@@ -1,13 +1,13 @@
 import React from "react";
 
-import { TournamentTableModernOverlay } from "../../../components/shared/TournamentTableModernOverlay";
+import { TournamentTableModernOverlay } from "../../components/shared/TournamentTableModernOverlay";
 import {
   UsePlayerStatsCalculation,
   RankedPlayerStats,
-} from "../../../hooks/usePlayerStatsCalculation";
-import { ApiService } from "../../../services/interfaces";
-import { formatNumberWithSign } from "../../../utils/formatUtils";
-import { Theme } from "../../../types/theme";
+} from "../../hooks/usePlayerStatsCalculation";
+import { ApiService } from "../../services/interfaces";
+import { formatNumberWithSign } from "../../utils/formatUtils";
+import { Theme } from "../../types/theme";
 
 const RatingGainOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,

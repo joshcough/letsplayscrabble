@@ -122,6 +122,7 @@ export async function transformToDomainTournament(
     lexicon: flatTournament.tournament.lexicon,
     longFormName: flatTournament.tournament.long_form_name,
     dataUrl: flatTournament.tournament.data_url,
+    theme: flatTournament.tournament.theme || undefined,
     divisions,
   };
 }

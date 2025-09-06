@@ -1,17 +1,17 @@
 import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
-import { BaseOverlay } from "../../../components/shared/BaseOverlay";
-import { BaseModernOverlay } from "../../../components/shared/BaseModernOverlay";
-import { LoadingErrorWrapper } from "../../../components/shared/LoadingErrorWrapper";
-import { useTournamentData } from "../../../hooks/useTournamentData";
-import { ApiService } from "../../../services/interfaces";
-import { Theme } from "../../../types/theme";
+import { BaseOverlay } from "../../components/shared/BaseOverlay";
+import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
+import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
+import { useTournamentData } from "../../hooks/useTournamentData";
+import { ApiService } from "../../services/interfaces";
+import { Theme } from "../../types/theme";
 import {
   calculateTournamentStats,
   calculateAllTournamentStats,
   TournamentStats,
-} from "../../../utils/calculateStandings";
+} from "../../utils/calculateStandings";
 
 type RouteParams = {
   userId?: string;

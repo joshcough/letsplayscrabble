@@ -5,11 +5,11 @@ import * as Domain from "@shared/types/domain";
 import {
   BaseOverlay,
   TournamentDisplayData,
-} from "../../../components/shared/BaseOverlay";
-import { BaseModernOverlay } from "../../../components/shared/BaseModernOverlay";
-import { ApiService } from "../../../services/interfaces";
-import { Theme } from "../../../types/theme";
-import { getCurrentRating } from "../../../utils/playerUtils";
+} from "../../components/shared/BaseOverlay";
+import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
+import { ApiService } from "../../services/interfaces";
+import { Theme } from "../../types/theme";
+import { getCurrentRating } from "../../utils/playerUtils";
 
 type RouteParams = {
   userId?: string;
