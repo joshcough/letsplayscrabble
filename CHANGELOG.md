@@ -1,5 +1,24 @@
 # Changelog
 
+## 2025-09-06 - GameBoardOverlay Theme Integration & Positioning Fixes
+
+### 🎨 **Theme System Integration**
+- **FIXED**: GameBoardOverlay now properly responds to tournament theme changes
+- **RESTRUCTURED**: Component hierarchy to pass tournament theme from BaseOverlay to BaseModernOverlay
+- **ADDED**: Support for both URL-based and current match modes with proper theme handling
+- **RESOLVED**: Theme not updating when tournament theme changes in admin interface
+
+### 📐 **Positioning & Layout Improvements**
+- **SHIFTED**: Entire overlay layout moved left by 372px and up by 12px for better OBS integration
+- **FIXED**: Background color extending full viewport width (no white cutoff on edges)
+- **PRESERVED**: Pixel-perfect alignment and spacing of all overlay elements
+- **MAINTAINED**: All camera transparent areas and element relationships
+
+### 🎯 **User Impact**
+- **DYNAMIC**: Overlay colors now update immediately when tournament theme changes
+- **IMPROVED**: Better positioning for YouTube stream overlay usage
+- **CONSISTENT**: Theme system works across all overlay types
+
 ## 2025-09-06 - Overlay Structure Consolidation & File Organization
 
 ### 🧹 **Major File Structure Cleanup**
