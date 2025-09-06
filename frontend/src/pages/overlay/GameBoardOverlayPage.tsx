@@ -251,6 +251,8 @@ const GameBoardDisplay: React.FC<{
   // Notification state
   const [currentNotification, setCurrentNotification] = useState<JSX.Element | null>(null);
   const [isNotificationVisible, setIsNotificationVisible] = useState(false);
+  const [currentNotificationId, setCurrentNotificationId] = useState<string | null>(null);
+  const [notificationTimeout, setNotificationTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Listen for notifications
   useEffect(() => {
@@ -317,27 +319,74 @@ const GameBoardDisplay: React.FC<{
           return;
         }
         
-        showNotification(notificationElement);
+        showNotification(notificationElement, notification.id);
       }
     );
 
     return cleanup;
   }, [userId, divisionData, tournament?.id]);
 
-  const showNotification = (notification: JSX.Element) => {
+  // Listen for notification cancellations
+  useEffect(() => {
+    console.log("🎯 GameBoardDisplay: Setting up notification cancel listener");
+    const cleanup = BroadcastManager.getInstance().onNotificationCancel(
+      (cancelMessage) => {
+        console.log("🎯 GameBoardDisplay: Cancel message received", {
+          cancelMessage,
+          currentNotificationId
+        });
+        
+        // Check if this cancellation is for the currently displayed notification
+        if (currentNotificationId && cancelMessage.notificationId === currentNotificationId) {
+          console.log("🎯 GameBoardDisplay: Cancelling current notification immediately");
+          hideNotificationImmediately();
+        }
+      }
+    );
+
+    return cleanup;
+  }, [currentNotificationId]);
+
+  const showNotification = (notification: JSX.Element, notificationId: string) => {
+    // Clear any existing timeout first
+    if (notificationTimeout) {
+      clearTimeout(notificationTimeout);
+      setNotificationTimeout(null);
+    }
+
     setCurrentNotification(notification);
+    setCurrentNotificationId(notificationId);
+    
     // Start with notification off-screen, then slide in after a brief delay
     setTimeout(() => {
       setIsNotificationVisible(true);
     }, 50);
 
     // Hide after 15 seconds
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       setIsNotificationVisible(false);
       setTimeout(() => {
         setCurrentNotification(null);
+        setCurrentNotificationId(null);
+        setNotificationTimeout(null);
       }, 500); // Allow slide-out animation to complete
     }, 15000);
+    
+    setNotificationTimeout(timeout);
+  };
+
+  const hideNotificationImmediately = () => {
+    // Clear the timeout to prevent it from firing later
+    if (notificationTimeout) {
+      clearTimeout(notificationTimeout);
+      setNotificationTimeout(null);
+    }
+
+    setIsNotificationVisible(false);
+    setTimeout(() => {
+      setCurrentNotification(null);
+      setCurrentNotificationId(null);
+    }, 500); // Allow slide-out animation to complete
   };
   
   return (

@@ -31,3 +31,9 @@ export interface NotificationBroadcastMessage {
   type: 'NOTIFICATION';
   data: NotificationData;
 }
+
+// Broadcast message for cancelling notifications
+export interface NotificationCancelMessage {
+  type: 'NOTIFICATION_CANCEL';
+  notificationId: string;
+}
