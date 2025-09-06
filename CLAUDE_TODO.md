@@ -2,66 +2,132 @@
 
 ## Current Session Tasks
 
+### ✅ Completed - Comprehensive Notification System
+- Created NotificationManager for centralized notification detection and broadcasting ✅
+- Implemented clean NOTIFICATION broadcast message system ✅
+- Added NotificationTestPage at /notification-test for easy testing ✅
+- Enhanced GameBoardOverlay with smooth slide animations (15-second display) ✅
+- Added player photo support with circular frames and themed borders ✅
+- Enlarged commentary/remaining tiles boxes to 180px height ✅
+- Adjusted entire layout positioning for better spacing ✅
+- Set up proper notification filtering by user/tournament/division ✅
+- Default test data uses Nigel Richards (GOAT) with 18-game winning streak ✅
+
 ### ✅ Completed - Sitewide Theme System
-- Create CLAUDE_TODO.md file for session persistence
-- Create new branch 'sitewide-theme-system'  
-- Analyze current theme system implementation
-- Extend theme system to entire site (not just overlays)
-  - Created ThemeProvider context
-  - Updated App.tsx to use themes for entire site
-  - Updated Navigation component to use theme colors
-  - Updated HomePage to use theme colors  
-  - Updated UserSettingsPage to use theme colors
-  - Updated Tournament Manager page (TournamentManagerPage + TournamentList components)
-  - Updated Add Tournament page (AddTournament component) 
-  - Updated Admin panel (AdminPage + AdminInterface components)
-- Add theme field to tournament model/schema
-  - Updated shared/types/domain.ts Tournament and TournamentSummary interfaces
-  - Updated backend/src/types/database.ts interfaces
-  - Created database migration to add theme column
-  - Updated tournament repository to handle theme field
-  - Migration applied successfully
+- Create CLAUDE_TODO.md file for session persistence ✅
+- Create new branch 'sitewide-theme-system' ✅
+- Analyze current theme system implementation ✅
+- Extend theme system to entire site (not just overlays) ✅
+  - Created ThemeProvider context ✅
+  - Updated App.tsx to use themes for entire site ✅
+  - Updated Navigation component to use theme colors ✅
+  - Updated HomePage to use theme colors ✅
+  - Updated UserSettingsPage to use theme colors ✅
+  - Updated Tournament Manager page (TournamentManagerPage + TournamentList components) ✅
+  - Updated Add Tournament page (AddTournament component) ✅
+  - Updated Admin panel (AdminPage + AdminInterface components) ✅
+- Add theme field to tournament model/schema ✅
+  - Updated shared/types/domain.ts Tournament and TournamentSummary interfaces ✅
+  - Updated backend/src/types/database.ts interfaces ✅
+  - Created database migration to add theme column ✅
+  - Updated tournament repository to handle theme field ✅
+  - Migration applied successfully ✅
 
-### 🔄 In Progress - Tournament Theme System (PAUSED)
-- Update tournament creation UI to include theme selection
+## 🎯 Next Major Project - Advanced Notification Management System
 
-### 📋 Pending - Tournament Theme System  
-- Add theme editing capability to existing tournaments
-- Implement backend websocket message for theme changes
-- Handle theme change broadcasts on frontend
+### 📊 Database-Backed Notification System
+**Goal**: Transform current real-time notification system into a comprehensive database-backed system similar to StreamLabs but custom-built for Scrabble tournaments.
 
-## Analysis Summary
+#### 🗄️ Database Schema Design
+- **notifications table**:
+  - id, tournament_id, division_id, user_id
+  - type (high_score, winning_streak, custom)
+  - player_name, player_photo_url
+  - data (JSON: score, previous_score, streak_length, etc.)
+  - status (pending, displayed, cancelled, completed)
+  - priority (1-10)
+  - scheduled_at, displayed_at, created_at
+  - duration_seconds (default 15)
+  - source (auto_detected, manual)
 
-### Current Theme System
-- **Location**: `frontend/src/config/themes.ts` - 4 themes (modern, scrabble, july4, original)
-- **Types**: `frontend/src/types/theme.ts` - ThemeColors interface with comprehensive styling
-- **Hook**: `frontend/src/hooks/useTheme.ts` - fetches user theme from backend
-- **Settings**: `frontend/src/pages/UserSettingsPage.tsx` - theme selection UI
-- **Backend**: User settings API exists with theme field
+#### 🎛️ Notification Queue System
+- **Sequential processing** - Only one notification displayed at a time
+- **Priority system** - High scores vs winning streaks vs manual notifications
+- **Timing controls** - Configurable delays between notifications
+- **Overlap prevention** - Queue management to prevent conflicts
+- **Auto-detection integration** - Current NotificationManager saves to DB instead of direct broadcast
 
-### Current Limitations
-- Theme system only applies to overlay pages (detected via URL path)
-- Main site uses hardcoded background: `bg-[#E4C6A0]` in App.tsx:70
-- Non-overlay pages don't use theme system at all
+#### 📱 Admin Interface Features
+- **Notification Dashboard**:
+  - View all notifications (pending, displayed, cancelled, completed)
+  - Real-time queue status and preview
+  - Manual notification creation form
+  - Bulk operations (cancel multiple, reorder queue)
+  
+- **Queue Management**:
+  - Drag-and-drop reordering
+  - Pause/resume queue processing
+  - Emergency stop/clear queue
+  - Preview notifications before display
+  
+- **Replay System**:
+  - Browse notification history
+  - Replay past notifications instantly
+  - Duplicate notifications with modifications
 
-### Tournament Schema
-- Current Tournament interface (shared/types/domain.ts:118) has no theme field
-- Need to add optional theme field to Tournament interface
-- Need database migration to add theme column
+#### 🔧 Technical Implementation
+- **Backend API Endpoints**:
+  - GET /api/notifications (list, filter, paginate)
+  - POST /api/notifications (create manual notification)
+  - PUT /api/notifications/:id (update, cancel, reschedule)
+  - DELETE /api/notifications/:id (remove from queue)
+  - POST /api/notifications/:id/replay (replay past notification)
+  
+- **Real-time Synchronization**:
+  - WebSocket notifications for queue updates
+  - Database triggers for status changes
+  - Admin interface live updates
+  
+- **Queue Processing Service**:
+  - Background job processor for queue management
+  - Configurable timing and priority rules
+  - Automatic cleanup of old notifications
 
-### Infrastructure Ready
-- Websocket system exists
-- User theme system established
-- API patterns already in place
+#### 🎨 User Experience Enhancements
+- **Notification Templates** - Pre-built templates for common scenarios
+- **Bulk Import** - CSV/Excel import for planned notifications
+- **Tournament Integration** - Auto-create notifications based on tournament events
+- **Analytics** - Track notification effectiveness and engagement
+- **A/B Testing** - Test different notification styles and timing
 
-## Task Details
+### 🚧 Implementation Phases
 
-### Goal
-Extend the current theme system from just overlays to the entire site, and add per-tournament theme support with real-time updates via websockets.
+#### Phase 1: Database Foundation
+- Create notifications table and schema
+- Update NotificationManager to save to database
+- Basic CRUD API endpoints
 
-### Key Requirements
-1. Make the entire site themeable (not just overlays) ✅ NEXT
-2. Add theme selection during tournament creation
-3. Allow theme editing for existing tournaments  
-4. Send websocket messages when tournament themes change
-5. Broadcast theme changes to all overlays in real-time
+#### Phase 2: Queue System
+- Implement queue processing service
+- Add priority and timing controls
+- Prevent notification overlaps
+
+#### Phase 3: Admin Interface
+- Build notification dashboard
+- Queue management interface
+- Manual notification creation
+
+#### Phase 4: Advanced Features
+- Replay system
+- Analytics and reporting
+- Templates and bulk operations
+
+---
+
+## 🗂️ Archived Completed Projects
+
+### Tournament Theme System (COMPLETED)
+- Tournament creation UI theme selection ✅
+- Theme editing for existing tournaments ✅
+- Websocket theme change broadcasts ✅
+- Real-time theme updates across overlays ✅
