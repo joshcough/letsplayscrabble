@@ -13,6 +13,7 @@ const NotificationTestPage: React.FC = () => {
   const [streakLength, setStreakLength] = useState(18);
   const [queueStatus, setQueueStatus] = useState<any>(null);
   const [queueItems, setQueueItems] = useState<any[]>([]);
+  const [historyItems, setHistoryItems] = useState<any[]>([]);
   const [countdown, setCountdown] = useState<number | null>(null);
 
   useEffect(() => {
@@ -20,6 +21,7 @@ const NotificationTestPage: React.FC = () => {
       const status = NotificationManager.getInstance().getQueueStatus();
       setQueueStatus(status);
       setQueueItems(NotificationManager.getInstance().getQueue());
+      setHistoryItems(NotificationManager.getInstance().getHistory());
 
       // Calculate countdown for currently displaying notification
       if (status?.currentNotification?.status === 'displaying') {
@@ -226,6 +228,59 @@ const NotificationTestPage: React.FC = () => {
           )}
         </div>
 
+        {/* Notification History */}
+        <div className="mb-6 bg-gray-50 border border-gray-200 rounded-md p-6">
+          <h3 className="text-lg font-medium text-gray-800 mb-4">📜 Notification History & Replay</h3>
+          
+          {historyItems.length > 0 ? (
+            <div className="bg-white rounded border max-h-80 overflow-y-auto">
+              <div className="p-3 bg-gray-100 border-b text-sm text-gray-600 font-medium">
+                Last {historyItems.length} completed notifications (max 100)
+              </div>
+              {historyItems.map((item, index) => (
+                <div key={item.id} className="p-3 border-b last:border-b-0 flex items-center justify-between hover:bg-gray-50">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-400">#{historyItems.length - index}</span>
+                      <span className="text-sm">
+                        {item.notification.type === 'high_score' ? 
+                          `🏆 ${item.notification.playerName} - ${item.notification.score}` :
+                          `🔥 ${item.notification.playerName} - ${item.notification.streakLength} wins`
+                        }
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Completed: {new Date(item.queuedAt).toLocaleString()} • Priority: {item.priority}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      item.priority >= 8 ? 'bg-red-100 text-red-600' :
+                      item.priority >= 7 ? 'bg-orange-100 text-orange-600' :
+                      'bg-blue-100 text-blue-600'
+                    }`}>
+                      P{item.priority}
+                    </span>
+                    <button
+                      onClick={() => NotificationManager.getInstance().replayNotification(item.id)}
+                      className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded font-medium"
+                      title="Replay this notification"
+                    >
+                      🔄 Replay
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 py-8">
+              <div className="text-4xl mb-2">📭</div>
+              <div>No notification history yet</div>
+              <div className="text-sm mt-1">Complete some notifications to see them here</div>
+            </div>
+          )}
+        </div>
+
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Test Notification Settings</h2>
           <div className="grid grid-cols-2 gap-4">
@@ -340,13 +395,13 @@ const NotificationTestPage: React.FC = () => {
         </div>
 
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-md p-4">
-          <h3 className="text-lg font-medium text-blue-800">Testing Instructions:</h3>
+          <h3 className="text-lg font-medium text-blue-800">Management Features:</h3>
           <ul className="mt-2 text-sm text-blue-700 list-disc list-inside space-y-1">
-            <li><strong>Queue Management:</strong> Use the controls above to pause/resume, clear queue, or cancel individual notifications</li>
-            <li><strong>Rapid Testing:</strong> Click notification buttons multiple times to test queue behavior and priority ordering</li>
-            <li><strong>Match Settings:</strong> Set User ID (2), Tournament ID (65), Division ID (146) to match your overlay</li>
-            <li><strong>Overlay Display:</strong> Check GameBoardOverlay to see notifications appear sequentially (15s each + 2s delay)</li>
-            <li><strong>Priority System:</strong> High scores (8), winning streaks (7), manual tests (5)</li>
+            <li><strong>Live Queue:</strong> Pause/resume processing, clear queue, or cancel individual notifications</li>
+            <li><strong>History & Replay:</strong> View last 100 completed notifications and replay any of them instantly</li>
+            <li><strong>Testing Tools:</strong> Create test notifications and watch queue behavior with priority ordering</li>
+            <li><strong>Overlay Integration:</strong> Set User ID (2), Tournament ID (65), Division ID (146) to match your overlay</li>
+            <li><strong>Priority System:</strong> High scores (8), winning streaks (7), manual tests (5), replays (9)</li>
           </ul>
         </div>
       </div>

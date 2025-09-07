@@ -28,8 +28,8 @@ export class NotificationManager {
   private currentNotification: QueuedNotification | null = null;
   private isProcessing = true;
   private processingTimer?: NodeJS.Timeout;
-  private notificationHistory: QueuedNotification[] = []; // Keep last 50
-  private readonly HISTORY_LIMIT = 50;
+  private notificationHistory: QueuedNotification[] = []; // Keep last 100
+  private readonly HISTORY_LIMIT = 100;
   private readonly DEFAULT_DISPLAY_DURATION = 15000; // 15 seconds
   private readonly DEFAULT_DELAY_BETWEEN = 2000; // 2 seconds between notifications
 
