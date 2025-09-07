@@ -178,6 +178,7 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
       longFormName: editedTournament.longFormName || "",
       dataUrl: editedTournament.dataUrl || "",
       theme: editedTournament.theme || "scrabble",
+      gameboardBackgroundUrl: editedTournament.gameboardBackgroundUrl || undefined,
     };
 
     const updateResponse = await apiService.updateTournament(
@@ -218,6 +219,15 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
       setEditedTournament({
         ...editedTournament,
         theme: selectedTheme,
+      });
+    }
+  };
+
+  const handleBackgroundUrlChange = (url: string) => {
+    if (editedTournament) {
+      setEditedTournament({
+        ...editedTournament,
+        gameboardBackgroundUrl: url,
       });
     }
   };
@@ -516,6 +526,47 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
                         ? themes[tournament.theme as ThemeName]?.displayName || tournament.theme
                         : 'Default (Scrabble)'
                       }
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              {/* Game Board Background URL */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex">
+                  <span className="text-gray-600 font-medium w-32">
+                    Game Board Background:
+                  </span>
+                  {isEditing ? (
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-500 mb-2">
+                        URL to background image/GIF for the game board overlay (optional)
+                      </p>
+                      <input
+                        type="url"
+                        value={editedTournament?.gameboardBackgroundUrl || ""}
+                        onChange={(e) => handleBackgroundUrlChange(e.target.value)}
+                        placeholder="https://example.com/background.gif"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">
+                        Works with images, animated GIFs, and videos. Will appear behind cameras in OBS.
+                      </p>
+                    </div>
+                  ) : (
+                    <span>
+                      {tournament?.gameboardBackgroundUrl ? (
+                        <a 
+                          href={tournament.gameboardBackgroundUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline break-all"
+                        >
+                          {tournament.gameboardBackgroundUrl}
+                        </a>
+                      ) : (
+                        "None"
+                      )}
                     </span>
                   )}
                 </div>

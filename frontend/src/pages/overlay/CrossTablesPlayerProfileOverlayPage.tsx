@@ -4,7 +4,6 @@ import { useParams, useSearchParams } from "react-router-dom";
 import * as Domain from "@shared/types/domain";
 import {
   BaseOverlay,
-  TournamentDisplayData,
 } from "../../components/shared/BaseOverlay";
 import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
 import { ApiService } from "../../services/interfaces";
@@ -43,7 +42,7 @@ const calculateWinPercentage = (wins: number, losses: number, ties: number): num
 const renderPlayerProfile = (
   player: any,
   divisionData: Domain.Division,
-  tournament: TournamentDisplayData,
+  tournament: Domain.Tournament,
   theme: Theme,
   themeClasses: any
 ) => {

@@ -4,7 +4,6 @@ import { useParams, useSearchParams } from "react-router-dom";
 import * as Domain from "@shared/types/domain";
 import {
   BaseOverlay,
-  TournamentDisplayData,
 } from "../../components/shared/BaseOverlay";
 import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
@@ -58,7 +57,7 @@ const renderPlayerData = (
   theme: Theme,
   themeClasses: any,
   divisionData?: Domain.Division,
-  tournament?: TournamentDisplayData,
+  tournament?: Domain.Tournament,
 ) => {
   if (!player && source !== "tournament-info") {
     return <div className={`${theme.colors.textPrimary}`}>Player not found</div>;

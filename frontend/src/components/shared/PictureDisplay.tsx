@@ -2,10 +2,10 @@ import React from "react";
 
 import { RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
 import { getPlayerImageUrl, formatPlayerName } from "../../utils/playerUtils";
-import { TournamentDisplayData } from "../shared/BaseOverlay";
+import * as Domain from "@shared/types/domain";
 
 interface PictureDisplayProps {
-  tournament: TournamentDisplayData;
+  tournament: Domain.Tournament;
   standings: RankedPlayerStats[];
   title: string;
   divisionName: string;

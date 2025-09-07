@@ -3,11 +3,11 @@ import React from "react";
 import { RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
 import { BaseModernOverlay } from "./BaseModernOverlay";
 import { getPlayerImageUrl, formatPlayerName } from "../../utils/playerUtils";
-import { TournamentDisplayData } from "../shared/BaseOverlay";
+import * as Domain from "@shared/types/domain";
 import { getPageTextColor } from "../../utils/themeUtils";
 
 interface PictureDisplayModernProps {
-  tournament: TournamentDisplayData;
+  tournament: Domain.Tournament;
   standings: RankedPlayerStats[];
   title: string;
   divisionName: string;

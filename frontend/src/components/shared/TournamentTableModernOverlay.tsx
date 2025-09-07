@@ -2,7 +2,7 @@ import React from "react";
 
 import * as Stats from "../../types/stats";
 import { BaseModernOverlay } from "./BaseModernOverlay";
-import { TournamentDisplayData } from "./BaseOverlay";
+import * as Domain from "@shared/types/domain";
 import { Theme } from "../../types/theme";
 import { getPageTextColor } from "../../utils/themeUtils";
 
@@ -15,7 +15,7 @@ interface Column {
 type RankedPlayerStats = Stats.PlayerStats & { rank: number };
 
 interface TournamentTableModernOverlayProps {
-  tournament: TournamentDisplayData;
+  tournament: Domain.Tournament;
   standings: RankedPlayerStats[];
   columns: Column[];
   title: string;

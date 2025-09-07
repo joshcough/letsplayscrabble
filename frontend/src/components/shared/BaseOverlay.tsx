@@ -8,17 +8,8 @@ import { useTournamentData } from "../../hooks/useTournamentData";
 import { ApiService } from "../../services/interfaces";
 import { LoadingErrorWrapper } from "./LoadingErrorWrapper";
 
-// Simplified tournament display data
-export interface TournamentDisplayData {
-  id: number;
-  name: string;
-  lexicon: string;
-  dataUrl: string;
-  theme?: string;
-}
-
 export interface BaseOverlayDataProps {
-  tournament: TournamentDisplayData;
+  tournament: Domain.Tournament;
   divisionData: Domain.Division;
   divisionName: string;
   currentMatch: Domain.CurrentMatch | null;
@@ -95,18 +86,12 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({
   }
 
   // Extract data for overlays
-  let tournament: TournamentDisplayData | null = null;
+  let tournament: Domain.Tournament | null = null;
   let divisionData: Domain.Division | null = null;
 
   if (tournamentData && selectedDivisionId) {
-    // Extract tournament display data
-    tournament = {
-      id: tournamentData.id,
-      name: tournamentData.name,
-      lexicon: tournamentData.lexicon,
-      dataUrl: tournamentData.dataUrl,
-      theme: tournamentData.theme,
-    };
+    // Use the full tournament data directly
+    tournament = tournamentData;
 
     // Get division-specific data
     const rawDivisionData = tournamentData.divisions.find(

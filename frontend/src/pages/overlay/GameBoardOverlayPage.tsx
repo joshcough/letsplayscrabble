@@ -390,7 +390,29 @@ const GameBoardDisplay: React.FC<{
   };
   
   return (
-    <div className={`${theme.colors.pageBackground}`} style={{ width: '100vw', height: '100vh' }}>
+    <div 
+      className={tournament?.gameboardBackgroundUrl ? '' : theme.colors.pageBackground} 
+      style={{ 
+        width: '100vw', 
+        height: '100vh',
+        backgroundColor: tournament?.gameboardBackgroundUrl ? 'transparent' : undefined
+      }}
+    >
+      {/* Background image/GIF - lowest z-index so cameras layer on top in OBS */}
+      {tournament?.gameboardBackgroundUrl && (
+        <div 
+          className="absolute inset-0" 
+          style={{ 
+            zIndex: -10,
+            backgroundImage: `url(${tournament.gameboardBackgroundUrl})`,
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center'
+          }} 
+        />
+      )}
+      
+      
       <div className="relative" style={{ width: '1920px', height: '1080px', marginLeft: '-372px', marginTop: '-12px' }}>
       
       {/* EXACT POSITIONING BASED ON ORIGINAL SCREENSHOT */}

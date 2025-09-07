@@ -110,6 +110,7 @@ export interface TournamentSummary {
   dataUrl: string;
   pollUntil?: Date | null; // When polling expires (for admin monitoring)
   theme?: string; // Theme name for this tournament
+  gameboardBackgroundUrl?: string; // Background image/GIF URL for game board overlay
 }
 
 /**
@@ -126,6 +127,7 @@ export interface Tournament {
   dataUrl: string;
   divisions: Division[];
   theme?: string; // Theme name for this tournament
+  gameboardBackgroundUrl?: string; // Background image/GIF URL for game board overlay
 }
 
 /**

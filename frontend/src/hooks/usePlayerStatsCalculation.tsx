@@ -1,8 +1,8 @@
 import React from "react";
 
+import * as Domain from "@shared/types/domain";
 import {
   BaseOverlay,
-  TournamentDisplayData,
 } from "../components/shared/BaseOverlay";
 import { ApiService } from "../services/interfaces";
 import * as Stats from "../types/stats";
@@ -19,7 +19,7 @@ export type SortType =
   | "ratingGain";
 
 interface PlayerStatsData {
-  tournament: TournamentDisplayData;
+  tournament: Domain.Tournament;
   players: RankedPlayerStats[];
   divisionName: string;
   loading: boolean;

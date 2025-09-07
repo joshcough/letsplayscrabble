@@ -1,7 +1,7 @@
 import React from "react";
 
 import * as Stats from "../../types/stats";
-import { TournamentDisplayData } from "./BaseOverlay";
+import * as Domain from "@shared/types/domain";
 
 interface Column {
   key: string;
@@ -12,7 +12,7 @@ interface Column {
 type RankedPlayerStats = Stats.PlayerStats & { rank: number };
 
 interface TournamentTableOverlayProps {
-  tournament: TournamentDisplayData;
+  tournament: Domain.Tournament;
   standings: RankedPlayerStats[];
   columns: Column[];
   title: string;

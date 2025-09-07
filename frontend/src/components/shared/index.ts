@@ -7,5 +7,4 @@ export { BaseOverlay } from "./BaseOverlay";
 export { LoadingErrorWrapper } from "./LoadingErrorWrapper";
 export type {
   BaseOverlayDataProps,
-  TournamentDisplayData,
 } from "./BaseOverlay";
