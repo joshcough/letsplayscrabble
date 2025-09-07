@@ -23,6 +23,8 @@ export function transformTournamentRowToSummary(
     pollUntil: tournamentRow.poll_until
       ? new Date(tournamentRow.poll_until)
       : null,
+    theme: tournamentRow.theme || undefined,
+    gameboardBackgroundUrl: tournamentRow.gameboard_background_url || undefined,
   };
 }
 
@@ -123,6 +125,7 @@ export async function transformToDomainTournament(
     longFormName: flatTournament.tournament.long_form_name,
     dataUrl: flatTournament.tournament.data_url,
     theme: flatTournament.tournament.theme || undefined,
+    gameboardBackgroundUrl: flatTournament.tournament.gameboard_background_url || undefined,
     divisions,
   };
 }
