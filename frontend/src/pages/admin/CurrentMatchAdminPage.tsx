@@ -5,7 +5,7 @@ import AdminInterface from "../../components/admin/AdminInterface";
 import { ApiService } from "../../services/interfaces";
 import { useThemeContext } from "../../context/ThemeContext";
 
-const AdminPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+const CurrentMatchAdminPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const { theme } = useThemeContext();
   
   return (
@@ -23,4 +23,4 @@ const AdminPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   );
 };
 
-export default AdminPage;
+export default CurrentMatchAdminPage;

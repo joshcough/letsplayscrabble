@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { NotificationManager } from '../services/NotificationManager';
-import { NotificationData } from '../types/notifications';
+import { NotificationManager } from '../../services/NotificationManager';
+import { NotificationData } from '../../types/notifications';
 
 const NotificationTestPage: React.FC = () => {
   const [userId, setUserId] = useState('2');

@@ -14,9 +14,10 @@ import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import HomePage from "./pages/HomePage";
 import WorkerPage from "./pages/WorkerPage";
-import AdminPage from "./pages/admin/AdminPage";
+import AdminLandingPage from "./pages/admin/AdminLandingPage";
+import CurrentMatchAdminPage from "./pages/admin/CurrentMatchAdminPage";
+import NotificationTestPage from "./pages/admin/NotificationTestPage";
 import AllNotifications from "./pages/notifications/AllNotifications";
-import NotificationTestPage from "./pages/NotificationTestPage";
 // Overlay imports
 import CrossTablesPlayerProfileOverlay from "./pages/overlay/CrossTablesPlayerProfileOverlayPage";
 import HeadToHeadOverlay from "./pages/overlay/HeadToHeadOverlayPage";
@@ -220,12 +221,20 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           path="/admin"
           element={
             <ProtectedRoute>
-              <AdminPage apiService={apiService} />
+              <AdminLandingPage />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/notification-test"
+          path="/admin/current-match"
+          element={
+            <ProtectedRoute>
+              <CurrentMatchAdminPage apiService={apiService} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/notifications"
           element={
             <ProtectedRoute>
               <NotificationTestPage />
