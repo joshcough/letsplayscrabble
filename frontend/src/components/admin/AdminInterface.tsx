@@ -337,7 +337,7 @@ const AdminInterface: React.FC<{ apiService: ApiService }> = ({
         <div className="p-8 max-w-4xl mx-auto">
           <div className={`${theme.colors.cardBackground} shadow-md rounded-lg p-6`}>
             <h1 className={`text-2xl font-bold mb-6 ${theme.colors.textPrimary}`}>
-              Tournament Admin Panel
+              Current Match Management
             </h1>
             <div className="flex items-center justify-center py-8">
               <div className={theme.colors.textPrimary}>

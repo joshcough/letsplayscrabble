@@ -83,6 +83,11 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
       description: "Tournament statistics and analytics",
     },
     {
+      title: "Game Board",
+      path: `/users/${userId}/overlay/game_board`,
+      description: "Live game board display with player info and transparent areas for camera overlays",
+    },
+    {
       title: "Cross-Tables Player Profile",
       path: `/users/${userId}/overlay/cross_tables_profile?player=1`,
       description: "Player profiles with cross-tables ratings, rankings, and career stats. Use ?player=1/2 for current match or /tournamentId/divisionName/playerId for specific player",

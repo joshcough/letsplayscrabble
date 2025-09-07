@@ -28,6 +28,11 @@ export const BaseModernOverlay: React.FC<BaseModernOverlayProps> = ({
   
   const themeClasses = getThemeClasses(theme);
   
+  console.log("🎨 BaseModernOverlay: Passing theme data to children", {
+    theme,
+    themeClasses,
+  });
+  
   if (loading) {
     return (
       <div className="bg-gray-950 min-h-screen flex items-center justify-center p-6">

@@ -97,3 +97,55 @@ export const highScoreDetector = (
   if (!data) return null;
   return renderHighScore(data, divisionData);
 };
+
+// Export a simple component for direct use
+export const HighScore: React.FC<{
+  playerName: string;
+  score: number;
+  previousHighScore?: number;
+  playerPhoto?: string;
+}> = ({ playerName, score, previousHighScore, playerPhoto }) => {
+  return (
+    <div className="relative bg-white text-gray-900 p-3 rounded-lg shadow-2xl border-4 border-green-500" style={{ margin: 0, width: '100%', height: '100%', minWidth: '290px' }}>
+      <div className="flex items-center justify-center h-full gap-2">
+        {/* Player Photo */}
+        {playerPhoto && (
+          <div className="flex-shrink-0">
+            <img 
+              src={playerPhoto} 
+              alt={playerName}
+              className="w-12 h-12 rounded-full object-cover border-2 border-green-500"
+            />
+          </div>
+        )}
+        
+        {/* Content */}
+        <div className="text-center space-y-1">
+          {/* Title */}
+          <div className="text-sm font-black text-green-600">
+            NEW HIGH SCORE!
+          </div>
+
+          {/* Score - The star of the show */}
+          <div className="bg-gradient-to-r from-green-500 to-blue-500 text-white rounded p-1">
+            <div className="text-lg font-black">
+              {score}
+            </div>
+          </div>
+
+          {/* Player Name */}
+          <div className="text-sm font-bold text-gray-800">
+            {playerName}
+          </div>
+
+          {/* Previous Record */}
+          {previousHighScore && (
+            <div className="text-xs text-gray-600 font-semibold">
+              Previous: {previousHighScore}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};

@@ -130,3 +130,47 @@ export const winningStreakDetector = (
   if (!data) return null;
   return renderWinningStreak(data, divisionData);
 };
+
+// Export a simple component for direct use
+export const WinningStreak: React.FC<{
+  playerName: string;
+  streakLength: number;
+  playerPhoto?: string;
+}> = ({ playerName, streakLength, playerPhoto }) => {
+  return (
+    <div className="relative bg-white text-gray-900 p-3 rounded-lg shadow-2xl border-4 border-red-500" style={{ margin: 0, width: '100%', height: '100%', minWidth: '290px' }}>
+      <div className="flex items-center justify-center h-full gap-2">
+        {/* Player Photo */}
+        {playerPhoto && (
+          <div className="flex-shrink-0">
+            <img 
+              src={playerPhoto} 
+              alt={playerName}
+              className="w-12 h-12 rounded-full object-cover border-2 border-orange-500"
+            />
+          </div>
+        )}
+        
+        {/* Content */}
+        <div className="text-center space-y-1">
+          {/* Title */}
+          <div className="text-sm font-black text-red-600">
+            WINNING STREAK!
+          </div>
+
+          {/* Streak Count */}
+          <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white rounded p-1">
+            <div className="text-lg font-black">
+              {streakLength} WINS
+            </div>
+          </div>
+
+          {/* Player Name */}
+          <div className="text-sm font-bold text-gray-800">
+            {playerName}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

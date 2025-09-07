@@ -14,7 +14,9 @@ import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import HomePage from "./pages/HomePage";
 import WorkerPage from "./pages/WorkerPage";
-import AdminPage from "./pages/admin/AdminPage";
+import AdminLandingPage from "./pages/admin/AdminLandingPage";
+import CurrentMatchAdminPage from "./pages/admin/CurrentMatchAdminPage";
+import NotificationTestPage from "./pages/admin/NotificationTestPage";
 import AllNotifications from "./pages/notifications/AllNotifications";
 // Overlay imports
 import CrossTablesPlayerProfileOverlay from "./pages/overlay/CrossTablesPlayerProfileOverlayPage";
@@ -32,6 +34,7 @@ import ScoringLeadersWithPicsOverlayPage from "./pages/overlay/ScoringLeadersWit
 import StandingsOverlayPage from "./pages/overlay/StandingsOverlayPage";
 import StandingsWithPicsOverlayPage from "./pages/overlay/StandingsWithPicsOverlayPage";
 import TournamentStatsOverlayPage from "./pages/overlay/TournamentStatsOverlayPage";
+import GameBoardOverlay from "./pages/overlay/GameBoardOverlayPage";
 import TournamentDetailsPage from "./pages/tournaments/TournamentDetailsPage";
 import TournamentManagerPage from "./pages/tournaments/TournamentManagerPage";
 import UserSettingsPage from "./pages/UserSettingsPage";
@@ -148,6 +151,10 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           path="/users/:userId/overlay/tournament_stats/:tournamentId?/:divisionName?"
           element={<TournamentStatsOverlayPage apiService={apiService} />}
         />
+        <Route
+          path="/users/:userId/overlay/game_board/:tournamentId?/:divisionName?"
+          element={<GameBoardOverlay apiService={apiService} />}
+        />
         
         {/* Legacy overlay routes (backwards compatibility - optional) */}
         <Route
@@ -214,7 +221,23 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           path="/admin"
           element={
             <ProtectedRoute>
-              <AdminPage apiService={apiService} />
+              <AdminLandingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/current-match"
+          element={
+            <ProtectedRoute>
+              <CurrentMatchAdminPage apiService={apiService} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationTestPage />
             </ProtectedRoute>
           }
         />
