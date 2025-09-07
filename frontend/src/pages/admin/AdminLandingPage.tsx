@@ -78,34 +78,6 @@ const AdminLandingPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className={`mt-8 ${theme.colors.cardBackground} rounded-lg shadow-md border-2 ${theme.colors.primaryBorder}`}>
-          <div className="p-6">
-            <h3 className={`text-xl font-bold ${theme.colors.textPrimary} mb-4`}>
-              Quick Actions
-            </h3>
-            <div className="flex flex-wrap gap-4">
-              <Link
-                to="/overlay/misc"
-                className={`${theme.colors.cardBackground} ${theme.colors.textPrimary} px-4 py-2 rounded-md ${theme.colors.hoverBackground} transition-colors border-2 ${theme.colors.primaryBorder}`}
-              >
-                📊 Open Stats Overlay
-              </Link>
-              <Link
-                to="/tournaments/manager"
-                className={`${theme.colors.cardBackground} ${theme.colors.textPrimary} px-4 py-2 rounded-md ${theme.colors.hoverBackground} transition-colors border-2 ${theme.colors.primaryBorder}`}
-              >
-                🏆 Tournament Manager
-              </Link>
-              <Link
-                to="/overlays"
-                className={`${theme.colors.cardBackground} ${theme.colors.textPrimary} px-4 py-2 rounded-md ${theme.colors.hoverBackground} transition-colors border-2 ${theme.colors.primaryBorder}`}
-              >
-                🎥 All Overlays
-              </Link>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
