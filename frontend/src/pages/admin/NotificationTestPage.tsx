@@ -95,124 +95,11 @@ const NotificationTestPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Notification Test Page</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Notification Management</h1>
         
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">General Settings</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">User ID</label>
-              <input
-                type="text"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                placeholder="2"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Tournament ID</label>
-              <input
-                type="text"
-                value={tournamentId}
-                onChange={(e) => setTournamentId(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                placeholder="65"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Division ID</label>
-              <input
-                type="text"
-                value={divisionId}
-                onChange={(e) => setDivisionId(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                placeholder="146"
-              />
-              <p className="text-xs text-gray-500 mt-1">Use the numeric division ID from your overlay URL</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Player Name</label>
-              <input
-                type="text"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              />
-            </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700">Player Photo URL</label>
-              <input
-                type="text"
-                value={playerPhoto}
-                onChange={(e) => setPlayerPhoto(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                placeholder="https://via.placeholder.com/150"
-              />
-              <p className="text-xs text-gray-500 mt-1">Leave blank for no image, or use a URL to a player photo</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* High Score Test */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4 text-green-600">🏆 High Score Notification</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">New High Score</label>
-                <input
-                  type="number"
-                  value={highScore}
-                  onChange={(e) => setHighScore(Number(e.target.value))}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Previous High Score</label>
-                <input
-                  type="number"
-                  value={previousHighScore}
-                  onChange={(e) => setPreviousHighScore(Number(e.target.value))}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-              <button
-                onClick={sendHighScoreNotification}
-                className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-              >
-                Send High Score Notification
-              </button>
-            </div>
-          </div>
-
-          {/* Winning Streak Test */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4 text-orange-600">🔥 Winning Streak Notification</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Streak Length</label>
-                <input
-                  type="number"
-                  min="3"
-                  value={streakLength}
-                  onChange={(e) => setStreakLength(Number(e.target.value))}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-              <button
-                onClick={sendWinningStreakNotification}
-                className="w-full bg-orange-600 text-white py-2 px-4 rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-              >
-                Send Winning Streak Notification
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Queue Status and Controls */}
-        <div className="mt-6 bg-purple-50 border border-purple-200 rounded-md p-6">
-          <h3 className="text-lg font-medium text-purple-800 mb-4">📋 Notification Queue Status</h3>
+        {/* Queue Status and Controls - MOVED TO TOP */}
+        <div className="mb-6 bg-purple-50 border border-purple-200 rounded-md p-6">
+          <h3 className="text-lg font-medium text-purple-800 mb-4">📋 Live Notification Queue</h3>
           
           {queueStatus ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
@@ -339,15 +226,127 @@ const NotificationTestPage: React.FC = () => {
           )}
         </div>
 
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4">Test Notification Settings</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">User ID</label>
+              <input
+                type="text"
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                placeholder="2"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Tournament ID</label>
+              <input
+                type="text"
+                value={tournamentId}
+                onChange={(e) => setTournamentId(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                placeholder="65"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Division ID</label>
+              <input
+                type="text"
+                value={divisionId}
+                onChange={(e) => setDivisionId(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                placeholder="146"
+              />
+              <p className="text-xs text-gray-500 mt-1">Use the numeric division ID from your overlay URL</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Player Name</label>
+              <input
+                type="text"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700">Player Photo URL</label>
+              <input
+                type="text"
+                value={playerPhoto}
+                onChange={(e) => setPlayerPhoto(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                placeholder="https://via.placeholder.com/150"
+              />
+              <p className="text-xs text-gray-500 mt-1">Leave blank for no image, or use a URL to a player photo</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* High Score Test */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold mb-4 text-green-600">🏆 Test High Score</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">New High Score</label>
+                <input
+                  type="number"
+                  value={highScore}
+                  onChange={(e) => setHighScore(Number(e.target.value))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Previous High Score</label>
+                <input
+                  type="number"
+                  value={previousHighScore}
+                  onChange={(e) => setPreviousHighScore(Number(e.target.value))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+              </div>
+              <button
+                onClick={sendHighScoreNotification}
+                className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              >
+                Send High Score Notification
+              </button>
+            </div>
+          </div>
+
+          {/* Winning Streak Test */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold mb-4 text-orange-600">🔥 Test Winning Streak</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Streak Length</label>
+                <input
+                  type="number"
+                  min="3"
+                  value={streakLength}
+                  onChange={(e) => setStreakLength(Number(e.target.value))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+              </div>
+              <button
+                onClick={sendWinningStreakNotification}
+                className="w-full bg-orange-600 text-white py-2 px-4 rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+              >
+                Send Winning Streak Notification
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-md p-4">
-          <h3 className="text-lg font-medium text-blue-800">Instructions:</h3>
+          <h3 className="text-lg font-medium text-blue-800">Testing Instructions:</h3>
           <ul className="mt-2 text-sm text-blue-700 list-disc list-inside space-y-1">
-            <li><strong>Match your overlay settings:</strong> Set User ID (2), Tournament ID (65), Division ID (146)</li>
-            <li><strong>Test the queue:</strong> Click multiple notification buttons rapidly to see queue in action</li>
-            <li>Configure the high score values or winning streak length</li>
-            <li>Use queue controls to pause/resume or clear pending notifications</li>
-            <li>Check your GameBoardOverlay to see them appear one at a time (15s each + 2s delay)</li>
-            <li><strong>Priority system:</strong> High scores (8), winning streaks (7), manual (5)</li>
+            <li><strong>Queue Management:</strong> Use the controls above to pause/resume, clear queue, or cancel individual notifications</li>
+            <li><strong>Rapid Testing:</strong> Click notification buttons multiple times to test queue behavior and priority ordering</li>
+            <li><strong>Match Settings:</strong> Set User ID (2), Tournament ID (65), Division ID (146) to match your overlay</li>
+            <li><strong>Overlay Display:</strong> Check GameBoardOverlay to see notifications appear sequentially (15s each + 2s delay)</li>
+            <li><strong>Priority System:</strong> High scores (8), winning streaks (7), manual tests (5)</li>
           </ul>
         </div>
       </div>

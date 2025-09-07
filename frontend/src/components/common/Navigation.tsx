@@ -96,7 +96,7 @@ const Navigation: React.FC = () => {
       case "/admin/current-match":
         return "Current Match";
       case "/admin/notifications":
-        return "Notifications";
+        return "Notification Management";
     }
   };
 
