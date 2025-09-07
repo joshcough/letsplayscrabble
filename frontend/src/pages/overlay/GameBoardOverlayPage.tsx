@@ -410,7 +410,7 @@ const GameBoardDisplay: React.FC<{
           <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-2 py-0.5 absolute`} style={{ top: '-10px', left: '20px', right: '20px', zIndex: 1, backgroundColor: 'var(--bg-color, #f5f5dc)' }}>
             <div className={`${theme.colors.textPrimary} text-xs font-bold text-center`}>Remaining Tiles</div>
           </div>
-          <div className={`${theme.colors.textSecondary}`} style={{ fontSize: '12px', lineHeight: '1.2', marginTop: '15px' }}>
+          <div className={`${theme.colors.textSecondary}`} style={{ fontSize: '17px', lineHeight: '1.2', marginTop: '15px' }}>
             AAAAAAAA | CCCCCC<br/>
             EEEEEEEE E GG H IIIII<br/>
             MM NNNNNN OOOOOOOO<br/>
@@ -434,10 +434,10 @@ const GameBoardDisplay: React.FC<{
                 <span className="text-blue-500">.com</span>
               </div>
             </div>
-            <div className={`${theme.colors.textSecondary} text-center`} style={{ fontSize: '14px', lineHeight: '1.3', marginTop: '15px' }}>
+            <div className={`${theme.colors.textSecondary} text-center`} style={{ fontSize: '19px', lineHeight: '1.3', marginTop: '15px' }}>
               <div className={`${theme.colors.textPrimary} font-bold`}>T O R O N T O</div>
               <div><span className="text-blue-500">tile</span> <span className="text-red-500">slingers</span></div>
-              <div style={{ fontSize: '12px', marginTop: '4px' }}>Commentary: Josh Sokol & David Spargo</div>
+              <div style={{ fontSize: '17px', marginTop: '4px' }}>Commentary: Josh Sokol & David Spargo</div>
             </div>
           </div>
           
@@ -508,7 +508,7 @@ const GameBoardDisplay: React.FC<{
       {/* Last Move Box */}
       <div className="absolute" style={{ top: '594px', left: '50%', transform: 'translateX(-50%)' }}>
         <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-lg px-4 py-2`} style={{ width: '540px' }}>
-          <div className={`${theme.colors.textSecondary} text-xs text-center`}>ST PLAY: Morris 76 PA +16.16 | a lather [n PAS]     LAST</div>
+          <div className={`${theme.colors.textSecondary} text-xs text-center`}>LAST PLAY: Morris played PA for 76 points (+16.16)</div>
         </div>
       </div>
 
