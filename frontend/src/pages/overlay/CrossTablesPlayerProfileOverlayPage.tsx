@@ -8,7 +8,7 @@ import {
 import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
 import { ApiService } from "../../services/interfaces";
 import { Theme } from "../../types/theme";
-import { getCurrentRating } from "../../utils/playerUtils";
+import { getCurrentRating, formatPlayerName } from "../../utils/playerUtils";
 
 type RouteParams = {
   userId?: string;
@@ -74,12 +74,12 @@ const renderPlayerProfile = (
             {xtData?.photourl || player.photo ? (
               <img 
                 src={xtData?.photourl || player.photo || undefined} 
-                alt={player.name}
+                alt={formatPlayerName(player.name)}
                 className="w-40 h-40 rounded-2xl object-cover border-2 border-blue-400/50 shadow-lg"
               />
             ) : (
               <div className={`w-40 h-40 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center ${theme.colors.textPrimary} font-bold text-4xl shadow-lg`}>
-                {player.name.charAt(0)}
+                {formatPlayerName(player.name).charAt(0)}
               </div>
             )}
             {location && (
@@ -91,7 +91,7 @@ const renderPlayerProfile = (
 
           {/* Stats Section */}
           <div className="flex-grow">
-            <h2 className={`text-5xl font-black mb-6 ${theme.colors.textPrimary}`}>{player.name}</h2>
+            <h2 className={`text-5xl font-black mb-6 ${theme.colors.textPrimary}`}>{formatPlayerName(player.name)}</h2>
             
             <div className="space-y-4">
               {rating && (
