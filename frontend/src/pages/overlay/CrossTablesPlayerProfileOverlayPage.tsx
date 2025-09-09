@@ -83,7 +83,7 @@ const renderPlayerProfile = (
               </div>
             )}
             {location && (
-              <div className={`text-sm ${theme.colors.textAccent} mt-3 text-center`}>
+              <div className={`text-xl font-bold ${theme.colors.textAccent} mt-4 text-center`}>
                 {location}
               </div>
             )}
@@ -91,73 +91,75 @@ const renderPlayerProfile = (
 
           {/* Stats Section */}
           <div className="flex-grow">
-            <h2 className={`text-3xl font-bold mb-5 ${theme.colors.textPrimary}`}>{player.name}</h2>
+            <h2 className={`text-5xl font-black mb-6 ${theme.colors.textPrimary}`}>{player.name}</h2>
             
-            <div className="space-y-3">
+            <div className="space-y-4">
               {rating && (
-                <div className="flex items-center gap-2">
-                  <span className={`${theme.colors.textAccent} font-semibold`}>Rating:</span>
-                  <span className={`${theme.colors.textPrimary} text-lg`}>{rating}</span>
+                <div className="flex items-baseline gap-3">
+                  <span className={`${theme.colors.textAccent} text-xl font-bold w-36`}>Rating:</span>
+                  <span className={`${theme.colors.textPrimary} text-3xl font-black`}>{rating}</span>
                 </div>
               )}
               
               {ranking && (
-                <div className="flex items-center gap-2">
-                  <span className={`${theme.colors.textAccent} font-semibold`}>Ranking:</span>
-                  <span className={`${theme.colors.textPrimary} text-lg`}>{ranking}</span>
+                <div className="flex items-baseline gap-3">
+                  <span className={`${theme.colors.textAccent} text-xl font-bold w-36`}>Ranking:</span>
+                  <span className={`${theme.colors.textPrimary} text-3xl font-black`}>{ranking}</span>
                 </div>
               )}
 
               {tournamentCount && (
-                <div className="flex items-center gap-2">
-                  <span className={`${theme.colors.textAccent} font-semibold`}>Tournaments:</span>
-                  <span className={`${theme.colors.textPrimary} text-lg`}>{tournamentCount}</span>
+                <div className="flex items-baseline gap-3">
+                  <span className={`${theme.colors.textAccent} text-xl font-bold w-36`}>Tournaments:</span>
+                  <span className={`${theme.colors.textPrimary} text-3xl font-black`}>{tournamentCount}</span>
                 </div>
               )}
 
               {xtData?.w !== undefined && xtData?.l !== undefined && xtData?.t !== undefined && (
                 <>
-                  <div className="flex items-center gap-2">
-                    <span className={`${theme.colors.textAccent} font-semibold`}>Career Record:</span>
-                    <span className={`${theme.colors.textPrimary} text-lg font-mono`}>{xtData.w}-{xtData.l}-{xtData.t}</span>
+                  <div className="flex items-baseline gap-3">
+                    <span className={`${theme.colors.textAccent} text-xl font-bold w-36`}>Career Record:</span>
+                    <span className={`${theme.colors.textPrimary} text-3xl font-black font-mono`}>{xtData.w}-{xtData.l}-{xtData.t}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`${theme.colors.textAccent} font-semibold`}>Career Win %:</span>
-                    <span className={`${theme.colors.textPrimary} text-lg`}>{winPercentage}%</span>
+                  <div className="flex items-baseline gap-3">
+                    <span className={`${theme.colors.textAccent} text-xl font-bold w-36`}>Career Win %:</span>
+                    <span className={`${theme.colors.textPrimary} text-3xl font-black`}>{winPercentage}%</span>
                   </div>
                 </>
               )}
 
               {averageScore && (
-                <div className="flex items-center gap-2">
-                  <span className={`${theme.colors.textAccent} font-semibold`}>Average Score:</span>
-                  <span className={`${theme.colors.textPrimary} text-lg font-mono`}>
+                <div className="flex items-baseline gap-3">
+                  <span className={`${theme.colors.textAccent} text-xl font-bold w-36`}>Average Score:</span>
+                  <span className={`${theme.colors.textPrimary} text-3xl font-black font-mono`}>
                     {Math.round(averageScore)}{xtData?.opponentAverageScore ? `-${Math.round(xtData.opponentAverageScore)}` : ''}
                   </span>
                 </div>
               )}
+            </div>
 
-              {recentTournament && (
-                <div className={`mt-4 p-3 ${theme.colors.cardBackground} rounded-xl border ${theme.colors.primaryBorder}`}>
-                  <div className={`${theme.colors.textAccent} font-semibold mb-2`}>
-                    {isWin ? '🏆 Recent Tournament Win' : 'Recent Tournament'}
+            {recentTournament && (
+              <div className={`mt-8 p-4 ${theme.colors.cardBackground} rounded-xl border ${theme.colors.primaryBorder}`}>
+                <div className={`${theme.colors.textAccent} text-xl font-bold mb-3`}>
+                  {isWin ? '🏆 Recent Tournament Win' : 'Recent Tournament'}
+                </div>
+                <div className={`${theme.colors.textPrimary} text-2xl font-bold`}>
+                  {recentTournament.tourneyname}
+                </div>
+                {recentTournament.date && (
+                  <div className={`${theme.colors.textAccent} text-lg mt-2 font-semibold`}>
+                    {recentTournament.date}
                   </div>
-                  <div className={`${theme.colors.textPrimary}`}>
-                    {recentTournament.tourneyname}
-                  </div>
-                  {recentTournament.date && (
-                    <div className="text-gray-400 text-sm mt-1">
-                      {recentTournament.date}
-                    </div>
-                  )}
-                  <div className={`${theme.colors.textPrimary} font-mono mt-2`}>
+                )}
+                {recentTournament.w !== undefined && recentTournament.l !== undefined && (
+                  <div className={`${theme.colors.textPrimary} font-mono text-xl font-bold mt-3`}>
                     {recentTournament.w}-{recentTournament.l} {recentTournament.spread > 0 ? '+' : ''}{recentTournament.spread}
                   </div>
-                </div>
-              )}
-            </div>
-          </div>
+                )}
+              </div>
+            )}
         </div>
+      </div>
       </div>
     </div>
   );
