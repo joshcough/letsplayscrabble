@@ -42,7 +42,7 @@ export class TournamentRepository {
           long_form_name: createTournament.tournament.long_form_name,
           user_id: createTournament.tournament.user_id,
           theme: createTournament.tournament.theme,
-          gameboard_background_url: createTournament.tournament.gameboard_background_url,
+          transparent_background: createTournament.tournament.transparent_background,
         })
         .returning("*");
 
@@ -276,7 +276,7 @@ export class TournamentRepository {
           lexicon: metadata.lexicon,
           long_form_name: metadata.longFormName,
           theme: metadata.theme,
-          gameboard_background_url: metadata.gameboardBackgroundUrl,
+          transparent_background: metadata.transparentBackground,
         })
         .returning("*");
 

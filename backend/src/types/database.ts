@@ -16,7 +16,7 @@ export interface TournamentRow {
   poll_until: Date | null; // TODO: doesnt actually live in this table
   data_url: string; // TODO: doesnt actually live in this table.
   theme?: string | null; // Theme name for this tournament
-  gameboard_background_url?: string | null; // Background image/GIF URL for game board overlay
+  transparent_background?: boolean | null; // Use transparent background for overlays (for OBS)
 }
 
 export interface TournamentDataRow {
@@ -108,7 +108,7 @@ export interface CreateTournamentRow {
   poll_until: Date | null;
   user_id: number;
   theme?: string | null; // Theme name for this tournament
-  gameboard_background_url?: string | null; // Background image/GIF URL for game board overlay
+  transparent_background?: boolean | null; // Use transparent background for overlays (for OBS)
 }
 
 // For creating tournaments - takes file data
@@ -130,7 +130,7 @@ export interface TournamentMetadata {
   longFormName: string;
   dataUrl: string;
   theme?: string; // Theme name for this tournament
-  gameboardBackgroundUrl?: string; // Background image/GIF URL for game board overlay
+  transparentBackground?: boolean; // Use transparent background for overlays (for OBS)
 }
 
 export interface CreateDivisionRow {

@@ -178,7 +178,7 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
       longFormName: editedTournament.longFormName || "",
       dataUrl: editedTournament.dataUrl || "",
       theme: editedTournament.theme || "scrabble",
-      gameboardBackgroundUrl: editedTournament.gameboardBackgroundUrl || undefined,
+      transparentBackground: editedTournament.transparentBackground || false,
     };
 
     const updateResponse = await apiService.updateTournament(
@@ -223,14 +223,15 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
     }
   };
 
-  const handleBackgroundUrlChange = (url: string) => {
+  const handleTransparentBackgroundChange = (transparent: boolean) => {
     if (editedTournament) {
       setEditedTournament({
         ...editedTournament,
-        gameboardBackgroundUrl: url,
+        transparentBackground: transparent,
       });
     }
   };
+
 
   useEffect(() => {
     const fetchTournamentData = async () => {
@@ -530,43 +531,35 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
                   )}
                 </div>
               </div>
-              
-              {/* Game Board Background URL */}
+
+              {/* Transparent Background Setting */}
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="flex">
                   <span className="text-gray-600 font-medium w-32">
-                    Game Board Background:
+                    Transparent Overlays:
                   </span>
                   {isEditing ? (
                     <div className="flex-1">
-                      <p className="text-sm text-gray-500 mb-2">
-                        URL to background image/GIF for the game board overlay (optional)
+                      <p className="text-sm text-gray-500 mb-3">
+                        Enable transparent backgrounds for all overlays (for OBS streaming)
                       </p>
-                      <input
-                        type="url"
-                        value={editedTournament?.gameboardBackgroundUrl || ""}
-                        onChange={(e) => handleBackgroundUrlChange(e.target.value)}
-                        placeholder="https://example.com/background.gif"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                      <p className="text-xs text-gray-400 mt-1">
-                        Works with images, animated GIFs, and videos. Will appear behind cameras in OBS.
-                      </p>
+                      <div className="flex items-center space-x-4">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editedTournament?.transparentBackground || false}
+                            onChange={(e) => handleTransparentBackgroundChange(e.target.checked)}
+                            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                          />
+                          <span className="text-sm text-gray-700">
+                            Use transparent backgrounds in overlays
+                          </span>
+                        </label>
+                      </div>
                     </div>
                   ) : (
-                    <span>
-                      {tournament?.gameboardBackgroundUrl ? (
-                        <a 
-                          href={tournament.gameboardBackgroundUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 underline break-all"
-                        >
-                          {tournament.gameboardBackgroundUrl}
-                        </a>
-                      ) : (
-                        "None"
-                      )}
+                    <span className="capitalize">
+                      {tournament?.transparentBackground ? 'Enabled' : 'Disabled'}
                     </span>
                   )}
                 </div>
