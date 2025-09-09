@@ -201,7 +201,7 @@ const renderCareerH2H = (
       if (!a.isCurrentTournament && b.isCurrentTournament) return 1;
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     })
-    .slice(0, 6);
+    .slice(0, 5);
 
   const getOrdinalSuffix = (num: number) => {
     const j = num % 10;

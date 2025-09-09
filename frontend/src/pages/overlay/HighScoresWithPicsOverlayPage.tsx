@@ -15,7 +15,7 @@ const HighScoresWithPicsOverlayPage: React.FC<{ apiService: ApiService }> = ({
     <BaseModernOverlay>
       {(theme, themeClasses) => {
         const renderPlayerContent = (player: RankedPlayerStats) => (
-          <div className={`${theme.colors.textPrimary} text-3xl font-bold text-center`}>
+          <div className={`${theme.colors.textPrimary} text-5xl font-black text-center`}>
             {player.highScore}
           </div>
         );

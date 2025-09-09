@@ -184,10 +184,10 @@ const StatsDisplay: React.FC<{
       <div className={`${theme.colors.cardBackground} rounded-2xl p-6 border ${theme.colors.primaryBorder} shadow-xl min-w-[180px]`}>
         <div className="flex flex-col items-center">
           {icon && <div className="text-3xl mb-2">{icon}</div>}
-          <div className={`${theme.colors.textAccent} text-sm font-semibold uppercase tracking-wider mb-3`}>
+          <div className={`${theme.colors.textAccent} text-lg font-bold uppercase tracking-wider mb-3`}>
             {label}
           </div>
-          <div className={`text-4xl font-black ${theme.name === 'original' ? theme.colors.textPrimary : `text-transparent bg-clip-text bg-gradient-to-r ${color}`}`}>
+          <div className={`text-5xl font-black ${theme.name === 'original' ? theme.colors.textPrimary : `text-transparent bg-clip-text bg-gradient-to-r ${color}`}`}>
             {value}
           </div>
         </div>
@@ -199,10 +199,10 @@ const StatsDisplay: React.FC<{
     <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
       <div className="max-w-7xl w-full">
         <div className="text-center mb-10">
-          <h1 className={`text-4xl font-black mb-3 ${theme.name === 'original' ? theme.colors.titleGradient : `text-transparent bg-clip-text bg-gradient-to-r ${theme.colors.titleGradient}`}`}>
+          <h1 className={`text-6xl font-black mb-3 ${theme.name === 'original' ? theme.colors.titleGradient : `text-transparent bg-clip-text bg-gradient-to-r ${theme.colors.titleGradient}`}`}>
             Tournament Statistics
           </h1>
-          <div className={`text-xl ${theme.colors.textSecondary}`}>
+          <div className={`text-3xl ${theme.colors.textSecondary}`}>
             {title}
           </div>
         </div>
