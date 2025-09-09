@@ -42,10 +42,10 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
         <div className={`${themeClasses.pageBackground} min-h-screen flex items-center justify-center p-6`}>
       <div className="max-w-7xl w-full">
         <div className="text-center mb-8">
-          <h1 className={`${themeClasses.overlay.pageTitle} mb-3`}>
+          <h1 className={`${themeClasses.overlay.mainTitle} mb-3`}>
             {title}
           </h1>
-          <div className={`${themeClasses.overlay.pageSubtitle} ${getPageTextColor(theme, 'secondary')}`}>
+          <div className={`${themeClasses.overlay.metadata} ${getPageTextColor(theme, 'secondary')}`}>
             {tournament.name} {tournament.lexicon} • Division {divisionName}
           </div>
         </div>
