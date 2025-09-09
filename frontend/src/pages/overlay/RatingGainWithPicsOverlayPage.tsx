@@ -20,7 +20,7 @@ const RatingGainWithPicsOverlayPage: React.FC<{ apiService: ApiService }> = ({
           <>
             <div
               className={`text-5xl font-black text-center mb-3 ${
-                player.ratingDiff > 0 ? theme.colors.positiveColor : theme.colors.negativeColor
+                player.ratingDiff > 0 ? 'text-red-600' : player.ratingDiff < 0 ? 'text-blue-600' : theme.colors.textPrimary
               }`}
             >
               {formatNumberWithSign(player.ratingDiff)}
