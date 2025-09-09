@@ -28,11 +28,11 @@ const RatingGainOverlayPage: React.FC<{ apiService: ApiService }> = ({
   const renderCell = (player: RankedPlayerStats, columnKey: string, theme: Theme) => {
     switch (columnKey) {
       case "rank":
-        return <span className="text-xl font-black">#{player.rank}</span>;
+        return <span className="text-2xl font-black">#{player.rank}</span>;
       case "ratingDiff":
         return (
           <span
-            className={`font-black text-xl ${
+            className={`font-black text-2xl ${
               player.ratingDiff > 0 ? theme.colors.positiveColor : theme.colors.negativeColor
             }`}
           >
@@ -40,15 +40,15 @@ const RatingGainOverlayPage: React.FC<{ apiService: ApiService }> = ({
           </span>
         );
       case "currentRating":
-        return <span className={`font-mono font-bold text-lg ${theme.colors.textPrimary}`}>{player.currentRating}</span>;
+        return <span className={`font-mono font-black text-xl ${theme.colors.textPrimary}`}>{player.currentRating}</span>;
       case "initialRating":
-        return <span className={`font-mono font-bold text-lg ${theme.colors.textPrimary}`}>{player.initialRating}</span>;
+        return <span className={`font-mono font-black text-xl ${theme.colors.textPrimary}`}>{player.initialRating}</span>;
       case "wins":
-        return <span className={`${theme.colors.positiveColor} font-bold text-lg`}>{player.wins}</span>;
+        return <span className={`${theme.colors.positiveColor} font-black text-xl`}>{player.wins}</span>;
       case "losses":
-        return <span className={`${theme.colors.negativeColor} font-bold text-lg`}>{player.losses}</span>;
+        return <span className={`${theme.colors.negativeColor} font-black text-xl`}>{player.losses}</span>;
       case "ties":
-        return <span className={`${theme.colors.textPrimary} font-bold text-lg`}>{player.ties}</span>;
+        return <span className={`${theme.colors.textPrimary} font-black text-xl`}>{player.ties}</span>;
       default:
         return "";
     }

@@ -42,10 +42,10 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
         <div className={`${themeClasses.pageBackground} min-h-screen flex items-center justify-center p-6`}>
       <div className="max-w-7xl w-full">
         <div className="text-center mb-8">
-          <h1 className={`${themeClasses.overlay.mainTitle} mb-3`}>
+          <h1 className={`text-6xl font-black mb-4 ${themeClasses.text}`}>
             {title}
           </h1>
-          <div className={`${themeClasses.overlay.metadata} ${getPageTextColor(theme, 'secondary')}`}>
+          <div className={`text-3xl font-semibold ${getPageTextColor(theme, 'secondary')}`}>
             {tournament.name} {tournament.lexicon} • Division {divisionName}
           </div>
         </div>
@@ -58,7 +58,7 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
                   {columns.map((column) => (
                     <th
                       key={column.key}
-                      className={`px-4 py-3 ${themeClasses.overlay.tableHeader} ${
+                      className={`px-4 py-4 text-xl font-black uppercase tracking-wider ${themeClasses.text} ${
                         column.key === "name" ? "text-left" : "text-center"
                       }`}
                       style={{
@@ -79,7 +79,7 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
                     {columns.map((column) => (
                       <td
                         key={column.key}
-                        className={`px-4 py-3 ${themeClasses.overlay.tableCell} ${
+                        className={`px-4 py-4 text-xl font-bold ${themeClasses.text} ${
                           column.key === "name" ? "text-left" : "text-center"
                         }`}
                       >

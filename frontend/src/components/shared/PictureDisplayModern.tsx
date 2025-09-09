@@ -30,10 +30,10 @@ const PictureDisplayModern: React.FC<PictureDisplayModernProps> = ({
         <div className={`${themeClasses.pageBackground} min-h-screen flex items-center justify-center p-6`}>
       <div className="max-w-7xl w-full">
         <div className="text-center mb-8">
-          <h1 className={`text-5xl font-black mb-3 ${theme.name === 'original' ? theme.colors.titleGradient : `text-transparent bg-clip-text ${theme.colors.titleGradient}`}`}>
+          <h1 className={`text-6xl font-black mb-3 ${theme.name === 'original' ? theme.colors.titleGradient : `text-transparent bg-clip-text ${theme.colors.titleGradient}`}`}>
             {title}
           </h1>
-          <div className={`text-2xl ${getPageTextColor(theme, 'secondary')}`}>
+          <div className={`text-3xl ${getPageTextColor(theme, 'secondary')}`}>
             {tournament.name} {tournament.lexicon} • Division {divisionName}
           </div>
         </div>
@@ -58,12 +58,12 @@ const PictureDisplayModern: React.FC<PictureDisplayModernProps> = ({
               </div>
 
               {/* Player Name */}
-              <div className={`${getPageTextColor(theme, 'primary')} text-lg font-bold text-center mb-3 max-w-40 min-h-[3rem] flex items-center justify-center`}>
+              <div className={`${getPageTextColor(theme, 'primary')} text-3xl font-black text-center mb-4 max-w-48 min-h-[4rem] flex items-center justify-center`}>
                 {formatPlayerName(player.name)}
               </div>
 
               {/* Custom Content - wrapped in modern styling */}
-              <div className={`${theme.colors.cardBackground} rounded-xl px-4 py-2 border ${theme.colors.secondaryBorder}`}>
+              <div className={`${theme.colors.cardBackground} rounded-xl px-6 py-4 border ${theme.colors.secondaryBorder} min-h-[6rem] flex flex-col justify-center`}>
                 {renderPlayerContent(player)}
               </div>
             </div>
