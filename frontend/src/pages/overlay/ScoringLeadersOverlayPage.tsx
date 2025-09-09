@@ -26,21 +26,21 @@ const ScoringLeadersOverlayPage: React.FC<{ apiService: ApiService }> = ({
   const renderCell = (player: RankedPlayerStats, columnKey: string, theme: Theme) => {
     switch (columnKey) {
       case "rank":
-        return <span className="text-lg font-bold">#{player.rank}</span>;
+        return <span className="text-xl font-black">#{player.rank}</span>;
       case "averageScoreRounded":
-        return <span className={`text-lg font-mono ${theme.colors.textPrimary}`}>{player.averageScoreRounded}</span>;
+        return <span className={`text-xl font-mono font-bold ${theme.colors.textPrimary}`}>{player.averageScoreRounded}</span>;
       case "averageOpponentScore":
-        return <span className={`font-mono ${theme.colors.textPrimary}`}>{player.averageOpponentScore}</span>;
+        return <span className={`font-mono font-bold text-lg ${theme.colors.textPrimary}`}>{player.averageOpponentScore}</span>;
       case "spread":
         return (
-          <span className={`font-bold text-lg ${
+          <span className={`font-black text-xl ${
             player.spread > 0 ? theme.colors.positiveColor : theme.colors.negativeColor
           }`}>
             {formatNumberWithSign(player.spread)}
           </span>
         );
       case "highScore":
-        return <span className={`font-bold ${theme.colors.textPrimary}`}>{player.highScore}</span>;
+        return <span className={`font-black text-lg ${theme.colors.textPrimary}`}>{player.highScore}</span>;
       default:
         return "";
     }
