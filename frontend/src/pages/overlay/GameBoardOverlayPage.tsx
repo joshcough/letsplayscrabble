@@ -37,9 +37,10 @@ const GameBoardOverlay: React.FC<{ apiService: ApiService }> = ({
           console.log("🎮 GameBoardOverlay: Tournament from BaseOverlay", { 
             id: tournament?.id, 
             theme: tournament?.theme,
-            name: tournament?.name 
+            name: tournament?.name,
+            transparentBackground: tournament?.transparentBackground
           });
-          
+
           return (
             <BaseModernOverlay 
               tournamentId={tournament?.id}
@@ -388,31 +389,17 @@ const GameBoardDisplay: React.FC<{
       setCurrentNotificationId(null);
     }, 500); // Allow slide-out animation to complete
   };
-  
+
   return (
     <div 
-      className={tournament?.gameboardBackgroundUrl ? '' : theme.colors.pageBackground} 
+      className={tournament?.transparentBackground ? '' : theme.colors.pageBackground}
       style={{ 
         width: '100vw', 
         height: '100vh',
-        backgroundColor: tournament?.gameboardBackgroundUrl ? 'transparent' : undefined
+        backgroundColor: tournament?.transparentBackground ? 'transparent' : undefined,
+        background: tournament?.transparentBackground ? 'transparent' : undefined
       }}
     >
-      {/* Background image/GIF - lowest z-index so cameras layer on top in OBS */}
-      {tournament?.gameboardBackgroundUrl && (
-        <div 
-          className="absolute inset-0" 
-          style={{ 
-            zIndex: -10,
-            backgroundImage: `url(${tournament.gameboardBackgroundUrl})`,
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center'
-          }} 
-        />
-      )}
-      
-      
       <div className="relative" style={{ width: '1920px', height: '1080px', marginLeft: '-372px', marginTop: '-12px' }}>
       
       {/* EXACT POSITIONING BASED ON ORIGINAL SCREENSHOT */}

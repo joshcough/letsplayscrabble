@@ -58,6 +58,10 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
     if (location.pathname.includes("/notifications/")) {
       return "min-h-screen bg-transparent";
     }
+    // GameBoard overlay should be transparent to support OBS
+    if (location.pathname.includes("/overlay/game_board")) {
+      return "min-h-screen bg-transparent";
+    }
     if (isOverlay) {
       return "min-h-screen bg-white";
     }
