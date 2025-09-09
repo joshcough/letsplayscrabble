@@ -44,9 +44,9 @@ const RatingGainOverlayPage: React.FC<{ apiService: ApiService }> = ({
       case "initialRating":
         return <span className={`font-mono font-black text-xl ${theme.colors.textPrimary}`}>{player.initialRating}</span>;
       case "wins":
-        return <span className={`${theme.colors.positiveColor} font-black text-xl`}>{player.wins}</span>;
+        return <span className="text-red-600 font-black text-xl">{player.wins}</span>;
       case "losses":
-        return <span className={`${theme.colors.negativeColor} font-black text-xl`}>{player.losses}</span>;
+        return <span className="text-blue-600 font-black text-xl">{player.losses}</span>;
       case "ties":
         return <span className={`${theme.colors.textPrimary} font-black text-xl`}>{player.ties}</span>;
       default:
