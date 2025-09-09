@@ -58,7 +58,7 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
                   {columns.map((column) => (
                     <th
                       key={column.key}
-                      className={`px-4 py-4 text-xl font-black uppercase tracking-wider ${themeClasses.text} ${
+                      className={`px-4 py-2 text-xl font-black uppercase tracking-wider ${themeClasses.text} ${
                         column.key === "name" ? "text-left" : "text-center"
                       }`}
                       style={{
@@ -79,7 +79,7 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
                     {columns.map((column) => (
                       <td
                         key={column.key}
-                        className={`px-4 py-4 text-xl font-bold ${themeClasses.text} ${
+                        className={`px-4 py-2 text-xl font-bold ${themeClasses.text} ${
                           column.key === "name" ? "text-left" : "text-center"
                         }`}
                       >
