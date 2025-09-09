@@ -50,7 +50,7 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
           </div>
         </div>
         
-        <div className={themeClasses.card}>
+        <div className={`${theme.colors.cardBackground} rounded-2xl px-6 py-3 border-2 ${theme.colors.primaryBorder} shadow-2xl ${theme.colors.shadowColor}`}>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
