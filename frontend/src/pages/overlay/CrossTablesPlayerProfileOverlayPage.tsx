@@ -93,47 +93,47 @@ const renderPlayerProfile = (
           <div className="flex-grow">
             <h2 className={`text-5xl font-black mb-6 ${theme.colors.textPrimary}`}>{formatPlayerName(player.name)}</h2>
             
-            <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-6">
               {rating && (
-                <div className="flex items-baseline gap-3">
-                  <span className={`${theme.colors.textAccent} text-xl font-bold w-36`}>Rating:</span>
-                  <span className={`${theme.colors.textPrimary} text-3xl font-black`}>{rating}</span>
+                <div className={`${theme.colors.cardBackground} rounded-xl p-4 border ${theme.colors.secondaryBorder}`}>
+                  <div className={`${theme.colors.textAccent} text-lg font-bold uppercase tracking-wider mb-2`}>Rating</div>
+                  <div className={`${theme.colors.textPrimary} text-4xl font-black`}>{rating}</div>
                 </div>
               )}
               
               {ranking && (
-                <div className="flex items-baseline gap-3">
-                  <span className={`${theme.colors.textAccent} text-xl font-bold w-36`}>Ranking:</span>
-                  <span className={`${theme.colors.textPrimary} text-3xl font-black`}>{ranking}</span>
+                <div className={`${theme.colors.cardBackground} rounded-xl p-4 border ${theme.colors.secondaryBorder}`}>
+                  <div className={`${theme.colors.textAccent} text-lg font-bold uppercase tracking-wider mb-2`}>Ranking</div>
+                  <div className={`${theme.colors.textPrimary} text-4xl font-black`}>{ranking}</div>
                 </div>
               )}
 
               {tournamentCount && (
-                <div className="flex items-baseline gap-3">
-                  <span className={`${theme.colors.textAccent} text-xl font-bold w-36`}>Tournaments:</span>
-                  <span className={`${theme.colors.textPrimary} text-3xl font-black`}>{tournamentCount}</span>
+                <div className={`${theme.colors.cardBackground} rounded-xl p-4 border ${theme.colors.secondaryBorder}`}>
+                  <div className={`${theme.colors.textAccent} text-lg font-bold uppercase tracking-wider mb-2`}>Tournaments</div>
+                  <div className={`${theme.colors.textPrimary} text-4xl font-black`}>{tournamentCount}</div>
                 </div>
               )}
 
               {xtData?.w !== undefined && xtData?.l !== undefined && xtData?.t !== undefined && (
                 <>
-                  <div className="flex items-baseline gap-3">
-                    <span className={`${theme.colors.textAccent} text-xl font-bold w-36`}>Career Record:</span>
-                    <span className={`${theme.colors.textPrimary} text-3xl font-black font-mono`}>{xtData.w}-{xtData.l}-{xtData.t}</span>
+                  <div className={`${theme.colors.cardBackground} rounded-xl p-4 border ${theme.colors.secondaryBorder}`}>
+                    <div className={`${theme.colors.textAccent} text-lg font-bold uppercase tracking-wider mb-2`}>Career Record</div>
+                    <div className={`${theme.colors.textPrimary} text-4xl font-black font-mono`}>{xtData.w}-{xtData.l}-{xtData.t}</div>
                   </div>
-                  <div className="flex items-baseline gap-3">
-                    <span className={`${theme.colors.textAccent} text-xl font-bold w-36`}>Career Win %:</span>
-                    <span className={`${theme.colors.textPrimary} text-3xl font-black`}>{winPercentage}%</span>
+                  <div className={`${theme.colors.cardBackground} rounded-xl p-4 border ${theme.colors.secondaryBorder}`}>
+                    <div className={`${theme.colors.textAccent} text-lg font-bold uppercase tracking-wider mb-2`}>Career Win %</div>
+                    <div className={`${theme.colors.textPrimary} text-4xl font-black`}>{winPercentage}%</div>
                   </div>
                 </>
               )}
 
               {averageScore && (
-                <div className="flex items-baseline gap-3">
-                  <span className={`${theme.colors.textAccent} text-xl font-bold w-36`}>Average Score:</span>
-                  <span className={`${theme.colors.textPrimary} text-3xl font-black font-mono`}>
+                <div className={`${theme.colors.cardBackground} rounded-xl p-4 border ${theme.colors.secondaryBorder} ${!ranking ? 'col-span-2' : ''}`}>
+                  <div className={`${theme.colors.textAccent} text-lg font-bold uppercase tracking-wider mb-2`}>Average Score</div>
+                  <div className={`${theme.colors.textPrimary} text-4xl font-black font-mono`}>
                     {Math.round(averageScore)}{xtData?.opponentAverageScore ? `-${Math.round(xtData.opponentAverageScore)}` : ''}
-                  </span>
+                  </div>
                 </div>
               )}
             </div>
