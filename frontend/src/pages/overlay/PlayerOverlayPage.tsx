@@ -5,7 +5,7 @@ import * as Domain from "@shared/types/domain";
 import {
   BaseOverlay,
 } from "../../components/shared/BaseOverlay";
-import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
+import { ThemeProvider } from "../../components/shared/ThemeProvider";
 import GameHistoryDisplay from "../../components/shared/GameHistoryDisplay";
 import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
 import PointsDisplay from "../../components/shared/PointsDisplay";
@@ -376,7 +376,7 @@ const PlayerModernOverlay: React.FC<{ apiService: ApiService }> = ({
   });
 
   return (
-    <BaseModernOverlay>
+    <ThemeProvider>
       {(theme, themeClasses) => {
         // Validation
         if (!source) {
@@ -532,7 +532,7 @@ const PlayerModernOverlay: React.FC<{ apiService: ApiService }> = ({
           );
         }
       }}
-    </BaseModernOverlay>
+    </ThemeProvider>
   );
 };
 

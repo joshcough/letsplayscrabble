@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
+import { ThemeProvider } from "../../components/shared/ThemeProvider";
 import { useAuth } from "../../context/AuthContext";
 import { ApiService } from "../../services/interfaces";
 import { Theme } from "../../types/theme";
@@ -10,7 +10,7 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const { userId } = useAuth();
 
   return (
-    <BaseModernOverlay>
+    <ThemeProvider>
       {(theme, themeClasses) => {
         // If user is not authenticated, show error
         if (!userId) {
@@ -35,12 +35,6 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
       description:
         "Background service that manages real-time data updates for all overlays",
       isSpecial: true,
-    },
-    {
-      title: "Misc Overlay Testing",
-      path: "/overlay/misc_testing",
-      description:
-        "Test page showing all available misc overlay sources and examples",
     },
     {
       title: "Rating Gain Leaders",
@@ -100,21 +94,10 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
       requiresParams: true,
     },
     {
-      title: "Player Data Display",
-      path: `/users/${userId}/overlay/player?player=1&source=name`,
-      description: "Display specific player data (name, record, scores, etc.). Add ?player=1/2 and &source=name/record/rank etc.",
-      requiresParams: true,
-    },
-    {
-      title: "Misc Data Display",
-      path: `/users/${userId}/overlay/misc?source=player1-name`,
-      description: "Display specific data elements (player names, records, tournament info). Add ?source=player1-name, player2-record, etc.",
-      requiresParams: true,
-    },
-    {
-      title: "Ping Test",
-      path: `/users/${userId}/overlay/ping`,
-      description: "WebSocket connectivity test",
+      title: "Misc Overlay Testing",
+      path: "/overlay/misc_testing",
+      description:
+        "Test page showing all available misc overlay sources and examples",
     },
   ];
 
@@ -283,7 +266,7 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
       </div>
         );
       }}
-    </BaseModernOverlay>
+    </ThemeProvider>
   );
 };
 

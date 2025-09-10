@@ -2,7 +2,7 @@ import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
 import { BaseOverlay } from "../../components/shared/BaseOverlay";
-import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
+import { ThemeProvider } from "../../components/shared/ThemeProvider";
 import { LoadingErrorWrapper } from "../../components/shared/LoadingErrorWrapper";
 import { useTournamentData } from "../../hooks/useTournamentData";
 import { ApiService } from "../../services/interfaces";
@@ -33,7 +33,7 @@ const TournamentStatsOverlayPage: React.FC<{ apiService: ApiService }> = ({
   // If we're using current match, use BaseOverlay, otherwise use direct useTournamentData
   if (shouldUseCurrentMatch) {
     return (
-      <BaseModernOverlay>
+      <ThemeProvider>
         {(theme, themeClasses) => (
           <BaseOverlay apiService={apiService}>
             {({
@@ -60,12 +60,12 @@ const TournamentStatsOverlayPage: React.FC<{ apiService: ApiService }> = ({
             }}
           </BaseOverlay>
         )}
-      </BaseModernOverlay>
+      </ThemeProvider>
     );
   } else {
     // URL-based approach (no current match dependency)
     return (
-      <BaseModernOverlay>
+      <ThemeProvider>
         {(theme, themeClasses) => (
           <URLBasedStatsDisplay
             tournamentId={Number(tournamentId)}
@@ -75,7 +75,7 @@ const TournamentStatsOverlayPage: React.FC<{ apiService: ApiService }> = ({
             themeClasses={themeClasses}
           />
         )}
-      </BaseModernOverlay>
+      </ThemeProvider>
     );
   }
 };

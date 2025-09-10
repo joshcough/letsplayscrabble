@@ -6,7 +6,7 @@ import {
   BaseOverlay,
   BaseOverlayDataProps,
 } from "../../components/shared/BaseOverlay";
-import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
+import { ThemeProvider } from "../../components/shared/ThemeProvider";
 import BroadcastManager from "../../hooks/BroadcastManager";
 import { ApiService } from "../../services/interfaces";
 import { Theme } from "../../types/theme";
@@ -38,7 +38,7 @@ const PingOverlayPage: React.FC<{ apiService: ApiService }> = ({
   return (
     <BaseOverlay apiService={apiService}>
       {({ tournament, divisionData, divisionName }: BaseOverlayDataProps) => (
-        <BaseModernOverlay
+        <ThemeProvider
           tournamentId={tournament.id}
           tournamentTheme={tournament.theme || 'scrabble'}
         >
@@ -95,7 +95,7 @@ const PingOverlayPage: React.FC<{ apiService: ApiService }> = ({
               </div>
             </div>
           )}
-        </BaseModernOverlay>
+        </ThemeProvider>
       )}
     </BaseOverlay>
   );
