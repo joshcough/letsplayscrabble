@@ -3,6 +3,7 @@ import { TournamentDataIncremental } from '../types/broadcast';
 import { NotificationData, NotificationBroadcastMessage, NotificationCancelMessage } from '../types/notifications';
 import { highScoreDetector } from '../pages/notifications/HighScore';
 import { winningStreakDetector } from '../pages/notifications/WinningStreak';
+import { YouTubeChatBot } from './YouTubeChatBot';
 
 // Queue item with priority and status
 interface QueuedNotification {
@@ -158,7 +159,7 @@ export class NotificationManager {
     return null;
   }
 
-  private broadcastNotification(notification: NotificationData) {
+  private async broadcastNotification(notification: NotificationData) {
     console.log('🔔 NotificationManager: Broadcasting notification:', notification);
     
     const message: NotificationBroadcastMessage = {
@@ -166,7 +167,17 @@ export class NotificationManager {
       data: notification
     };
 
+    // Send to overlay displays
     this.broadcastChannel.postMessage(message);
+    
+    // Send to YouTube chat
+    try {
+      const chatBot = YouTubeChatBot.getInstance();
+      await chatBot.sendNotificationToChat(notification);
+    } catch (error) {
+      console.error('🔔 NotificationManager: Failed to send to YouTube chat:', error);
+      // Continue processing - don't let chat failures break notifications
+    }
   }
 
   // Method for manually sending notifications (used by test page)
@@ -213,7 +224,7 @@ export class NotificationManager {
     }
   }
 
-  private displayNotification(queuedNotification: QueuedNotification) {
+  private async displayNotification(queuedNotification: QueuedNotification) {
     console.log('📋 NotificationQueue: Displaying notification', queuedNotification.notification);
     
     // Update status and record start time
@@ -221,8 +232,8 @@ export class NotificationManager {
     queuedNotification.displayStartTime = Date.now();
     this.currentNotification = queuedNotification;
     
-    // Broadcast the notification
-    this.broadcastNotification(queuedNotification.notification);
+    // Broadcast the notification (includes YouTube chat)
+    await this.broadcastNotification(queuedNotification.notification);
     
     // Schedule completion
     this.processingTimer = setTimeout(() => {
