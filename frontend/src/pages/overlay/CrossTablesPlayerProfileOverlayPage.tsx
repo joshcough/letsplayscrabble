@@ -5,7 +5,7 @@ import * as Domain from "@shared/types/domain";
 import {
   BaseOverlay,
 } from "../../components/shared/BaseOverlay";
-import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
+import { ThemeProvider } from "../../components/shared/ThemeProvider";
 import { ApiService } from "../../services/interfaces";
 import { Theme } from "../../types/theme";
 import { getCurrentRating, formatPlayerName } from "../../utils/playerUtils";
@@ -176,7 +176,7 @@ const CrossTablesPlayerProfileModernOverlay: React.FC<{ apiService: ApiService }
   const hasSpecificPlayer = !!(tournamentId && divisionName && playerId);
 
   return (
-    <BaseModernOverlay>
+    <ThemeProvider>
       {(theme, themeClasses) => {
         // Validation
         if (!hasSpecificPlayer && (!playerParam || (playerParam !== "1" && playerParam !== "2"))) {
@@ -261,7 +261,7 @@ const CrossTablesPlayerProfileModernOverlay: React.FC<{ apiService: ApiService }
           </BaseOverlay>
         );
       }}
-    </BaseModernOverlay>
+    </ThemeProvider>
   );
 };
 

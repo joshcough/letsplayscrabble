@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { BaseOverlay } from "../../components/shared/BaseOverlay";
-import { BaseModernOverlay } from "../../components/shared/BaseModernOverlay";
+import { ThemeProvider } from "../../components/shared/ThemeProvider";
 import { useTournamentData } from "../../hooks/useTournamentData";
 import { ApiService } from "../../services/interfaces";
 import { RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
@@ -42,7 +42,7 @@ const GameBoardOverlay: React.FC<{ apiService: ApiService }> = ({
           });
 
           return (
-            <BaseModernOverlay 
+            <ThemeProvider 
               tournamentId={tournament?.id}
               tournamentTheme={tournament?.theme || 'scrabble'}
             >
@@ -117,14 +117,14 @@ const GameBoardOverlay: React.FC<{ apiService: ApiService }> = ({
                   userId={userId}
                 />;
               }}
-            </BaseModernOverlay>
+            </ThemeProvider>
           );
         }}
       </BaseOverlay>
     );
   } else {
     return (
-      <BaseModernOverlay tournamentId={Number(tournamentId)}>
+      <ThemeProvider tournamentId={Number(tournamentId)}>
         {(theme, themeClasses) => (
           <URLBasedGameBoard 
             tournamentId={Number(tournamentId)}
@@ -135,7 +135,7 @@ const GameBoardOverlay: React.FC<{ apiService: ApiService }> = ({
             userId={userId}
           />
         )}
-      </BaseModernOverlay>
+      </ThemeProvider>
     );
   }
 };

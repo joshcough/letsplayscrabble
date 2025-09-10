@@ -3,18 +3,18 @@ import { useTournamentTheme } from '../../hooks/useTournamentTheme';
 import { getThemeClasses } from '../../utils/themeUtils';
 import { Theme } from '../../types/theme';
 
-interface BaseModernOverlayProps {
+interface ThemeProviderProps {
   children: (theme: Theme, themeClasses: ReturnType<typeof getThemeClasses>) => React.ReactNode;
   tournamentId?: number;
   tournamentTheme?: string; // Optional - fallback to default if not provided
 }
 
-export const BaseModernOverlay: React.FC<BaseModernOverlayProps> = ({ 
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({ 
   children, 
   tournamentId, 
   tournamentTheme = 'scrabble' // Default theme
 }) => {
-  console.log("🔍 BaseModernOverlay: Props received", {
+  console.log("🔍 ThemeProvider: Props received", {
     tournamentId,
     tournamentIdType: typeof tournamentId,
     tournamentTheme,
@@ -28,7 +28,7 @@ export const BaseModernOverlay: React.FC<BaseModernOverlayProps> = ({
   
   const themeClasses = getThemeClasses(theme);
   
-  console.log("🎨 BaseModernOverlay: Passing theme data to children", {
+  console.log("🎨 ThemeProvider: Passing theme data to children", {
     theme,
     themeClasses,
   });
@@ -44,4 +44,4 @@ export const BaseModernOverlay: React.FC<BaseModernOverlayProps> = ({
   return <>{children(theme, themeClasses)}</>;
 };
 
-export default BaseModernOverlay;
+export default ThemeProvider;

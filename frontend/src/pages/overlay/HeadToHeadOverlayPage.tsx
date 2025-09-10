@@ -5,7 +5,7 @@ import {
   BaseOverlayDataProps 
 } from '../../components/shared/BaseOverlay';
 import { ApiService } from '../../services/interfaces';
-import { BaseModernOverlay } from '../../components/shared/BaseModernOverlay';
+import { ThemeProvider } from '../../components/shared/ThemeProvider';
 import { Theme } from '../../types/theme';
 import { formatPlayerName, getCurrentRating } from '../../utils/playerUtils';
 import { getPageTextColor } from '../../utils/themeUtils';
@@ -42,7 +42,7 @@ const HeadToHeadOverlayPage: React.FC<HeadToHeadOverlayPageProps> = ({ apiServic
   const hasSpecificPlayers = !!(tournamentId && divisionName && playerId1 && playerId2);
   
   return (
-    <BaseModernOverlay>
+    <ThemeProvider>
       {(theme, themeClasses) => (
         <BaseOverlay apiService={apiService}>
           {({ tournament, divisionData, divisionName, currentMatch }) => {
@@ -50,7 +50,7 @@ const HeadToHeadOverlayPage: React.FC<HeadToHeadOverlayPageProps> = ({ apiServic
           }}
         </BaseOverlay>
       )}
-    </BaseModernOverlay>
+    </ThemeProvider>
   );
 };
 

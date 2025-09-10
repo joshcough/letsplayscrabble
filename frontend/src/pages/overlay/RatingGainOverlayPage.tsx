@@ -1,6 +1,6 @@
 import React from "react";
 
-import { TournamentTableModernOverlay } from "../../components/shared/TournamentTableModernOverlay";
+import { TournamentTableOverlay } from "../../components/shared/TournamentTableOverlay";
 import {
   UsePlayerStatsCalculation,
   RankedPlayerStats,
@@ -58,7 +58,7 @@ const RatingGainOverlayPage: React.FC<{ apiService: ApiService }> = ({
     <UsePlayerStatsCalculation sortType="ratingGain" apiService={apiService}>
       {({ tournament, players, divisionName }) => {
         return (
-          <TournamentTableModernOverlay
+          <TournamentTableOverlay
             tournament={tournament}
             standings={players}
             columns={columns}

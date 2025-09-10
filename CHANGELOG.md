@@ -1,5 +1,26 @@
 # Changelog
 
+## 2025-09-10 - Remove "Modern" Transitional Naming from Components
+
+### 🏗️ **Component Architecture Cleanup**
+- **RENAMED**: `BaseModernOverlay` → `ThemeProvider` - better describes its purpose of providing theme context
+- **RENAMED**: `PictureDisplayModern` → `PictureDisplay` - removed transitional suffix
+- **RENAMED**: `TournamentTableModernOverlay` → `TournamentTableOverlay` - simplified naming
+- **REMOVED**: `ModernOverlaysPage` - obsolete transitional component
+- **REMOVED**: `GameBoardOverlayPage_backup.tsx` - old backup file no longer needed
+
+### 🎯 **Code Quality Improvements**
+- **UPDATED**: All imports across 17+ overlay pages to use new component names
+- **CLEANED**: Removed "Modern" suffix from all component references
+- **COMPLETED**: Modernization transition that began in earlier updates
+- **MAINTAINED**: Full backward compatibility with existing functionality
+
+### 📦 **Technical Details**
+- **REFACTORED**: Theme provider pattern now has clearer naming convention
+- **SIMPLIFIED**: Component hierarchy with more intuitive names
+- **PRESERVED**: All existing functionality during rename operation
+- **TESTED**: Successfully builds with all renamed components
+
 ## 2025-09-06 - Complete Notification Management System with History & Replay
 
 ### 🎯 **Professional Notification Management Interface**
