@@ -43,8 +43,8 @@ const PictureDisplayModern: React.FC<PictureDisplayModernProps> = ({
             <div key={player.name} className="flex flex-col items-center">
               {/* Rank Badge */}
               <div className="relative mb-4">
-                <div className={`absolute -top-2 -left-2 z-10 w-10 h-10 ${theme.colors.accentGradient} rounded-full flex items-center justify-center shadow-lg`}>
-                  <span className={`${theme.colors.textPrimary} font-bold text-lg`}>#{index + 1}</span>
+                <div className="absolute -top-2 -left-2 z-10 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-gray-300">
+                  <span className="text-gray-800 font-black text-lg">#{index + 1}</span>
                 </div>
                 
                 {/* Player Image */}
