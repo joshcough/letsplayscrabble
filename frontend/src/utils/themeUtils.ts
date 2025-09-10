@@ -54,6 +54,31 @@ export const getThemeClasses = (theme: Theme) => ({
   text: theme.colors.textPrimary,
   textSecondary: theme.colors.textSecondary,
   textAccent: theme.colors.textAccent,
+
+  // Overlay-specific typography classes for improved readability
+  overlay: {
+    // Player names and main headings
+    playerName: cn('text-3xl font-bold', theme.colors.textPrimary),
+    mainTitle: cn('text-3xl font-bold', theme.colors.textPrimary),
+    sectionHeader: cn('text-2xl font-bold', theme.colors.textPrimary), 
+    
+    // Statistics and data labels
+    statLabel: cn('text-base font-semibold uppercase tracking-wide', theme.colors.textSecondary),
+    statValue: cn('text-2xl font-bold', theme.colors.textPrimary),
+    
+    // Table content
+    tableHeader: cn('text-lg font-semibold', theme.colors.textPrimary),
+    tableCell: cn('text-lg', theme.colors.textPrimary),
+    
+    // Scores and numbers
+    largeScore: cn('text-4xl font-black', theme.colors.textAccent),
+    mediumScore: cn('text-2xl font-bold', theme.colors.textPrimary),
+    
+    // Metadata and secondary info
+    metadata: cn('text-lg', theme.colors.textSecondary),
+    smallMetadata: cn('text-lg', theme.colors.textSecondary),
+    tableDateLocation: cn('text-lg font-bold', theme.colors.textSecondary),
+  },
   
   // Status colors
   positive: theme.colors.positiveColor,

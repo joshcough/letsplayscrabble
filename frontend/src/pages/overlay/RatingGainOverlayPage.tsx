@@ -28,27 +28,27 @@ const RatingGainOverlayPage: React.FC<{ apiService: ApiService }> = ({
   const renderCell = (player: RankedPlayerStats, columnKey: string, theme: Theme) => {
     switch (columnKey) {
       case "rank":
-        return <span className="text-lg font-bold">#{player.rank}</span>;
+        return <span className="text-2xl font-black">#{player.rank}</span>;
       case "ratingDiff":
         return (
           <span
-            className={`font-bold text-lg ${
-              player.ratingDiff > 0 ? theme.colors.positiveColor : theme.colors.negativeColor
+            className={`font-black text-2xl ${
+              player.ratingDiff > 0 ? 'text-red-600' : player.ratingDiff < 0 ? 'text-blue-600' : theme.colors.textPrimary
             }`}
           >
             {formatNumberWithSign(player.ratingDiff)}
           </span>
         );
       case "currentRating":
-        return <span className={`font-mono ${theme.colors.textPrimary}`}>{player.currentRating}</span>;
+        return <span className={`font-mono font-black text-xl ${theme.colors.textPrimary}`}>{player.currentRating}</span>;
       case "initialRating":
-        return <span className={`font-mono ${theme.colors.textPrimary}`}>{player.initialRating}</span>;
+        return <span className={`font-mono font-black text-xl ${theme.colors.textPrimary}`}>{player.initialRating}</span>;
       case "wins":
-        return <span className={theme.colors.positiveColor}>{player.wins}</span>;
+        return <span className="text-red-600 font-black text-xl">{player.wins}</span>;
       case "losses":
-        return <span className={theme.colors.negativeColor}>{player.losses}</span>;
+        return <span className="text-blue-600 font-black text-xl">{player.losses}</span>;
       case "ties":
-        return <span className={theme.colors.textPrimary}>{player.ties}</span>;
+        return <span className={`${theme.colors.textPrimary} font-black text-xl`}>{player.ties}</span>;
       default:
         return "";
     }

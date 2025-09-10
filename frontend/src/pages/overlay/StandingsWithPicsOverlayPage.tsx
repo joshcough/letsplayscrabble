@@ -16,12 +16,12 @@ const StandingsWithPicsOverlayPage: React.FC<{ apiService: ApiService }> = ({
     <BaseModernOverlay>
       {(theme, themeClasses) => {
         const renderPlayerContent = (player: RankedPlayerStats) => (
-          <div className={`${theme.colors.textPrimary} text-2xl font-bold text-center`}>
-            <div className="mb-1">
+          <div className={`${theme.colors.textPrimary} text-3xl font-black text-center`}>
+            <div className="mb-2">
               {player.wins}-{player.losses}
               {player.ties > 0 ? `-${player.ties}` : ""}
             </div>
-            <div className={player.spread > 0 ? theme.colors.positiveColor : theme.colors.negativeColor}>
+            <div className={`text-2xl font-bold ${player.spread > 0 ? 'text-red-600' : player.spread < 0 ? 'text-blue-600' : theme.colors.textPrimary}`}>
               {formatNumberWithSign(player.spread)}
             </div>
           </div>

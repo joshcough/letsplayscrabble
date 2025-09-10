@@ -19,18 +19,18 @@ const RatingGainWithPicsOverlayPage: React.FC<{ apiService: ApiService }> = ({
         const renderPlayerContent = (player: RankedPlayerStats) => (
           <>
             <div
-              className={`text-3xl font-bold text-center mb-2 ${
-                player.ratingDiff > 0 ? theme.colors.positiveColor : theme.colors.negativeColor
+              className={`text-5xl font-black text-center mb-3 ${
+                player.ratingDiff > 0 ? 'text-red-600' : player.ratingDiff < 0 ? 'text-blue-600' : theme.colors.textPrimary
               }`}
             >
               {formatNumberWithSign(player.ratingDiff)}
             </div>
 
-            <div className={`${theme.colors.textAccent} text-sm font-semibold text-center mb-1 uppercase tracking-wider`}>
+            <div className={`${theme.colors.textAccent} text-lg font-bold text-center mb-2 uppercase tracking-wider`}>
               New Rating
             </div>
 
-            <div className={`${theme.colors.textPrimary} text-2xl font-bold text-center`}>
+            <div className={`${theme.colors.textPrimary} text-4xl font-black text-center`}>
               {player.currentRating}
             </div>
           </>

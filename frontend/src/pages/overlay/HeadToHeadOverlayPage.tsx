@@ -131,19 +131,15 @@ const renderCareerH2H = (
   const headToHeadGames = [...historicalGames, ...currentTournamentGames];
 
   const player1Wins = headToHeadGames.filter((game: any) => {
-    if (game.player1.playerid === player1.xtid) {
-      return game.player1.score > game.player2.score;
-    } else {
-      return game.player2.score > game.player1.score;
-    }
+    const p1Score = game.player1.playerid === player1.xtid ? game.player1.score : game.player2.score;
+    const p2Score = game.player1.playerid === player1.xtid ? game.player2.score : game.player1.score;
+    return p1Score > p2Score; // Only count actual wins, not ties
   }).length;
 
   const player2Wins = headToHeadGames.filter((game: any) => {
-    if (game.player1.playerid === player2.xtid) {
-      return game.player1.score > game.player2.score;
-    } else {
-      return game.player2.score > game.player1.score;
-    }
+    const p1Score = game.player1.playerid === player1.xtid ? game.player1.score : game.player2.score;
+    const p2Score = game.player1.playerid === player1.xtid ? game.player2.score : game.player1.score;
+    return p2Score > p1Score; // Only count actual wins, not ties
   }).length;
 
   // Calculate average scores
@@ -205,7 +201,7 @@ const renderCareerH2H = (
       if (!a.isCurrentTournament && b.isCurrentTournament) return 1;
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     })
-    .slice(0, 6);
+    .slice(0, 5);
 
   const getOrdinalSuffix = (num: number) => {
     const j = num % 10;
@@ -223,39 +219,41 @@ const renderCareerH2H = (
         <div className="grid grid-cols-[2fr_1fr_2fr] gap-2 max-w-6xl mx-auto">
 
           {/* Player 1 Card */}
-          <div className={themeClasses.card}>
-            <div className="flex items-center gap-6 mb-6">
-              {/* Photo */}
-              {player1.xtData?.photourl || player1.photo ? (
-                <img
-                  src={player1.xtData?.photourl || player1.photo || undefined}
-                  alt={formatPlayerName(player1.name)}
-                  className={`w-28 h-32 ${themeClasses.playerImage}`}
-                />
-              ) : (
-                <div className="w-28 h-32 rounded-xl flex items-center justify-center font-bold text-3xl shadow-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white">
-                  {formatPlayerName(player1.name).split(' ').map((n: string) => n.charAt(0)).join('')}
-                </div>
-              )}
-
-              {/* Name and Location */}
-              <div>
-                <h2 className={`text-xl font-bold ${theme.colors.textPrimary}`}>{formatPlayerName(player1.name)}</h2>
-                {player1.xtData?.city && (
-                  <p className="text-sm text-gray-400">
-                    {player1.xtData.city}{player1.xtData.state && `, ${player1.xtData.state}`}
-                  </p>
+          <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-2xl p-4 shadow-2xl ${theme.colors.shadowColor}`}>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-6 mb-4">
+                {/* Photo */}
+                {player1.xtData?.photourl || player1.photo ? (
+                  <img
+                    src={player1.xtData?.photourl || player1.photo || undefined}
+                    alt={formatPlayerName(player1.name)}
+                    className={`w-28 h-32 ${themeClasses.playerImage}`}
+                  />
+                ) : (
+                  <div className="w-28 h-32 rounded-xl flex items-center justify-center font-bold text-3xl shadow-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white">
+                    {formatPlayerName(player1.name).split(' ').map((n: string) => n.charAt(0)).join('')}
+                  </div>
                 )}
-                <p className={`text-sm mt-1 ${theme.colors.textSecondary}`}>Rating: {getCurrentRating(player1)}</p>
-              </div>
-            </div>
 
-            {/* Current Record */}
-            <div className="mb-6">
-              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Current Record</p>
-              <p className={`text-lg font-semibold ${theme.colors.textPrimary}`}>
-                {player1Record.wins}-{player1Record.losses} {player1Record.spread >= 0 ? '+' : ''}{player1Record.spread}, {player1Position}{getOrdinalSuffix(player1Position)} Place
-              </p>
+                {/* Name and Location */}
+                <div>
+                  <h2 className={themeClasses.overlay.playerName}>{formatPlayerName(player1.name)}</h2>
+                  {player1.xtData?.city && (
+                    <p className={themeClasses.overlay.smallMetadata}>
+                      {player1.xtData.city}{player1.xtData.state && `, ${player1.xtData.state}`}
+                    </p>
+                  )}
+                  <p className={`${themeClasses.overlay.smallMetadata} mt-1`}>Rating: {getCurrentRating(player1)}</p>
+                </div>
+              </div>
+
+              {/* Current Record */}
+              <div>
+                <p className={`${themeClasses.overlay.statLabel} mb-1`}>Current Record</p>
+                <p className={themeClasses.overlay.statValue}>
+                  {player1Record.wins}-{player1Record.losses} {player1Record.spread >= 0 ? '+' : ''}{player1Record.spread}, {player1Position}{getOrdinalSuffix(player1Position)} Place
+                </p>
+              </div>
             </div>
           </div>
 
@@ -263,7 +261,10 @@ const renderCareerH2H = (
           <div className="flex flex-col items-center justify-center">
             {/* Title */}
             <div className="text-center mb-6">
-              <h1 className={`text-xl font-bold ${getPageTextColor(theme, 'primary')} opacity-90 tracking-wide`}>Career Head-to-Head</h1>
+              <h1 className={`${themeClasses.overlay.mainTitle} opacity-90 tracking-wide text-center leading-tight`}>
+                <div>Career</div>
+                <div>Head-to-Head</div>
+              </h1>
             </div>
 
             {/* Score Display */}
@@ -276,46 +277,48 @@ const renderCareerH2H = (
                 <span className={`text-5xl font-black drop-shadow-lg ${theme.colors.textAccent}`}>{player2Wins}</span>
               </div>
               <div className="text-center">
-                <p className={`text-sm ${getPageTextColor(theme, 'secondary')}`}>Average Score</p>
-                <p className={`text-xl font-semibold ${getPageTextColor(theme, 'primary')}`}>{player1AvgScore}-{player2AvgScore}</p>
+                <p className={themeClasses.overlay.statLabel}>Average Score</p>
+                <p className={themeClasses.overlay.statValue}>{player1AvgScore}-{player2AvgScore}</p>
               </div>
             </div>
           </div>
 
           {/* Player 2 Card */}
-          <div className={themeClasses.card}>
-            <div className="flex items-center gap-6 mb-6">
-              {/* Name and Location */}
-              <div className="text-right flex-1">
-                <h2 className={`text-xl font-bold ${theme.colors.textPrimary}`}>{formatPlayerName(player2.name)}</h2>
-                {player2.xtData?.city && (
-                  <p className="text-sm text-gray-400">
-                    {player2.xtData.city}{player2.xtData.state && `, ${player2.xtData.state}`}
-                  </p>
+          <div className={`${theme.colors.cardBackground} ${theme.colors.primaryBorder} border-2 rounded-2xl p-4 shadow-2xl ${theme.colors.shadowColor}`}>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-6 mb-4">
+                {/* Name and Location */}
+                <div className="text-right flex-1">
+                  <h2 className={themeClasses.overlay.playerName}>{formatPlayerName(player2.name)}</h2>
+                  {player2.xtData?.city && (
+                    <p className={themeClasses.overlay.smallMetadata}>
+                      {player2.xtData.city}{player2.xtData.state && `, ${player2.xtData.state}`}
+                    </p>
+                  )}
+                  <p className={`${themeClasses.overlay.smallMetadata} mt-1`}>Rating: {getCurrentRating(player2)}</p>
+                </div>
+
+                {/* Photo */}
+                {player2.xtData?.photourl || player2.photo ? (
+                  <img
+                    src={player2.xtData?.photourl || player2.photo || undefined}
+                    alt={formatPlayerName(player2.name)}
+                    className={`w-28 h-32 ${themeClasses.playerImage}`}
+                  />
+                ) : (
+                  <div className="w-28 h-32 rounded-xl flex items-center justify-center font-bold text-3xl shadow-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white">
+                    {formatPlayerName(player2.name).split(' ').map((n: string) => n.charAt(0)).join('')}
+                  </div>
                 )}
-                <p className={`text-sm mt-1 ${theme.colors.textSecondary}`}>Rating: {getCurrentRating(player2)}</p>
               </div>
 
-              {/* Photo */}
-              {player2.xtData?.photourl || player2.photo ? (
-                <img
-                  src={player2.xtData?.photourl || player2.photo || undefined}
-                  alt={formatPlayerName(player2.name)}
-                  className={`w-28 h-32 ${themeClasses.playerImage}`}
-                />
-              ) : (
-                <div className="w-28 h-32 rounded-xl flex items-center justify-center font-bold text-3xl shadow-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white">
-                  {formatPlayerName(player2.name).split(' ').map((n: string) => n.charAt(0)).join('')}
-                </div>
-              )}
-            </div>
-
-            {/* Current Record */}
-            <div className="mb-6 text-right">
-              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Current Record</p>
-              <p className={`text-lg font-semibold ${theme.colors.textPrimary}`}>
-                {player2Record.wins}-{player2Record.losses} {player2Record.spread >= 0 ? '+' : ''}{player2Record.spread}, {player2Position}{getOrdinalSuffix(player2Position)} Place
-              </p>
+              {/* Current Record */}
+              <div className="text-right">
+                <p className={`${themeClasses.overlay.statLabel} mb-1`}>Current Record</p>
+                <p className={themeClasses.overlay.statValue}>
+                  {player2Record.wins}-{player2Record.losses} {player2Record.spread >= 0 ? '+' : ''}{player2Record.spread}, {player2Position}{getOrdinalSuffix(player2Position)} Place
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -325,9 +328,9 @@ const renderCareerH2H = (
           <div className="flex justify-center">
             {/* Latest Games Table */}
             <div className="w-full" style={{maxWidth: '56rem'}}>
-              <h3 className={`text-sm ${getPageTextColor(theme, 'secondary')} uppercase tracking-wider mb-3 text-center font-semibold`}>Latest Games</h3>
+              <h3 className={`${themeClasses.overlay.statLabel} mb-3 text-center`}>Latest Games</h3>
               <div className={`${theme.colors.cardBackground} rounded-xl p-4 border ${theme.colors.primaryBorder} shadow-2xl ${theme.colors.shadowColor}`}>
-                <table className="w-full text-sm table-fixed">
+                <table className={`w-full ${themeClasses.overlay.tableCell} table-fixed`}>
                   <colgroup>
                     <col className="w-[25%]" />
                     <col className="w-[10%]" />
@@ -337,26 +340,32 @@ const renderCareerH2H = (
                   </colgroup>
                   <tbody>
                     {recentGames.map((game: any, index: number) => {
-                      const player1Won = game.player1.playerid === player1.xtid
-                        ? game.player1.score > game.player2.score
-                        : game.player2.score > game.player1.score;
-                      const scores = game.player1.playerid === player1.xtid
-                        ? `${game.player1.score}-${game.player2.score}`
-                        : `${game.player2.score}-${game.player1.score}`;
-                      const winner = player1Won ? 'W' : 'L';
+                      const player1Score = game.player1.playerid === player1.xtid 
+                        ? game.player1.score 
+                        : game.player2.score;
+                      const player2Score = game.player1.playerid === player1.xtid 
+                        ? game.player2.score 
+                        : game.player1.score;
+                      
+                      const isTie = player1Score === player2Score;
+                      const player1Won = !isTie && player1Score > player2Score;
+                      const player1Lost = !isTie && player1Score < player2Score;
+                      
+                      const scores = `${player1Score}-${player2Score}`;
+                      const winner = isTie ? 'T' : (player1Won ? 'W' : 'L');
                       const location = game.tournamentName || game.tourneyname || 'Tournament';
 
                       return (
                         <tr key={index} className={`border-b ${theme.colors.secondaryBorder} last:border-0 ${theme.colors.hoverBackground} transition-colors`}>
-                          <td className={`py-3 px-4 ${theme.colors.textSecondary} text-left`}>{new Date(game.date).toLocaleDateString()}</td>
-                          <td className={`py-3 px-2 text-center font-bold ${player1Won ? theme.colors.positiveColor : theme.colors.neutralColor}`}>
+                          <td className={`py-2 px-4 ${themeClasses.overlay.tableDateLocation} text-left`}>{new Date(game.date).toLocaleDateString()}</td>
+                          <td className={`py-2 px-2 text-center font-bold ${isTie ? 'text-black' : (player1Won ? 'text-red-600' : 'text-blue-600')} text-lg`}>
                             {winner}
                           </td>
-                          <td className={`py-3 px-2 text-center ${theme.colors.textPrimary} font-mono font-bold text-lg`}>{scores}</td>
-                          <td className={`py-3 px-2 text-center font-bold ${!player1Won ? theme.colors.positiveColor : theme.colors.neutralColor}`}>
-                            {player1Won ? 'L' : 'W'}
+                          <td className={`py-2 px-2 text-center ${theme.colors.textPrimary} font-mono font-bold text-xl`}>{scores}</td>
+                          <td className={`py-2 px-2 text-center font-bold ${isTie ? 'text-black' : (player1Lost ? 'text-red-600' : 'text-blue-600')} text-lg`}>
+                            {isTie ? 'T' : (player1Won ? 'L' : 'W')}
                           </td>
-                          <td className={`py-3 px-4 ${theme.colors.textSecondary} text-right`} title={location}>
+                          <td className={`py-2 px-4 ${themeClasses.overlay.tableDateLocation} text-right`} title={location}>
                             <div className="overflow-hidden text-ellipsis whitespace-nowrap">
                               {abbreviateTournamentName(location)}
                             </div>

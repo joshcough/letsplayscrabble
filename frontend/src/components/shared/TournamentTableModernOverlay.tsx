@@ -42,15 +42,15 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
         <div className={`${themeClasses.pageBackground} min-h-screen flex items-center justify-center p-6`}>
       <div className="max-w-7xl w-full">
         <div className="text-center mb-8">
-          <h1 className={`${themeClasses.title} mb-3`}>
+          <h1 className={`text-6xl font-black leading-tight mb-4 ${themeClasses.text}`}>
             {title}
           </h1>
-          <div className={`text-xl ${getPageTextColor(theme, 'secondary')}`}>
+          <div className={`text-3xl font-bold ${getPageTextColor(theme, 'secondary')}`}>
             {tournament.name} {tournament.lexicon} • Division {divisionName}
           </div>
         </div>
         
-        <div className={themeClasses.card}>
+        <div className={`${theme.colors.cardBackground} rounded-2xl px-6 py-3 border-2 ${theme.colors.primaryBorder} shadow-2xl ${theme.colors.shadowColor}`}>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -58,7 +58,7 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
                   {columns.map((column) => (
                     <th
                       key={column.key}
-                      className={`px-4 py-3 ${themeClasses.text} font-black uppercase tracking-wider text-sm ${
+                      className={`px-4 py-2 text-xl font-black uppercase tracking-wider ${themeClasses.text} ${
                         column.key === "name" ? "text-left" : "text-center"
                       }`}
                       style={{
@@ -79,8 +79,8 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
                     {columns.map((column) => (
                       <td
                         key={column.key}
-                        className={`px-4 py-3 ${themeClasses.text} ${
-                          column.key === "name" ? "text-left font-semibold" : "text-center"
+                        className={`px-4 py-2 text-xl font-bold ${themeClasses.text} ${
+                          column.key === "name" ? "text-left" : "text-center"
                         }`}
                       >
                         {column.key === "name" ? (

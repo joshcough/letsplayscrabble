@@ -17,17 +17,17 @@ const ScoringLeadersWithPicsOverlayPage: React.FC<{
       {(theme, themeClasses) => {
         const renderPlayerContent = (player: RankedPlayerStats) => (
           <>
-            <div className={`${theme.colors.textPrimary} text-3xl font-bold text-center mb-2`}>
+            <div className={`${theme.colors.textPrimary} text-5xl font-black text-center mb-3`}>
               {player.averageScoreRounded}
             </div>
 
-            <div className={`${theme.colors.textAccent} text-sm font-semibold text-center mb-1 uppercase tracking-wider`}>
+            <div className={`${theme.colors.textAccent} text-lg font-bold text-center mb-2 uppercase tracking-wider`}>
               Spread
             </div>
 
             <div
-              className={`text-2xl font-bold text-center ${
-                player.spread > 0 ? theme.colors.positiveColor : theme.colors.negativeColor
+              className={`text-4xl font-black text-center ${
+                player.spread > 0 ? 'text-red-600' : player.spread < 0 ? 'text-blue-600' : theme.colors.textPrimary
               }`}
             >
               {formatNumberWithSign(player.spread)}
