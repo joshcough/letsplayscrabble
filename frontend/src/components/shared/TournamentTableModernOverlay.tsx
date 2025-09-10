@@ -42,7 +42,7 @@ export const TournamentTableModernOverlay: React.FC<TournamentTableModernOverlay
         <div className={`${themeClasses.pageBackground} min-h-screen flex items-center justify-center p-6`}>
       <div className="max-w-7xl w-full">
         <div className="text-center mb-8">
-          <h1 className={`text-6xl font-black mb-4 ${themeClasses.text}`}>
+          <h1 className={`text-6xl font-black leading-tight mb-4 ${themeClasses.text}`}>
             {title}
           </h1>
           <div className={`text-3xl font-semibold ${getPageTextColor(theme, 'secondary')}`}>

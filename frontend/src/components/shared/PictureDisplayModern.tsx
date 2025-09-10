@@ -30,7 +30,7 @@ const PictureDisplayModern: React.FC<PictureDisplayModernProps> = ({
         <div className={`${themeClasses.pageBackground} min-h-screen flex items-center justify-center p-6`}>
       <div className="max-w-7xl w-full">
         <div className="text-center mb-8">
-          <h1 className={`text-6xl font-black mb-3 ${theme.name === 'original' ? theme.colors.titleGradient : `text-transparent bg-clip-text ${theme.colors.titleGradient}`}`}>
+          <h1 className={`text-6xl font-black leading-tight mb-4 ${theme.name === 'original' ? theme.colors.titleGradient : `text-transparent bg-clip-text ${theme.colors.titleGradient}`}`}>
             {title}
           </h1>
           <div className={`text-3xl ${getPageTextColor(theme, 'secondary')}`}>
