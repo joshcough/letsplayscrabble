@@ -27,7 +27,7 @@ const ScoringLeadersWithPicsOverlayPage: React.FC<{
 
             <div
               className={`text-4xl font-black text-center ${
-                player.spread > 0 ? theme.colors.positiveColor : theme.colors.negativeColor
+                player.spread > 0 ? 'text-red-600' : player.spread < 0 ? 'text-blue-600' : theme.colors.textPrimary
               }`}
             >
               {formatNumberWithSign(player.spread)}

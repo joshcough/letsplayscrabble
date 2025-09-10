@@ -21,7 +21,7 @@ const StandingsWithPicsOverlayPage: React.FC<{ apiService: ApiService }> = ({
               {player.wins}-{player.losses}
               {player.ties > 0 ? `-${player.ties}` : ""}
             </div>
-            <div className={`text-2xl font-bold ${player.spread > 0 ? theme.colors.positiveColor : theme.colors.negativeColor}`}>
+            <div className={`text-2xl font-bold ${player.spread > 0 ? 'text-red-600' : player.spread < 0 ? 'text-blue-600' : theme.colors.textPrimary}`}>
               {formatNumberWithSign(player.spread)}
             </div>
           </div>
