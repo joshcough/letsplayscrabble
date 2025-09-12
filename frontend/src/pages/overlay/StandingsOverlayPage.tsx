@@ -17,7 +17,6 @@ const StandingsOverlayPage: React.FC<{ apiService: ApiService }> = ({
     { key: "name", label: "Name" },
     { key: "record", label: "Record" },
     { key: "spread", label: "Spread" },
-    { key: "highScore", label: "High" },
   ];
 
   const renderPlayerName = (player: RankedPlayerStats) => player.name;
@@ -39,8 +38,6 @@ const StandingsOverlayPage: React.FC<{ apiService: ApiService }> = ({
             {formatNumberWithSign(player.spread)}
           </span>
         );
-      case "highScore":
-        return <span className={`font-black text-xl ${theme.colors.textPrimary}`}>{player.highScore}</span>;
       default:
         return "";
     }

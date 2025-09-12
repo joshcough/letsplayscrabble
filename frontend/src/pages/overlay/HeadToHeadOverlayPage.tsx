@@ -7,7 +7,7 @@ import {
 import { ApiService } from '../../services/interfaces';
 import { ThemeProvider } from '../../components/shared/ThemeProvider';
 import { Theme } from '../../types/theme';
-import { formatPlayerName, getCurrentRating } from '../../utils/playerUtils';
+import { formatPlayerName } from '../../utils/playerUtils';
 import { getPageTextColor } from '../../utils/themeUtils';
 
 type RouteParams = {
@@ -243,7 +243,6 @@ const renderCareerH2H = (
                       {player1.xtData.city}{player1.xtData.state && `, ${player1.xtData.state}`}
                     </p>
                   )}
-                  <p className={`${themeClasses.overlay.smallMetadata} mt-1`}>Rating: {getCurrentRating(player1)}</p>
                 </div>
               </div>
 
@@ -295,7 +294,6 @@ const renderCareerH2H = (
                       {player2.xtData.city}{player2.xtData.state && `, ${player2.xtData.state}`}
                     </p>
                   )}
-                  <p className={`${themeClasses.overlay.smallMetadata} mt-1`}>Rating: {getCurrentRating(player2)}</p>
                 </div>
 
                 {/* Photo */}

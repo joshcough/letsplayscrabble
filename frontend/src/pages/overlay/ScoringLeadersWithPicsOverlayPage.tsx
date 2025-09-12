@@ -27,15 +27,7 @@ const ScoringLeadersWithPicsOverlayPage: React.FC<{
                 </div>
 
                 <div className={`${theme.colors.textAccent} text-lg font-bold text-center mb-2 uppercase tracking-wider`}>
-                  Spread
-                </div>
-
-                <div
-                  className={`text-4xl font-black text-center ${
-                    player.spread > 0 ? 'text-red-600' : player.spread < 0 ? 'text-blue-600' : theme.colors.textPrimary
-                  }`}
-                >
-                  {formatNumberWithSign(player.spread)}
+                  Avg Points For
                 </div>
               </>
             );

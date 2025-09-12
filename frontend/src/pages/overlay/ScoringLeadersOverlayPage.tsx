@@ -17,8 +17,6 @@ const ScoringLeadersOverlayPage: React.FC<{ apiService: ApiService }> = ({
     { key: "name", label: "Name" },
     { key: "averageScoreRounded", label: "Avg Pts For" },
     { key: "averageOpponentScore", label: "Avg Pts Ag" },
-    { key: "spread", label: "Spread" },
-    { key: "highScore", label: "High" },
   ];
 
   const renderPlayerName = (player: RankedPlayerStats) => player.name;
@@ -31,16 +29,6 @@ const ScoringLeadersOverlayPage: React.FC<{ apiService: ApiService }> = ({
         return <span className={`text-2xl font-mono font-black ${theme.colors.textPrimary}`}>{player.averageScoreRounded}</span>;
       case "averageOpponentScore":
         return <span className={`font-mono font-black text-xl ${theme.colors.textPrimary}`}>{player.averageOpponentScore}</span>;
-      case "spread":
-        return (
-          <span className={`font-black text-2xl ${
-            player.spread > 0 ? 'text-red-600' : player.spread < 0 ? 'text-blue-600' : theme.colors.textPrimary
-          }`}>
-            {formatNumberWithSign(player.spread)}
-          </span>
-        );
-      case "highScore":
-        return <span className={`font-black text-xl ${theme.colors.textPrimary}`}>{player.highScore}</span>;
       default:
         return "";
     }

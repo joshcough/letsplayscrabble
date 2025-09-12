@@ -18,9 +18,6 @@ const RatingGainOverlayPage: React.FC<{ apiService: ApiService }> = ({
     { key: "ratingDiff", label: "Rating +/-" },
     { key: "currentRating", label: "New Rating" },
     { key: "initialRating", label: "Old Rating" },
-    { key: "wins", label: "Wins" },
-    { key: "losses", label: "Losses" },
-    { key: "ties", label: "Ties" },
   ];
 
   const renderPlayerName = (player: RankedPlayerStats) => player.name;
@@ -43,12 +40,6 @@ const RatingGainOverlayPage: React.FC<{ apiService: ApiService }> = ({
         return <span className={`font-mono font-black text-xl ${theme.colors.textPrimary}`}>{player.currentRating}</span>;
       case "initialRating":
         return <span className={`font-mono font-black text-xl ${theme.colors.textPrimary}`}>{player.initialRating}</span>;
-      case "wins":
-        return <span className="text-red-600 font-black text-xl">{player.wins}</span>;
-      case "losses":
-        return <span className="text-blue-600 font-black text-xl">{player.losses}</span>;
-      case "ties":
-        return <span className={`${theme.colors.textPrimary} font-black text-xl`}>{player.ties}</span>;
       default:
         return "";
     }
