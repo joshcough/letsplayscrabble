@@ -1,5 +1,37 @@
 # Changelog
 
+## 2025-09-13 - CrossTables Optimization & Polling Efficiency
+
+### 🚀 **Performance Optimization**
+- **OPTIMIZED**: Tournament polling eliminates wasteful CrossTables API calls
+  - Skip enrichment during polling by passing `skipEnrichment: true` to `loadTournamentFile()`
+  - Only process genuinely new players instead of re-processing existing players every 10 seconds
+  - Reduce CrossTables server load from 39 players processed every 10 seconds to 0 when no new players
+
+### 🔧 **Technical Improvements**
+- **ADDED**: `enrichSpecificPlayers()` method for targeted CrossTables enrichment
+- **ADDED**: `findNewPlayersInFile()` repository method to compare file vs database players
+- **MODIFIED**: `pollingService.ts` to use new player detection instead of missing xtid checking
+- **ENHANCED**: TypeScript type safety with proper type predicates for player filtering
+- **FIXED**: Data conversion errors with better null/undefined checking in `fileToDatabaseConversions.ts`
+
+### 🛠️ **Development Tools**
+- **ADDED**: Alternate port configurations (`dev-alt`, `start-alt`) to avoid development conflicts
+  - Backend: `npm run dev-alt` (port 3002)
+  - Frontend: `npm run start-alt` (port 3003 with API_PORT=3002)
+- **ENHANCED**: Frontend API configuration to use environment variable for API port
+
+### 📊 **Performance Impact**
+- **ELIMINATED**: Unnecessary CrossTables API requests during active tournament polling
+- **MAINTAINED**: Enrichment for initial tournament setup and new player additions
+- **PRESERVED**: Real-time score updates while reducing external API dependencies
+- **IMPROVED**: Tournament lifecycle handling (pre-tournament, during tournament, post-tournament)
+
+### 🎯 **User Experience**
+- **FASTER**: More efficient tournament monitoring with reduced external dependencies
+- **RELIABLE**: Better error handling for malformed player data
+- **SEAMLESS**: Maintains all existing functionality while improving performance
+
 ## 2025-09-10 - Remove "Modern" Transitional Naming from Components
 
 ### 🏗️ **Component Architecture Cleanup**

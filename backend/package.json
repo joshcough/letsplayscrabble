@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node dist/server.js",
     "dev": "ts-node -r tsconfig-paths/register scripts/dev.ts",
+    "dev-alt": "PORT=3002 ts-node -r tsconfig-paths/register scripts/dev.ts",
     "build": "tsc",
     "test": "jest",
     "test:watch": "jest --watch",

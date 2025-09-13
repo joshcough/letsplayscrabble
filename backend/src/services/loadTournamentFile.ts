@@ -6,6 +6,7 @@ import { crossTablesEnrichment } from "./crossTablesEnrichment";
 
 export async function loadTournamentFile(
   source: string,
+  skipEnrichment: boolean = false,
 ): Promise<TournamentData> {
   try {
     let jsContent: string;
@@ -34,11 +35,15 @@ export async function loadTournamentFile(
 
     const tournamentData = data as TournamentData;
     
-    // Enrich with cross-tables data for any players missing xtid
-    console.log(`🔍 LoadTournamentFile: Checking tournament from ${source} for cross-tables enrichment...`);
-    const enrichedData = await crossTablesEnrichment.enrichTournamentWithCrossTablesData(tournamentData);
-    
-    return enrichedData;
+    if (!skipEnrichment) {
+      // Enrich with cross-tables data for any players missing xtid
+      console.log(`🔍 LoadTournamentFile: Checking tournament from ${source} for cross-tables enrichment...`);
+      const enrichedData = await crossTablesEnrichment.enrichTournamentWithCrossTablesData(tournamentData);
+      return enrichedData;
+    } else {
+      console.log(`⏭️ LoadTournamentFile: Skipping enrichment for ${source} (polling mode)`);
+      return tournamentData;
+    }
   } catch (error) {
     console.error("Error loading tournament file:", error);
     throw error;

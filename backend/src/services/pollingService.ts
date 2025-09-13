@@ -12,6 +12,7 @@ import {
 import { convertFileToDatabase } from "./fileToDatabaseConversions";
 import { loadTournamentFile } from "./loadTournamentFile";
 import { CrossTablesSyncService } from "./crossTablesSync";
+import { crossTablesEnrichment } from "./crossTablesEnrichment";
 
 export class TournamentPollingService {
   private isRunning: boolean;
@@ -58,7 +59,7 @@ export class TournamentPollingService {
     const activeTournaments = await this.repo.findActivePollableWithData();
     for (const { tournament, tournamentData } of activeTournaments) {
       try {
-        const newData = await loadTournamentFile(tournamentData.data_url);
+        const newData = await loadTournamentFile(tournamentData.data_url, true);
 
         // Simple string comparison - if the data changed, update it
         if (JSON.stringify(newData) !== JSON.stringify(tournamentData.data)) {
@@ -80,20 +81,6 @@ export class TournamentPollingService {
           } else {
             console.log(`Skipping cross-tables sync for polled tournament ${tournament.id} (score update only)`);
           }
-
-          // Convert file data to database format
-          const createTournamentData = convertFileToDatabase(
-            newData,
-            {
-              name: tournament.name,
-              city: tournament.city,
-              year: tournament.year,
-              lexicon: tournament.lexicon,
-              longFormName: tournament.long_form_name,
-              dataUrl: tournamentData.data_url, // Use tournamentData.data_url, not tournament.data_url
-            },
-            tournament.user_id,
-          );
 
           // Use the new updateTournamentData method instead of updateData
           const update: DB.TournamentUpdate =
@@ -118,6 +105,58 @@ export class TournamentPollingService {
             timestamp: Date.now(),
           };
           this.io.emit("GamesAdded", gamesAddedMessage);
+        } else {
+          // No game data changes, but check if there are new players in the file
+          console.log(`🔍 No game data changes for tournament ${tournament.id}, checking for new players...`);
+          
+          // Check if there are new players in the file that we haven't processed yet
+          const newPlayers = await this.repo.findNewPlayersInFile(tournament.id, newData);
+          if (newPlayers.length > 0) {
+            console.log(`🆕 Found ${newPlayers.length} new players in file for tournament ${tournament.id} - will enrich and add to database`);
+            
+            // Use targeted enrichment for only the new players
+            const enrichedXtids = await crossTablesEnrichment.enrichSpecificPlayers(
+              newPlayers.map(p => ({ name: p.name, seed: p.seed }))
+            );
+            
+            console.log(`🎯 CrossTables enrichment found ${enrichedXtids.size} xtids for new players`);
+            
+            // Need to add these new players to the database with proper tournament conversion
+            // This is more complex - we need to convert the file data and run incremental update
+            const createTournamentData = convertFileToDatabase(
+              newData,
+              {
+                name: tournament.name,
+                city: tournament.city,
+                year: tournament.year,
+                lexicon: tournament.lexicon,
+                longFormName: tournament.long_form_name,
+                dataUrl: tournamentData.data_url,
+              },
+              tournament.user_id,
+            );
+
+            const update: DB.TournamentUpdate = await this.repo.updateTournamentData(
+              tournament.id,
+              tournamentData.data_url,
+              newData,
+            );
+
+            console.log(`✅ Added ${newPlayers.length} new players to tournament ${tournament.id}`);
+            
+            const gamesAddedMessage: GamesAddedMessage = {
+              userId: tournament.user_id,
+              tournamentId: tournament.id,
+              update: {
+                tournament: transformTournamentRowToSummary(tournament),
+                changes: transformGameChangesToDomain(update.changes),
+              },
+              timestamp: Date.now(),
+            };
+            this.io.emit("GamesAdded", gamesAddedMessage);
+          } else {
+            console.log(`✅ No new players found for tournament ${tournament.id} - skipping CrossTables enrichment`);
+          }
         }
       } catch (error) {
         console.error(`Error polling tournament ${tournament.id}:`, error);

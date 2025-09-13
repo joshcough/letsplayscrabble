@@ -640,7 +640,7 @@ export class TournamentRepository {
       existingDivisions.map((d) => [d.position, d.id]),
     );
 
-    // Process each division's games
+    // Process each division's players and games
     for (const divisionData of data.divisions) {
       const divisionId = divisionsByPosition.get(
         divisionData.division.position,
@@ -652,6 +652,14 @@ export class TournamentRepository {
         );
         continue;
       }
+
+      // Update players for this division (needed for CrossTables enrichment persistence)
+      await this.updatePlayersForDivision(
+        trx,
+        tournamentId,
+        divisionId,
+        divisionData.players,
+      );
 
       // Get existing player mappings for this division
       const playerSeedToDbIdMap = await this.getPlayerMappingsForDivision(
@@ -729,6 +737,99 @@ export class TournamentRepository {
     }
 
     return playerSeedToDbIdMap;
+  }
+
+  private async updatePlayersForDivision(
+    trx: Knex.Transaction,
+    tournamentId: number,
+    divisionId: number,
+    players: DB.CreatePlayerRow[],
+  ): Promise<void> {
+    // Update existing players with new data (especially xtid from CrossTables enrichment)
+    console.log(`🔄 TournamentRepository: Updating ${players.length} players for division ${divisionId} in tournament ${tournamentId}`);
+    
+    for (const playerData of players) {
+      if (playerData.xtid) {
+        console.log(`🔄 TournamentRepository: Updating player "${playerData.name}" with xtid ${playerData.xtid}`);
+      }
+      
+      const rowsUpdated = await trx("players")
+        .where("tournament_id", tournamentId)
+        .where("division_id", divisionId)
+        .where("seed", playerData.seed)
+        .update({
+          name: playerData.name,
+          initial_rating: playerData.initial_rating,
+          photo: playerData.photo,
+          etc_data: playerData.etc_data,
+          xtid: playerData.xtid,
+        });
+        
+      if (playerData.xtid && rowsUpdated > 0) {
+        console.log(`✅ TournamentRepository: Updated ${rowsUpdated} rows for player "${playerData.name}" with xtid ${playerData.xtid}`);
+      }
+    }
+    
+    console.log(`✅ TournamentRepository: Finished updating players for division ${divisionId}`);
+  }
+
+  async findNewPlayersInFile(tournamentId: number, fileData: File.TournamentData): Promise<Array<{ name: string; seed: number; divisionName: string }>> {
+    console.log(`🔍 TournamentRepository: Checking for new players in file vs database for tournament ${tournamentId}`);
+    
+    // Get all existing players from database for this tournament
+    const existingPlayers = await knexDb("players")
+      .select("seed", "name")
+      .where("tournament_id", tournamentId);
+    
+    const existingPlayerSeeds = new Set(existingPlayers.map(p => p.seed));
+    console.log(`📊 TournamentRepository: Found ${existingPlayers.length} existing players in database`);
+    
+    // Find players in file who don't exist in database
+    const newPlayers: Array<{ name: string; seed: number; divisionName: string }> = [];
+    
+    for (const [divisionName, division] of Object.entries(fileData.divisions)) {
+      for (const player of division.players) {
+        if (player && !existingPlayerSeeds.has(player.id)) {
+          newPlayers.push({
+            name: player.name,
+            seed: player.id,
+            divisionName: divisionName
+          });
+        }
+      }
+    }
+    
+    console.log(`🆕 TournamentRepository: Found ${newPlayers.length} new players in file:`, newPlayers.map(p => `${p.name} (seed ${p.seed})`));
+    return newPlayers;
+  }
+
+  async updatePlayersWithXtids(tournamentId: number, enrichedXtids: Map<number, number>): Promise<void> {
+    console.log(`🔄 TournamentRepository: Updating ${enrichedXtids.size} players with CrossTables xtids for tournament ${tournamentId}`);
+    
+    if (enrichedXtids.size === 0) {
+      console.log(`✅ TournamentRepository: No xtids to update for tournament ${tournamentId}`);
+      return;
+    }
+    
+    return knexDb.transaction(async (trx) => {
+      for (const [seed, xtid] of enrichedXtids) {
+        console.log(`🔍 TournamentRepository: Updating player with seed ${seed} to xtid ${xtid}`);
+        
+        const rowsUpdated = await trx("players")
+          .where("tournament_id", tournamentId)
+          .where("seed", seed)
+          .whereNull("xtid") // Only update if xtid is currently null
+          .update({ xtid });
+
+        if (rowsUpdated > 0) {
+          console.log(`✅ TournamentRepository: Updated ${rowsUpdated} rows for seed ${seed} with xtid ${xtid}`);
+        } else {
+          console.log(`⚠️ TournamentRepository: No rows updated for seed ${seed} - player may already have xtid or not exist`);
+        }
+      }
+      
+      console.log(`✅ TournamentRepository: Finished updating xtids for tournament ${tournamentId}`);
+    });
   }
 
   private async getPlayerMappingsForDivision(

@@ -2,7 +2,7 @@
 const API_BASE: string =
   process.env.NODE_ENV === "production"
     ? window.location.origin // Use the full origin URL in production
-    : "http://localhost:3001"; // In development, use localhost
+    : `http://localhost:${process.env.REACT_APP_API_PORT || 3001}`; // In development, use localhost with configurable port
 
 export type ApiResponse<T> =
   | { success: true; data: T }

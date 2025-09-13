@@ -32,7 +32,7 @@ export function convertFileToDatabase(
 
       // Convert players for this division
       const players = fileDivision.players
-        .filter((player) => player !== null)
+        .filter((player): player is File.Player => player != null && player.id !== undefined)
         .map((player) => ({
           seed: player.id,
           name: player.name,

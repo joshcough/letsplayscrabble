@@ -31,6 +31,63 @@ class CrossTablesEnrichmentService {
   private cacheTimestamp: number | null = null;
   private readonly CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 
+  async enrichSpecificPlayers(playersToEnrich: Array<{ name: string; seed: number }>): Promise<Map<number, number>> {
+    console.log(`🔍 CrossTablesEnrichment: Enriching ${playersToEnrich.length} specific players who need xtids...`);
+    
+    if (playersToEnrich.length === 0) {
+      console.log('✅ CrossTablesEnrichment: No players need enrichment');
+      return new Map();
+    }
+
+    // Fetch all cross-tables players if needed
+    const allPlayers = await this.getAllCrossTablesPlayers();
+    if (!allPlayers) {
+      console.error('❌ CrossTablesEnrichment: Failed to fetch cross-tables player list');
+      return new Map();
+    }
+
+    console.log(`📋 CrossTablesEnrichment: Loaded ${allPlayers.length} cross-tables players for matching`);
+
+    const enrichedPlayers = new Map<number, number>(); // seed -> xtid
+    let matchedCount = 0;
+    let duplicateCount = 0;
+
+    // Try to match each player
+    for (const { name, seed } of playersToEnrich) {
+      const convertedName = this.convertNameFormat(name);
+      console.log(`🔄 CrossTablesEnrichment: Converting "${name}" to "${convertedName}"`);
+      
+      const matches = this.findPlayerMatches(convertedName, allPlayers);
+      
+      if (matches.length === 0) {
+        console.log(`❌ CrossTablesEnrichment: No matches found for "${convertedName}"`);
+      } else if (matches.length === 1) {
+        const xtid = parseInt(matches[0].playerid);
+        enrichedPlayers.set(seed, xtid);
+        matchedCount++;
+        console.log(`✅ CrossTablesEnrichment: Matched "${convertedName}" (seed ${seed}) to xtid ${xtid}`);
+      } else {
+        duplicateCount++;
+        console.log(`⚠️ CrossTablesEnrichment: Found ${matches.length} matches for "${convertedName}":`, 
+          matches.map(m => `${m.name} (ID: ${m.playerid})`));
+        
+        // Resolve duplicate by fetching detailed data and picking highest rating
+        const resolvedXtid = await this.resolveDuplicateByRating(matches);
+        if (resolvedXtid) {
+          enrichedPlayers.set(seed, resolvedXtid);
+          matchedCount++;
+          console.log(`🏆 CrossTablesEnrichment: Resolved duplicate for "${convertedName}" (seed ${seed}) to xtid ${resolvedXtid} (highest rating)`);
+        } else {
+          console.log(`❌ CrossTablesEnrichment: Failed to resolve duplicate for "${convertedName}"`);
+        }
+      }
+    }
+
+    console.log(`🎊 CrossTablesEnrichment: Specific enrichment complete! Matched: ${matchedCount}, Duplicates resolved: ${duplicateCount}, Total requested: ${playersToEnrich.length}`);
+
+    return enrichedPlayers;
+  }
+
   async enrichTournamentWithCrossTablesData(tournamentData: File.TournamentData): Promise<File.TournamentData> {
     console.log('🔍 CrossTablesEnrichment: Checking tournament for missing xtids...');
     
