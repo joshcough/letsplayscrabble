@@ -155,26 +155,33 @@ export class CrossTablesSyncService {
 
     console.log(`🔗 CrossTablesSync: Updating player xtids for tournament ${tournamentId}...`);
     
-    // Build a map of seed -> xtid from tournament data
-    const seedToXtidMap = new Map<number, number>();
+    // Build a map of name -> xtid by looking up players by name in cross_tables_players
+    const nameToXtidMap = new Map<string, number>();
     
     for (const division of tournamentData.divisions) {
       for (const player of division.players) {
-        if (player?.etc?.xtid && player.id) {
-          seedToXtidMap.set(player.id, player.etc.xtid);
+        if (player?.name && player.id) {
+          // Look up the player by name in cross_tables_players to get the correct xtid
+          const crossTablesPlayer = await this.repo.findByName(player.name);
+          if (crossTablesPlayer) {
+            nameToXtidMap.set(player.name, crossTablesPlayer.cross_tables_id);
+            console.log(`🔗 Mapped ${player.name} (seed ${player.id}) -> xtid ${crossTablesPlayer.cross_tables_id}`);
+          } else {
+            console.log(`⚠️  No CrossTables data found for ${player.name} (seed ${player.id})`);
+          }
         }
       }
     }
     
-    if (seedToXtidMap.size === 0) {
-      console.log('No players with xtids found in tournament data, skipping updates');
+    if (nameToXtidMap.size === 0) {
+      console.log('No players with CrossTables data found, skipping updates');
       return;
     }
     
-    console.log(`🔗 CrossTablesSync: Found ${seedToXtidMap.size} players with xtids to update`);
+    console.log(`🔗 CrossTablesSync: Found ${nameToXtidMap.size} players with xtids to update`);
     
     // Update the tournament player records with their xtids
-    await this.tournamentRepo.updatePlayersWithXtids(tournamentId, seedToXtidMap);
+    await this.tournamentRepo.updatePlayersWithXtidsByName(tournamentId, nameToXtidMap);
     
     console.log(`✅ CrossTablesSync: Updated tournament ${tournamentId} player xtids`);
   }

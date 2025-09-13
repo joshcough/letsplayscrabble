@@ -293,11 +293,75 @@ export function protectedTournamentRoutes(
       );
     });
 
+  const fullRefetchTournament: RequestHandler<TournamentIdParamsDict> =
+    Api.withErrorHandling(async (req, res) => {
+      const { id } = req.params;
+      const userId = req.user!.id;
+      const tournamentId = parseInt(id, 10);
+
+      await Api.withDataOr404(
+        repo.findByIdForUser(tournamentId, userId),
+        res,
+        "Tournament not found",
+        async (tournament) => {
+          await Api.withDataOr404(
+            repo.getTournamentData(tournamentId),
+            res,
+            "Tournament data not found",
+            async (tournamentData) => {
+              const rawData = await loadTournamentFile(tournamentData.data_url);
+              
+              console.log(`🧹 Full refetch tournament ${tournamentId} - clearing all CrossTables data...`);
+              
+              // FIRST: Clear all xtids for this tournament
+              console.log(`🧹 Clearing all player xtids for tournament ${tournamentId}...`);
+              await repo.clearPlayerXtids(tournamentId);
+              
+              // SECOND: Sync CrossTables player data from scratch
+              try {
+                await crossTablesSync.syncPlayersFromTournament(rawData, true);
+                console.log(`CrossTables sync completed successfully for tournament ${tournamentId}`);
+                
+                // THIRD: Update tournament player xtids
+                await crossTablesSync.updateTournamentPlayerXtids(tournamentId, rawData);
+                console.log(`Tournament player xtids updated successfully for tournament ${tournamentId}`);
+              } catch (error) {
+                console.error(`ERROR: Failed to sync CrossTables data for tournament ${tournamentId}:`, error);
+                console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
+                throw new Error('Failed to sync CrossTables data');
+              }
+              
+              // FOURTH: Sync head-to-head data for all divisions
+              try {
+                for (const [divisionIndex, division] of rawData.divisions.entries()) {
+                  const playerIds = crossTablesHeadToHeadService.extractPlayerIdsFromFileDivision(division);
+                  if (playerIds.length > 1) {
+                    console.log(`Syncing H2H data for division ${division.name} (${playerIds.length} players with XT IDs)...`);
+                    await crossTablesHeadToHeadService.syncHeadToHeadDataForPlayers(playerIds);
+                  } else {
+                    console.log(`Skipping H2H sync for division ${division.name} - insufficient players with XT IDs`);
+                  }
+                }
+                console.log(`Head-to-head sync completed successfully for tournament ${tournamentId}`);
+              } catch (error) {
+                console.error(`ERROR: Failed to sync head-to-head data for tournament ${tournamentId}:`, error);
+                console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
+                // Don't throw here - H2H data is supplementary
+              }
+              
+              res.json(Api.success({ message: 'Tournament full refetch completed successfully' }));
+            }
+          );
+        }
+      );
+    });
+
   router.get("/list", getTournamentListForUser);
   router.post("/", createTournament);
   router.put("/:id", updateTournament);
   router.delete("/:id", deleteTournament);
   router.post("/:id/enrich", refetchTournament);
+  router.post("/:id/full-refetch", fullRefetchTournament);
 
   return router;
 }

@@ -14,6 +14,7 @@ import { CrossTablesHeadToHeadRepository } from "./repositories/crossTablesHeadT
 import { TournamentRepository } from "./repositories/tournamentRepository";
 import createAdminRoutes from "./routes/admin";
 import authRoutes from "./routes/auth";
+import { cacheRoutes } from "./routes/cache";
 import createOverlayRoutes from "./routes/overlay";
 import userSettingsRoutes from "./routes/userSettings";
 import { protectedPollingRoutes } from "./routes/tournament/polling";
@@ -173,6 +174,12 @@ app.use(
   "/api/admin",
   requireAuth,
   createAdminRoutes(currentMatchRepository, io),
+);
+
+app.use(
+  "/api/private/cache",
+  requireAuth,
+  cacheRoutes(io),
 );
 
 // Get the project root once

@@ -59,6 +59,8 @@ export interface TournamentService {
 
   // Data refetch operations
   enrichTournament(tournamentId: number): Promise<ApiResponse<{ message: string }>>;
+  clearTournamentCache(): Promise<ApiResponse<{ message: string }>>;
+  fullRefetchTournament(tournamentId: number): Promise<ApiResponse<{ message: string }>>;
 }
 
 // ============================================================================

@@ -63,6 +63,11 @@ export interface AdminPanelUpdate {
   pairingId: number;
 }
 
+export interface CacheCleared {
+  clearedBy: number;
+  timestamp: number;
+}
+
 // Add to BroadcastMessage union
 export type BroadcastMessage =
   // Overlay to Worker
@@ -74,6 +79,7 @@ export type BroadcastMessage =
   | { type: "TOURNAMENT_DATA_INCREMENTAL"; data: TournamentDataIncremental }
   | { type: "TOURNAMENT_DATA_ERROR"; data: TournamentDataError }
   | { type: "ADMIN_PANEL_UPDATE"; data: AdminPanelUpdate }
+  | { type: "CACHE_CLEARED"; data: CacheCleared }
 
   // Worker to WorkerPage - Status Updates
   | { type: "WORKER_STATUS_UPDATE"; data: WorkerStatusUpdate };

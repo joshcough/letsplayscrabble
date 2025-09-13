@@ -207,6 +207,21 @@ export class HttpApiService implements ApiService {
     );
   }
 
+  async fullRefetchTournament(tournamentId: number): Promise<ApiResponse<{ message: string }>> {
+    return await this.fetchWithAuth(
+      `/api/private/tournaments/${tournamentId}/full-refetch`,
+      {
+        method: "POST",
+      },
+    );
+  }
+
+  async clearTournamentCache(): Promise<ApiResponse<{ message: string }>> {
+    return await this.fetchWithAuth("/api/private/cache/clear", {
+      method: "POST",
+    });
+  }
+
   // ============================================================================
   // CURRENT MATCH SERVICE
   // ============================================================================

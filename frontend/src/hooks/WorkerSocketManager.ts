@@ -340,6 +340,25 @@ class WorkerSocketManager {
         this.fetchAndBroadcastTournamentRefresh(data.tournamentId, data.userId);
       }
     });
+
+    this.withDeduplication("cache-clear-requested", (data: any) => {
+      console.log("🧹 Worker received cache-clear-requested:", data);
+      
+      // Clear the tournament cache
+      this.cacheManager.clear();
+      console.log("💾 Worker cleared tournament cache");
+      
+      this.broadcastWebSocketMessage("CacheClearRequested", data);
+      
+      // Broadcast cache clear event for debugging
+      this.broadcastMessage({
+        type: "CACHE_CLEARED",
+        data: {
+          clearedBy: data.userId,
+          timestamp: data.timestamp || Date.now(),
+        },
+      });
+    });
   }
 
   // New method to broadcast incremental tournament updates

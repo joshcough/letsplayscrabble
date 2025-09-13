@@ -46,6 +46,8 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
     useState<Domain.TournamentSummary | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const [isRefetching, setIsRefetching] = useState<boolean>(false);
+  const [isFullRefetching, setIsFullRefetching] = useState<boolean>(false);
+  const [isClearingCache, setIsClearingCache] = useState<boolean>(false);
 
   useEffect(() => {
     if (tournament) {
@@ -256,6 +258,44 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
     }
   };
 
+  const handleFullRefetchTournament = async () => {
+    setIsFullRefetching(true);
+    try {
+      const response = await apiService.fullRefetchTournament(Number(params.id));
+      if (response.success) {
+        // Refresh tournament data after full refetch
+        const freshDataResponse = await apiService.getTournamentSummary(
+          user_id,
+          tournamentId,
+        );
+        if (freshDataResponse.success) {
+          setTournament(freshDataResponse.data);
+        }
+      } else {
+        console.error("Error full refetching tournament:", response.error);
+      }
+    } catch (error) {
+      console.error("Error full refetching tournament:", error);
+    } finally {
+      setIsFullRefetching(false);
+    }
+  };
+
+  const handleClearTournamentCache = async () => {
+    setIsClearingCache(true);
+    try {
+      const response = await apiService.clearTournamentCache();
+      if (response.success) {
+        console.log("Tournament cache cleared successfully");
+      } else {
+        console.error("Error clearing tournament cache:", response.error);
+      }
+    } catch (error) {
+      console.error("Error clearing tournament cache:", error);
+    } finally {
+      setIsClearingCache(false);
+    }
+  };
 
   useEffect(() => {
     const fetchTournamentData = async () => {
@@ -498,6 +538,29 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
                 </div>
               </div>
               
+              {/* Tournament Cache */}
+              <div className="flex mt-4 pt-4 border-t border-gray-200">
+                <span className="text-gray-600 font-medium w-32">
+                  Cache:
+                </span>
+                <div className="flex items-center space-x-4">
+                  <span className="text-gray-600 text-sm">
+                    Clear tournament cache across all browser tabs
+                  </span>
+                  <button
+                    onClick={handleClearTournamentCache}
+                    disabled={isRefetching || isFullRefetching || isClearingCache}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      isClearingCache
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
+                    }`}
+                  >
+                    {isClearingCache ? 'Clearing Cache...' : 'Clear Cache'}
+                  </button>
+                </div>
+              </div>
+              
               {/* CrossTables Data Refetch */}
               <div className="flex mt-4 pt-4 border-t border-gray-200">
                 <span className="text-gray-600 font-medium w-32">
@@ -509,7 +572,7 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
                   </span>
                   <button
                     onClick={handleRefetchTournament}
-                    disabled={isRefetching}
+                    disabled={isRefetching || isFullRefetching}
                     className={`px-3 py-1 text-sm rounded-md transition-colors ${
                       isRefetching
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -517,6 +580,17 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
                     }`}
                   >
                     {isRefetching ? 'Refetching...' : 'Refetch'}
+                  </button>
+                  <button
+                    onClick={handleFullRefetchTournament}
+                    disabled={isRefetching || isFullRefetching}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      isFullRefetching
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-red-50 text-red-600 hover:bg-red-100'
+                    }`}
+                  >
+                    {isFullRefetching ? 'Full Refetching...' : 'Full Refetch'}
                   </button>
                 </div>
               </div>

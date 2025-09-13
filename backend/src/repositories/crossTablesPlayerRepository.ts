@@ -129,6 +129,28 @@ export class CrossTablesPlayerRepository {
     return result || null;
   }
 
+  async findByName(name: string): Promise<CrossTablesPlayerRecord | null> {
+    // First try exact match
+    let result = await knexDb(this.tableName)
+      .where('name', name)
+      .first();
+    
+    if (result) {
+      return result;
+    }
+    
+    // If not found and name is in "Last, First" format, try "First Last" format
+    if (name.includes(', ')) {
+      const [lastName, firstName] = name.split(', ');
+      const alternateFormat = `${firstName} ${lastName}`;
+      result = await knexDb(this.tableName)
+        .where('name', alternateFormat)
+        .first();
+    }
+    
+    return result || null;
+  }
+
   async getPlayers(playerIds: number[]): Promise<CrossTablesPlayerRecord[]> {
     try {
       const result = await knexDb(this.tableName)

@@ -839,6 +839,45 @@ export class TournamentRepository {
     });
   }
 
+  async updatePlayersWithXtidsByName(tournamentId: number, nameToXtidMap: Map<string, number>): Promise<void> {
+    console.log(`🔄 TournamentRepository: Updating ${nameToXtidMap.size} players with CrossTables xtids by name for tournament ${tournamentId}`);
+    
+    if (nameToXtidMap.size === 0) {
+      console.log(`✅ TournamentRepository: No xtids to update for tournament ${tournamentId}`);
+      return;
+    }
+    
+    return knexDb.transaction(async (trx) => {
+      for (const [playerName, xtid] of nameToXtidMap) {
+        console.log(`🔍 TournamentRepository: Updating player ${playerName} to xtid ${xtid}`);
+        
+        const rowsUpdated = await trx("players")
+          .where("tournament_id", tournamentId)
+          .where("name", playerName)
+          .update({ xtid });
+
+        if (rowsUpdated > 0) {
+          console.log(`✅ TournamentRepository: Updated ${rowsUpdated} rows for ${playerName} with xtid ${xtid}`);
+        } else {
+          console.log(`⚠️ TournamentRepository: No rows updated for ${playerName} - player may not exist`);
+        }
+      }
+      
+      console.log(`✅ TournamentRepository: Finished updating xtids by name for tournament ${tournamentId}`);
+    });
+  }
+
+  async clearPlayerXtids(tournamentId: number): Promise<void> {
+    console.log(`🧹 TournamentRepository: Clearing all player xtids for tournament ${tournamentId}`);
+    
+    const rowsUpdated = await knexDb("players")
+      .where("tournament_id", tournamentId)
+      .whereNotNull("xtid")
+      .update({ xtid: null });
+    
+    console.log(`✅ TournamentRepository: Cleared xtids for ${rowsUpdated} players in tournament ${tournamentId}`);
+  }
+
   private async getPlayerMappingsForDivision(
     trx: Knex.Transaction,
     tournamentId: number,
