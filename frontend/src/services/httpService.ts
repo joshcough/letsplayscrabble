@@ -198,6 +198,15 @@ export class HttpApiService implements ApiService {
     );
   }
 
+  async enrichTournament(tournamentId: number): Promise<ApiResponse<{ message: string }>> {
+    return await this.fetchWithAuth(
+      `/api/private/tournaments/${tournamentId}/enrich`,
+      {
+        method: "POST",
+      },
+    );
+  }
+
   // ============================================================================
   // CURRENT MATCH SERVICE
   // ============================================================================

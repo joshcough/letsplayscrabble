@@ -45,6 +45,7 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
   const [editedTournament, setEditedTournament] =
     useState<Domain.TournamentSummary | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
+  const [isRefetching, setIsRefetching] = useState<boolean>(false);
 
   useEffect(() => {
     if (tournament) {
@@ -229,6 +230,29 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
         ...editedTournament,
         transparentBackground: transparent,
       });
+    }
+  };
+
+  const handleRefetchTournament = async () => {
+    setIsRefetching(true);
+    try {
+      const response = await apiService.enrichTournament(Number(params.id));
+      if (response.success) {
+        // Refresh tournament data after refetch
+        const freshDataResponse = await apiService.getTournamentSummary(
+          user_id,
+          tournamentId,
+        );
+        if (freshDataResponse.success) {
+          setTournament(freshDataResponse.data);
+        }
+      } else {
+        console.error("Error refetching tournament:", response.error);
+      }
+    } catch (error) {
+      console.error("Error refetching tournament:", error);
+    } finally {
+      setIsRefetching(false);
     }
   };
 
@@ -471,6 +495,29 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
                       </button>
                     </div>
                   )}
+                </div>
+              </div>
+              
+              {/* CrossTables Data Refetch */}
+              <div className="flex mt-4 pt-4 border-t border-gray-200">
+                <span className="text-gray-600 font-medium w-32">
+                  CrossTables:
+                </span>
+                <div className="flex items-center space-x-4">
+                  <span className="text-gray-600 text-sm">
+                    Update player photos and data from CrossTables
+                  </span>
+                  <button
+                    onClick={handleRefetchTournament}
+                    disabled={isRefetching}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      isRefetching
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-orange-50 text-orange-600 hover:bg-orange-100'
+                    }`}
+                  >
+                    {isRefetching ? 'Refetching...' : 'Refetch'}
+                  </button>
                 </div>
               </div>
               

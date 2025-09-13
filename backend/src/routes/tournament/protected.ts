@@ -216,10 +216,66 @@ export function protectedTournamentRoutes(
     res.json(Api.success(result));
   });
 
+  const refetchTournament: RequestHandler<TournamentIdParamsDict> =
+    Api.withErrorHandling(async (req, res) => {
+      const { id } = req.params;
+      const userId = req.user!.id;
+      const tournamentId = parseInt(id, 10);
+
+      await Api.withDataOr404(
+        repo.findByIdForUser(tournamentId, userId),
+        res,
+        "Tournament not found",
+        async (tournament) => {
+          await Api.withDataOr404(
+            repo.getTournamentData(tournamentId),
+            res,
+            "Tournament data not found",
+            async (tournamentData) => {
+              const rawData = await loadTournamentFile(tournamentData.data_url);
+              
+              console.log(`Refetching tournament ${tournamentId} with CrossTables data...`);
+              
+              // FIRST: Sync CrossTables player data
+              try {
+                await crossTablesSync.syncPlayersFromTournament(rawData, true);
+                console.log(`CrossTables sync completed successfully for tournament ${tournamentId}`);
+              } catch (error) {
+                console.error(`ERROR: Failed to sync CrossTables data for tournament ${tournamentId}:`, error);
+                console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
+                throw new Error('Failed to sync CrossTables data');
+              }
+              
+              // SECOND: Sync head-to-head data for all divisions
+              try {
+                for (const [divisionIndex, division] of rawData.divisions.entries()) {
+                  const playerIds = crossTablesHeadToHeadService.extractPlayerIdsFromFileDivision(division);
+                  if (playerIds.length > 1) {
+                    console.log(`Syncing H2H data for division ${division.name} (${playerIds.length} players with XT IDs)...`);
+                    await crossTablesHeadToHeadService.syncHeadToHeadDataForPlayers(playerIds);
+                  } else {
+                    console.log(`Skipping H2H sync for division ${division.name} - insufficient players with XT IDs`);
+                  }
+                }
+                console.log(`Head-to-head sync completed successfully for tournament ${tournamentId}`);
+              } catch (error) {
+                console.error(`ERROR: Failed to sync head-to-head data for tournament ${tournamentId}:`, error);
+                console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
+                // Don't throw here - H2H data is supplementary
+              }
+              
+              res.json(Api.success({ message: 'Tournament data refetch completed successfully' }));
+            }
+          );
+        }
+      );
+    });
+
   router.get("/list", getTournamentListForUser);
   router.post("/", createTournament);
   router.put("/:id", updateTournament);
   router.delete("/:id", deleteTournament);
+  router.post("/:id/enrich", refetchTournament);
 
   return router;
 }
