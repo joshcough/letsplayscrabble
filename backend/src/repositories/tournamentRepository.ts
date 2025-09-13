@@ -753,17 +753,24 @@ export class TournamentRepository {
         console.log(`🔄 TournamentRepository: Updating player "${playerData.name}" with xtid ${playerData.xtid}`);
       }
       
+      // Build update object, preserving existing xtid if new data doesn't have one
+      const updateData: any = {
+        name: playerData.name,
+        initial_rating: playerData.initial_rating,
+        photo: playerData.photo,
+        etc_data: playerData.etc_data,
+      };
+      
+      // Only update xtid if the new data has one (don't overwrite with null)
+      if (playerData.xtid !== null && playerData.xtid !== undefined) {
+        updateData.xtid = playerData.xtid;
+      }
+      
       const rowsUpdated = await trx("players")
         .where("tournament_id", tournamentId)
         .where("division_id", divisionId)
         .where("seed", playerData.seed)
-        .update({
-          name: playerData.name,
-          initial_rating: playerData.initial_rating,
-          photo: playerData.photo,
-          etc_data: playerData.etc_data,
-          xtid: playerData.xtid,
-        });
+        .update(updateData);
         
       if (playerData.xtid && rowsUpdated > 0) {
         console.log(`✅ TournamentRepository: Updated ${rowsUpdated} rows for player "${playerData.name}" with xtid ${playerData.xtid}`);
