@@ -5,14 +5,39 @@ const baseUrl = "https://scrabbleplayers.org/directors/AA003954/";
 
 export const getTournamentName = (tourney_url: string): string => {
   const suffix = "/html/tourney.js";
-  return tourney_url.slice(baseUrl.length, -suffix.length);
+  // Handle both NASPA URLs and other tournament URLs
+  if (tourney_url.startsWith(baseUrl)) {
+    return tourney_url.slice(baseUrl.length, -suffix.length);
+  }
+  // For non-NASPA URLs, extract the tournament name from the path
+  const match = tourney_url.match(/\/([^\/]+)\/html\/tourney\.js$/);
+  return match ? match[1] : "";
 };
 
 export const getPlayerImageUrl = (
   tourney_url: string,
-  player_photo: string,
+  player_photo: string | undefined,
+  crossTablesPhotoUrl?: string,
 ): string => {
-  return baseUrl + getTournamentName(tourney_url) + "/html/" + player_photo;
+  // First, check if we have a valid photo from the tournament file
+  if (player_photo && player_photo !== "undefined" && player_photo !== "") {
+    // If it's a NASPA tournament URL, construct the full photo URL
+    if (tourney_url.includes("scrabbleplayers.org")) {
+      return baseUrl + getTournamentName(tourney_url) + "/html/" + player_photo;
+    }
+    // For other tournaments, assume photo is a relative path from the tournament directory
+    const tournamentBaseUrl = tourney_url.replace(/\/tourney\.js$/, "");
+    return `${tournamentBaseUrl}/${player_photo}`;
+  }
+  
+  // Fall back to CrossTables photo if available
+  if (crossTablesPhotoUrl && crossTablesPhotoUrl !== "") {
+    return crossTablesPhotoUrl;
+  }
+  
+  // Return a data URI placeholder image if no photo is available
+  // This is a simple gray square with "No Photo" text
+  return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Crect width='150' height='150' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='14' fill='%236b7280'%3ENo Photo%3C/text%3E%3C/svg%3E";
 };
 
 export const formatPlayerName = (name: string): string => {

@@ -1,5 +1,33 @@
 # Changelog
 
+## 2025-09-13 - Photo Overlay Fixes & CrossTables Integration
+
+### 🖼️ **Photo Overlay System**
+- **FIXED**: Picture overlays now handle undefined/missing photos gracefully
+- **ADDED**: CrossTables photo fallback system for player images
+- **IMPROVED**: Tournament URL parsing for both NASPA and external tournament sources
+- **REPLACED**: External placeholder service with inline SVG data URI to eliminate network dependencies
+
+### 🔧 **Technical Improvements**
+- **ENHANCED**: `getPlayerImageUrl()` function with multi-source photo resolution:
+  - Primary: Tournament file photos (when available)
+  - Fallback: CrossTables photos (when player has xtData)
+  - Final: Inline SVG "No Photo" placeholder
+- **ADDED**: `crossTablesPhotoUrl` field to PlayerStats type for CrossTables photo integration
+- **IMPROVED**: URL construction logic to handle non-NASPA tournament formats
+- **FIXED**: Type safety with proper null/undefined checking for photo fields
+
+### 🎯 **User Experience**
+- **ELIMINATED**: Broken image URLs like `https://scrabbleplayers.org/directors/AA003954//html/`
+- **CONSISTENT**: Clean "No Photo" placeholders when images aren't available
+- **RELIABLE**: No more network errors from external placeholder services
+- **FUTURE-READY**: System automatically displays photos when CrossTables enrichment provides them
+
+### 📊 **Data Flow Enhancement**
+- **STREAMLINED**: Domain.Player.xtData.photourl → PlayerStats.crossTablesPhotoUrl → PictureDisplay
+- **MAINTAINED**: Backward compatibility with existing tournament photo systems
+- **PREPARED**: Infrastructure ready for CrossTables photo integration
+
 ## 2025-09-13 - CrossTables Optimization & Polling Efficiency
 
 ### 🚀 **Performance Optimization**

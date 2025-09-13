@@ -32,4 +32,5 @@ export interface PlayerStats {
   rankOrdinal?: string;
   etc: Etc; // Use file format since that's what's stored in DB
   photo: string;
+  crossTablesPhotoUrl?: string;
 }

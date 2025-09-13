@@ -245,6 +245,7 @@ function calculatePlayerStatsFromGames(
       p12: [], // Empty for now during domain model migration
     },
     photo: player.photo || "", // Convert null to empty string
+    crossTablesPhotoUrl: player.xtData?.photourl,
   };
 }
 

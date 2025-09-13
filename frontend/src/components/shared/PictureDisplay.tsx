@@ -53,9 +53,13 @@ const PictureDisplay: React.FC<PictureDisplayProps> = ({
                 {/* Player Image */}
                 <div className={`w-36 h-36 rounded-2xl overflow-hidden border-2 ${theme.colors.primaryBorder} ${theme.colors.cardBackground} shadow-xl`}>
                   <img
-                    src={getPlayerImageUrl(tournament.dataUrl, player.photo)}
+                    src={getPlayerImageUrl(tournament.dataUrl, player.photo, player.crossTablesPhotoUrl)}
                     alt={player.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // If image fails to load, use data URI placeholder
+                      (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Crect width='150' height='150' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='14' fill='%236b7280'%3ENo Photo%3C/text%3E%3C/svg%3E";
+                    }}
                   />
                 </div>
               </div>
