@@ -84,10 +84,10 @@ const io = new SocketIOServer(server, {
 });
 
 const crossTablesPlayerRepository = new CrossTablesPlayerRepository();
-const crossTablesSyncService = new CrossTablesSyncService(crossTablesPlayerRepository);
 const crossTablesHeadToHeadRepository = new CrossTablesHeadToHeadRepository();
 const crossTablesHeadToHeadService = new CrossTablesHeadToHeadService(crossTablesHeadToHeadRepository);
 const tournamentRepository = new TournamentRepository(crossTablesHeadToHeadService);
+const crossTablesSyncService = new CrossTablesSyncService(crossTablesPlayerRepository, tournamentRepository);
 const currentMatchRepository = new CurrentMatchRepository(pool);
 const pollingService = new TournamentPollingService(tournamentRepository, crossTablesSyncService, io);
 const pingService = new PingService(io);

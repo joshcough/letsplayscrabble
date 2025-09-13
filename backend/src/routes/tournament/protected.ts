@@ -80,6 +80,15 @@ export function protectedTournamentRoutes(
     // Create tournament - foreign keys will be valid now
     const tournament = await repo.create(createTournamentData);
     
+    // FOURTH: Update tournament player xtids to link with CrossTables data
+    try {
+      await crossTablesSync.updateTournamentPlayerXtids(tournament.id, rawData);
+      console.log(`Tournament player xtids updated successfully for tournament ${tournament.id}`);
+    } catch (error) {
+      console.error(`ERROR: Failed to update tournament player xtids for tournament ${tournament.id}:`, error);
+      // Don't fail tournament creation for this
+    }
+    
     res.status(201).json(Api.success(tournament));
   });
 
@@ -164,6 +173,15 @@ export function protectedTournamentRoutes(
                   convertFileToDatabase(newData, metadata, userId),
                 );
               
+              // Update tournament player xtids to link with CrossTables data
+              try {
+                await crossTablesSync.updateTournamentPlayerXtids(tournamentId, newData);
+                console.log(`Tournament player xtids updated successfully for tournament ${tournamentId} after update`);
+              } catch (error) {
+                console.error(`ERROR: Failed to update tournament player xtids for tournament ${tournamentId}:`, error);
+                // Don't fail tournament update for this
+              }
+              
               // Check for theme changes and broadcast via websocket
               if (oldTheme !== newTheme && newTheme) {
                 console.log(`🎨 Tournament ${tournamentId} theme changed from ${oldTheme || 'default'} to ${newTheme}`);
@@ -240,6 +258,10 @@ export function protectedTournamentRoutes(
               try {
                 await crossTablesSync.syncPlayersFromTournament(rawData, true);
                 console.log(`CrossTables sync completed successfully for tournament ${tournamentId}`);
+                
+                // SECOND: Update tournament player xtids
+                await crossTablesSync.updateTournamentPlayerXtids(tournamentId, rawData);
+                console.log(`Tournament player xtids updated successfully for tournament ${tournamentId}`);
               } catch (error) {
                 console.error(`ERROR: Failed to sync CrossTables data for tournament ${tournamentId}:`, error);
                 console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');

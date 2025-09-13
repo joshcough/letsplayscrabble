@@ -1,10 +1,14 @@
 import { CrossTablesPlayer, DetailedCrossTablesPlayer } from '@shared/types/domain';
 import { CrossTablesClient } from './crossTablesClient';
 import { CrossTablesPlayerRepository } from '../repositories/crossTablesPlayerRepository';
+import { TournamentRepository } from '../repositories/tournamentRepository';
 import { TournamentData } from '../types/scrabbleFileFormat';
 
 export class CrossTablesSyncService {
-  constructor(private readonly repo: CrossTablesPlayerRepository) {}
+  constructor(
+    private readonly repo: CrossTablesPlayerRepository,
+    private readonly tournamentRepo?: TournamentRepository
+  ) {}
 
   /**
    * Syncs cross-tables player data for all players in a tournament
@@ -137,6 +141,42 @@ export class CrossTablesSyncService {
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Updates tournament player records with their CrossTables IDs after sync
+   * This enables the API to join players with their CrossTables data for overlays
+   */
+  async updateTournamentPlayerXtids(tournamentId: number, tournamentData: TournamentData): Promise<void> {
+    if (!this.tournamentRepo) {
+      console.log('No tournament repository available, skipping player xtid updates');
+      return;
+    }
+
+    console.log(`🔗 CrossTablesSync: Updating player xtids for tournament ${tournamentId}...`);
+    
+    // Build a map of seed -> xtid from tournament data
+    const seedToXtidMap = new Map<number, number>();
+    
+    for (const division of tournamentData.divisions) {
+      for (const player of division.players) {
+        if (player?.etc?.xtid && player.id) {
+          seedToXtidMap.set(player.id, player.etc.xtid);
+        }
+      }
+    }
+    
+    if (seedToXtidMap.size === 0) {
+      console.log('No players with xtids found in tournament data, skipping updates');
+      return;
+    }
+    
+    console.log(`🔗 CrossTablesSync: Found ${seedToXtidMap.size} players with xtids to update`);
+    
+    // Update the tournament player records with their xtids
+    await this.tournamentRepo.updatePlayersWithXtids(tournamentId, seedToXtidMap);
+    
+    console.log(`✅ CrossTablesSync: Updated tournament ${tournamentId} player xtids`);
   }
 
   async syncSpecificPlayers(playerIds: number[]): Promise<void> {
