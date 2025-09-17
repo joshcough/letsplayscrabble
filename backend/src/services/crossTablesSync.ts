@@ -191,6 +191,14 @@ export class CrossTablesSyncService {
     await this.fetchAndStorePlayerData(playerIds);
   }
 
+  async syncTournamentWithCrossTablesData(tournamentData: TournamentData): Promise<TournamentData> {
+    // This method provides the same interface as the old enrichment service
+    // but uses the new sync approach. For now, just return the data as-is
+    // since the sync happens in the background via syncPlayersFromTournament
+    console.log('CrossTables sync: syncTournamentWithCrossTablesData called (no-op - sync handled separately)');
+    return tournamentData;
+  }
+
   async syncDetailedPlayerData(playerIds: number[]): Promise<void> {
     console.log(`Syncing detailed data for ${playerIds.length} players...`);
     
@@ -218,3 +226,8 @@ export class CrossTablesSyncService {
     }
   }
 }
+
+// Global export for compatibility with loadTournamentFile
+export const crossTablesSync = new CrossTablesSyncService(
+  new (require('../repositories/crossTablesPlayerRepository').CrossTablesPlayerRepository)()
+);

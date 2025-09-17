@@ -58,7 +58,7 @@ export interface TournamentService {
   disablePolling(tournamentId: number): Promise<ApiResponse<void>>;
 
   // Data refetch operations
-  enrichTournament(tournamentId: number): Promise<ApiResponse<{ message: string }>>;
+  refetchTournament(tournamentId: number): Promise<ApiResponse<{ message: string }>>;
   clearTournamentCache(): Promise<ApiResponse<{ message: string }>>;
   fullRefetchTournament(tournamentId: number): Promise<ApiResponse<{ message: string }>>;
 }

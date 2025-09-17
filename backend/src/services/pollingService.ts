@@ -12,7 +12,7 @@ import {
 import { convertFileToDatabase } from "./fileToDatabaseConversions";
 import { loadTournamentFile } from "./loadTournamentFile";
 import { CrossTablesSyncService } from "./crossTablesSync";
-import { crossTablesEnrichment } from "./crossTablesEnrichment";
+import { crossTablesSync } from "./crossTablesSync";
 
 export class TournamentPollingService {
   private isRunning: boolean;
@@ -112,14 +112,24 @@ export class TournamentPollingService {
           // Check if there are new players in the file that we haven't processed yet
           const newPlayers = await this.repo.findNewPlayersInFile(tournament.id, newData);
           if (newPlayers.length > 0) {
-            console.log(`🆕 Found ${newPlayers.length} new players in file for tournament ${tournament.id} - will enrich and add to database`);
+            console.log(`🆕 Found ${newPlayers.length} new players in file for tournament ${tournament.id} - will sync and add to database`);
             
-            // Use targeted enrichment for only the new players
-            const enrichedXtids = await crossTablesEnrichment.enrichSpecificPlayers(
-              newPlayers.map(p => ({ name: p.name, seed: p.seed }))
-            );
-            
-            console.log(`🎯 CrossTables enrichment found ${enrichedXtids.size} xtids for new players`);
+            // Extract cross-tables IDs from new players in the file data for targeted sync
+            const newPlayerXtids: number[] = [];
+            for (const newPlayer of newPlayers) {
+              const division = (newData.divisions as any)[newPlayer.divisionName];
+              const filePlayer = division?.players.find((p: any) => p && p.id === newPlayer.seed);
+              if (filePlayer?.etc?.xtid) {
+                newPlayerXtids.push(filePlayer.etc.xtid);
+              }
+            }
+
+            if (newPlayerXtids.length > 0) {
+              await crossTablesSync.syncSpecificPlayers(newPlayerXtids);
+              console.log(`🎯 CrossTables sync processed ${newPlayerXtids.length} xtids for new players`);
+            } else {
+              console.log(`🔍 No cross-tables IDs found for new players`);
+            }
             
             // Need to add these new players to the database with proper tournament conversion
             // This is more complex - we need to convert the file data and run incremental update
@@ -155,7 +165,7 @@ export class TournamentPollingService {
             };
             this.io.emit("GamesAdded", gamesAddedMessage);
           } else {
-            console.log(`✅ No new players found for tournament ${tournament.id} - skipping CrossTables enrichment`);
+            console.log(`✅ No new players found for tournament ${tournament.id} - skipping CrossTables sync`);
           }
         }
       } catch (error) {

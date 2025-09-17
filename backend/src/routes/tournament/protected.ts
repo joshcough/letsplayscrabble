@@ -360,7 +360,7 @@ export function protectedTournamentRoutes(
   router.post("/", createTournament);
   router.put("/:id", updateTournament);
   router.delete("/:id", deleteTournament);
-  router.post("/:id/enrich", refetchTournament);
+  router.post("/:id/refetch", refetchTournament);
   router.post("/:id/full-refetch", fullRefetchTournament);
 
   return router;
