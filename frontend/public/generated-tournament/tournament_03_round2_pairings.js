@@ -1,134 +1,666 @@
 // 03_round2_pairings
-// Generated: 2025-08-02T18:31:43.694Z
+// Generated: 2025-10-13T12:53:07.070Z
 
 newt = {
-  divisions: [
+  "config": {
+    "event_name": "Tournament (3 Divisions)",
+    "event_date": "October 13, 2025",
+    "max_rounds": 7
+  },
+  "divisions": [
     {
-      name: "A",
-      players: [
+      "name": "A",
+      "players": [
         null,
         {
-          etc: {
-            p12: [2, 1],
+          "etc": {
+            "p12": [
+              1,
+              1
+            ],
+            "newr": [
+              2184
+            ],
+            "xtid": [
+              6003
+            ]
           },
-          id: 1,
-          name: "Josh Cough",
-          pairings: [3, 9],
-          photo: "pix/josh_cough.jpg",
-          rating: 1927,
-          scores: [486],
+          "id": 1,
+          "name": "Nigel Richards:XT006003",
+          "pairings": [
+            2,
+            7
+          ],
+          "photo": "pix/nigel_richards.jpg",
+          "rating": 2170,
+          "scores": [
+            452
+          ]
         },
         {
-          etc: {
-            p12: [2, 1],
+          "etc": {
+            "p12": [
+              2,
+              1
+            ],
+            "newr": [
+              2112
+            ],
+            "xtid": [
+              17589
+            ]
           },
-          id: 2,
-          name: "Will Anderson",
-          pairings: [4, 7],
-          photo: "pix/will_anderson.jpg",
-          rating: 2170,
-          scores: [484],
+          "id": 2,
+          "name": "Joey Krafchick:XT017589",
+          "pairings": [
+            1,
+            8
+          ],
+          "photo": "pix/joey_krafchick.jpg",
+          "rating": 2126,
+          "scores": [
+            422
+          ]
         },
         {
-          etc: {
-            p12: [1, 2],
+          "etc": {
+            "p12": [
+              1,
+              2
+            ],
+            "newr": [
+              2055
+            ],
+            "xtid": [
+              19535
+            ]
           },
-          id: 3,
-          name: "Joel Wapnick",
-          pairings: [1, 10],
-          photo: "pix/joel_wapnick.jpg",
-          rating: 2001,
-          scores: [451],
+          "id": 3,
+          "name": "Will Anderson:XT019535",
+          "pairings": [
+            6,
+            4
+          ],
+          "photo": "pix/will_anderson.jpg",
+          "rating": 2072,
+          "scores": [
+            434
+          ]
         },
         {
-          etc: {
-            p12: [1, 1],
+          "etc": {
+            "p12": [
+              2,
+              1
+            ],
+            "newr": [
+              2071
+            ],
+            "xtid": [
+              20032
+            ]
           },
-          id: 4,
-          name: "David Gibson",
-          pairings: [2, 6],
-          photo: "pix/david_gibson.jpg",
-          rating: 2206,
-          scores: [529],
+          "id": 4,
+          "name": "Jackson Smylie:XT020032",
+          "pairings": [
+            5,
+            3
+          ],
+          "photo": "pix/jackson_smylie.jpg",
+          "rating": 2086,
+          "scores": [
+            483
+          ]
         },
         {
-          etc: {
-            p12: [1, 2],
+          "etc": {
+            "p12": [
+              1,
+              2
+            ],
+            "newr": [
+              2126
+            ],
+            "xtid": [
+              99999
+            ]
           },
-          id: 5,
-          name: "Chris Lipe",
-          pairings: [8, 11],
-          photo: "pix/chris_lipe.jpg",
-          rating: 1918,
-          scores: [507],
+          "id": 5,
+          "name": "Joshua Cough:XT099999",
+          "pairings": [
+            4,
+            6
+          ],
+          "photo": "pix/joshua_cough.jpg",
+          "rating": 2111,
+          "scores": [
+            545
+          ]
         },
         {
-          etc: {
-            p12: [0, 2],
+          "etc": {
+            "p12": [
+              2,
+              1
+            ],
+            "newr": [
+              2059
+            ],
+            "xtid": [
+              6969
+            ]
           },
-          id: 6,
-          name: "Nigel Richards",
-          pairings: [6, 4],
-          photo: "pix/nigel_richards.jpg",
-          rating: 1672,
-          scores: [50],
+          "id": 6,
+          "name": "Nigel Peltier:XT006969",
+          "pairings": [
+            3,
+            5
+          ],
+          "photo": "pix/nigel_peltier.jpg",
+          "rating": 2042,
+          "scores": [
+            518
+          ]
         },
         {
-          etc: {
-            p12: [2, 2],
+          "etc": {
+            "p12": [
+              1,
+              2
+            ],
+            "newr": [
+              1969
+            ],
+            "xtid": [
+              13509
+            ]
           },
-          id: 7,
-          name: "Dave Wiegand",
-          pairings: [11, 2],
-          photo: "pix/dave_wiegand.jpg",
-          rating: 2257,
-          scores: [341],
+          "id": 7,
+          "name": "Cesar Del Solar:XT013509",
+          "pairings": [
+            8,
+            1
+          ],
+          "photo": "pix/cesar_del_solar.jpg",
+          "rating": 1956,
+          "scores": [
+            457
+          ]
         },
         {
-          etc: {
-            p12: [2, 0],
+          "etc": {
+            "p12": [
+              2,
+              2
+            ],
+            "newr": [
+              1888
+            ]
           },
-          id: 8,
-          name: "Joey Mallick",
-          pairings: [5, 8],
-          photo: "pix/joey_mallick.jpg",
-          rating: 1719,
-          scores: [408],
-        },
-        {
-          etc: {
-            p12: [1, 2],
-          },
-          id: 9,
-          name: "Conrad Bassett-Bouchard",
-          pairings: [10, 1],
-          photo: "pix/conrad_bassett_bouchard.jpg",
-          rating: 2165,
-          scores: [421],
-        },
-        {
-          etc: {
-            p12: [2, 1],
-          },
-          id: 10,
-          name: "Jackson Smylie",
-          pairings: [9, 3],
-          photo: "pix/jackson_smylie.jpg",
-          rating: 2092,
-          scores: [398],
-        },
-        {
-          etc: {
-            p12: [1, 1],
-          },
-          id: 11,
-          name: "Matthew Tunnicliffe",
-          pairings: [7, 5],
-          photo: "pix/matthew_tunnicliffe.jpg",
-          rating: 2369,
-          scores: [440],
-        },
+          "id": 8,
+          "name": "Tony Leah",
+          "pairings": [
+            7,
+            2
+          ],
+          "photo": "pix/tony_leah.jpg",
+          "rating": 1901,
+          "scores": [
+            402
+          ]
+        }
       ],
+      "first_out_of_the_money": [],
+      "maxr": 7,
+      "maxrp": 0,
+      "rating_list": "nsa",
+      "rating_system": "nsa2008",
+      "seeds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
     },
-  ],
+    {
+      "name": "B",
+      "players": [
+        null,
+        {
+          "etc": {
+            "p12": [
+              2,
+              1
+            ],
+            "newr": [
+              1382
+            ],
+            "xtid": [
+              28547
+            ]
+          },
+          "id": 1,
+          "name": "Harrison Keyser:XT028547",
+          "pairings": [
+            6,
+            7
+          ],
+          "photo": "pix/harrison_keyser.jpg",
+          "rating": 1366,
+          "scores": [
+            442
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              1
+            ],
+            "newr": [
+              1410
+            ],
+            "xtid": [
+              28524
+            ]
+          },
+          "id": 2,
+          "name": "Craig Bursey:XT028524",
+          "pairings": [
+            5,
+            8
+          ],
+          "photo": "pix/craig_bursey.jpg",
+          "rating": 1427,
+          "scores": [
+            481
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2
+            ],
+            "newr": [
+              1286
+            ],
+            "xtid": [
+              26543
+            ]
+          },
+          "id": 3,
+          "name": "Dave Cameron:XT026543",
+          "pairings": [
+            7,
+            6
+          ],
+          "photo": "pix/dave_cameron.jpg",
+          "rating": 1309,
+          "scores": [
+            401
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              1
+            ],
+            "newr": [
+              1349
+            ],
+            "xtid": [
+              6270
+            ]
+          },
+          "id": 4,
+          "name": "Barbara Amster:XT006270",
+          "pairings": [
+            8,
+            5
+          ],
+          "photo": "pix/barbara_amster.jpg",
+          "rating": 1331,
+          "scores": [
+            454
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              2
+            ],
+            "newr": [
+              1428
+            ],
+            "xtid": [
+              44
+            ]
+          },
+          "id": 5,
+          "name": "Paul Avrin:XT000044",
+          "pairings": [
+            2,
+            4
+          ],
+          "photo": "pix/paul_avrin.jpg",
+          "rating": 1411,
+          "scores": [
+            495
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              1
+            ],
+            "newr": [
+              1353
+            ],
+            "xtid": [
+              80
+            ]
+          },
+          "id": 6,
+          "name": "Carole Denton:XT000080",
+          "pairings": [
+            1,
+            3
+          ],
+          "photo": "pix/carole_denton.jpg",
+          "rating": 1369,
+          "scores": [
+            436
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              2
+            ],
+            "newr": [
+              1161
+            ],
+            "xtid": [
+              168
+            ]
+          },
+          "id": 7,
+          "name": "Cornelia Guest:XT000168",
+          "pairings": [
+            3,
+            1
+          ],
+          "photo": "pix/cornelia_guest.jpg",
+          "rating": 1138,
+          "scores": [
+            414
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2
+            ],
+            "newr": [
+              1347
+            ]
+          },
+          "id": 8,
+          "name": "Glenn Filzer",
+          "pairings": [
+            4,
+            2
+          ],
+          "photo": "pix/glenn_filzer.jpg",
+          "rating": 1365,
+          "scores": [
+            430
+          ]
+        }
+      ],
+      "first_out_of_the_money": [],
+      "maxr": 7,
+      "maxrp": 0,
+      "rating_list": "nsa",
+      "rating_system": "nsa2008",
+      "seeds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "name": "C",
+      "players": [
+        null,
+        {
+          "etc": {
+            "p12": [
+              2,
+              2
+            ],
+            "newr": [
+              654
+            ],
+            "xtid": [
+              28446
+            ]
+          },
+          "id": 1,
+          "name": "Nora Gilday:XT028446",
+          "pairings": [
+            7,
+            8
+          ],
+          "photo": "pix/nora_gilday.jpg",
+          "rating": 630,
+          "scores": [
+            354
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              2
+            ],
+            "newr": [
+              528
+            ],
+            "xtid": [
+              28857
+            ]
+          },
+          "id": 2,
+          "name": "Ignacio Mirabal:XT028857",
+          "pairings": [
+            6,
+            3
+          ],
+          "photo": "pix/ignacio_mirabal.jpg",
+          "rating": 510,
+          "scores": [
+            481
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              1
+            ],
+            "newr": [
+              981
+            ],
+            "xtid": [
+              25383
+            ]
+          },
+          "id": 3,
+          "name": "Andrew Rosen:XT025383",
+          "pairings": [
+            4,
+            2
+          ],
+          "photo": "pix/andrew_rosen.jpg",
+          "rating": 962,
+          "scores": [
+            475
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              1
+            ],
+            "newr": [
+              1013
+            ],
+            "xtid": [
+              20151
+            ]
+          },
+          "id": 4,
+          "name": "Jennifer Deglopper:XT020151",
+          "pairings": [
+            3,
+            6
+          ],
+          "photo": "pix/jennifer_deglopper.jpg",
+          "rating": 1032,
+          "scores": [
+            346
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              1
+            ],
+            "newr": [
+              1019
+            ],
+            "xtid": [
+              914
+            ]
+          },
+          "id": 5,
+          "name": "Greg Graf:XT000914",
+          "pairings": [
+            8,
+            7
+          ],
+          "photo": "pix/greg_graf.jpg",
+          "rating": 1034,
+          "scores": [
+            375
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2
+            ],
+            "newr": [
+              536
+            ],
+            "xtid": [
+              26228
+            ]
+          },
+          "id": 6,
+          "name": "Rick Reimer:XT026228",
+          "pairings": [
+            2,
+            4
+          ],
+          "photo": "pix/rick_reimer.jpg",
+          "rating": 554,
+          "scores": [
+            437
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2
+            ],
+            "newr": [
+              795
+            ],
+            "xtid": [
+              28138
+            ]
+          },
+          "id": 7,
+          "name": "Kevin Bohannon:XT028138",
+          "pairings": [
+            1,
+            5
+          ],
+          "photo": "pix/kevin_bohannon.jpg",
+          "rating": 819,
+          "scores": [
+            341
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              1
+            ],
+            "newr": [
+              1077
+            ]
+          },
+          "id": 8,
+          "name": "Ronda Roberts",
+          "pairings": [
+            5,
+            1
+          ],
+          "photo": "pix/ronda_roberts.jpg",
+          "rating": 1062,
+          "scores": [
+            387
+          ]
+        }
+      ],
+      "first_out_of_the_money": [],
+      "maxr": 7,
+      "maxrp": 0,
+      "rating_list": "nsa",
+      "rating_system": "nsa2008",
+      "seeds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    }
+  ]
 };

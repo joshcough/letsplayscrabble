@@ -3,6 +3,7 @@ import { CrossTablesClient } from './crossTablesClient';
 import { CrossTablesPlayerRepository } from '../repositories/crossTablesPlayerRepository';
 import { TournamentRepository } from '../repositories/tournamentRepository';
 import { TournamentData } from '../types/scrabbleFileFormat';
+import { extractXtidFromEtc, stripXtidFromPlayerName } from '../utils/xtidHelpers';
 
 export class CrossTablesSyncService {
   constructor(
@@ -12,45 +13,62 @@ export class CrossTablesSyncService {
 
   /**
    * Syncs cross-tables player data for all players in a tournament
-   * 
-   * How it works:
-   * 1. Scans tournament data for cross-tables IDs (from player.etc.xtid fields)
-   * 2. Checks which players we already have in our cross_tables_players table
-   * 3. Only fetches missing players from cross-tables.com API (incremental sync)
+   *
+   * Optimized approach:
+   * 1. Separates players with embedded xtids from players without xtids
+   * 2. For players without xtids: uses bulk CrossTables lookup to find their IDs by name
+   * 3. Only fetches full profile data for newly discovered xtids (avoids redundant API calls)
    * 4. Stores fetched data in cross_tables_players table for future overlay use
    * 5. Optionally fetches detailed tournament history for enhanced overlays
-   * 
+   *
    * This allows OBS overlays to join tournament players with rich cross-tables data
-   * (ratings, rankings, stats, location, etc.) without hitting the API during broadcasts.
-   * 
+   * without making unnecessary API calls for players whose xtids we already have.
+   *
    * Called when:
    * - New tournament is created
-   * - Tournament file is manually updated  
+   * - Tournament file is manually updated
    * - Polling service detects tournament changes
    */
   async syncPlayersFromTournament(tournamentData: TournamentData, includeDetailedData: boolean = false): Promise<void> {
-    console.log('Starting cross-tables player sync for tournament...');
-    
-    // Step 1: Extract all cross-tables IDs from tournament player data
-    const crossTablesIds = this.extractCrossTablesIds(tournamentData);
-    
-    if (crossTablesIds.length === 0) {
-      console.log('No cross-tables IDs found in tournament data');
+    console.log('🔄 Starting optimized cross-tables player sync for tournament...');
+
+    // Step 1: Analyze tournament data to separate embedded vs. missing xtids
+    const analysis = this.analyzeTournamentPlayers(tournamentData);
+
+    if (analysis.embeddedXtids.length === 0 && analysis.playersWithoutXtids.length === 0) {
+      console.log('✅ No players need cross-tables sync');
       return;
     }
 
-    console.log(`Found ${crossTablesIds.length} cross-tables IDs in tournament:`, crossTablesIds);
-    
-    // Step 2-4: Only fetch players we don't already have (incremental sync)
-    await this.ensureGlobalPlayersExist(crossTablesIds);
-    
-    // Step 5: Optionally fetch detailed tournament history
-    if (includeDetailedData) {
-      console.log('Fetching detailed tournament history for enhanced overlays...');
-      await this.syncDetailedPlayerData(crossTablesIds);
+    console.log(`📊 Tournament analysis: ${analysis.embeddedXtids.length} embedded xtids, ${analysis.playersWithoutXtids.length} players without xtids`);
+
+    let allDiscoveredXtids = [...analysis.embeddedXtids];
+
+    // Step 2: For players without embedded xtids, discover their xtids via bulk lookup
+    if (analysis.playersWithoutXtids.length > 0) {
+      console.log('🔍 Looking up xtids for players without embedded data...');
+      const discoveredXtids = await this.discoverXtidsForPlayers(analysis.playersWithoutXtids);
+      allDiscoveredXtids.push(...discoveredXtids);
+      console.log(`✅ Discovered ${discoveredXtids.length} additional xtids from name matching`);
     }
-    
-    console.log('Cross-tables player sync completed');
+
+    if (allDiscoveredXtids.length === 0) {
+      console.log('⚠️ No cross-tables IDs found after lookup');
+      return;
+    }
+
+    console.log(`🎯 Total xtids for sync: ${allDiscoveredXtids.length}`);
+
+    // Step 3: Only fetch profile data for xtids we haven't processed before
+    await this.ensureGlobalPlayersExist(allDiscoveredXtids);
+
+    // Step 4: Optionally fetch detailed tournament history
+    if (includeDetailedData) {
+      console.log('📈 Fetching detailed tournament history for enhanced overlays...');
+      await this.syncDetailedPlayerData(allDiscoveredXtids);
+    }
+
+    console.log('✅ Optimized cross-tables player sync completed');
   }
 
   async ensureGlobalPlayersExist(crossTablesIds: number[]): Promise<void> {
@@ -67,18 +85,92 @@ export class CrossTablesSyncService {
     }
   }
 
-  private extractCrossTablesIds(tournamentData: TournamentData): number[] {
-    const ids = new Set<number>();
-    
+  private analyzeTournamentPlayers(tournamentData: TournamentData): {
+    embeddedXtids: number[];
+    playersWithoutXtids: { name: string; cleanName: string }[];
+  } {
+    const embeddedXtids = new Set<number>();
+    const playersWithoutXtids: { name: string; cleanName: string }[] = [];
+
     for (const division of tournamentData.divisions) {
       for (const player of division.players) {
-        if (player?.etc?.xtid) {
-          ids.add(player.etc.xtid);
+        if (!player) continue;
+
+        const xtid = extractXtidFromEtc(player.etc?.xtid);
+        if (xtid !== null) {
+          // Player has embedded xtid
+          embeddedXtids.add(xtid);
+          console.log(`📌 Found embedded xtid ${xtid} for player "${player.name}"`);
+        } else {
+          // Player needs xtid lookup by name
+          const cleanName = stripXtidFromPlayerName(player.name);
+          playersWithoutXtids.push({ name: player.name, cleanName });
+          console.log(`🔍 Player "${player.name}" needs xtid lookup`);
         }
       }
     }
-    
-    return Array.from(ids);
+
+    return {
+      embeddedXtids: Array.from(embeddedXtids),
+      playersWithoutXtids
+    };
+  }
+
+  private async discoverXtidsForPlayers(players: { name: string; cleanName: string }[]): Promise<number[]> {
+    console.log('🌐 Fetching complete CrossTables player list for name matching...');
+
+    try {
+      const allPlayers = await CrossTablesClient.getAllPlayersIdsOnly();
+      console.log(`📋 Loaded ${allPlayers.length} players from CrossTables for matching`);
+
+      const discoveredXtids: number[] = [];
+
+      for (const { name, cleanName } of players) {
+        // Convert name format: "Last, First" → "First Last"
+        const convertedName = this.convertNameFormat(cleanName);
+        console.log(`🔄 Converting "${cleanName}" to "${convertedName}" for matching`);
+
+        const matches = this.findPlayerMatches(convertedName, allPlayers);
+
+        if (matches.length === 1) {
+          const xtid = parseInt(matches[0].playerid);
+          discoveredXtids.push(xtid);
+          console.log(`✅ Matched "${convertedName}" to xtid ${xtid}`);
+        } else if (matches.length === 0) {
+          console.log(`❌ No matches found for "${convertedName}"`);
+        } else {
+          console.log(`⚠️ Found ${matches.length} matches for "${convertedName}" - skipping ambiguous match`);
+        }
+      }
+
+      return discoveredXtids;
+    } catch (error) {
+      console.error('❌ Failed to discover xtids:', error);
+      return [];
+    }
+  }
+
+  private convertNameFormat(name: string): string {
+    // Convert "Last, First" to "First Last"
+    if (name.includes(', ')) {
+      const [last, first] = name.split(', ');
+      return `${first.trim()} ${last.trim()}`;
+    }
+    return name; // Already in "First Last" format
+  }
+
+  private findPlayerMatches(convertedName: string, allPlayers: {playerid: string, name: string}[]): {playerid: string, name: string}[] {
+    // Exact match first
+    const exactMatches = allPlayers.filter(p => p.name === convertedName);
+    if (exactMatches.length > 0) {
+      return exactMatches;
+    }
+
+    // Case-insensitive match
+    const caseInsensitiveMatches = allPlayers.filter(
+      p => p.name.toLowerCase() === convertedName.toLowerCase()
+    );
+    return caseInsensitiveMatches;
   }
 
   private async fetchAndStorePlayerData(playerIds: number[]): Promise<void> {

@@ -66,7 +66,7 @@ export function protectedTournamentRoutes(
     }
     
     // Convert to database format
-    const createTournamentData = convertFileToDatabase(
+    const createTournamentData = await convertFileToDatabase(
       rawData,
       metadata,
       userId,
@@ -170,7 +170,7 @@ export function protectedTournamentRoutes(
                   tournamentId,
                   userId,
                   metadata,
-                  convertFileToDatabase(newData, metadata, userId),
+                  await convertFileToDatabase(newData, metadata, userId),
                 );
               
               // Update tournament player xtids to link with CrossTables data

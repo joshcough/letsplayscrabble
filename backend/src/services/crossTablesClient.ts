@@ -77,4 +77,16 @@ export class CrossTablesClient {
       return [];
     }
   }
+
+  static async getAllPlayersIdsOnly(): Promise<{playerid: string, name: string}[]> {
+    try {
+      const response = await axios.get<{ players: {playerid: string, name: string}[] }>(
+        `${this.BASE_URL}/players.php?idsonly=1`
+      );
+      return response.data.players || [];
+    } catch (error) {
+      console.error('Failed to fetch all players from cross-tables:', error);
+      return [];
+    }
+  }
 }

@@ -193,7 +193,7 @@ export class TournamentRepository {
       }
 
       // Convert file data to database format for incremental updates
-      const createTournamentData = convertFileToDatabase(
+      const createTournamentData = await convertFileToDatabase(
         newData,
         {
           name: tournament.name,

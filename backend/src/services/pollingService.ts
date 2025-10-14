@@ -133,7 +133,7 @@ export class TournamentPollingService {
             
             // Need to add these new players to the database with proper tournament conversion
             // This is more complex - we need to convert the file data and run incremental update
-            const createTournamentData = convertFileToDatabase(
+            const createTournamentData = await convertFileToDatabase(
               newData,
               {
                 name: tournament.name,

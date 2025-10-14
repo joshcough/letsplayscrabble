@@ -25,7 +25,6 @@ import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOve
 import MiscOverlayPage from "./pages/overlay/MiscOverlayPage";
 import MiscOverlayTestingPage from "./pages/overlay/MiscOverlayTestingPage";
 import OverlaysPage from "./pages/overlay/OverlaysPage";
-import PingOverlayPage from "./pages/overlay/PingOverlayPage";
 import PlayerOverlay from "./pages/overlay/PlayerOverlayPage";
 import RatingGainOverlayPage from "./pages/overlay/RatingGainOverlayPage";
 import RatingGainWithPicsOverlayPage from "./pages/overlay/RatingGainWithPicsOverlayPage";
@@ -103,10 +102,6 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
         />
         
         {/* User-scoped overlay routes */}
-        <Route
-          path="/users/:userId/overlay/ping"
-          element={<PingOverlayPage apiService={apiService} />}
-        />
         <Route
           path="/users/:userId/overlay/misc"
           element={<MiscOverlayPage apiService={apiService} />}

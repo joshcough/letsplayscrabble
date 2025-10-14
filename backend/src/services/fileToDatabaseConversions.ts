@@ -1,13 +1,15 @@
 // backend/src/services/fileToDatabaseConversions.ts
 import * as DB from "../types/database";
 import * as File from "../types/scrabbleFileFormat";
+import { stripXtidFromPlayerName, getBestXtid } from "../utils/xtidHelpers";
+import { CrossTablesPlayerRepository } from "../repositories/crossTablesPlayerRepository";
 
 // File Format → Database (complete conversion)
-export function convertFileToDatabase(
+export async function convertFileToDatabase(
   fileData: File.TournamentData,
   metadata: DB.TournamentMetadata,
   userId: number,
-): DB.CreateTournament {
+): Promise<DB.CreateTournament> {
   // Convert tournament metadata
   const tournament = {
     name: metadata.name,
@@ -21,6 +23,30 @@ export function convertFileToDatabase(
     user_id: userId,
   };
 
+  // Get all xtids from the tournament to validate them
+  const allXtids: number[] = [];
+  fileData.divisions.forEach(division => {
+    division.players
+      .filter((player): player is File.Player => player != null && player.id !== undefined)
+      .forEach(player => {
+        const xtid = getBestXtid(player.name, player.etc?.xtid);
+        if (typeof xtid === 'number' && !isNaN(xtid)) {
+          allXtids.push(xtid);
+        }
+      });
+  });
+
+  // Check which xtids exist in the database
+  const validXtids = new Set<number>();
+  if (allXtids.length > 0) {
+    const crossTablesRepo = new CrossTablesPlayerRepository();
+    const existingPlayers = await crossTablesRepo.getPlayers(allXtids);
+    existingPlayers.forEach(player => {
+      validXtids.add(player.cross_tables_id);
+    });
+    console.log(`Validated ${validXtids.size} of ${allXtids.length} xtids from cross_tables_players`);
+  }
+
   // Convert divisions with their players and games
   const divisions: DB.CreateDivisionWithData[] = fileData.divisions.map(
     (fileDivision, divisionIndex) => {
@@ -33,14 +59,30 @@ export function convertFileToDatabase(
       // Convert players for this division
       const players = fileDivision.players
         .filter((player): player is File.Player => player != null && player.id !== undefined)
-        .map((player) => ({
-          seed: player.id,
-          name: player.name,
-          initial_rating: player.rating,
-          photo: player.photo,
-          etc_data: player.etc,
-          xtid: player.etc?.xtid || null,
-        }));
+        .map((player) => {
+          // Extract the best xtid (from etc or name) and clean the name
+          const xtid = getBestXtid(player.name, player.etc?.xtid);
+          const cleanName = stripXtidFromPlayerName(player.name);
+
+          // Only set xtid if it exists in the cross_tables_players table
+          let safeXtid: number | null = null;
+          if (typeof xtid === 'number' && !isNaN(xtid)) {
+            if (validXtids.has(xtid)) {
+              safeXtid = xtid;
+            } else {
+              console.warn(`⚠️ Skipping xtid ${xtid} for player "${cleanName}" - not found in cross_tables_players`);
+            }
+          }
+
+          return {
+            seed: player.id,
+            name: cleanName,
+            initial_rating: player.rating,
+            photo: player.photo,
+            etc_data: player.etc,
+            xtid: safeXtid,
+          };
+        });
 
       // Convert games for this division
       const games: DB.CreateGameRow[] = [];

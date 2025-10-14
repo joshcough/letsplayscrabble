@@ -1,5 +1,36 @@
 # Changelog
 
+## 2025-10-14 - Optimized CrossTables Player Sync & XTID Management
+
+### 🚀 **CrossTables Integration Optimization**
+- **OPTIMIZED**: Player sync now uses bulk API lookup for missing xtids instead of relying solely on embedded data
+- **NEW**: `getAllPlayersIdsOnly()` API method for efficient bulk player lookup from cross-tables.com
+- **NEW**: Helper utilities in `xtidHelpers.ts` for xtid extraction and name cleaning
+- **ENHANCED**: `convertFileToDatabase()` now async and validates xtids against database before setting
+- **IMPROVED**: Player name cleaning - strips embedded xtid tags (e.g., "Player:XT012345" → "Player")
+- **SMART**: Two-phase sync approach - processes embedded xtids first, then performs bulk name matching for players without xtids
+
+### 🔧 **Technical Improvements**
+- **NEW**: `extractXtidFromEtc()` - Handles xtid as number, array, or null/undefined
+- **NEW**: `stripXtidFromPlayerName()` - Removes ":XT######" suffixes from player names
+- **NEW**: `getBestXtid()` - Extracts best xtid from either player name or etc object
+- **ENHANCED**: CrossTables sync now separates players with embedded xtids from those needing lookup
+- **OPTIMIZED**: Only fetches full profile data for newly discovered xtids (avoids redundant API calls)
+- **FIXED**: Head-to-head service now properly handles array-based xtids
+- **VALIDATED**: Only sets player xtids that exist in cross_tables_players table
+
+### 🎯 **Data Flow Enhancement**
+- **STREAMLINED**: Intelligent player analysis separates embedded vs. missing xtids
+- **IMPROVED**: Name format conversion ("Last, First" → "First Last") for CrossTables matching
+- **SMART**: Case-insensitive matching with exact match priority
+- **GRACEFUL**: Falls back safely when players can't be matched or have ambiguous matches
+- **LOGGED**: Detailed console logging for debugging sync operations
+
+### 📊 **Type System Updates**
+- **CHANGED**: `Etc.xtid` now supports `number | number[] | null | undefined` for flexible xtid storage
+- **CHANGED**: `Etc.newr` now optional
+- **ENHANCED**: Better type safety throughout sync services and helper utilities
+
 ## 2025-09-13 - Photo Overlay Fixes & CrossTables Integration
 
 ### 🖼️ **Photo Overlay System**

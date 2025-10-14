@@ -1,5 +1,6 @@
 import * as Domain from "@shared/types/domain";
 import { CrossTablesHeadToHeadRepository } from "../repositories/crossTablesHeadToHeadRepository";
+import { extractXtidFromEtc } from "../utils/xtidHelpers";
 
 export class CrossTablesHeadToHeadService {
   constructor(
@@ -149,9 +150,18 @@ export class CrossTablesHeadToHeadService {
   /**
    * Utility to extract player IDs from a file format division for head-to-head sync
    */
-  extractPlayerIdsFromFileDivision(division: { players: Array<{ etc: { xtid: number | null } } | null> }): number[] {
-    return division.players
-      .filter(player => player && player.etc.xtid !== null) // Only non-null players with cross-tables IDs
-      .map(player => player!.etc.xtid as number);
+  extractPlayerIdsFromFileDivision(division: { players: Array<{ etc: { xtid?: number | number[] | null | undefined } } | null> }): number[] {
+    const ids: number[] = [];
+
+    for (const player of division.players) {
+      if (player?.etc?.xtid) {
+        const xtid = extractXtidFromEtc(player.etc.xtid);
+        if (xtid !== null) {
+          ids.push(xtid);
+        }
+      }
+    }
+
+    return ids;
   }
 }
