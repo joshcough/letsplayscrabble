@@ -6,6 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useThemeContext } from "../../context/ThemeContext";
 import { ApiService } from "../../services/interfaces";
 import { ProtectedPage } from "../ProtectedPage";
+import { formatPlayerNameReverse, getLastName } from "../../utils/playerUtils";
 
 // UI types for transformed dropdown data
 interface PairingOption {
@@ -245,7 +246,68 @@ const AdminInterface: React.FC<{ apiService: ApiService }> = ({
         }
         const tournament = tournamentResponse.data;
         setHierarchicalTournament(tournament);
-        updateDropdownData(tournament);
+
+        // Auto-select first division, round, and pairing
+        if (tournament.divisions && tournament.divisions.length > 0) {
+          const firstDivision = tournament.divisions[0];
+          setSelectedDivision(firstDivision.id.toString());
+
+          // Get rounds from games in the first division
+          if (firstDivision.games && firstDivision.games.length > 0) {
+            const rounds = Array.from(
+              new Set(firstDivision.games.map((game) => game.roundNumber)),
+            ).sort((a, b) => a - b);
+
+            if (rounds.length > 0) {
+              const firstRound = rounds[0];
+              setSelectedRound(firstRound.toString());
+
+              // Update dropdown data first to populate pairings
+              updateDropdownData(tournament, firstDivision.id, firstRound);
+
+              // Get pairings for the first round (after updateDropdownData populates them)
+              const roundGames = firstDivision.games.filter(
+                (game) => game.roundNumber === firstRound,
+              );
+
+              if (roundGames.length > 0) {
+                // Create pairings array using same logic as updateDropdownData
+                const pairings = roundGames.map((game) => {
+                  const player1 = firstDivision.players.find(
+                    (p) => p.id === game.player1Id,
+                  );
+                  const player2 = firstDivision.players.find(
+                    (p) => p.id === game.player2Id,
+                  );
+
+                  return {
+                    pairingId: game.pairingId || 0,
+                    player1Name: player1?.name || "Unknown",
+                    player2Name: game.isBye ? "BYE" : (player2?.name || "Unknown"),
+                  };
+                });
+
+                // Sort pairings the same way as the dropdown (by player1 lastname)
+                const sortedPairings = pairings.sort((a, b) =>
+                  getLastName(a.player1Name).localeCompare(getLastName(b.player1Name))
+                );
+
+                if (sortedPairings.length > 0) {
+                  setSelectedPairing(sortedPairings[0].pairingId);
+                }
+              }
+            } else {
+              // Update dropdown data with just division
+              updateDropdownData(tournament, firstDivision.id);
+            }
+          } else {
+            // Update dropdown data with just division
+            updateDropdownData(tournament, firstDivision.id);
+          }
+        } else {
+          // No divisions available, just update with tournament
+          updateDropdownData(tournament);
+        }
       } catch (error) {
         console.error("Error loading tournament:", error);
         setError("Failed to load tournament data");
@@ -451,10 +513,10 @@ const AdminInterface: React.FC<{ apiService: ApiService }> = ({
               >
                 <option value="">Select Pairing</option>
                 {availablePairings
-                  .sort((a, b) => a.player1Name.localeCompare(b.player1Name))
+                  .sort((a, b) => getLastName(a.player1Name).localeCompare(getLastName(b.player1Name)))
                   .map((pairing) => (
                     <option key={pairing.pairingId} value={pairing.pairingId}>
-                      {pairing.player1Name} vs {pairing.player2Name}
+                      {formatPlayerNameReverse(pairing.player1Name)} vs {formatPlayerNameReverse(pairing.player2Name)}
                     </option>
                   ))}
               </select>

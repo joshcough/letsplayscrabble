@@ -53,6 +53,39 @@ export const formatPlayerName = (name: string): string => {
   return `${firstName} ${lastName}`;
 };
 
+// Convert "FirstName LastName" to "LastName, FirstName" format
+export const formatPlayerNameReverse = (name: string): string => {
+  if (name === "BYE" || name === "Unknown" || name.includes(",")) {
+    return name; // Already in LastName, FirstName format or special case
+  }
+
+  const parts = name.trim().split(' ');
+  if (parts.length === 1) {
+    return name; // Single name, return as-is
+  }
+
+  const lastName = parts[parts.length - 1];
+  const firstName = parts.slice(0, -1).join(' ');
+  return `${lastName}, ${firstName}`;
+};
+
+// Get the last name from a full name for sorting
+export const getLastName = (fullName: string): string => {
+  if (fullName === "BYE" || fullName === "Unknown") {
+    return fullName;
+  }
+
+  // Handle "LastName, FirstName" format
+  if (fullName.includes(",")) {
+    const parts = fullName.split(",").map(part => part.trim());
+    return parts[0]; // First part is the last name
+  }
+
+  // Handle "FirstName LastName" format
+  const parts = fullName.trim().split(' ');
+  return parts[parts.length - 1]; // Last word is the last name
+};
+
 // Helper to format spread with proper sign
 export const formatSpread = (spread: number | undefined): string => {
   if (spread === undefined || spread === null) return "+0";
