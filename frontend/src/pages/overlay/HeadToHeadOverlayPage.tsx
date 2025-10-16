@@ -7,7 +7,7 @@ import {
 import { ApiService } from '../../services/interfaces';
 import { ThemeProvider } from '../../components/shared/ThemeProvider';
 import { Theme } from '../../types/theme';
-import { formatPlayerName } from '../../utils/playerUtils';
+import { formatPlayerName, getPlaceOrSeedLabel } from '../../utils/playerUtils';
 import { getPageTextColor } from '../../utils/themeUtils';
 
 type RouteParams = {
@@ -250,7 +250,7 @@ const renderCareerH2H = (
               <div>
                 <p className={`${themeClasses.overlay.statLabel} mb-1`}>Current Record</p>
                 <p className={themeClasses.overlay.statValue}>
-                  {player1Record.wins}-{player1Record.losses} {player1Record.spread >= 0 ? '+' : ''}{player1Record.spread}, {player1Position}{getOrdinalSuffix(player1Position)} Place
+                  {player1Record.wins}-{player1Record.losses} {player1Record.spread >= 0 ? '+' : ''}{player1Record.spread}, {player1Position}{getOrdinalSuffix(player1Position)} {getPlaceOrSeedLabel(player1Record)}
                 </p>
               </div>
             </div>
@@ -314,7 +314,7 @@ const renderCareerH2H = (
               <div className="text-right">
                 <p className={`${themeClasses.overlay.statLabel} mb-1`}>Current Record</p>
                 <p className={themeClasses.overlay.statValue}>
-                  {player2Record.wins}-{player2Record.losses} {player2Record.spread >= 0 ? '+' : ''}{player2Record.spread}, {player2Position}{getOrdinalSuffix(player2Position)} Place
+                  {player2Record.wins}-{player2Record.losses} {player2Record.spread >= 0 ? '+' : ''}{player2Record.spread}, {player2Position}{getOrdinalSuffix(player2Position)} {getPlaceOrSeedLabel(player2Record)}
                 </p>
               </div>
             </div>

@@ -6,7 +6,7 @@ import { useTournamentData } from "../../hooks/useTournamentData";
 import { ApiService } from "../../services/interfaces";
 import { RankedPlayerStats } from "../../hooks/usePlayerStatsCalculation";
 import * as Stats from "../../types/stats";
-import { formatRecord } from "../../utils/playerUtils";
+import { formatRecord, getPlaceOrSeedLabel } from "../../utils/playerUtils";
 import BroadcastManager from "../../hooks/BroadcastManager";
 import { NotificationData } from "../../types/notifications";
 import { HighScore } from "../notifications/HighScore";
@@ -492,7 +492,7 @@ const GameBoardDisplay: React.FC<{
       <div className="absolute" style={{ top: '536px', left: '400px' }}>
         <div className={`${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-2`} style={{ width: '280px', backgroundColor: '#ffffff', opacity: 1 }}>
           <div className={`${theme.colors.textPrimary} text-sm text-center`}>
-            {player1 ? formatRecord(player1) : ""} | {player1?.rankOrdinal || ""} Place | Rating {player1?.currentRating || ""}
+            {player1 ? formatRecord(player1) : ""} | {player1?.rankOrdinal || ""} {player1 ? getPlaceOrSeedLabel(player1) : 'Place'} | Rating {player1?.currentRating || ""}
           </div>
         </div>
       </div>
@@ -540,7 +540,7 @@ const GameBoardDisplay: React.FC<{
       <div className="absolute" style={{ top: '536px', right: '400px' }}>
         <div className={`${theme.colors.primaryBorder} border-2 rounded-lg px-3 py-2`} style={{ width: '280px', backgroundColor: '#ffffff', opacity: 1 }}>
           <div className={`${theme.colors.textPrimary} text-sm text-center`}>
-            {player2 ? formatRecord(player2) : ""} | {player2?.rankOrdinal || ""} Place | Rating {player2?.currentRating || ""}
+            {player2 ? formatRecord(player2) : ""} | {player2?.rankOrdinal || ""} {player2 ? getPlaceOrSeedLabel(player2) : 'Place'} | Rating {player2?.currentRating || ""}
           </div>
         </div>
       </div>

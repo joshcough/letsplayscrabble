@@ -101,6 +101,12 @@ export const formatRecord = (player: PlayerStats): string => {
   return ties > 0 ? `${wins}-${losses}-${ties}` : `${wins}-${losses}`;
 };
 
+// Helper to determine if we should show "Seed" or "Place"
+// Players with 0-0 record haven't played yet, so they're still at their seed position
+export const getPlaceOrSeedLabel = (player: PlayerStats | { wins: number; losses: number }): string => {
+  return (player.wins === 0 && player.losses === 0) ? 'Seed' : 'Place';
+};
+
 // Helper for under-cam display with spread
 export const formatUnderCamRecord = (player: PlayerStats): string => {
   return `${formatRecord(player)} ${formatSpread(player.spread)}`;
@@ -108,17 +114,23 @@ export const formatUnderCamRecord = (player: PlayerStats): string => {
 
 // Helper for full under-cam display (with place and seed)
 export const formatFullUnderCam = (player: PlayerStats): string => {
+  const label = getPlaceOrSeedLabel(player);
+  if (label === 'Seed') {
+    // For 0-0 players, just show seed (no redundant seed in parentheses)
+    return `${formatUnderCamRecord(player)} | ${player.rankOrdinal || "N/A"} Seed`;
+  }
+  // For players with games played, show place with original seed in parentheses
   return `${formatUnderCamRecord(player)} | ${player.rankOrdinal || "N/A"} Place (${player.seedOrdinal || "N/A"} Seed)`;
 };
 
 // Helper for under-cam without seed
 export const formatUnderCamNoSeed = (player: PlayerStats): string => {
-  return `${formatUnderCamRecord(player)} | ${player.rankOrdinal || "N/A"} Place`;
+  return `${formatUnderCamRecord(player)} | ${player.rankOrdinal || "N/A"} ${getPlaceOrSeedLabel(player)}`;
 };
 
 // Helper for full under-cam display (with place and rating)
 export const formatFullUnderCamWithRating = (player: PlayerStats): string => {
-  return `${formatUnderCamRecord(player)} | ${player.rankOrdinal || "N/A"} Place | Rating ${player.currentRating}`;
+  return `${formatUnderCamRecord(player)} | ${player.rankOrdinal || "N/A"} ${getPlaceOrSeedLabel(player)} | Rating ${player.currentRating}`;
 };
 
 // Helper for best of 7 format
