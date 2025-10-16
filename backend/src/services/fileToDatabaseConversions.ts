@@ -1,7 +1,7 @@
 // backend/src/services/fileToDatabaseConversions.ts
 import * as DB from "../types/database";
 import * as File from "../types/scrabbleFileFormat";
-import { stripXtidFromPlayerName, getBestXtid } from "../utils/xtidHelpers";
+import { stripXtidFromPlayerName, extractXtidFromEtc } from "../utils/xtidHelpers";
 import { CrossTablesPlayerRepository } from "../repositories/crossTablesPlayerRepository";
 
 // File Format → Database (complete conversion)
@@ -29,7 +29,8 @@ export async function convertFileToDatabase(
     division.players
       .filter((player): player is File.Player => player != null && player.id !== undefined)
       .forEach(player => {
-        const xtid = getBestXtid(player.name, player.etc?.xtid);
+        // Only extract from etc.xtid - never from name suffix
+        const xtid = extractXtidFromEtc(player.etc?.xtid);
         if (typeof xtid === 'number' && !isNaN(xtid)) {
           allXtids.push(xtid);
         }
@@ -60,9 +61,11 @@ export async function convertFileToDatabase(
       const players = fileDivision.players
         .filter((player): player is File.Player => player != null && player.id !== undefined)
         .map((player) => {
-          // Extract the best xtid (from etc or name) and clean the name
-          const xtid = getBestXtid(player.name, player.etc?.xtid);
+          // Always clean the name - :XT suffix is noise in real tournament files
           const cleanName = stripXtidFromPlayerName(player.name);
+
+          // Only extract xtid from etc.xtid - never from name suffix
+          const xtid = extractXtidFromEtc(player.etc?.xtid);
 
           // Only set xtid if it exists in the cross_tables_players table
           let safeXtid: number | null = null;

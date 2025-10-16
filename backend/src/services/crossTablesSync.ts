@@ -29,7 +29,7 @@ export class CrossTablesSyncService {
    * - Tournament file is manually updated
    * - Polling service detects tournament changes
    */
-  async syncPlayersFromTournament(tournamentData: TournamentData, includeDetailedData: boolean = false): Promise<void> {
+  async syncPlayersFromTournament(tournamentData: TournamentData, includeDetailedData: boolean = false): Promise<number[]> {
     console.log('🔄 Starting optimized cross-tables player sync for tournament...');
 
     // Step 1: Analyze tournament data to separate embedded vs. missing xtids
@@ -37,7 +37,7 @@ export class CrossTablesSyncService {
 
     if (analysis.embeddedXtids.length === 0 && analysis.playersWithoutXtids.length === 0) {
       console.log('✅ No players need cross-tables sync');
-      return;
+      return [];
     }
 
     console.log(`📊 Tournament analysis: ${analysis.embeddedXtids.length} embedded xtids, ${analysis.playersWithoutXtids.length} players without xtids`);
@@ -54,7 +54,7 @@ export class CrossTablesSyncService {
 
     if (allDiscoveredXtids.length === 0) {
       console.log('⚠️ No cross-tables IDs found after lookup');
-      return;
+      return [];
     }
 
     console.log(`🎯 Total xtids for sync: ${allDiscoveredXtids.length}`);
@@ -69,6 +69,7 @@ export class CrossTablesSyncService {
     }
 
     console.log('✅ Optimized cross-tables player sync completed');
+    return allDiscoveredXtids;
   }
 
   async ensureGlobalPlayersExist(crossTablesIds: number[]): Promise<void> {
@@ -253,13 +254,17 @@ export class CrossTablesSyncService {
     for (const division of tournamentData.divisions) {
       for (const player of division.players) {
         if (player?.name && player.id) {
-          // Look up the player by name in cross_tables_players to get the correct xtid
-          const crossTablesPlayer = await this.repo.findByName(player.name);
+          // Strip :XT suffix from name before lookup (tournament generator adds these for testing)
+          const cleanName = stripXtidFromPlayerName(player.name);
+
+          // Look up the player by clean name in cross_tables_players to get the correct xtid
+          const crossTablesPlayer = await this.repo.findByName(cleanName);
           if (crossTablesPlayer) {
-            nameToXtidMap.set(player.name, crossTablesPlayer.cross_tables_id);
-            console.log(`🔗 Mapped ${player.name} (seed ${player.id}) -> xtid ${crossTablesPlayer.cross_tables_id}`);
+            // Use clean name as key since that's what's stored in the database
+            nameToXtidMap.set(cleanName, crossTablesPlayer.cross_tables_id);
+            console.log(`🔗 Mapped ${cleanName} (seed ${player.id}) -> xtid ${crossTablesPlayer.cross_tables_id}`);
           } else {
-            console.log(`⚠️  No CrossTables data found for ${player.name} (seed ${player.id})`);
+            console.log(`⚠️  No CrossTables data found for ${cleanName} (seed ${player.id})`);
           }
         }
       }
