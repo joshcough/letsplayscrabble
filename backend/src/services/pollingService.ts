@@ -70,8 +70,9 @@ export class TournamentPollingService {
           if (!hasExistingData) {
             console.log(`Syncing cross-tables data for polled tournament ${tournament.id}... (initial tournament setup)`);
             try {
-              await this.crossTablesSync.syncPlayersFromTournament(newData, true);
-              console.log(`Cross-tables sync completed successfully for polled tournament ${tournament.id}`);
+              const divisionXtids = await this.crossTablesSync.syncPlayersFromTournament(newData, true);
+              const totalXtids = Array.from(divisionXtids.values()).flat().length;
+              console.log(`Cross-tables sync completed successfully for polled tournament ${tournament.id} - discovered ${totalXtids} xtids across ${divisionXtids.size} divisions`);
             } catch (error) {
               console.error(`ERROR: Failed to sync cross-tables data for polled tournament ${tournament.id}:`, error);
               console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');

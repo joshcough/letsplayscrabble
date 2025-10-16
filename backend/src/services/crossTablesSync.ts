@@ -24,52 +24,80 @@ export class CrossTablesSyncService {
    * This allows OBS overlays to join tournament players with rich cross-tables data
    * without making unnecessary API calls for players whose xtids we already have.
    *
+   * Returns: Map of division names to arrays of xtids for that division
+   *
    * Called when:
    * - New tournament is created
    * - Tournament file is manually updated
    * - Polling service detects tournament changes
    */
-  async syncPlayersFromTournament(tournamentData: TournamentData, includeDetailedData: boolean = false): Promise<number[]> {
+  async syncPlayersFromTournament(tournamentData: TournamentData, includeDetailedData: boolean = false): Promise<Map<string, number[]>> {
     console.log('🔄 Starting optimized cross-tables player sync for tournament...');
 
-    // Step 1: Analyze tournament data to separate embedded vs. missing xtids
+    // Step 1: Analyze tournament data to separate embedded vs. missing xtids by division
     const analysis = this.analyzeTournamentPlayers(tournamentData);
 
-    if (analysis.embeddedXtids.length === 0 && analysis.playersWithoutXtids.length === 0) {
+    const totalEmbeddedXtids = Array.from(analysis.divisionXtids.values()).flat().length;
+    if (totalEmbeddedXtids === 0 && analysis.playersWithoutXtids.length === 0) {
       console.log('✅ No players need cross-tables sync');
-      return [];
+      return new Map<string, number[]>();
     }
 
-    console.log(`📊 Tournament analysis: ${analysis.embeddedXtids.length} embedded xtids, ${analysis.playersWithoutXtids.length} players without xtids`);
-
-    let allDiscoveredXtids = [...analysis.embeddedXtids];
+    console.log(`📊 Tournament analysis: ${totalEmbeddedXtids} embedded xtids across ${analysis.divisionXtids.size} divisions, ${analysis.playersWithoutXtids.length} players without xtids`);
 
     // Step 2: For players without embedded xtids, discover their xtids via bulk lookup
+    const discoveredXtidsByDivision = new Map<string, number[]>();
     if (analysis.playersWithoutXtids.length > 0) {
       console.log('🔍 Looking up xtids for players without embedded data...');
-      const discoveredXtids = await this.discoverXtidsForPlayers(analysis.playersWithoutXtids);
-      allDiscoveredXtids.push(...discoveredXtids);
-      console.log(`✅ Discovered ${discoveredXtids.length} additional xtids from name matching`);
+      const discoveredXtids = await this.discoverXtidsForPlayersWithDivisions(analysis.playersWithoutXtids);
+
+      // Merge discovered xtids into division map
+      for (const [divisionName, xtids] of discoveredXtids) {
+        discoveredXtidsByDivision.set(divisionName, xtids);
+      }
+
+      const totalDiscovered = Array.from(discoveredXtids.values()).flat().length;
+      console.log(`✅ Discovered ${totalDiscovered} additional xtids from name matching`);
     }
 
-    if (allDiscoveredXtids.length === 0) {
+    // Step 3: Merge embedded and discovered xtids by division
+    const allDivisionXtids = new Map<string, number[]>();
+    for (const [divisionName, embeddedXtids] of analysis.divisionXtids) {
+      const discovered = discoveredXtidsByDivision.get(divisionName) || [];
+      allDivisionXtids.set(divisionName, [...embeddedXtids, ...discovered]);
+    }
+
+    // Add any divisions that only had discovered xtids
+    for (const [divisionName, discoveredXtids] of discoveredXtidsByDivision) {
+      if (!allDivisionXtids.has(divisionName)) {
+        allDivisionXtids.set(divisionName, discoveredXtids);
+      }
+    }
+
+    // Get all unique xtids for profile fetching
+    const allUniqueXtids = Array.from(new Set(Array.from(allDivisionXtids.values()).flat()));
+
+    if (allUniqueXtids.length === 0) {
       console.log('⚠️ No cross-tables IDs found after lookup');
-      return [];
+      return new Map<string, number[]>();
     }
 
-    console.log(`🎯 Total xtids for sync: ${allDiscoveredXtids.length}`);
+    console.log(`🎯 Total unique xtids for sync: ${allUniqueXtids.length} across ${allDivisionXtids.size} divisions`);
+    for (const [divisionName, xtids] of allDivisionXtids) {
+      console.log(`  📁 Division "${divisionName}": ${xtids.length} players`);
+    }
 
-    // Step 3: Only fetch profile data for xtids we haven't processed before
-    await this.ensureGlobalPlayersExist(allDiscoveredXtids);
+    // Step 4: Only fetch profile data for xtids we haven't processed before
+    await this.ensureGlobalPlayersExist(allUniqueXtids);
 
-    // Step 4: Optionally fetch detailed tournament history
+    // Step 5: Optionally fetch detailed tournament history
     if (includeDetailedData) {
       console.log('📈 Fetching detailed tournament history for enhanced overlays...');
-      await this.syncDetailedPlayerData(allDiscoveredXtids);
+      await this.syncDetailedPlayerData(allUniqueXtids);
     }
 
     console.log('✅ Optimized cross-tables player sync completed');
-    return allDiscoveredXtids;
+    return allDivisionXtids;
   }
 
   async ensureGlobalPlayersExist(crossTablesIds: number[]): Promise<void> {
@@ -87,67 +115,78 @@ export class CrossTablesSyncService {
   }
 
   private analyzeTournamentPlayers(tournamentData: TournamentData): {
-    embeddedXtids: number[];
-    playersWithoutXtids: { name: string; cleanName: string }[];
+    divisionXtids: Map<string, number[]>;
+    playersWithoutXtids: { name: string; cleanName: string; divisionName: string }[];
   } {
-    const embeddedXtids = new Set<number>();
-    const playersWithoutXtids: { name: string; cleanName: string }[] = [];
+    const divisionXtids = new Map<string, number[]>();
+    const playersWithoutXtids: { name: string; cleanName: string; divisionName: string }[] = [];
 
     for (const division of tournamentData.divisions) {
+      const divisionXtidList: number[] = [];
+
       for (const player of division.players) {
         if (!player) continue;
 
         const xtid = extractXtidFromEtc(player.etc?.xtid);
         if (xtid !== null) {
           // Player has embedded xtid
-          embeddedXtids.add(xtid);
-          console.log(`📌 Found embedded xtid ${xtid} for player "${player.name}"`);
+          divisionXtidList.push(xtid);
+          console.log(`📌 Found embedded xtid ${xtid} for player "${player.name}" in division "${division.name}"`);
         } else {
           // Player needs xtid lookup by name
           const cleanName = stripXtidFromPlayerName(player.name);
-          playersWithoutXtids.push({ name: player.name, cleanName });
-          console.log(`🔍 Player "${player.name}" needs xtid lookup`);
+          playersWithoutXtids.push({ name: player.name, cleanName, divisionName: division.name });
+          console.log(`🔍 Player "${player.name}" in division "${division.name}" needs xtid lookup`);
         }
+      }
+
+      if (divisionXtidList.length > 0) {
+        divisionXtids.set(division.name, divisionXtidList);
       }
     }
 
     return {
-      embeddedXtids: Array.from(embeddedXtids),
+      divisionXtids,
       playersWithoutXtids
     };
   }
 
-  private async discoverXtidsForPlayers(players: { name: string; cleanName: string }[]): Promise<number[]> {
+  private async discoverXtidsForPlayersWithDivisions(players: { name: string; cleanName: string; divisionName: string }[]): Promise<Map<string, number[]>> {
     console.log('🌐 Fetching complete CrossTables player list for name matching...');
 
     try {
       const allPlayers = await CrossTablesClient.getAllPlayersIdsOnly();
       console.log(`📋 Loaded ${allPlayers.length} players from CrossTables for matching`);
 
-      const discoveredXtids: number[] = [];
+      const discoveredXtidsByDivision = new Map<string, number[]>();
 
-      for (const { name, cleanName } of players) {
+      for (const { name, cleanName, divisionName } of players) {
         // Convert name format: "Last, First" → "First Last"
         const convertedName = this.convertNameFormat(cleanName);
-        console.log(`🔄 Converting "${cleanName}" to "${convertedName}" for matching`);
+        console.log(`🔄 Converting "${cleanName}" to "${convertedName}" for matching in division "${divisionName}"`);
 
         const matches = this.findPlayerMatches(convertedName, allPlayers);
 
         if (matches.length === 1) {
           const xtid = parseInt(matches[0].playerid);
-          discoveredXtids.push(xtid);
-          console.log(`✅ Matched "${convertedName}" to xtid ${xtid}`);
+
+          // Add to division's xtid list
+          const divisionXtids = discoveredXtidsByDivision.get(divisionName) || [];
+          divisionXtids.push(xtid);
+          discoveredXtidsByDivision.set(divisionName, divisionXtids);
+
+          console.log(`✅ Matched "${convertedName}" to xtid ${xtid} in division "${divisionName}"`);
         } else if (matches.length === 0) {
-          console.log(`❌ No matches found for "${convertedName}"`);
+          console.log(`❌ No matches found for "${convertedName}" in division "${divisionName}"`);
         } else {
-          console.log(`⚠️ Found ${matches.length} matches for "${convertedName}" - skipping ambiguous match`);
+          console.log(`⚠️ Found ${matches.length} matches for "${convertedName}" in division "${divisionName}" - skipping ambiguous match`);
         }
       }
 
-      return discoveredXtids;
+      return discoveredXtidsByDivision;
     } catch (error) {
       console.error('❌ Failed to discover xtids:', error);
-      return [];
+      return new Map<string, number[]>();
     }
   }
 

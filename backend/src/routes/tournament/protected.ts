@@ -33,12 +33,13 @@ export function protectedTournamentRoutes(
     // Load file data
     const rawData = await loadTournamentFile(metadata.dataUrl);
     
-    // FIRST: Ensure all cross-tables players exist (synchronous) and get discovered xtids
+    // FIRST: Ensure all cross-tables players exist (synchronous) and get discovered xtids by division
     console.log('Syncing cross-tables data before tournament creation...');
-    let allDiscoveredXtids: number[] = [];
+    let divisionXtids = new Map<string, number[]>();
     try {
-      allDiscoveredXtids = await crossTablesSync.syncPlayersFromTournament(rawData, true); // Include detailed data for tournament creation
-      console.log(`Cross-tables sync completed successfully - discovered ${allDiscoveredXtids.length} xtids`);
+      divisionXtids = await crossTablesSync.syncPlayersFromTournament(rawData, true); // Include detailed data for tournament creation
+      const totalXtids = Array.from(divisionXtids.values()).flat().length;
+      console.log(`Cross-tables sync completed successfully - discovered ${totalXtids} xtids across ${divisionXtids.size} divisions`);
     } catch (error) {
       console.error('ERROR: Failed to sync cross-tables data:', error);
       console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
@@ -46,16 +47,19 @@ export function protectedTournamentRoutes(
       console.log('Continuing with tournament creation despite sync errors...');
     }
 
-    // SECOND: Sync head-to-head data using discovered xtids
+    // SECOND: Sync head-to-head data per division using discovered xtids
     console.log('Syncing head-to-head data for tournament divisions...');
     try {
-      if (allDiscoveredXtids.length > 1) {
-        console.log(`Syncing H2H data for all divisions (${allDiscoveredXtids.length} total players with XT IDs)...`);
-        await crossTablesHeadToHeadService.syncHeadToHeadDataForPlayers(allDiscoveredXtids);
-        console.log('Head-to-head sync completed successfully');
-      } else {
-        console.log('Skipping H2H sync - insufficient players with XT IDs');
+      for (const [divisionName, xtids] of divisionXtids) {
+        if (xtids.length > 1) {
+          console.log(`Syncing H2H data for division "${divisionName}" (${xtids.length} players with XT IDs)...`);
+          await crossTablesHeadToHeadService.syncHeadToHeadDataForPlayers(xtids);
+          console.log(`✅ Head-to-head sync completed for division "${divisionName}"`);
+        } else {
+          console.log(`Skipping H2H sync for division "${divisionName}" - insufficient players with XT IDs`);
+        }
       }
+      console.log('Head-to-head sync completed successfully for all divisions');
     } catch (error) {
       console.error('ERROR: Failed to sync head-to-head data:', error);
       console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
@@ -130,12 +134,13 @@ export function protectedTournamentRoutes(
               // Load new data from the URL
               const newData = await loadTournamentFile(metadata.dataUrl);
               
-              // FIRST: Ensure all cross-tables players exist and get discovered xtids
+              // FIRST: Ensure all cross-tables players exist and get discovered xtids by division
               console.log(`Syncing cross-tables data before updating tournament ${tournamentId}...`);
-              let allDiscoveredXtids: number[] = [];
+              let divisionXtids = new Map<string, number[]>();
               try {
-                allDiscoveredXtids = await crossTablesSync.syncPlayersFromTournament(newData, true); // Include detailed data for tournament updates
-                console.log(`Cross-tables sync completed successfully for tournament ${tournamentId} - discovered ${allDiscoveredXtids.length} xtids`);
+                divisionXtids = await crossTablesSync.syncPlayersFromTournament(newData, true); // Include detailed data for tournament updates
+                const totalXtids = Array.from(divisionXtids.values()).flat().length;
+                console.log(`Cross-tables sync completed successfully for tournament ${tournamentId} - discovered ${totalXtids} xtids across ${divisionXtids.size} divisions`);
               } catch (error) {
                 console.error(`ERROR: Failed to sync cross-tables data for tournament ${tournamentId}:`, error);
                 console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
@@ -143,16 +148,19 @@ export function protectedTournamentRoutes(
                 console.log('Continuing with tournament update despite sync errors...');
               }
 
-              // SECOND: Sync head-to-head data using discovered xtids
+              // SECOND: Sync head-to-head data per division using discovered xtids
               console.log(`Syncing head-to-head data for tournament ${tournamentId}...`);
               try {
-                if (allDiscoveredXtids.length > 1) {
-                  console.log(`Syncing H2H data for all divisions (${allDiscoveredXtids.length} total players with XT IDs)...`);
-                  await crossTablesHeadToHeadService.syncHeadToHeadDataForPlayers(allDiscoveredXtids);
-                  console.log(`Head-to-head sync completed successfully for tournament ${tournamentId}`);
-                } else {
-                  console.log(`Skipping H2H sync for tournament ${tournamentId} - insufficient players with XT IDs`);
+                for (const [divisionName, xtids] of divisionXtids) {
+                  if (xtids.length > 1) {
+                    console.log(`Syncing H2H data for division "${divisionName}" (${xtids.length} players with XT IDs)...`);
+                    await crossTablesHeadToHeadService.syncHeadToHeadDataForPlayers(xtids);
+                    console.log(`✅ Head-to-head sync completed for division "${divisionName}"`);
+                  } else {
+                    console.log(`Skipping H2H sync for division "${divisionName}" - insufficient players with XT IDs`);
+                  }
                 }
+                console.log(`Head-to-head sync completed successfully for tournament ${tournamentId}`);
               } catch (error) {
                 console.error(`ERROR: Failed to sync head-to-head data for tournament ${tournamentId}:`, error);
                 console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
@@ -249,12 +257,13 @@ export function protectedTournamentRoutes(
               const rawData = await loadTournamentFile(tournamentData.data_url);
               
               console.log(`Refetching tournament ${tournamentId} with CrossTables data...`);
-              
-              // FIRST: Sync CrossTables player data and get discovered xtids
-              let allDiscoveredXtids: number[] = [];
+
+              // FIRST: Sync CrossTables player data and get discovered xtids by division
+              let divisionXtids = new Map<string, number[]>();
               try {
-                allDiscoveredXtids = await crossTablesSync.syncPlayersFromTournament(rawData, true);
-                console.log(`CrossTables sync completed successfully for tournament ${tournamentId} - discovered ${allDiscoveredXtids.length} xtids`);
+                divisionXtids = await crossTablesSync.syncPlayersFromTournament(rawData, true);
+                const totalXtids = Array.from(divisionXtids.values()).flat().length;
+                console.log(`CrossTables sync completed successfully for tournament ${tournamentId} - discovered ${totalXtids} xtids across ${divisionXtids.size} divisions`);
 
                 // SECOND: Update tournament player xtids
                 await crossTablesSync.updateTournamentPlayerXtids(tournamentId, rawData);
@@ -265,15 +274,18 @@ export function protectedTournamentRoutes(
                 throw new Error('Failed to sync CrossTables data');
               }
 
-              // THIRD: Sync head-to-head data using discovered xtids
+              // THIRD: Sync head-to-head data per division using discovered xtids
               try {
-                if (allDiscoveredXtids.length > 1) {
-                  console.log(`Syncing H2H data for all divisions (${allDiscoveredXtids.length} total players with XT IDs)...`);
-                  await crossTablesHeadToHeadService.syncHeadToHeadDataForPlayers(allDiscoveredXtids);
-                  console.log(`Head-to-head sync completed successfully for tournament ${tournamentId}`);
-                } else {
-                  console.log(`Skipping H2H sync for tournament ${tournamentId} - insufficient players with XT IDs`);
+                for (const [divisionName, xtids] of divisionXtids) {
+                  if (xtids.length > 1) {
+                    console.log(`Syncing H2H data for division "${divisionName}" (${xtids.length} players with XT IDs)...`);
+                    await crossTablesHeadToHeadService.syncHeadToHeadDataForPlayers(xtids);
+                    console.log(`✅ Head-to-head sync completed for division "${divisionName}"`);
+                  } else {
+                    console.log(`Skipping H2H sync for division "${divisionName}" - insufficient players with XT IDs`);
+                  }
                 }
+                console.log(`Head-to-head sync completed successfully for tournament ${tournamentId}`);
               } catch (error) {
                 console.error(`ERROR: Failed to sync head-to-head data for tournament ${tournamentId}:`, error);
                 console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
@@ -306,16 +318,17 @@ export function protectedTournamentRoutes(
               const rawData = await loadTournamentFile(tournamentData.data_url);
               
               console.log(`🧹 Full refetch tournament ${tournamentId} - clearing all CrossTables data...`);
-              
+
               // FIRST: Clear all xtids for this tournament
               console.log(`🧹 Clearing all player xtids for tournament ${tournamentId}...`);
               await repo.clearPlayerXtids(tournamentId);
-              
-              // SECOND: Sync CrossTables player data from scratch and get discovered xtids
-              let allDiscoveredXtids: number[] = [];
+
+              // SECOND: Sync CrossTables player data from scratch and get discovered xtids by division
+              let divisionXtids = new Map<string, number[]>();
               try {
-                allDiscoveredXtids = await crossTablesSync.syncPlayersFromTournament(rawData, true);
-                console.log(`CrossTables sync completed successfully for tournament ${tournamentId} - discovered ${allDiscoveredXtids.length} xtids`);
+                divisionXtids = await crossTablesSync.syncPlayersFromTournament(rawData, true);
+                const totalXtids = Array.from(divisionXtids.values()).flat().length;
+                console.log(`CrossTables sync completed successfully for tournament ${tournamentId} - discovered ${totalXtids} xtids across ${divisionXtids.size} divisions`);
 
                 // THIRD: Update tournament player xtids
                 await crossTablesSync.updateTournamentPlayerXtids(tournamentId, rawData);
@@ -326,15 +339,18 @@ export function protectedTournamentRoutes(
                 throw new Error('Failed to sync CrossTables data');
               }
 
-              // FOURTH: Sync head-to-head data using discovered xtids
+              // FOURTH: Sync head-to-head data per division using discovered xtids
               try {
-                if (allDiscoveredXtids.length > 1) {
-                  console.log(`Syncing H2H data for all divisions (${allDiscoveredXtids.length} total players with XT IDs)...`);
-                  await crossTablesHeadToHeadService.syncHeadToHeadDataForPlayers(allDiscoveredXtids);
-                  console.log(`Head-to-head sync completed successfully for tournament ${tournamentId}`);
-                } else {
-                  console.log(`Skipping H2H sync for tournament ${tournamentId} - insufficient players with XT IDs`);
+                for (const [divisionName, xtids] of divisionXtids) {
+                  if (xtids.length > 1) {
+                    console.log(`Syncing H2H data for division "${divisionName}" (${xtids.length} players with XT IDs)...`);
+                    await crossTablesHeadToHeadService.syncHeadToHeadDataForPlayers(xtids);
+                    console.log(`✅ Head-to-head sync completed for division "${divisionName}"`);
+                  } else {
+                    console.log(`Skipping H2H sync for division "${divisionName}" - insufficient players with XT IDs`);
+                  }
                 }
+                console.log(`Head-to-head sync completed successfully for tournament ${tournamentId}`);
               } catch (error) {
                 console.error(`ERROR: Failed to sync head-to-head data for tournament ${tournamentId}:`, error);
                 console.error('Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
