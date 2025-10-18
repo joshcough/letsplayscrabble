@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 
 import * as Domain from "@shared/types/domain";
@@ -53,8 +53,13 @@ export const useTournamentData = ({
     ? Number(urlTournamentId)
     : propTournamentId;
 
-  // Create broadcast channel instance for sending SUBSCRIBE messages
-  const broadcastChannel = new BroadcastChannel("tournament-updates");
+  // Create broadcast channel instance for sending SUBSCRIBE messages - use ref to prevent recreation on re-renders
+  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
+
+  // Initialize broadcast channel once
+  if (!broadcastChannelRef.current) {
+    broadcastChannelRef.current = new BroadcastChannel("tournament-updates");
+  }
 
   const subscribeToTournamentData = () => {
     if (!userId || !effectiveTournamentId) {
@@ -77,7 +82,7 @@ export const useTournamentData = ({
         subscribeMessage,
       );
 
-      broadcastChannel.postMessage({
+      broadcastChannelRef.current?.postMessage({
         type: "SUBSCRIBE",
         data: subscribeMessage,
       });
@@ -500,7 +505,8 @@ export const useTournamentData = ({
   // Cleanup broadcast channel on unmount
   useEffect(() => {
     return () => {
-      broadcastChannel.close();
+      broadcastChannelRef.current?.close();
+      broadcastChannelRef.current = null;
     };
   }, []);
 
