@@ -13,13 +13,13 @@ interface StatusMessage {
 
 interface WebSocketMessage {
   eventType: string;
-  data: any;
+  data: unknown;
   timestamp: number;
 }
 
 interface BroadcastMessage {
   messageType: string;
-  data: any;
+  data: unknown;
   timestamp: number;
 }
 
@@ -115,7 +115,7 @@ const WorkerPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
     return new Date(timestamp).toLocaleTimeString();
   };
 
-  const formatData = (data: any) => {
+  const formatData = (data: unknown) => {
     if (typeof data === "object") {
       return JSON.stringify(data, null, 2);
     }

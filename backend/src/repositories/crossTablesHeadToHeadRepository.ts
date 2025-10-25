@@ -1,6 +1,7 @@
 import { knexDb } from "../config/database";
 import * as DB from "../types/database";
 import * as Domain from "@shared/types/domain";
+import { Knex } from "knex";
 
 export class CrossTablesHeadToHeadRepository {
   /**
@@ -52,7 +53,7 @@ export class CrossTablesHeadToHeadRepository {
 
     return knexDb("cross_tables_head_to_head")
       .select("*")
-      .where(function(this: any) {
+      .where(function(this: Knex.QueryBuilder) {
         // Games where both player1 and player2 are in the player set
         this.whereIn("player1_id", playerIds).whereIn("player2_id", playerIds);
       })
@@ -66,7 +67,7 @@ export class CrossTablesHeadToHeadRepository {
   async getHeadToHeadRecord(player1Id: number, player2Id: number): Promise<Domain.HeadToHeadRecord> {
     const games = await knexDb("cross_tables_head_to_head")
       .select("*")
-      .where(function(this: any) {
+      .where(function(this: Knex.QueryBuilder) {
         this.where({ player1_id: player1Id, player2_id: player2Id })
             .orWhere({ player1_id: player2Id, player2_id: player1Id });
       })
@@ -74,7 +75,7 @@ export class CrossTablesHeadToHeadRepository {
       .orderBy("game_id", "desc");
 
     // Convert database rows to domain HeadToHeadGame objects
-    const domainGames: Domain.HeadToHeadGame[] = games.map((row: any) => ({
+    const domainGames: Domain.HeadToHeadGame[] = games.map((row: DB.CrossTablesHeadToHeadRow) => ({
       gameid: row.game_id,
       date: row.date || "",
       tourneyname: row.tourney_name || undefined,
@@ -101,8 +102,10 @@ export class CrossTablesHeadToHeadRepository {
     let player1Wins = 0;
     let player2Wins = 0;
     let ties = 0;
-    
-    games.forEach((g: any) => {
+
+    games.forEach((g: DB.CrossTablesHeadToHeadRow) => {
+      if (g.player1_score === null || g.player2_score === null) return; // Skip games with null scores
+
       if (g.player1_id === player1Id) {
         if (g.player1_score > g.player2_score) {
           player1Wins++;

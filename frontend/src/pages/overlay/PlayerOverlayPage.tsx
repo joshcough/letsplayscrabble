@@ -24,6 +24,7 @@ import {
   formatFullUnderCamWithRating,
   formatBestOf7,
 } from "../../utils/playerUtils";
+import { getThemeClasses } from "../../utils/themeUtils";
 
 type RouteParams = {
   userId?: string;
@@ -55,7 +56,7 @@ const renderPlayerData = (
   source: SourceType,
   player: RankedPlayerStats,
   theme: Theme,
-  themeClasses: any,
+  themeClasses: ReturnType<typeof getThemeClasses>,
   divisionData?: Domain.Division,
   tournament?: Domain.Tournament,
 ) => {
@@ -198,7 +199,7 @@ const URLBasedPlayerDisplay: React.FC<{
   playerParam: string | null;
   apiService: ApiService;
   theme: Theme;
-  themeClasses: any;
+  themeClasses: ReturnType<typeof getThemeClasses>;
 }> = ({
   tournamentId,
   divisionName,
@@ -220,10 +221,8 @@ const URLBasedPlayerDisplay: React.FC<{
     apiService,
   });
 
-  // Find the target division
-  const targetDivision = tournamentData?.divisions.find(
-    (div) => div.name.toUpperCase() === divisionName.toUpperCase(),
-  );
+  // Get the division from division-scoped data
+  const targetDivision = tournamentData?.division;
 
   // Calculate player stats
   const playerStats = React.useMemo(() => {
@@ -320,6 +319,12 @@ const URLBasedPlayerDisplay: React.FC<{
         }
 
         if (tournamentData && targetDivision) {
+          // Convert division-scoped data to Tournament for renderPlayerData
+          const tournamentForDisplay: Domain.Tournament = {
+            ...tournamentData.tournament,
+            divisions: [tournamentData.division],
+          };
+
           return (
             <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
               {renderPlayerData(
@@ -328,7 +333,7 @@ const URLBasedPlayerDisplay: React.FC<{
                 theme,
                 themeClasses,
                 targetDivision,
-                tournamentData,
+                tournamentForDisplay,
               )}
             </div>
           );

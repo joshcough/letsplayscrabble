@@ -18,17 +18,17 @@ export class CrossTablesClient {
 
   static async getDetailedPlayer(playerid: number): Promise<DetailedCrossTablesPlayer | null> {
     try {
-      const response = await axios.get<{ player: any }>(
+      const response = await axios.get<{ player: unknown }>(
         `${this.BASE_URL}/player.php?player=${playerid}&results=1`
       );
-      
-      const playerData = response.data?.player;
+
+      const playerData = response.data?.player as Record<string, any>;
       if (!playerData) return null;
-      
+
       // Transform the API response to our domain format
       const detailedPlayer: DetailedCrossTablesPlayer = {
-        playerid: parseInt(playerData.playerid),
-        name: playerData.name,
+        playerid: parseInt(playerData.playerid || '0'),
+        name: playerData.name || '',
         twlrating: playerData.twlrating ? parseInt(playerData.twlrating) : undefined,
         cswrating: playerData.cswrating ? parseInt(playerData.cswrating) : undefined,
         twlranking: playerData.twlranking ? parseInt(playerData.twlranking) : undefined,

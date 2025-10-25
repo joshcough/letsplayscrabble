@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NotificationManager } from '../../services/NotificationManager';
+import { NotificationManager, QueuedNotification, QueueStatus } from '../../services/NotificationManager';
 import { NotificationData } from '../../types/notifications';
 
 const NotificationTestPage: React.FC = () => {
@@ -11,9 +11,9 @@ const NotificationTestPage: React.FC = () => {
   const [highScore, setHighScore] = useState(500);
   const [previousHighScore, setPreviousHighScore] = useState(400);
   const [streakLength, setStreakLength] = useState(18);
-  const [queueStatus, setQueueStatus] = useState<any>(null);
-  const [queueItems, setQueueItems] = useState<any[]>([]);
-  const [historyItems, setHistoryItems] = useState<any[]>([]);
+  const [queueStatus, setQueueStatus] = useState<QueueStatus | null>(null);
+  const [queueItems, setQueueItems] = useState<QueuedNotification[]>([]);
+  const [historyItems, setHistoryItems] = useState<QueuedNotification[]>([]);
   const [countdown, setCountdown] = useState<number | null>(null);
 
   useEffect(() => {

@@ -11,6 +11,9 @@ import BroadcastManager from "../../hooks/BroadcastManager";
 import { NotificationData } from "../../types/notifications";
 import { HighScore } from "../notifications/HighScore";
 import { WinningStreak } from "../notifications/WinningStreak";
+import { Theme } from "../../types/theme";
+import { getThemeClasses } from "../../utils/themeUtils";
+import * as Domain from "@shared/types/domain";
 
 type RouteParams = {
   userId?: string;
@@ -144,8 +147,8 @@ const URLBasedGameBoard: React.FC<{
   tournamentId: number;
   divisionName: string;
   apiService: ApiService;
-  theme: any;
-  themeClasses: any;
+  theme: Theme;
+  themeClasses: ReturnType<typeof getThemeClasses>;
   userId?: string;
 }> = ({ tournamentId, divisionName, apiService, theme, themeClasses, userId }) => {
   const [searchParams] = useSearchParams();
@@ -179,19 +182,16 @@ const URLBasedGameBoard: React.FC<{
     );
   }
 
-  const targetDivision = tournamentData?.divisions.find(
-    (div) => div.name.toUpperCase() === divisionName.toUpperCase(),
-  );
-
-  if (!targetDivision) {
+  if (!tournamentData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-white">
-          Division "{divisionName}" not found
-        </div>
+        <div className="text-white">No tournament data available</div>
       </div>
     );
   }
+
+  // tournamentData is now division-scoped, so it already contains only the requested division
+  const targetDivision = tournamentData.division;
 
   const {
     calculateStandingsFromGames,
@@ -221,12 +221,25 @@ const URLBasedGameBoard: React.FC<{
   const player1 = rankedPlayers.find((p: RankedPlayerStats) => p.playerId === Number(player1Id));
   const player2 = rankedPlayers.find((p: RankedPlayerStats) => p.playerId === Number(player2Id));
 
-  const targetDivisionData = tournamentData?.divisions.find(
-    (div) => div.name.toUpperCase() === divisionName.toUpperCase(),
-  );
+  if (!tournamentData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-white">No tournament data available</div>
+      </div>
+    );
+  }
 
-  return <GameBoardDisplay 
-    tournament={tournamentData}
+  // tournamentData is now division-scoped
+  const targetDivisionData = tournamentData.division;
+
+  // Create a tournament object with just the metadata for backward compatibility
+  const tournamentForDisplay: Domain.Tournament = {
+    ...tournamentData.tournament,
+    divisions: [tournamentData.division],
+  };
+
+  return <GameBoardDisplay
+    tournament={tournamentForDisplay}
     divisionName={divisionName}
     round={Number(round) || 1}
     player1={player1}
@@ -239,14 +252,14 @@ const URLBasedGameBoard: React.FC<{
 };
 
 const GameBoardDisplay: React.FC<{
-  tournament: any;
+  tournament: Domain.Tournament;
   divisionName: string;
   round: number;
   player1?: RankedPlayerStats;
   player2?: RankedPlayerStats;
-  theme: any;
-  themeClasses: any;
-  divisionData?: any;
+  theme: Theme;
+  themeClasses: ReturnType<typeof getThemeClasses>;
+  divisionData?: Domain.Division;
   userId?: string;
 }> = ({ tournament, round, player1, player2, theme, themeClasses, divisionData, userId }) => {
   // Notification state

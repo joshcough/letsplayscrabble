@@ -122,86 +122,155 @@ class WorkerSocketManager {
   }
 
   private async handleSubscribeMessage(data: SubscribeMessage) {
-    const { userId, tournamentId, divisionId } = data;
+    const { userId, tournamentId, divisionId, divisionName } = data;
 
-    console.log(
-      `🔔 Worker handling SUBSCRIBE request: user ${userId}, tournament ${tournamentId}${divisionId ? `, division ${divisionId} (will fetch full tournament)` : " (full tournament)"}`,
-    );
-
-    // Check cache first
-    const cachedData = this.cacheManager.get(userId, tournamentId);
-    if (cachedData) {
-      console.log(`💾 Worker found cached data - broadcasting immediately`);
-
-      const message: TournamentDataResponse = {
-        userId: userId,
-        tournamentId: tournamentId,
-        data: cachedData,
-      };
-
-      console.log(
-        `📢 Worker broadcasting cached TOURNAMENT_DATA_RESPONSE for user ${userId}, tournament ${tournamentId}`,
-      );
-      this.broadcastMessage({
-        type: "TOURNAMENT_DATA_RESPONSE",
-        data: message,
-      });
-      return;
-    }
-
-    // Not in cache - fetch full tournament and cache
-    try {
-      console.log(
-        `🔄 Worker fetching full tournament data for tournament ${tournamentId}...`,
-      );
-      if (!this.apiService) {
-        throw new Error("API service not initialized");
-      }
-      const response = await this.apiService.getTournament(
+    // Validate that at least one division identifier is provided
+    if (!divisionId && !divisionName) {
+      console.error(`❌ Worker SUBSCRIBE request missing divisionId AND divisionName - cannot proceed`);
+      const errorMessage: TournamentDataError = {
         userId,
         tournamentId,
-      );
-      if (!response.success) {
-        throw new Error(response.error);
-      }
-      const tournamentData = response.data;
-
-      // Cache the data
-      this.cacheManager.set(userId, tournamentId, tournamentData);
-
-      const message: TournamentDataResponse = {
-        userId: userId,
-        tournamentId: tournamentId,
-        data: tournamentData,
-      };
-
-      console.log(
-        `📢 Worker broadcasting fresh TOURNAMENT_DATA_RESPONSE for user ${userId}, tournament ${tournamentId}`,
-      );
-      this.broadcastMessage({
-        type: "TOURNAMENT_DATA_RESPONSE",
-        data: message,
-      });
-    } catch (error) {
-      console.error(
-        `🔴 Worker failed to fetch tournament data for SUBSCRIBE request: user ${userId}, tournament ${tournamentId}:`,
-        error,
-      );
-
-      // Broadcast error so display sources know something went wrong
-      const errorMessage: TournamentDataError = {
-        userId: userId,
-        tournamentId: tournamentId,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch tournament data",
+        error: "Must provide either divisionId or divisionName",
       };
       this.broadcastMessage({
         type: "TOURNAMENT_DATA_ERROR",
         data: errorMessage,
       });
+      return;
     }
+
+    console.log(
+      `🔔 Worker handling SUBSCRIBE request: user ${userId}, tournament ${tournamentId}, division ${divisionId || `"${divisionName}"`}`,
+    );
+
+    // Check cache first - worker still caches FULL tournament for efficiency
+    let cachedData = this.cacheManager.get(userId, tournamentId);
+
+    // If not in cache, fetch full tournament and cache it
+    if (!cachedData) {
+      try {
+        console.log(
+          `🔄 Worker fetching full tournament data for tournament ${tournamentId}...`,
+        );
+        if (!this.apiService) {
+          throw new Error("API service not initialized");
+        }
+        const response = await this.apiService.getTournament(
+          userId,
+          tournamentId,
+        );
+        if (!response.success) {
+          throw new Error(response.error);
+        }
+        cachedData = response.data;
+
+        // Cache the full tournament data
+        this.cacheManager.set(userId, tournamentId, cachedData);
+        console.log(`✅ Worker cached full tournament ${tournamentId}`);
+      } catch (error) {
+        console.error(
+          `🔴 Worker failed to fetch tournament data for SUBSCRIBE request: user ${userId}, tournament ${tournamentId}:`,
+          error,
+        );
+
+        const errorMessage: TournamentDataError = {
+          userId,
+          tournamentId,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to fetch tournament data",
+        };
+        this.broadcastMessage({
+          type: "TOURNAMENT_DATA_ERROR",
+          data: errorMessage,
+        });
+        return;
+      }
+    } else {
+      console.log(`💾 Worker found cached data for tournament ${tournamentId}`);
+    }
+
+    // Extract division-scoped data from full tournament
+    const divisionScopedData = this.extractDivisionScopedData(
+      cachedData,
+      divisionId,
+      divisionName,
+    );
+
+    if (!divisionScopedData) {
+      const errorMessage: TournamentDataError = {
+        userId,
+        tournamentId,
+        error: `Division ${divisionId || divisionName} not found in tournament`,
+      };
+      this.broadcastMessage({
+        type: "TOURNAMENT_DATA_ERROR",
+        data: errorMessage,
+      });
+      return;
+    }
+
+    const message: TournamentDataResponse = {
+      userId,
+      tournamentId,
+      divisionId: divisionScopedData.division.id,
+      data: divisionScopedData,
+    };
+
+    console.log(
+      `📢 Worker broadcasting division-scoped TOURNAMENT_DATA_RESPONSE for user ${userId}, tournament ${tournamentId}, division ${divisionScopedData.division.name} (id: ${divisionScopedData.division.id})`,
+    );
+    this.broadcastMessage({
+      type: "TOURNAMENT_DATA_RESPONSE",
+      data: message,
+    });
+  }
+
+  // Helper: Extract division-scoped data from full tournament
+  private extractDivisionScopedData(
+    fullTournament: import("@shared/types/domain").Tournament,
+    divisionId?: number,
+    divisionName?: string,
+  ): import("../types/broadcast").DivisionScopedData | null {
+    // Find the division
+    let division: import("@shared/types/domain").Division | undefined;
+    if (divisionId) {
+      division = fullTournament.divisions.find((d) => d.id === divisionId);
+    } else if (divisionName) {
+      division = fullTournament.divisions.find(
+        (d) => d.name.toUpperCase() === divisionName.toUpperCase(),
+      );
+    }
+
+    if (!division) {
+      console.error(
+        `❌ Division ${divisionId || divisionName} not found in tournament ${fullTournament.id}`,
+      );
+      return null;
+    }
+
+    // Extract tournament metadata (without divisions array)
+    const tournamentMetadata: import("../types/broadcast").TournamentMetadata = {
+      id: fullTournament.id,
+      name: fullTournament.name,
+      city: fullTournament.city,
+      year: fullTournament.year,
+      lexicon: fullTournament.lexicon,
+      longFormName: fullTournament.longFormName,
+      dataUrl: fullTournament.dataUrl,
+      theme: fullTournament.theme,
+      transparentBackground: fullTournament.transparentBackground,
+    };
+
+    console.log(
+      `✂️ Worker extracted division-scoped data: ${division.name} with ${division.players.length} players, ${division.games.length} games`,
+    );
+
+    return {
+      tournament: tournamentMetadata,
+      division,
+    };
   }
 
   private connectSocket() {
@@ -341,7 +410,7 @@ class WorkerSocketManager {
       }
     });
 
-    this.withDeduplication("cache-clear-requested", (data: any) => {
+    this.withDeduplication("cache-clear-requested", (data: { userId: number; timestamp?: number }) => {
       console.log("🧹 Worker received cache-clear-requested:", data);
       
       // Clear the tournament cache
@@ -362,6 +431,7 @@ class WorkerSocketManager {
   }
 
   // New method to broadcast incremental tournament updates
+  // Now broadcasts one division-scoped message PER affected division
   private broadcastTournamentIncremental(
     userId: number,
     tournamentId: number,
@@ -382,32 +452,54 @@ class WorkerSocketManager {
       return;
     }
 
-    const message: TournamentDataIncremental = {
-      userId: userId,
-      tournamentId: tournamentId,
-      data: updatedTournamentData, // Full updated tournament
-      previousData: previousData || undefined, // Previous state for comparisons
-      changes: update.changes, // What changed
-      affectedDivisions: affectedDivisions,
-      metadata: {
-        addedCount: update.changes.added.length,
-        updatedCount: update.changes.updated.length,
-        timestamp: Date.now(),
-      },
-      reason: "games_added",
-    };
-
     console.log(
-      `📢 Worker broadcasting TOURNAMENT_DATA_INCREMENTAL for user ${userId}, tournament ${tournamentId}`,
-      `- ${message.metadata.addedCount} added, ${message.metadata.updatedCount} updated games`,
-      `- Affected divisions: [${affectedDivisions.join(", ")}]`,
-      `- Previous data: ${previousData ? "included" : "not available"}`,
+      `📢 Worker broadcasting TOURNAMENT_DATA_INCREMENTAL for ${affectedDivisions.length} affected division(s):`,
+      affectedDivisions,
     );
 
-    this.broadcastMessage({
-      type: "TOURNAMENT_DATA_INCREMENTAL",
-      data: message,
-    });
+    // Broadcast one message per affected division
+    for (const divisionId of affectedDivisions) {
+      const updatedDivisionData = this.extractDivisionScopedData(
+        updatedTournamentData,
+        divisionId,
+      );
+      const previousDivisionData = previousData
+        ? this.extractDivisionScopedData(previousData, divisionId)
+        : undefined;
+
+      if (!updatedDivisionData) {
+        console.error(
+          `⚠️ Cannot extract division ${divisionId} from updated tournament - skipping`,
+        );
+        continue;
+      }
+
+      const message: TournamentDataIncremental = {
+        userId,
+        tournamentId,
+        divisionId, // Now required - identifies which division this update is for
+        data: updatedDivisionData, // Division-scoped data
+        previousData: previousDivisionData || undefined, // Previous division state
+        changes: update.changes, // What changed (still full changes for notifications)
+        affectedDivisions, // Keep for reference (notifications might care about other divisions)
+        metadata: {
+          addedCount: update.changes.added.length,
+          updatedCount: update.changes.updated.length,
+          timestamp: Date.now(),
+        },
+        reason: "games_added",
+      };
+
+      console.log(
+        `  📤 Broadcasting update for division ${divisionId} (${updatedDivisionData.division.name}):`,
+        `${message.metadata.addedCount} added, ${message.metadata.updatedCount} updated`,
+      );
+
+      this.broadcastMessage({
+        type: "TOURNAMENT_DATA_INCREMENTAL",
+        data: message,
+      });
+    }
   }
 
   // Type-safe broadcast method - only accepts proper BroadcastMessage types
@@ -429,6 +521,7 @@ class WorkerSocketManager {
   private async fetchAndBroadcastTournamentRefresh(
     tournamentId: number,
     userId: number,
+    specificDivisionId?: number, // Optional: refresh only a specific division
   ) {
     try {
       console.log(
@@ -449,20 +542,45 @@ class WorkerSocketManager {
       // Update cache
       this.cacheManager.set(userId, tournamentId, tournamentData);
 
-      const message: TournamentDataRefresh = {
-        userId: userId,
-        tournamentId: tournamentId,
-        data: tournamentData,
-        reason: "admin_panel_update",
-      };
+      // Determine which divisions to broadcast
+      const divisionsToRefresh = specificDivisionId
+        ? [specificDivisionId]
+        : tournamentData.divisions.map((d) => d.id);
 
       console.log(
-        `📢 Worker broadcasting TOURNAMENT_DATA_REFRESH for user ${userId}, tournament ${tournamentId}`,
+        `📢 Worker broadcasting TOURNAMENT_DATA_REFRESH for ${divisionsToRefresh.length} division(s)`,
       );
-      this.broadcastMessage({
-        type: "TOURNAMENT_DATA_REFRESH",
-        data: message,
-      });
+
+      // Broadcast one refresh message per division
+      for (const divisionId of divisionsToRefresh) {
+        const divisionScopedData = this.extractDivisionScopedData(
+          tournamentData,
+          divisionId,
+        );
+
+        if (!divisionScopedData) {
+          console.error(
+            `⚠️ Cannot extract division ${divisionId} from tournament - skipping refresh`,
+          );
+          continue;
+        }
+
+        const message: TournamentDataRefresh = {
+          userId,
+          tournamentId,
+          divisionId,
+          data: divisionScopedData,
+          reason: "admin_panel_update",
+        };
+
+        console.log(
+          `  📤 Broadcasting refresh for division ${divisionId} (${divisionScopedData.division.name})`,
+        );
+        this.broadcastMessage({
+          type: "TOURNAMENT_DATA_REFRESH",
+          data: message,
+        });
+      }
     } catch (error) {
       console.error(
         `🔴 Worker failed to fetch tournament data for refresh: user ${userId}, tournament ${tournamentId}:`,
@@ -470,8 +588,8 @@ class WorkerSocketManager {
       );
       // Broadcast error so display sources know something went wrong
       const errorMessage: TournamentDataError = {
-        userId: userId,
-        tournamentId: tournamentId,
+        userId,
+        tournamentId,
         error:
           error instanceof Error
             ? error.message
@@ -498,7 +616,7 @@ class WorkerSocketManager {
   }
 
   // Broadcast incoming WebSocket messages for debugging
-  private broadcastWebSocketMessage(eventType: string, data: any) {
+  private broadcastWebSocketMessage(eventType: string, data: unknown) {
     this.statusChannel.postMessage({
       type: "WEBSOCKET_MESSAGE",
       data: {

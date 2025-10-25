@@ -54,6 +54,6 @@ const knexConfig = {
 };
 
 const knexDb = knex(knexConfig);
-const query = (text: string, params?: any[]) => pool.query(text, params);
+const query = (text: string, params?: unknown[]) => pool.query(text, params);
 
 export { pool, knexDb, query };

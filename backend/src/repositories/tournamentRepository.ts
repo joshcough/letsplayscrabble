@@ -754,7 +754,7 @@ export class TournamentRepository {
       }
       
       // Build update object, preserving existing xtid if new data doesn't have one
-      const updateData: any = {
+      const updateData: Partial<Pick<DB.PlayerRow, 'name' | 'initial_rating' | 'photo' | 'etc_data' | 'xtid'>> = {
         name: playerData.name,
         initial_rating: playerData.initial_rating,
         photo: playerData.photo,

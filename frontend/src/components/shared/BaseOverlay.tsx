@@ -6,7 +6,17 @@ import * as Domain from "@shared/types/domain";
 import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { useTournamentData } from "../../hooks/useTournamentData";
 import { ApiService } from "../../services/interfaces";
+import { DivisionScopedData, TournamentMetadata } from "../../types/broadcast";
 import { LoadingErrorWrapper } from "./LoadingErrorWrapper";
+
+// Helper to convert TournamentMetadata + Division into full Tournament shape
+// This maintains backward compatibility with existing overlay code
+function createTournamentFromDivisionData(data: DivisionScopedData): Domain.Tournament {
+  return {
+    ...data.tournament,
+    divisions: [data.division], // Only include the one division we have
+  };
+}
 
 export interface BaseOverlayDataProps {
   tournament: Domain.Tournament;
@@ -56,8 +66,8 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({
     apiService,
   });
 
-  // Choose which data to use
-  let tournamentData: Domain.Tournament | null;
+  // Choose which data to use (now DivisionScopedData instead of full Tournament)
+  let divisionScopedData: DivisionScopedData | null;
   let loading: boolean;
   let fetchError: string | null;
   let finalDivisionName: string | undefined;
@@ -65,58 +75,37 @@ export const BaseOverlay: React.FC<BaseOverlayProps> = ({
 
   if (shouldUseCurrentMatch) {
     console.log("🔄 BaseOverlay: Using current match data");
-    tournamentData = currentMatchData.tournamentData;
+    divisionScopedData = currentMatchData.tournamentData;
     loading = matchLoading || currentMatchData.loading;
     fetchError = matchError || currentMatchData.fetchError;
-    finalDivisionName = currentMatch?.divisionName;
-    selectedDivisionId = currentMatch?.divisionId || null;
-    console.log("🔧 BaseOverlay: Raw tournament data", {
-      currentMatchData_tournamentData: currentMatchData.tournamentData,
-      currentMatchData_loading: currentMatchData.loading,
-      currentMatch_divisionId: currentMatch?.divisionId,
-      selectedDivisionId,
-    });
+    finalDivisionName = currentMatch?.divisionName || divisionScopedData?.division.name;
+    selectedDivisionId = currentMatch?.divisionId || divisionScopedData?.division.id || null;
   } else {
     console.log("🔄 BaseOverlay: Using URL params data");
-    tournamentData = urlParamsData.tournamentData;
+    divisionScopedData = urlParamsData.tournamentData;
     loading = urlParamsData.loading;
     fetchError = urlParamsData.fetchError;
     finalDivisionName = urlParamsData.divisionName;
     selectedDivisionId = urlParamsData.selectedDivisionId;
   }
 
-  // Extract data for overlays
+  // Extract data for overlays from division-scoped data
   let tournament: Domain.Tournament | null = null;
   let divisionData: Domain.Division | null = null;
 
-  if (tournamentData && selectedDivisionId) {
-    // Use the full tournament data directly
-    tournament = tournamentData;
+  if (divisionScopedData) {
+    // Convert division-scoped data to tournament shape for backward compatibility
+    tournament = createTournamentFromDivisionData(divisionScopedData);
+    divisionData = divisionScopedData.division;
+    finalDivisionName = divisionScopedData.division.name;
+    selectedDivisionId = divisionScopedData.division.id;
 
-    // Get division-specific data
-    const rawDivisionData = tournamentData.divisions.find(
-      (d) => d.id === selectedDivisionId,
-    );
-
-    if (rawDivisionData) {
-      console.log("✅ BaseOverlay: Found division data", {
-        divisionName: rawDivisionData.name,
-        players: rawDivisionData.players.length,
-        games: rawDivisionData.games.length,
-      });
-
-      divisionData = rawDivisionData;
-
-      // Use division name from data if we don't have it from other sources
-      if (!finalDivisionName) {
-        finalDivisionName = rawDivisionData.name;
-      }
-    } else {
-      console.warn(
-        "⚠️ BaseOverlay: Division not found in tournament data",
-        selectedDivisionId,
-      );
-    }
+    console.log("✅ BaseOverlay: Using division-scoped data", {
+      tournamentName: divisionScopedData.tournament.name,
+      divisionName: divisionScopedData.division.name,
+      players: divisionScopedData.division.players.length,
+      games: divisionScopedData.division.games.length,
+    });
   }
 
   // Check if we have complete data

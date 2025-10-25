@@ -12,7 +12,7 @@ import * as Domain from "@shared/types/domain";
 
 import { ApiResponse } from "../config/api";
 import { baseFetchSafe, getAuthHeaders } from "../utils/api";
-import { ApiService } from "./interfaces";
+import { ApiService, CreateTournamentParams, UpdateTournamentParams } from "./interfaces";
 
 export class HttpApiService implements ApiService {
   // Helper for authenticated requests
@@ -118,14 +118,14 @@ export class HttpApiService implements ApiService {
     return { success: true, data: tournaments };
   }
 
-  async createTournament(params: any): Promise<ApiResponse<any>> {
+  async createTournament(params: CreateTournamentParams): Promise<ApiResponse<Domain.Tournament>> {
     return await this.fetchWithAuth("/api/private/tournaments", {
       method: "POST",
       body: JSON.stringify(params),
     });
   }
 
-  async updateTournament(id: number, params: any): Promise<ApiResponse<any>> {
+  async updateTournament(id: number, params: UpdateTournamentParams): Promise<ApiResponse<Domain.Tournament>> {
     console.log("🚀 Sending tournament update:", { id, params });
     return await this.fetchWithAuth(`/api/private/tournaments/${id}`, {
       method: "PUT",

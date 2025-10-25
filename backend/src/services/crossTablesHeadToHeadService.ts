@@ -2,6 +2,29 @@ import * as Domain from "@shared/types/domain";
 import { CrossTablesHeadToHeadRepository } from "../repositories/crossTablesHeadToHeadRepository";
 import { extractXtidFromEtc } from "../utils/xtidHelpers";
 
+// Cross-tables API response format for head-to-head games
+interface CrossTablesApiGame {
+  gameid: string;
+  date: string;
+  tourneyname?: string;
+  winnerid: string;
+  winnername: string;
+  winnerscore: string;
+  winneroldrating: string;
+  winnernewrating: string;
+  winnerposition?: string;
+  winnerpos?: string; // Alternative field name
+  loserid: string;
+  losername: string;
+  loserscore: string;
+  loseroldrating: string;
+  losernewrating: string;
+  loserposition?: string;
+  loserpos?: string; // Alternative field name
+  annotated?: string;
+  annotatedurl?: string; // Alternative field name
+}
+
 export class CrossTablesHeadToHeadService {
   constructor(
     private readonly repository: CrossTablesHeadToHeadRepository,
@@ -91,21 +114,21 @@ export class CrossTablesHeadToHeadService {
       const data = await response.json();
       
       // Handle both formats: direct array or wrapped in { games: [...] }
-      let games: any[];
+      let games: CrossTablesApiGame[];
       if (Array.isArray(data)) {
-        games = data;
-      } else if (data && Array.isArray(data.games)) {
-        games = data.games;
+        games = data as CrossTablesApiGame[];
+      } else if (data && Array.isArray((data as { games: unknown }).games)) {
+        games = (data as { games: CrossTablesApiGame[] }).games;
       } else {
         console.warn(`⚠️ Unexpected response format for players ${playerIds.join('+')}:`, data);
         return { games: [] };
       }
-      
+
       console.log(`📊 API Response: Found ${games.length} games for players ${playerIds.join(', ')}`);
-      
+
       // Convert API response to our domain format
       // API returns flat winner/loser fields, but we store as player1/player2 to handle ties
-      const allGames: Domain.HeadToHeadGame[] = games.map((apiGame: any): Domain.HeadToHeadGame => ({
+      const allGames: Domain.HeadToHeadGame[] = games.map((apiGame: CrossTablesApiGame): Domain.HeadToHeadGame => ({
         gameid: parseInt(apiGame.gameid),
         date: apiGame.date,
         tourneyname: apiGame.tourneyname || undefined,

@@ -12,6 +12,20 @@ import * as Domain from "@shared/types/domain";
 
 import { ApiResponse } from "../config/api";
 
+// Tournament creation/update parameters
+export interface CreateTournamentParams {
+  name: string;
+  city: string;
+  year: number;
+  lexicon: string;
+  longFormName: string;
+  dataUrl: string;
+  theme?: string;
+  transparentBackground?: boolean;
+}
+
+export interface UpdateTournamentParams extends Partial<CreateTournamentParams> {}
+
 // ============================================================================
 // AUTHENTICATION SERVICE
 // ============================================================================
@@ -35,8 +49,8 @@ export interface TournamentService {
     tournamentId: number,
   ): Promise<ApiResponse<Domain.TournamentSummary>>;
   listTournaments(): Promise<ApiResponse<Domain.TournamentSummary[]>>;
-  createTournament(params: any): Promise<ApiResponse<any>>; // TODO: Add proper types
-  updateTournament(id: number, params: any): Promise<ApiResponse<any>>;
+  createTournament(params: CreateTournamentParams): Promise<ApiResponse<Domain.Tournament>>;
+  updateTournament(id: number, params: UpdateTournamentParams): Promise<ApiResponse<Domain.Tournament>>;
   deleteTournament(id: number): Promise<ApiResponse<void>>;
 
   // Division operations

@@ -5,7 +5,28 @@ import * as Domain from "@shared/types/domain";
 export interface SubscribeMessage {
   userId: number;
   tournamentId: number;
-  divisionId?: number;
+  divisionId?: number; // Specify division by ID
+  divisionName?: string; // OR specify division by name (worker will resolve)
+  // Note: One of divisionId or divisionName must be provided
+}
+
+// Tournament metadata (without divisions array - just the tournament info)
+export interface TournamentMetadata {
+  id: number;
+  name: string;
+  city: string;
+  year: number;
+  lexicon: string;
+  longFormName: string;
+  dataUrl: string;
+  theme?: string;
+  transparentBackground?: boolean;
+}
+
+// Division-scoped data payload (tournament metadata + single division)
+export interface DivisionScopedData {
+  tournament: TournamentMetadata;
+  division: Domain.Division;
 }
 
 // Messages FROM worker TO overlays
@@ -14,14 +35,16 @@ export interface SubscribeMessage {
 export interface TournamentDataResponse {
   userId: number;
   tournamentId: number;
-  data: Domain.Tournament;
+  divisionId: number; // Now required - we always send a specific division
+  data: DivisionScopedData; // Changed from full Tournament to division-scoped
 }
 
 // For AdminPanelUpdate - new tournament/division selected
 export interface TournamentDataRefresh {
   userId: number;
   tournamentId: number;
-  data: Domain.Tournament;
+  divisionId: number; // Now required
+  data: DivisionScopedData; // Changed from full Tournament to division-scoped
   reason: "admin_panel_update";
 }
 
@@ -29,10 +52,11 @@ export interface TournamentDataRefresh {
 export interface TournamentDataIncremental {
   userId: number;
   tournamentId: number;
-  data: Domain.Tournament; // Full updated tournament data
-  previousData?: Domain.Tournament; // Optional previous state
+  divisionId: number; // Now required
+  data: DivisionScopedData; // Changed from full Tournament to division-scoped
+  previousData?: DivisionScopedData; // Optional previous state (also division-scoped)
   changes: Domain.GameChanges;
-  affectedDivisions: number[];
+  affectedDivisions: number[]; // Keep for notifications that care about multiple divisions
   metadata: {
     addedCount: number;
     updatedCount: number;

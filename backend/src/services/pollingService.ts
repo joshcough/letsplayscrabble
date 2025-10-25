@@ -118,10 +118,14 @@ export class TournamentPollingService {
             // Extract cross-tables IDs from new players in the file data for targeted sync
             const newPlayerXtids: number[] = [];
             for (const newPlayer of newPlayers) {
-              const division = (newData.divisions as any)[newPlayer.divisionName];
-              const filePlayer = division?.players.find((p: any) => p && p.id === newPlayer.seed);
-              if (filePlayer?.etc?.xtid) {
-                newPlayerXtids.push(filePlayer.etc.xtid);
+              const division = newData.divisions.find(d => d.name === newPlayer.divisionName);
+              const filePlayer = division?.players?.find((p) => p && p.id === newPlayer.seed);
+              const xtid = filePlayer?.etc?.xtid;
+              // Handle xtid being a number, array, or null/undefined
+              if (typeof xtid === 'number') {
+                newPlayerXtids.push(xtid);
+              } else if (Array.isArray(xtid) && xtid.length > 0) {
+                newPlayerXtids.push(xtid[0]); // Use first xtid if array
               }
             }
 

@@ -11,6 +11,7 @@ import {
   TournamentDataRefresh,
   TournamentDataIncremental,
   TournamentDataError,
+  DivisionScopedData,
 } from "../types/broadcast";
 import BroadcastManager from "./BroadcastManager";
 
@@ -40,13 +41,11 @@ export const useTournamentData = ({
     divisionName,
   } = useParams<RouteParams>();
 
-  const [tournamentData, setTournamentData] =
-    useState<Domain.Tournament | null>(null);
+  // Changed: Now storing division-scoped data instead of full tournament
+  const [divisionScopedData, setDivisionScopedData] =
+    useState<DivisionScopedData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [selectedDivisionId, setSelectedDivisionId] = useState<number | null>(
-    null,
-  );
 
   const shouldUseUrlParams = useUrlParams && urlTournamentId && divisionName;
   const effectiveTournamentId = shouldUseUrlParams
@@ -67,6 +66,12 @@ export const useTournamentData = ({
       return;
     }
 
+    // Must have either divisionId or divisionName
+    if (!propDivisionId && !divisionName) {
+      setFetchError("Missing division identifier (need divisionId or divisionName)");
+      return;
+    }
+
     try {
       setLoading(true);
       setFetchError(null);
@@ -74,7 +79,8 @@ export const useTournamentData = ({
       const subscribeMessage: SubscribeMessage = {
         userId: parseInt(userId),
         tournamentId: effectiveTournamentId,
-        divisionId: propDivisionId, // Only set if we want a specific division
+        divisionId: propDivisionId, // Set if provided (from currentMatch)
+        divisionName: divisionName, // Set if from URL params
       };
 
       console.log(
@@ -92,71 +98,6 @@ export const useTournamentData = ({
           ? err.message
           : "Failed to subscribe to tournament data",
       );
-      setLoading(false);
-    }
-  };
-
-  // Fallback direct fetch method (for emergencies or if worker isn't available)
-  const fetchTournamentData = async () => {
-    if (!userId || !effectiveTournamentId) {
-      setFetchError("Missing required parameters");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setFetchError(null);
-
-      let tournament: Domain.Tournament;
-      let finalDivisionId: number | null = null;
-
-      if (shouldUseUrlParams) {
-        const response = await apiService.getTournament(
-          parseInt(userId),
-          effectiveTournamentId,
-        );
-        if (!response.success) {
-          throw new Error(response.error);
-        }
-        tournament = response.data;
-      } else if (propDivisionId) {
-        const response = await apiService.getTournament(
-          parseInt(userId),
-          effectiveTournamentId,
-        );
-        if (!response.success) {
-          throw new Error(response.error);
-        }
-        tournament = response.data;
-        finalDivisionId = propDivisionId;
-      } else {
-        const response = await apiService.getTournament(
-          parseInt(userId),
-          effectiveTournamentId,
-        );
-        if (!response.success) {
-          throw new Error(response.error);
-        }
-        tournament = response.data;
-      }
-
-      if (shouldUseUrlParams && divisionName) {
-        const divisionData = tournament.divisions.find(
-          (d) => d.name.toUpperCase() === divisionName.toUpperCase(),
-        );
-        if (!divisionData) {
-          throw new Error(`Division "${divisionName}" not found`);
-        }
-        finalDivisionId = divisionData.id;
-      }
-
-      setTournamentData(tournament);
-      setSelectedDivisionId(finalDivisionId);
-    } catch (err) {
-      setFetchError(
-        err instanceof Error ? err.message : "Failed to fetch tournament data",
-      );
-    } finally {
       setLoading(false);
     }
   };
@@ -272,42 +213,23 @@ export const useTournamentData = ({
             data,
           );
 
-          // Filter by userId and tournamentId
-          if (
-            data.userId === parseInt(userId) &&
-            data.tournamentId === effectiveTournamentId
-          ) {
-            // We always get full tournament data now, so just accept it
+          // Filter by userId, tournamentId, and optionally divisionId
+          const matchesUser = data.userId === parseInt(userId);
+          const matchesTournament = data.tournamentId === effectiveTournamentId;
+          const matchesDivision = !propDivisionId || data.divisionId === propDivisionId;
+
+          if (matchesUser && matchesTournament && matchesDivision) {
             console.log(
-              `✅ TOURNAMENT_DATA_RESPONSE for tournament - accepting (contains ${data.data.divisions.length} divisions)`,
+              `✅ TOURNAMENT_DATA_RESPONSE for division ${data.data.division.name} (id: ${data.divisionId}) - accepting`,
             );
 
-            console.log(
-              "✅ Using worker's tournament data - no API call needed!",
-            );
-
-            // Process the tournament data (same logic as fetchTournamentData)
-            const tournament = data.data;
-            let finalDivisionId: number | null = null;
-
-            if (propDivisionId) {
-              finalDivisionId = propDivisionId;
-            } else if (shouldUseUrlParams && divisionName) {
-              const divisionData = tournament.divisions.find(
-                (d: any) => d.name.toUpperCase() === divisionName.toUpperCase(),
-              );
-              if (divisionData) {
-                finalDivisionId = divisionData.id;
-              }
-            }
-
-            setTournamentData(tournament);
-            setSelectedDivisionId(finalDivisionId);
+            // Division-scoped data arrives ready to use!
+            setDivisionScopedData(data.data);
             setFetchError(null);
             setLoading(false);
           } else {
             console.log(
-              `⏭️ Different tournament/user - ignoring (received: ${data.userId}/${data.tournamentId}, expected: ${userId}/${effectiveTournamentId})`,
+              `⏭️ Different tournament/user/division - ignoring (received: ${data.userId}/${data.tournamentId}/${data.divisionId}, expected: ${userId}/${effectiveTournamentId}/${propDivisionId || 'any'})`,
             );
           }
         },
@@ -320,8 +242,6 @@ export const useTournamentData = ({
     userId,
     effectiveTournamentId,
     propDivisionId,
-    divisionName,
-    shouldUseUrlParams,
   ]);
 
   // Listen for TOURNAMENT_DATA_REFRESH broadcasts from worker (AdminPanelUpdate responses)
@@ -336,39 +256,23 @@ export const useTournamentData = ({
             data,
           );
 
-          // Filter by userId and tournamentId
-          if (
-            data.userId === parseInt(userId) &&
-            data.tournamentId === effectiveTournamentId
-          ) {
+          // Filter by userId, tournamentId, and optionally divisionId
+          const matchesUser = data.userId === parseInt(userId);
+          const matchesTournament = data.tournamentId === effectiveTournamentId;
+          const matchesDivision = !propDivisionId || data.divisionId === propDivisionId;
+
+          if (matchesUser && matchesTournament && matchesDivision) {
             console.log(
-              `✅ TOURNAMENT_DATA_REFRESH for tournament - accepting (contains ${data.data.divisions.length} divisions)`,
+              `✅ TOURNAMENT_DATA_REFRESH for division ${data.data.division.name} (id: ${data.divisionId}) - accepting`,
             );
 
-            console.log("✅ Using worker's refreshed tournament data!");
-
-            // Process the tournament data (same logic as fetchTournamentData)
-            const tournament = data.data;
-            let finalDivisionId: number | null = null;
-
-            if (propDivisionId) {
-              finalDivisionId = propDivisionId;
-            } else if (shouldUseUrlParams && divisionName) {
-              const divisionData = tournament.divisions.find(
-                (d: any) => d.name.toUpperCase() === divisionName.toUpperCase(),
-              );
-              if (divisionData) {
-                finalDivisionId = divisionData.id;
-              }
-            }
-
-            setTournamentData(tournament);
-            setSelectedDivisionId(finalDivisionId);
+            // Division-scoped data arrives ready to use!
+            setDivisionScopedData(data.data);
             setFetchError(null);
             setLoading(false);
           } else {
             console.log(
-              `⏭️ Different tournament/user - ignoring (received: ${data.userId}/${data.tournamentId}, expected: ${userId}/${effectiveTournamentId})`,
+              `⏭️ Different tournament/user/division - ignoring (received: ${data.userId}/${data.tournamentId}/${data.divisionId}, expected: ${userId}/${effectiveTournamentId}/${propDivisionId || 'any'})`,
             );
           }
         },
@@ -381,8 +285,6 @@ export const useTournamentData = ({
     userId,
     effectiveTournamentId,
     propDivisionId,
-    divisionName,
-    shouldUseUrlParams,
   ]);
 
   // Listen for TOURNAMENT_DATA_INCREMENTAL broadcasts from worker (GamesAdded responses)
@@ -397,46 +299,23 @@ export const useTournamentData = ({
             data,
           );
 
-          // Filter by userId and tournamentId
-          if (
-            data.userId === parseInt(userId) &&
-            data.tournamentId === effectiveTournamentId
-          ) {
+          // Filter by userId, tournamentId, and optionally divisionId
+          const matchesUser = data.userId === parseInt(userId);
+          const matchesTournament = data.tournamentId === effectiveTournamentId;
+          const matchesDivision = !propDivisionId || data.divisionId === propDivisionId;
+
+          if (matchesUser && matchesTournament && matchesDivision) {
             console.log(
-              `✅ TOURNAMENT_DATA_INCREMENTAL for tournament - applying ${data.metadata.addedCount} added, ${data.metadata.updatedCount} updated games`,
+              `✅ TOURNAMENT_DATA_INCREMENTAL for division ${data.data.division.name} - applying ${data.metadata.addedCount} added, ${data.metadata.updatedCount} updated games`,
             );
 
-            // Simple replacement with the updated tournament data from worker
-            // Worker has already applied all the changes to the cache
-            if (data.data) {
-              console.log(
-                "✅ Replacing tournament data with worker's updated version",
-              );
-
-              // Process division selection (same logic as other handlers)
-              const tournament = data.data;
-              let finalDivisionId: number | null = null;
-
-              if (propDivisionId) {
-                finalDivisionId = propDivisionId;
-              } else if (shouldUseUrlParams && divisionName) {
-                const divisionData = tournament.divisions.find(
-                  (d: any) =>
-                    d.name.toUpperCase() === divisionName.toUpperCase(),
-                );
-                if (divisionData) {
-                  finalDivisionId = divisionData.id;
-                }
-              }
-
-              setTournamentData(tournament);
-              setSelectedDivisionId(finalDivisionId);
-              setFetchError(null);
-              setLoading(false);
-            }
+            // Division-scoped data arrives ready to use!
+            setDivisionScopedData(data.data);
+            setFetchError(null);
+            setLoading(false);
           } else {
             console.log(
-              `⏭️ Different tournament/user - ignoring (received: ${data.userId}/${data.tournamentId}, expected: ${userId}/${effectiveTournamentId})`,
+              `⏭️ Different tournament/user/division - ignoring (received: ${data.userId}/${data.tournamentId}/${data.divisionId}, expected: ${userId}/${effectiveTournamentId}/${propDivisionId || 'any'})`,
             );
           }
         },
@@ -449,8 +328,6 @@ export const useTournamentData = ({
     userId,
     effectiveTournamentId,
     propDivisionId,
-    divisionName,
-    shouldUseUrlParams,
   ]);
 
   // Listen for TOURNAMENT_DATA_ERROR broadcasts from worker
@@ -486,22 +363,6 @@ export const useTournamentData = ({
     };
   }, [userId, effectiveTournamentId]);
 
-  const getDivisionData = (divisionId?: number) => {
-    if (!tournamentData) return null;
-    const targetDivisionId = divisionId || selectedDivisionId;
-    if (!targetDivisionId) return null;
-    return (
-      tournamentData.divisions.find((d) => d.id === targetDivisionId) || null
-    );
-  };
-
-  const getDivisionName = (divisionId?: number) => {
-    const divisionData = getDivisionData(divisionId);
-    return (
-      divisionData?.name || (shouldUseUrlParams ? divisionName : undefined)
-    );
-  };
-
   // Cleanup broadcast channel on unmount
   useEffect(() => {
     return () => {
@@ -510,14 +371,13 @@ export const useTournamentData = ({
     };
   }, []);
 
+  // Return division-scoped data with backward-compatible interface
   return {
-    tournamentData,
-    getDivisionData,
-    selectedDivisionId,
-    divisionName: getDivisionName(),
+    tournamentData: divisionScopedData, // Now DivisionScopedData instead of full Tournament
+    selectedDivisionId: divisionScopedData?.division.id || null,
+    divisionName: divisionScopedData?.division.name,
     loading,
     fetchError,
-    refetch: subscribeToTournamentData, // Changed from fetchTournamentData to subscribeToTournamentData
-    refetchDirect: fetchTournamentData, // Backup direct fetch method
+    refetch: subscribeToTournamentData,
   };
 };

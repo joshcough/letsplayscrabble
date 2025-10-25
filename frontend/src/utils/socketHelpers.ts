@@ -54,7 +54,7 @@ export const useGamesAdded = (
  */
 export const useSocketEvents = (
   socket: Socket | null,
-  events: Record<string, (data: any) => void>,
+  events: Record<string, (data: unknown) => void>,
 ) => {
   useEffect(() => {
     if (!socket) return;
@@ -62,7 +62,7 @@ export const useSocketEvents = (
     const cleanupFunctions: (() => void)[] = [];
 
     Object.entries(events).forEach(([eventName, handler]) => {
-      const wrappedHandler = (data: any) => {
+      const wrappedHandler = (data: unknown) => {
         console.log(`Received ${eventName}:`, data);
         handler(data);
       };

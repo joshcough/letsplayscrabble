@@ -12,6 +12,7 @@ import {
   calculateAllTournamentStats,
   TournamentStats,
 } from "../../utils/calculateStandings";
+import { getThemeClasses } from "../../utils/themeUtils";
 
 type RouteParams = {
   userId?: string;
@@ -86,11 +87,10 @@ const URLBasedStatsDisplay: React.FC<{
   divisionName?: string;
   apiService: ApiService;
   theme: Theme;
-  themeClasses: any;
+  themeClasses: ReturnType<typeof getThemeClasses>;
 }> = ({ tournamentId, divisionName, apiService, theme, themeClasses }) => {
   const {
     tournamentData,
-    getDivisionData,
     loading: dataLoading,
     fetchError,
   } = useTournamentData({
@@ -105,15 +105,9 @@ const URLBasedStatsDisplay: React.FC<{
       return null;
     }
 
-    if (!divisionName) {
-      // No division specified - calculate across all divisions
-      return calculateAllTournamentStats(tournamentData);
-    }
-
-    // Use URL-specified division
-    const targetDivision = tournamentData.divisions.find(
-      (div) => div.name.toUpperCase() === divisionName.toUpperCase(),
-    );
+    // tournamentData is now division-scoped, so it only contains one division
+    // Calculate stats for this division
+    const targetDivision = tournamentData.division;
     return targetDivision
       ? calculateTournamentStats(targetDivision.games, targetDivision.players)
       : null;
@@ -121,14 +115,12 @@ const URLBasedStatsDisplay: React.FC<{
 
   // Create title
   const title = divisionName
-    ? `${tournamentData?.name || "Tournament"} Div ${divisionName} - Total Tournament Stats`
-    : `${tournamentData?.name || "Tournament"} - Total Tournament Stats`;
+    ? `${tournamentData?.tournament.name || "Tournament"} Div ${divisionName} - Total Tournament Stats`
+    : `${tournamentData?.tournament.name || "Tournament"} - Total Tournament Stats`;
 
-  // Validation for URL-based division access
+  // Validation for URL-based division access - now always has division if tournamentData exists
   if (divisionName && tournamentData) {
-    const divisionExists = tournamentData.divisions.some(
-      (div) => div.name.toUpperCase() === divisionName.toUpperCase(),
-    );
+    const divisionExists = tournamentData.division.name.toUpperCase() === divisionName.toUpperCase();
     if (!divisionExists) {
       return (
         <LoadingErrorWrapper
@@ -147,7 +139,7 @@ const URLBasedStatsDisplay: React.FC<{
         <StatsDisplay
           stats={stats}
           title={title}
-          tournamentName={tournamentData.name}
+          tournamentName={tournamentData.tournament.name}
           theme={theme}
           themeClasses={themeClasses}
         />
@@ -166,7 +158,7 @@ const StatsDisplay: React.FC<{
   title: string;
   tournamentName: string;
   theme: Theme;
-  themeClasses: any;
+  themeClasses: ReturnType<typeof getThemeClasses>;
 }> = ({ stats, title, theme, themeClasses }) => {
   // StatItem component for displaying individual stats
   const StatItem: React.FC<{ 

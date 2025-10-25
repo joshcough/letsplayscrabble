@@ -14,14 +14,13 @@ interface WinningStreakData {
 // 1. Detection logic - returns data or null
 const detectWinningStreak = (
   update: TournamentDataIncremental,
-  divisionData: any,
+  divisionData: Domain.Division,
 ): WinningStreakData | null => {
   console.log("🔥 WinningStreakDetector: Checking for win streaks...");
 
-  // Find division in the updated tournament data
-  const currentDivision = update.data?.divisions.find(
-    (d) => d.id === divisionData.id,
-  );
+  // Get the current division from division-scoped data
+  // update.data is now DivisionScopedData, so it already contains only this division
+  const currentDivision = update.data?.division;
   if (!currentDivision) {
     console.log("🔥 WinningStreakDetector: Division not found in updated data");
     return null;
@@ -89,7 +88,7 @@ const detectWinningStreak = (
 // 2. Render logic - pure UI component
 const renderWinningStreak = (
   data: WinningStreakData,
-  divisionData: any,
+  divisionData: Domain.Division,
 ): JSX.Element => (
   <div className="relative bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-4 sm:p-6 lg:p-12 rounded-lg shadow-2xl border-2 border-yellow-300 w-full max-w-sm sm:max-w-md lg:max-w-2xl mx-auto">
     <div className="text-center space-y-2 sm:space-y-4 lg:space-y-6">
@@ -124,7 +123,7 @@ const renderWinningStreak = (
 // 3. Combined detector - calls detect, then render
 export const winningStreakDetector = (
   update: TournamentDataIncremental,
-  divisionData: any,
+  divisionData: Domain.Division,
 ): JSX.Element | null => {
   const data = detectWinningStreak(update, divisionData);
   if (!data) return null;
