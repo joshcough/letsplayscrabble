@@ -21,7 +21,7 @@ export interface Player {
 }
 
 export interface Etc {
-  newr: number[]; // Player ratings history
+  newr?: number[]; // Player ratings history
   p12: number[]; // 1 = player goes first, 2 = opponent goes first, 0 = bye
-  xtid: number | null; // cross-tables id (optional)
+  xtid?: number | number[] | null; // cross-tables id (can be single number, array, or null)
 }

@@ -17,6 +17,7 @@ import WorkerPage from "./pages/WorkerPage";
 import AdminLandingPage from "./pages/admin/AdminLandingPage";
 import CurrentMatchAdminPage from "./pages/admin/CurrentMatchAdminPage";
 import NotificationTestPage from "./pages/admin/NotificationTestPage";
+import TournamentTesterPage from "./pages/dev/TournamentTesterPage";
 import AllNotifications from "./pages/notifications/AllNotifications";
 // Overlay imports
 import CrossTablesPlayerProfileOverlay from "./pages/overlay/CrossTablesPlayerProfileOverlayPage";
@@ -25,7 +26,6 @@ import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOve
 import MiscOverlayPage from "./pages/overlay/MiscOverlayPage";
 import MiscOverlayTestingPage from "./pages/overlay/MiscOverlayTestingPage";
 import OverlaysPage from "./pages/overlay/OverlaysPage";
-import PingOverlayPage from "./pages/overlay/PingOverlayPage";
 import PlayerOverlay from "./pages/overlay/PlayerOverlayPage";
 import RatingGainOverlayPage from "./pages/overlay/RatingGainOverlayPage";
 import RatingGainWithPicsOverlayPage from "./pages/overlay/RatingGainWithPicsOverlayPage";
@@ -103,10 +103,6 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
         />
         
         {/* User-scoped overlay routes */}
-        <Route
-          path="/users/:userId/overlay/ping"
-          element={<PingOverlayPage apiService={apiService} />}
-        />
         <Route
           path="/users/:userId/overlay/misc"
           element={<MiscOverlayPage apiService={apiService} />}
@@ -242,6 +238,14 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           element={
             <ProtectedRoute>
               <NotificationTestPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dev/tournament-tester"
+          element={
+            <ProtectedRoute>
+              <TournamentTesterPage apiService={apiService} />
             </ProtectedRoute>
           }
         />

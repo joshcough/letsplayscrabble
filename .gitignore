@@ -85,4 +85,4 @@ frontend/.cache/
 /generated-tournament/
 
 # Other
-**/generated-tournament/
+tools/generated-tournament/

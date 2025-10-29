@@ -3,6 +3,7 @@ import { CrossTablesClient } from './crossTablesClient';
 import { CrossTablesPlayerRepository } from '../repositories/crossTablesPlayerRepository';
 import { TournamentRepository } from '../repositories/tournamentRepository';
 import { TournamentData } from '../types/scrabbleFileFormat';
+import { extractXtidFromEtc, stripXtidFromPlayerName } from '../utils/xtidHelpers';
 
 export class CrossTablesSyncService {
   constructor(
@@ -12,45 +13,91 @@ export class CrossTablesSyncService {
 
   /**
    * Syncs cross-tables player data for all players in a tournament
-   * 
-   * How it works:
-   * 1. Scans tournament data for cross-tables IDs (from player.etc.xtid fields)
-   * 2. Checks which players we already have in our cross_tables_players table
-   * 3. Only fetches missing players from cross-tables.com API (incremental sync)
+   *
+   * Optimized approach:
+   * 1. Separates players with embedded xtids from players without xtids
+   * 2. For players without xtids: uses bulk CrossTables lookup to find their IDs by name
+   * 3. Only fetches full profile data for newly discovered xtids (avoids redundant API calls)
    * 4. Stores fetched data in cross_tables_players table for future overlay use
    * 5. Optionally fetches detailed tournament history for enhanced overlays
-   * 
+   *
    * This allows OBS overlays to join tournament players with rich cross-tables data
-   * (ratings, rankings, stats, location, etc.) without hitting the API during broadcasts.
-   * 
+   * without making unnecessary API calls for players whose xtids we already have.
+   *
+   * Returns: Map of division names to arrays of xtids for that division
+   *
    * Called when:
    * - New tournament is created
-   * - Tournament file is manually updated  
+   * - Tournament file is manually updated
    * - Polling service detects tournament changes
    */
-  async syncPlayersFromTournament(tournamentData: TournamentData, includeDetailedData: boolean = false): Promise<void> {
-    console.log('Starting cross-tables player sync for tournament...');
-    
-    // Step 1: Extract all cross-tables IDs from tournament player data
-    const crossTablesIds = this.extractCrossTablesIds(tournamentData);
-    
-    if (crossTablesIds.length === 0) {
-      console.log('No cross-tables IDs found in tournament data');
-      return;
+  async syncPlayersFromTournament(tournamentData: TournamentData, includeDetailedData: boolean = false): Promise<Map<string, number[]>> {
+    console.log('🔄 Starting optimized cross-tables player sync for tournament...');
+
+    // Step 1: Analyze tournament data to separate embedded vs. missing xtids by division
+    const analysis = this.analyzeTournamentPlayers(tournamentData);
+
+    const totalEmbeddedXtids = Array.from(analysis.divisionXtids.values()).flat().length;
+    if (totalEmbeddedXtids === 0 && analysis.playersWithoutXtids.length === 0) {
+      console.log('✅ No players need cross-tables sync');
+      return new Map<string, number[]>();
     }
 
-    console.log(`Found ${crossTablesIds.length} cross-tables IDs in tournament:`, crossTablesIds);
-    
-    // Step 2-4: Only fetch players we don't already have (incremental sync)
-    await this.ensureGlobalPlayersExist(crossTablesIds);
-    
+    console.log(`📊 Tournament analysis: ${totalEmbeddedXtids} embedded xtids across ${analysis.divisionXtids.size} divisions, ${analysis.playersWithoutXtids.length} players without xtids`);
+
+    // Step 2: For players without embedded xtids, discover their xtids via bulk lookup
+    const discoveredXtidsByDivision = new Map<string, number[]>();
+    if (analysis.playersWithoutXtids.length > 0) {
+      console.log('🔍 Looking up xtids for players without embedded data...');
+      const discoveredXtids = await this.discoverXtidsForPlayersWithDivisions(analysis.playersWithoutXtids);
+
+      // Merge discovered xtids into division map
+      for (const [divisionName, xtids] of discoveredXtids) {
+        discoveredXtidsByDivision.set(divisionName, xtids);
+      }
+
+      const totalDiscovered = Array.from(discoveredXtids.values()).flat().length;
+      console.log(`✅ Discovered ${totalDiscovered} additional xtids from name matching`);
+    }
+
+    // Step 3: Merge embedded and discovered xtids by division
+    const allDivisionXtids = new Map<string, number[]>();
+    for (const [divisionName, embeddedXtids] of analysis.divisionXtids) {
+      const discovered = discoveredXtidsByDivision.get(divisionName) || [];
+      allDivisionXtids.set(divisionName, [...embeddedXtids, ...discovered]);
+    }
+
+    // Add any divisions that only had discovered xtids
+    for (const [divisionName, discoveredXtids] of discoveredXtidsByDivision) {
+      if (!allDivisionXtids.has(divisionName)) {
+        allDivisionXtids.set(divisionName, discoveredXtids);
+      }
+    }
+
+    // Get all unique xtids for profile fetching
+    const allUniqueXtids = Array.from(new Set(Array.from(allDivisionXtids.values()).flat()));
+
+    if (allUniqueXtids.length === 0) {
+      console.log('⚠️ No cross-tables IDs found after lookup');
+      return new Map<string, number[]>();
+    }
+
+    console.log(`🎯 Total unique xtids for sync: ${allUniqueXtids.length} across ${allDivisionXtids.size} divisions`);
+    for (const [divisionName, xtids] of allDivisionXtids) {
+      console.log(`  📁 Division "${divisionName}": ${xtids.length} players`);
+    }
+
+    // Step 4: Only fetch profile data for xtids we haven't processed before
+    await this.ensureGlobalPlayersExist(allUniqueXtids);
+
     // Step 5: Optionally fetch detailed tournament history
     if (includeDetailedData) {
-      console.log('Fetching detailed tournament history for enhanced overlays...');
-      await this.syncDetailedPlayerData(crossTablesIds);
+      console.log('📈 Fetching detailed tournament history for enhanced overlays...');
+      await this.syncDetailedPlayerData(allUniqueXtids);
     }
-    
-    console.log('Cross-tables player sync completed');
+
+    console.log('✅ Optimized cross-tables player sync completed');
+    return allDivisionXtids;
   }
 
   async ensureGlobalPlayersExist(crossTablesIds: number[]): Promise<void> {
@@ -67,18 +114,103 @@ export class CrossTablesSyncService {
     }
   }
 
-  private extractCrossTablesIds(tournamentData: TournamentData): number[] {
-    const ids = new Set<number>();
-    
+  private analyzeTournamentPlayers(tournamentData: TournamentData): {
+    divisionXtids: Map<string, number[]>;
+    playersWithoutXtids: { name: string; cleanName: string; divisionName: string }[];
+  } {
+    const divisionXtids = new Map<string, number[]>();
+    const playersWithoutXtids: { name: string; cleanName: string; divisionName: string }[] = [];
+
     for (const division of tournamentData.divisions) {
+      const divisionXtidList: number[] = [];
+
       for (const player of division.players) {
-        if (player?.etc?.xtid) {
-          ids.add(player.etc.xtid);
+        if (!player) continue;
+
+        const xtid = extractXtidFromEtc(player.etc?.xtid);
+        if (xtid !== null) {
+          // Player has embedded xtid
+          divisionXtidList.push(xtid);
+          console.log(`📌 Found embedded xtid ${xtid} for player "${player.name}" in division "${division.name}"`);
+        } else {
+          // Player needs xtid lookup by name
+          const cleanName = stripXtidFromPlayerName(player.name);
+          playersWithoutXtids.push({ name: player.name, cleanName, divisionName: division.name });
+          console.log(`🔍 Player "${player.name}" in division "${division.name}" needs xtid lookup`);
         }
       }
+
+      if (divisionXtidList.length > 0) {
+        divisionXtids.set(division.name, divisionXtidList);
+      }
     }
-    
-    return Array.from(ids);
+
+    return {
+      divisionXtids,
+      playersWithoutXtids
+    };
+  }
+
+  private async discoverXtidsForPlayersWithDivisions(players: { name: string; cleanName: string; divisionName: string }[]): Promise<Map<string, number[]>> {
+    console.log('🌐 Fetching complete CrossTables player list for name matching...');
+
+    try {
+      const allPlayers = await CrossTablesClient.getAllPlayersIdsOnly();
+      console.log(`📋 Loaded ${allPlayers.length} players from CrossTables for matching`);
+
+      const discoveredXtidsByDivision = new Map<string, number[]>();
+
+      for (const { name, cleanName, divisionName } of players) {
+        // Convert name format: "Last, First" → "First Last"
+        const convertedName = this.convertNameFormat(cleanName);
+        console.log(`🔄 Converting "${cleanName}" to "${convertedName}" for matching in division "${divisionName}"`);
+
+        const matches = this.findPlayerMatches(convertedName, allPlayers);
+
+        if (matches.length === 1) {
+          const xtid = parseInt(matches[0].playerid);
+
+          // Add to division's xtid list
+          const divisionXtids = discoveredXtidsByDivision.get(divisionName) || [];
+          divisionXtids.push(xtid);
+          discoveredXtidsByDivision.set(divisionName, divisionXtids);
+
+          console.log(`✅ Matched "${convertedName}" to xtid ${xtid} in division "${divisionName}"`);
+        } else if (matches.length === 0) {
+          console.log(`❌ No matches found for "${convertedName}" in division "${divisionName}"`);
+        } else {
+          console.log(`⚠️ Found ${matches.length} matches for "${convertedName}" in division "${divisionName}" - skipping ambiguous match`);
+        }
+      }
+
+      return discoveredXtidsByDivision;
+    } catch (error) {
+      console.error('❌ Failed to discover xtids:', error);
+      return new Map<string, number[]>();
+    }
+  }
+
+  private convertNameFormat(name: string): string {
+    // Convert "Last, First" to "First Last"
+    if (name.includes(', ')) {
+      const [last, first] = name.split(', ');
+      return `${first.trim()} ${last.trim()}`;
+    }
+    return name; // Already in "First Last" format
+  }
+
+  private findPlayerMatches(convertedName: string, allPlayers: {playerid: string, name: string}[]): {playerid: string, name: string}[] {
+    // Exact match first
+    const exactMatches = allPlayers.filter(p => p.name === convertedName);
+    if (exactMatches.length > 0) {
+      return exactMatches;
+    }
+
+    // Case-insensitive match
+    const caseInsensitiveMatches = allPlayers.filter(
+      p => p.name.toLowerCase() === convertedName.toLowerCase()
+    );
+    return caseInsensitiveMatches;
   }
 
   private async fetchAndStorePlayerData(playerIds: number[]): Promise<void> {
@@ -161,13 +293,17 @@ export class CrossTablesSyncService {
     for (const division of tournamentData.divisions) {
       for (const player of division.players) {
         if (player?.name && player.id) {
-          // Look up the player by name in cross_tables_players to get the correct xtid
-          const crossTablesPlayer = await this.repo.findByName(player.name);
+          // Strip :XT suffix from name before lookup (tournament generator adds these for testing)
+          const cleanName = stripXtidFromPlayerName(player.name);
+
+          // Look up the player by clean name in cross_tables_players to get the correct xtid
+          const crossTablesPlayer = await this.repo.findByName(cleanName);
           if (crossTablesPlayer) {
-            nameToXtidMap.set(player.name, crossTablesPlayer.cross_tables_id);
-            console.log(`🔗 Mapped ${player.name} (seed ${player.id}) -> xtid ${crossTablesPlayer.cross_tables_id}`);
+            // Use clean name as key since that's what's stored in the database
+            nameToXtidMap.set(cleanName, crossTablesPlayer.cross_tables_id);
+            console.log(`🔗 Mapped ${cleanName} (seed ${player.id}) -> xtid ${crossTablesPlayer.cross_tables_id}`);
           } else {
-            console.log(`⚠️  No CrossTables data found for ${player.name} (seed ${player.id})`);
+            console.log(`⚠️  No CrossTables data found for ${cleanName} (seed ${player.id})`);
           }
         }
       }
@@ -189,6 +325,14 @@ export class CrossTablesSyncService {
   async syncSpecificPlayers(playerIds: number[]): Promise<void> {
     console.log(`Syncing specific players: ${playerIds.join(', ')}`);
     await this.fetchAndStorePlayerData(playerIds);
+  }
+
+  async syncTournamentWithCrossTablesData(tournamentData: TournamentData): Promise<TournamentData> {
+    // This method provides the same interface as the old enrichment service
+    // but uses the new sync approach. For now, just return the data as-is
+    // since the sync happens in the background via syncPlayersFromTournament
+    console.log('CrossTables sync: syncTournamentWithCrossTablesData called (no-op - sync handled separately)');
+    return tournamentData;
   }
 
   async syncDetailedPlayerData(playerIds: number[]): Promise<void> {
@@ -218,3 +362,8 @@ export class CrossTablesSyncService {
     }
   }
 }
+
+// Global export for compatibility with loadTournamentFile
+export const crossTablesSync = new CrossTablesSyncService(
+  new (require('../repositories/crossTablesPlayerRepository').CrossTablesPlayerRepository)()
+);

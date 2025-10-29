@@ -6,6 +6,7 @@ import { useCurrentMatch } from "../../hooks/useCurrentMatch";
 import { useTournamentData } from "../../hooks/useTournamentData";
 import { ApiService } from "../../services/interfaces";
 import { TournamentDataIncremental } from "../../types/broadcast";
+import { Division } from "@shared/types/domain";
 
 type RouteParams = {
   userId: string;
@@ -16,7 +17,7 @@ type RouteParams = {
 // Simple notification detector function type
 export type NotificationDetector = (
   update: TournamentDataIncremental,
-  divisionData: unknown,
+  divisionData: Division,
 ) => JSX.Element | null;
 
 // Tournament notification overlay component
@@ -67,7 +68,7 @@ const TournamentNotificationOverlay = ({
     apiService,
   });
 
-  // Effective data
+  // Effective data (now division-scoped instead of full tournament)
   const effectiveTournamentData = shouldUseCurrentMatch
     ? currentMatchTournamentData
     : urlTournamentData;
@@ -78,9 +79,8 @@ const TournamentNotificationOverlay = ({
     ? currentMatchLoading || currentMatchTournamentLoading
     : urlLoading;
 
-  const divisionData = effectiveTournamentData?.divisions.find(
-    (d: any) => d.division.id === effectiveDivisionId,
-  );
+  // Extract division from division-scoped data
+  const divisionData = effectiveTournamentData?.division;
 
   // Listen for incremental updates
   useEffect(() => {

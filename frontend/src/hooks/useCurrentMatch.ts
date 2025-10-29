@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
 import * as Domain from "@shared/types/domain";
+import { AdminPanelUpdateMessage } from "@shared/types/websocket";
 
 import { ApiService } from "../services/interfaces";
 import BroadcastManager from "./BroadcastManager";
@@ -61,7 +62,7 @@ export const useCurrentMatch = (
       console.log(`Overlay received ping!`, pingData);
     });
 
-    const cleanup = broadcastManager.onAdminPanelUpdate((data: any) => {
+    const cleanup = broadcastManager.onAdminPanelUpdate((data: AdminPanelUpdateMessage) => {
       console.log("📥 useCurrentMatch received AdminPanelUpdate:", data);
       // Only process if this update is for our user
       if (data.userId === parseInt(userId)) {

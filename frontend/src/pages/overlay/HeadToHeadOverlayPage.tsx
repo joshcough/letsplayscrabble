@@ -1,14 +1,15 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { 
-  BaseOverlay, 
-  BaseOverlayDataProps 
+import {
+  BaseOverlay,
+  BaseOverlayDataProps
 } from '../../components/shared/BaseOverlay';
 import { ApiService } from '../../services/interfaces';
 import { ThemeProvider } from '../../components/shared/ThemeProvider';
 import { Theme } from '../../types/theme';
-import { formatPlayerName } from '../../utils/playerUtils';
+import { formatPlayerName, getPlaceOrSeedLabel } from '../../utils/playerUtils';
 import { getPageTextColor } from '../../utils/themeUtils';
+import * as Domain from '@shared/types/domain';
 
 type RouteParams = {
   userId?: string;
@@ -64,7 +65,7 @@ const renderCareerH2H = (
 ): React.ReactNode => {
   const { divisionData, currentMatch } = data;
 
-  let player1: any, player2: any;
+  let player1: Domain.Player | undefined, player2: Domain.Player | undefined;
 
   if (hasSpecificPlayers) {
     player1 = divisionData.players.find(p => p.id === parseInt(playerId1!));
@@ -95,20 +96,24 @@ const renderCareerH2H = (
     }
   }
 
+  // Type assertion: we know player1 and player2 are defined after the guards above
+  const p1: Domain.Player = player1!;
+  const p2: Domain.Player = player2!;
+
   // Get historical head-to-head games from cross-tables data
-  const historicalGames = divisionData.headToHeadGames?.filter((game: any) =>
-    (game.player1.playerid === player1.xtid && game.player2.playerid === player2.xtid) ||
-    (game.player1.playerid === player2.xtid && game.player2.playerid === player1.xtid)
+  const historicalGames = divisionData.headToHeadGames?.filter((game: Domain.HeadToHeadGame) =>
+    (game.player1.playerid === p1.xtid && game.player2.playerid === p2.xtid) ||
+    (game.player1.playerid === p2.xtid && game.player2.playerid === p1.xtid)
   ) || [];
 
   // Get current tournament games between these players
   const currentTournamentGames = divisionData.games.filter(game =>
-    (game.player1Id === player1.id && game.player2Id === player2.id) ||
-    (game.player1Id === player2.id && game.player2Id === player1.id)
+    (game.player1Id === p1.id && game.player2Id === p2.id) ||
+    (game.player1Id === p2.id && game.player2Id === p1.id)
   ).filter(game => game.player1Score !== null && game.player2Score !== null)
   .map(game => {
     // Figure out which player is which in this game
-    const headToHeadPlayer1IsGamePlayer1 = game.player1Id === player1.id;
+    const headToHeadPlayer1IsGamePlayer1 = game.player1Id === p1.id;
     
     return {
       gameid: game.id,
@@ -116,37 +121,41 @@ const renderCareerH2H = (
       isCurrentTournament: true,
       tournamentName: data.tournament.name,
       player1: {
-        playerid: player1.xtid,
-        name: player1.name,
-        score: headToHeadPlayer1IsGamePlayer1 ? game.player1Score : game.player2Score,
+        playerid: p1.xtid ?? 0,
+        name: p1.name,
+        score: (headToHeadPlayer1IsGamePlayer1 ? game.player1Score : game.player2Score) ?? 0,
+        oldrating: 0,
+        newrating: 0,
       },
       player2: {
-        playerid: player2.xtid,
-        name: player2.name,
-        score: headToHeadPlayer1IsGamePlayer1 ? game.player2Score : game.player1Score,
+        playerid: p2.xtid ?? 0,
+        name: p2.name,
+        score: (headToHeadPlayer1IsGamePlayer1 ? game.player2Score : game.player1Score) ?? 0,
+        oldrating: 0,
+        newrating: 0,
       }
     };
   });
 
   const headToHeadGames = [...historicalGames, ...currentTournamentGames];
 
-  const player1Wins = headToHeadGames.filter((game: any) => {
-    const p1Score = game.player1.playerid === player1.xtid ? game.player1.score : game.player2.score;
-    const p2Score = game.player1.playerid === player1.xtid ? game.player2.score : game.player1.score;
+  const player1Wins = headToHeadGames.filter((game: Domain.HeadToHeadGame) => {
+    const p1Score = game.player1.playerid === p1.xtid ? game.player1.score : game.player2.score;
+    const p2Score = game.player1.playerid === p1.xtid ? game.player2.score : game.player1.score;
     return p1Score > p2Score; // Only count actual wins, not ties
   }).length;
 
-  const player2Wins = headToHeadGames.filter((game: any) => {
-    const p1Score = game.player1.playerid === player1.xtid ? game.player1.score : game.player2.score;
-    const p2Score = game.player1.playerid === player1.xtid ? game.player2.score : game.player1.score;
+  const player2Wins = headToHeadGames.filter((game: Domain.HeadToHeadGame) => {
+    const p1Score = game.player1.playerid === p1.xtid ? game.player1.score : game.player2.score;
+    const p2Score = game.player1.playerid === p1.xtid ? game.player2.score : game.player1.score;
     return p2Score > p1Score; // Only count actual wins, not ties
   }).length;
 
   // Calculate average scores
   let player1TotalScore = 0, player2TotalScore = 0, completedGames = 0;
-  headToHeadGames.forEach((game: any) => {
+  headToHeadGames.forEach((game: Domain.HeadToHeadGame) => {
     completedGames++;
-    if (game.player1.playerid === player1.xtid) {
+    if (game.player1.playerid === p1.xtid) {
       player1TotalScore += game.player1.score;
       player2TotalScore += game.player2.score;
     } else {
@@ -176,8 +185,8 @@ const renderCareerH2H = (
     return { wins, losses, spread };
   };
 
-  const player1Record = calculateRecord(player1.id);
-  const player2Record = calculateRecord(player2.id);
+  const player1Record = calculateRecord(p1.id);
+  const player2Record = calculateRecord(p2.id);
 
   // Calculate positions
   const sortedPlayers = [...divisionData.players].sort((a, b) => {
@@ -190,13 +199,13 @@ const renderCareerH2H = (
     return bRecord.spread - aRecord.spread;
   });
 
-  const player1Position = sortedPlayers.findIndex(p => p.id === player1.id) + 1;
-  const player2Position = sortedPlayers.findIndex(p => p.id === player2.id) + 1;
+  const player1Position = sortedPlayers.findIndex(p => p.id === p1.id) + 1;
+  const player2Position = sortedPlayers.findIndex(p => p.id === p2.id) + 1;
 
 
   // Get recent games for display (last 6)
   const recentGames = [...headToHeadGames]
-    .sort((a: any, b: any) => {
+    .sort((a: Domain.HeadToHeadGame & { isCurrentTournament?: boolean }, b: Domain.HeadToHeadGame & { isCurrentTournament?: boolean }) => {
       if (a.isCurrentTournament && !b.isCurrentTournament) return -1;
       if (!a.isCurrentTournament && b.isCurrentTournament) return 1;
       return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -223,24 +232,24 @@ const renderCareerH2H = (
             <div className="flex flex-col">
               <div className="flex items-center gap-6 mb-4">
                 {/* Photo */}
-                {player1.xtData?.photourl || player1.photo ? (
+                {p1.xtData?.photourl || p1.photo ? (
                   <img
-                    src={player1.xtData?.photourl || player1.photo || undefined}
-                    alt={formatPlayerName(player1.name)}
+                    src={p1.xtData?.photourl || p1.photo || undefined}
+                    alt={formatPlayerName(p1.name)}
                     className={`w-28 h-32 ${themeClasses.playerImage}`}
                   />
                 ) : (
                   <div className="w-28 h-32 rounded-xl flex items-center justify-center font-bold text-3xl shadow-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white">
-                    {formatPlayerName(player1.name).split(' ').map((n: string) => n.charAt(0)).join('')}
+                    {formatPlayerName(p1.name).split(' ').map((n: string) => n.charAt(0)).join('')}
                   </div>
                 )}
 
                 {/* Name and Location */}
                 <div>
-                  <h2 className={themeClasses.overlay.playerName}>{formatPlayerName(player1.name)}</h2>
-                  {player1.xtData?.city && (
+                  <h2 className={themeClasses.overlay.playerName}>{formatPlayerName(p1.name)}</h2>
+                  {p1.xtData?.city && (
                     <p className={themeClasses.overlay.smallMetadata}>
-                      {player1.xtData.city}{player1.xtData.state && `, ${player1.xtData.state}`}
+                      {p1.xtData.city}{p1.xtData.state && `, ${p1.xtData.state}`}
                     </p>
                   )}
                 </div>
@@ -250,7 +259,7 @@ const renderCareerH2H = (
               <div>
                 <p className={`${themeClasses.overlay.statLabel} mb-1`}>Current Record</p>
                 <p className={themeClasses.overlay.statValue}>
-                  {player1Record.wins}-{player1Record.losses} {player1Record.spread >= 0 ? '+' : ''}{player1Record.spread}, {player1Position}{getOrdinalSuffix(player1Position)} Place
+                  {player1Record.wins}-{player1Record.losses} {player1Record.spread >= 0 ? '+' : ''}{player1Record.spread}, {player1Position}{getOrdinalSuffix(player1Position)} {getPlaceOrSeedLabel(player1Record)}
                 </p>
               </div>
             </div>
@@ -288,24 +297,24 @@ const renderCareerH2H = (
               <div className="flex items-center gap-6 mb-4">
                 {/* Name and Location */}
                 <div className="text-right flex-1">
-                  <h2 className={themeClasses.overlay.playerName}>{formatPlayerName(player2.name)}</h2>
-                  {player2.xtData?.city && (
+                  <h2 className={themeClasses.overlay.playerName}>{formatPlayerName(p2.name)}</h2>
+                  {p2.xtData?.city && (
                     <p className={themeClasses.overlay.smallMetadata}>
-                      {player2.xtData.city}{player2.xtData.state && `, ${player2.xtData.state}`}
+                      {p2.xtData.city}{p2.xtData.state && `, ${p2.xtData.state}`}
                     </p>
                   )}
                 </div>
 
                 {/* Photo */}
-                {player2.xtData?.photourl || player2.photo ? (
+                {p2.xtData?.photourl || p2.photo ? (
                   <img
-                    src={player2.xtData?.photourl || player2.photo || undefined}
-                    alt={formatPlayerName(player2.name)}
+                    src={p2.xtData?.photourl || p2.photo || undefined}
+                    alt={formatPlayerName(p2.name)}
                     className={`w-28 h-32 ${themeClasses.playerImage}`}
                   />
                 ) : (
                   <div className="w-28 h-32 rounded-xl flex items-center justify-center font-bold text-3xl shadow-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white">
-                    {formatPlayerName(player2.name).split(' ').map((n: string) => n.charAt(0)).join('')}
+                    {formatPlayerName(p2.name).split(' ').map((n: string) => n.charAt(0)).join('')}
                   </div>
                 )}
               </div>
@@ -314,7 +323,7 @@ const renderCareerH2H = (
               <div className="text-right">
                 <p className={`${themeClasses.overlay.statLabel} mb-1`}>Current Record</p>
                 <p className={themeClasses.overlay.statValue}>
-                  {player2Record.wins}-{player2Record.losses} {player2Record.spread >= 0 ? '+' : ''}{player2Record.spread}, {player2Position}{getOrdinalSuffix(player2Position)} Place
+                  {player2Record.wins}-{player2Record.losses} {player2Record.spread >= 0 ? '+' : ''}{player2Record.spread}, {player2Position}{getOrdinalSuffix(player2Position)} {getPlaceOrSeedLabel(player2Record)}
                 </p>
               </div>
             </div>
@@ -337,11 +346,11 @@ const renderCareerH2H = (
                     <col className="w-[25%]" />
                   </colgroup>
                   <tbody>
-                    {recentGames.map((game: any, index: number) => {
-                      const player1Score = game.player1.playerid === player1.xtid 
+                    {recentGames.map((game: Domain.HeadToHeadGame & { isCurrentTournament?: boolean }, index: number) => {
+                      const player1Score = game.player1.playerid === p1.xtid 
                         ? game.player1.score 
                         : game.player2.score;
-                      const player2Score = game.player1.playerid === player1.xtid 
+                      const player2Score = game.player1.playerid === p1.xtid 
                         ? game.player2.score 
                         : game.player1.score;
                       
@@ -351,7 +360,7 @@ const renderCareerH2H = (
                       
                       const scores = `${player1Score}-${player2Score}`;
                       const winner = isTie ? 'T' : (player1Won ? 'W' : 'L');
-                      const location = game.tournamentName || game.tourneyname || 'Tournament';
+                      const location = (game as any).tournamentName || game.tourneyname || 'Tournament';
 
                       return (
                         <tr key={index} className={`border-b ${theme.colors.secondaryBorder} last:border-0 ${theme.colors.hoverBackground} transition-colors`}>

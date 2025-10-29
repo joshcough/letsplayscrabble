@@ -15,7 +15,19 @@ import {
 
 import { NotificationBroadcastMessage, NotificationCancelMessage } from "../types/notifications";
 
-type EventHandler = (data: any) => void;
+type BroadcastEventData =
+  | TournamentDataResponse
+  | TournamentDataRefresh
+  | TournamentDataIncremental
+  | TournamentDataError
+  | NotificationBroadcastMessage['data']
+  | NotificationCancelMessage
+  | AdminPanelUpdateMessage
+  | GamesAddedMessage
+  | TournamentThemeChangedMessage
+  | Ping;
+
+type EventHandler = (data: BroadcastEventData) => void;
 
 class BroadcastManager {
   private static instance: BroadcastManager;
@@ -163,56 +175,56 @@ class BroadcastManager {
 
   // Convenience methods with proper types and type assertions
   onAdminPanelUpdate(handler: (data: AdminPanelUpdateMessage) => void) {
-    this.on("ADMIN_PANEL_UPDATE", handler);
-    return () => this.off("AdminPanelUpdate", handler);
+    this.on("ADMIN_PANEL_UPDATE", handler as EventHandler);
+    return () => this.off("ADMIN_PANEL_UPDATE", handler as EventHandler);
   }
 
   onGamesAdded(handler: (data: GamesAddedMessage) => void) {
-    this.on("GamesAdded", handler);
-    return () => this.off("GamesAdded", handler);
+    this.on("GamesAdded", handler as EventHandler);
+    return () => this.off("GamesAdded", handler as EventHandler);
   }
 
   // New tournament data handlers
   onTournamentDataResponse(handler: (data: TournamentDataResponse) => void) {
-    this.on("TOURNAMENT_DATA_RESPONSE", handler);
-    return () => this.off("TOURNAMENT_DATA_RESPONSE", handler);
+    this.on("TOURNAMENT_DATA_RESPONSE", handler as EventHandler);
+    return () => this.off("TOURNAMENT_DATA_RESPONSE", handler as EventHandler);
   }
 
   onTournamentDataRefresh(handler: (data: TournamentDataRefresh) => void) {
-    this.on("TOURNAMENT_DATA_REFRESH", handler);
-    return () => this.off("TOURNAMENT_DATA_REFRESH", handler);
+    this.on("TOURNAMENT_DATA_REFRESH", handler as EventHandler);
+    return () => this.off("TOURNAMENT_DATA_REFRESH", handler as EventHandler);
   }
 
   onTournamentDataIncremental(
     handler: (data: TournamentDataIncremental) => void,
   ) {
-    this.on("TOURNAMENT_DATA_INCREMENTAL", handler);
-    return () => this.off("TOURNAMENT_DATA_INCREMENTAL", handler);
+    this.on("TOURNAMENT_DATA_INCREMENTAL", handler as EventHandler);
+    return () => this.off("TOURNAMENT_DATA_INCREMENTAL", handler as EventHandler);
   }
 
   onTournamentDataError(handler: (data: TournamentDataError) => void) {
-    this.on("TOURNAMENT_DATA_ERROR", handler);
-    return () => this.off("TOURNAMENT_DATA_ERROR", handler);
+    this.on("TOURNAMENT_DATA_ERROR", handler as EventHandler);
+    return () => this.off("TOURNAMENT_DATA_ERROR", handler as EventHandler);
   }
 
   onPing(handler: (data: Ping) => void) {
-    this.on("Ping", handler);
-    return () => this.off("Ping", handler);
+    this.on("Ping", handler as EventHandler);
+    return () => this.off("Ping", handler as EventHandler);
   }
 
   onTournamentThemeChanged(handler: (data: TournamentThemeChangedMessage) => void) {
-    this.on("TournamentThemeChanged", handler);
-    return () => this.off("TournamentThemeChanged", handler);
+    this.on("TournamentThemeChanged", handler as EventHandler);
+    return () => this.off("TournamentThemeChanged", handler as EventHandler);
   }
 
   onNotification(handler: (data: NotificationBroadcastMessage['data']) => void) {
-    this.on("NOTIFICATION", handler);
-    return () => this.off("NOTIFICATION", handler);
+    this.on("NOTIFICATION", handler as EventHandler);
+    return () => this.off("NOTIFICATION", handler as EventHandler);
   }
 
   onNotificationCancel(handler: (data: NotificationCancelMessage) => void) {
-    this.on("NOTIFICATION_CANCEL", handler);
-    return () => this.off("NOTIFICATION_CANCEL", handler);
+    this.on("NOTIFICATION_CANCEL", handler as EventHandler);
+    return () => this.off("NOTIFICATION_CANCEL", handler as EventHandler);
   }
 
   // Mock methods to maintain compatibility with existing SocketManager interface
@@ -228,12 +240,12 @@ class BroadcastManager {
     return Date.now();
   }
 
-  addListener(listener: (data: any) => void) {
+  addListener(listener: (data: BroadcastEventData) => void) {
     // For compatibility - could be used for status updates
     console.log("📝 BroadcastManager added general listener");
   }
 
-  removeListener(listener: (data: any) => void) {
+  removeListener(listener: (data: BroadcastEventData) => void) {
     // For compatibility
     console.log("🗑️ BroadcastManager removed general listener");
   }

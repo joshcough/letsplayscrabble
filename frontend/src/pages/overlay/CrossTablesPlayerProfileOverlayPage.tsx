@@ -9,6 +9,7 @@ import { ThemeProvider } from "../../components/shared/ThemeProvider";
 import { ApiService } from "../../services/interfaces";
 import { Theme } from "../../types/theme";
 import { getCurrentRating, formatPlayerName } from "../../utils/playerUtils";
+import { getThemeClasses } from "../../utils/themeUtils";
 
 type RouteParams = {
   userId?: string;
@@ -18,7 +19,7 @@ type RouteParams = {
 };
 
 // Helper functions
-const formatLocation = (xtData: any): string | null => {
+const formatLocation = (xtData: Domain.CrossTablesPlayer): string | null => {
   if (!xtData?.city) return null;
   
   if (xtData.state) {
@@ -40,11 +41,11 @@ const calculateWinPercentage = (wins: number, losses: number, ties: number): num
 };
 
 const renderPlayerProfile = (
-  player: any,
+  player: Domain.Player,
   divisionData: Domain.Division,
   tournament: Domain.Tournament,
   theme: Theme,
-  themeClasses: any
+  themeClasses: ReturnType<typeof getThemeClasses>
 ) => {
   if (!player) {
     return <div className={`${theme.colors.textPrimary}`}>Player not found</div>;
@@ -61,7 +62,7 @@ const renderPlayerProfile = (
   const averageScore = xtData?.averageScore || null;
   
   // Find most recent tournament win, or fall back to most recent tournament
-  const recentWin = xtData?.results?.find((result: any) => result.position === '1' || result.position === 1);
+  const recentWin = xtData?.results?.find((result: Domain.TournamentResult) => result.place === 1);
   const recentTournament = recentWin || (xtData?.results && xtData.results.length > 0 ? xtData.results[0] : null);
   const isWin = recentWin && recentTournament === recentWin;
 
@@ -144,16 +145,16 @@ const renderPlayerProfile = (
                   {isWin ? '🏆 Recent Tournament Win' : 'Recent Tournament'}
                 </div>
                 <div className={`${theme.colors.textPrimary} text-2xl font-bold`}>
-                  {recentTournament.tourneyname}
+                  {recentTournament.name}
                 </div>
                 {recentTournament.date && (
                   <div className={`${theme.colors.textAccent} text-lg mt-1 font-semibold`}>
                     {recentTournament.date}
                   </div>
                 )}
-                {recentTournament.w !== undefined && recentTournament.l !== undefined && (
+                {recentTournament.wins !== undefined && recentTournament.losses !== undefined && (
                   <div className={`${theme.colors.textPrimary} font-mono text-xl font-bold mt-2`}>
-                    {recentTournament.w}-{recentTournament.l} {recentTournament.spread > 0 ? '+' : ''}{recentTournament.spread}
+                    {recentTournament.wins}-{recentTournament.losses}
                   </div>
                 )}
               </div>

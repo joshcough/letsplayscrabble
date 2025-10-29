@@ -238,7 +238,7 @@ const TournamentDetails: React.FC<{ apiService: ApiService }> = ({
   const handleRefetchTournament = async () => {
     setIsRefetching(true);
     try {
-      const response = await apiService.enrichTournament(Number(params.id));
+      const response = await apiService.refetchTournament(Number(params.id));
       if (response.success) {
         // Refresh tournament data after refetch
         const freshDataResponse = await apiService.getTournamentSummary(

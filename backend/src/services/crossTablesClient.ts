@@ -18,17 +18,17 @@ export class CrossTablesClient {
 
   static async getDetailedPlayer(playerid: number): Promise<DetailedCrossTablesPlayer | null> {
     try {
-      const response = await axios.get<{ player: any }>(
+      const response = await axios.get<{ player: unknown }>(
         `${this.BASE_URL}/player.php?player=${playerid}&results=1`
       );
-      
-      const playerData = response.data?.player;
+
+      const playerData = response.data?.player as Record<string, any>;
       if (!playerData) return null;
-      
+
       // Transform the API response to our domain format
       const detailedPlayer: DetailedCrossTablesPlayer = {
-        playerid: parseInt(playerData.playerid),
-        name: playerData.name,
+        playerid: parseInt(playerData.playerid || '0'),
+        name: playerData.name || '',
         twlrating: playerData.twlrating ? parseInt(playerData.twlrating) : undefined,
         cswrating: playerData.cswrating ? parseInt(playerData.cswrating) : undefined,
         twlranking: playerData.twlranking ? parseInt(playerData.twlranking) : undefined,
@@ -74,6 +74,18 @@ export class CrossTablesClient {
       return response.data.players || [];
     } catch (error) {
       console.error('Failed to search players from cross-tables:', error);
+      return [];
+    }
+  }
+
+  static async getAllPlayersIdsOnly(): Promise<{playerid: string, name: string}[]> {
+    try {
+      const response = await axios.get<{ players: {playerid: string, name: string}[] }>(
+        `${this.BASE_URL}/players.php?idsonly=1`
+      );
+      return response.data.players || [];
+    } catch (error) {
+      console.error('Failed to fetch all players from cross-tables:', error);
       return [];
     }
   }

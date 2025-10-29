@@ -3,13 +3,17 @@ import io, { Socket } from "socket.io-client";
 
 import { API_BASE } from "../config/api";
 
+type SocketEventData =
+  | { type: "statusChange"; status: string }
+  | { type: "error"; error: string };
+
 class SocketManager {
   private static instance: SocketManager;
   private socket: Socket | null = null;
   private connectionStatus: string = "Initializing...";
   private error: string | null = null;
   private lastDataUpdate: number = Date.now();
-  private listeners: Set<(data: any) => void> = new Set();
+  private listeners: Set<(data: SocketEventData) => void> = new Set();
 
   private constructor() {
     this.connectSocket();
@@ -83,15 +87,15 @@ class SocketManager {
     }
   }
 
-  private notifyListeners(data: any) {
+  private notifyListeners(data: SocketEventData) {
     this.listeners.forEach((listener) => listener(data));
   }
 
-  addListener(listener: (data: any) => void) {
+  addListener(listener: (data: SocketEventData) => void) {
     this.listeners.add(listener);
   }
 
-  removeListener(listener: (data: any) => void) {
+  removeListener(listener: (data: SocketEventData) => void) {
     this.listeners.delete(listener);
   }
 

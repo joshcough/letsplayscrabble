@@ -11,9 +11,11 @@ class TournamentGenerator {
       eventName: config.eventName || 'Test Tournament',
       eventDate: config.eventDate || 'January 1, 2025',
       maxRounds: config.maxRounds || 10,
-      outputDir: config.outputDir || './tools/generated-tournament',
+      outputDir: config.outputDir || './generated-tournament',
       playerDataFile: config.playerDataFile || null, // Path to CSV player data
       includeXtids: config.includeXtids !== false, // Default to true, can be disabled
+      addXtidSuffixes: config.addXtidSuffixes !== false, // Add :XT###### to some names for testing
+      skipOneXtidPerDivision: config.skipOneXtidPerDivision !== false, // Leave out one xtid per division for fallback testing
       ...config
     };
 
@@ -121,16 +123,34 @@ class TournamentGenerator {
         }
 
         const etcData = { p12: [] };
-        
-        // Only include xtid if config allows it and player has a real xtid
-        if (this.config.includeXtids && playerInfo) {
-          etcData.xtid = playerInfo.xtid || null;
+
+        // Determine if this player should have an embedded xtid
+        const shouldIncludeXtid = this.config.includeXtids && playerInfo && playerInfo.playerid;
+
+        // Skip xtid for the last player in each division (for fallback testing)
+        const isLastPlayerInDivision = this.config.skipOneXtidPerDivision && (index === playerNames.length - 1);
+
+        // Determine final player name (with or without XT suffix)
+        let finalPlayerName = name;
+        if (shouldIncludeXtid && !isLastPlayerInDivision) {
+          // Use array format like in xtid-tourney.js: [17175]
+          etcData.xtid = [parseInt(playerInfo.playerid)];
+
+          // Add XT suffix to name for ALL players with embedded xtids (for testing name cleaning)
+          if (this.config.addXtidSuffixes) {
+            // Pad playerid to 6 digits and add :XT prefix
+            const paddedId = playerInfo.playerid.toString().padStart(6, '0');
+            finalPlayerName = `${name}:XT${paddedId}`;
+            console.log(`    🎯 Added XT suffix: ${finalPlayerName} (xtid: [${playerInfo.playerid}])`);
+          }
+        } else if (isLastPlayerInDivision && shouldIncludeXtid) {
+          console.log(`    ⚠️ Skipped xtid for fallback testing: ${name}`);
         }
 
         const player = {
           etc: etcData,
           id: index + 1, // Division-specific ID (1-based)
-          name: name,
+          name: finalPlayerName,
           newr: undefined,
           pairings: [],
           photo: `pix/${name.toLowerCase().replace(/[^a-z]/g, '_')}.jpg`,
@@ -352,9 +372,9 @@ class TournamentGenerator {
           newr: isInitial ? [] : [...player.ratingHistory.slice(1)], // Skip the initial rating, only include post-game ratings
         };
         
-        // Only include xtid if config allows it
+        // Only include xtid if config allows it and player has one
         if (this.config.includeXtids && player.etc.xtid) {
-          etcData.xtid = player.etc.xtid;
+          etcData.xtid = player.etc.xtid; // Already in array format from initialization
         }
         
         return {
@@ -477,17 +497,24 @@ if (require.main === module) {
   // Check for --no-xt-ids flag
   const noXtIdsIndex = args.indexOf('--no-xt-ids');
   const includeXtids = noXtIdsIndex === -1;
-  
+
   // Check for --custom-players flag
   const customPlayersIndex = args.indexOf('--custom-players');
   const customPlayersFile = customPlayersIndex !== -1 ? args[customPlayersIndex + 1] : null;
-  
+
+  // Check for --output-dir or --output flag
+  const outputDirIndex = Math.max(args.indexOf('--output-dir'), args.indexOf('--output'));
+  const outputDir = outputDirIndex !== -1 ? args[outputDirIndex + 1] : './generated-tournament';
+
   // Remove the flags from args for positional argument parsing
   if (noXtIdsIndex !== -1) {
     args.splice(noXtIdsIndex, 1);
   }
   if (customPlayersIndex !== -1) {
     args.splice(customPlayersIndex, 2); // Remove both flag and filename
+  }
+  if (outputDirIndex !== -1) {
+    args.splice(outputDirIndex, 2); // Remove both flag and directory path
   }
   
   const numDivisions = parseInt(args[0]) || 3; // Default to 3 divisions
@@ -513,19 +540,21 @@ if (require.main === module) {
   // Regular validation for non-custom mode
   if (!customPlayersFile && (numDivisions < 2 || numDivisions > 4)) {
     console.error('❌ Number of divisions must be between 2 and 4');
-    console.log('Usage: node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division] [--no-xt-ids] [--custom-players file.txt]');
+    console.log('Usage: node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division] [flags...]');
     console.log('Example: node tournament-generator.js 3 7 players.json 8');
     console.log('Example: node tournament-generator.js 3 7 players.json 8 --no-xt-ids');
     console.log('Example: node tournament-generator.js 1 7 players.json 8 --custom-players my-players.txt');
+    console.log('Example: node tournament-generator.js 2 7 players.json 30 --output-dir tools/generated-tournament');
     process.exit(1);
   }
 
   if (!playerDataFile) {
     console.error('❌ Player data JSON file is required');
-    console.log('Usage: node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division] [--no-xt-ids] [--custom-players file.txt]');
+    console.log('Usage: node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division] [flags...]');
     console.log('Example: node tournament-generator.js 3 7 players.json 8');
     console.log('Example: node tournament-generator.js 3 7 players.json 8 --no-xt-ids');
     console.log('Example: node tournament-generator.js 1 7 players.json 8 --custom-players my-players.txt');
+    console.log('Example: node tournament-generator.js 2 7 players.json 30 --output-dir tools/generated-tournament');
     process.exit(1);
   }
   
@@ -636,7 +665,7 @@ if (require.main === module) {
             'Joey Krafchick',     // Top US player
             'Will Anderson',      // Another top player
             'Jackson Smylie',     // Top Canadian
-            'Brooke Mosesman',    // Low-rated player (54 rating) - likely no wins for testing
+            'Joshua Cough',       // You! (pretend rating: 2111)
           ];
           
           console.log(`    ⭐ Adding guaranteed top players to Division A...`);
@@ -649,12 +678,23 @@ if (require.main === module) {
           }
         }
 
-        const tierStart = divIndex * playersPerTier;
-        const tierEnd = Math.min((divIndex + 1) * playersPerTier, validPlayers.length);
-        const tierPlayers = validPlayers.slice(tierStart, tierEnd)
-          .filter(p => !guaranteedPlayers.some(gp => gp.playerid === p.playerid)); // Exclude already selected
+        // For Division A, use high-rated players (1900+), for other divisions use tier system
+        let tierPlayers;
+        if (divIndex === 0) { // Division A only
+          const minRating = 1900;
+          tierPlayers = validPlayers
+            .filter(p => parseInt(p.twlrating) >= minRating)
+            .filter(p => !guaranteedPlayers.some(gp => gp.playerid === p.playerid)); // Exclude already selected
+          console.log(`    🎯 High-rated players (${minRating}+ rating): ${tierPlayers.length} available after exclusions`);
+        } else {
+          // Use tier system for other divisions
+          const tierStart = divIndex * playersPerTier;
+          const tierEnd = Math.min((divIndex + 1) * playersPerTier, validPlayers.length);
+          tierPlayers = validPlayers.slice(tierStart, tierEnd)
+            .filter(p => !guaranteedPlayers.some(gp => gp.playerid === p.playerid)); // Exclude already selected
+          console.log(`    🎯 Tier range: players ${tierStart} to ${tierEnd-1} (${tierPlayers.length} available after exclusions)`);
+        }
 
-        console.log(`    🎯 Tier range: players ${tierStart} to ${tierEnd-1} (${tierPlayers.length} available after exclusions)`);
         console.log(`    📊 Rating range for this tier: ${tierPlayers[0]?.twlrating} to ${tierPlayers[tierPlayers.length-1]?.twlrating}`);
 
         // Start with guaranteed player names, then randomly select from tier
@@ -713,7 +753,7 @@ if (require.main === module) {
         day: 'numeric'
       }),
       maxRounds: numRounds,
-      outputDir: './tools/generated-tournament',
+      outputDir: outputDir,
       playerDataFile: playerDataFile,
       includeXtids: includeXtids
     }
@@ -727,19 +767,21 @@ if (require.main === module) {
 
   console.log('\n✅ Tournament files generated successfully!');
   console.log('\n📖 Usage:');
-  console.log('  node tools/tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division] [flags...]');
+  console.log('  node tournament-generator.js [divisions] [rounds] [player-data.json] [players-per-division] [flags...]');
   console.log('  divisions: 2-4 for random selection, 1 for custom players (default: 3)');
   console.log('  rounds: number of rounds (default: 7)');
   console.log('  player-data.json: JSON file with player data (required)');
   console.log('  players-per-division: number of players per division (default: 8, ignored with --custom-players)');
   console.log('  --no-xt-ids: exclude cross-tables IDs from generated files (optional)');
   console.log('  --custom-players file.txt: use specific players from file (requires 1 division)');
+  console.log('  --output-dir path or --output path: output directory (default: ./generated-tournament)');
   console.log('\nExamples:');
   console.log('  node tools/tournament-generator.js 3 7 tools/players.json     # 3 divisions, 7 rounds, 8 players each');
   console.log('  node tools/tournament-generator.js 4 5 tools/players.json 6   # 4 divisions, 5 rounds, 6 players each');
   console.log('  node tools/tournament-generator.js 2 9 tools/players.json 12  # 2 divisions, 9 rounds, 12 players each');
   console.log('  node tools/tournament-generator.js 3 7 tools/players.json 8 --no-xt-ids  # exclude xt-ids for testing enrichment');
   console.log('  node tools/tournament-generator.js 1 7 tools/players.json 8 --custom-players my-players.txt  # custom players');
+  console.log('  node tools/tournament-generator.js 2 7 tools/players.json 30 --output-dir tools/generated-tournament  # custom output dir');
   console.log('\nCustom players file format (one name per line):');
   console.log('  Smith, John');
   console.log('  Doe, Jane');

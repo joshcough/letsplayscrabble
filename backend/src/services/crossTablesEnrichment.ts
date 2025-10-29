@@ -1,5 +1,6 @@
 // Cross-tables player enrichment service for backend
 import * as File from "../types/scrabbleFileFormat";
+import * as Domain from "@shared/types/domain";
 
 interface CrossTablesPlayer {
   playerid: string;
@@ -23,7 +24,7 @@ interface CrossTablesPlayerData {
   averageScore: number;
   opponentAverageScore: number;
   tournamentCount: number;
-  results: any[];
+  results: Domain.TournamentResult[];
 }
 
 class CrossTablesEnrichmentService {

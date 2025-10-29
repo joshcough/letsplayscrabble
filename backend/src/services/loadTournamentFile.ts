@@ -2,11 +2,11 @@ import axios from "axios";
 import fs from "fs/promises";
 
 import { TournamentData } from "../types/scrabbleFileFormat";
-import { crossTablesEnrichment } from "./crossTablesEnrichment";
+import { crossTablesSync } from "./crossTablesSync";
 
 export async function loadTournamentFile(
   source: string,
-  skipEnrichment: boolean = false,
+  skipSync: boolean = false,
 ): Promise<TournamentData> {
   try {
     let jsContent: string;
@@ -35,13 +35,13 @@ export async function loadTournamentFile(
 
     const tournamentData = data as TournamentData;
     
-    if (!skipEnrichment) {
-      // Enrich with cross-tables data for any players missing xtid
-      console.log(`🔍 LoadTournamentFile: Checking tournament from ${source} for cross-tables enrichment...`);
-      const enrichedData = await crossTablesEnrichment.enrichTournamentWithCrossTablesData(tournamentData);
-      return enrichedData;
+    if (!skipSync) {
+      // Sync with cross-tables data for any players missing xtid
+      console.log(`🔍 LoadTournamentFile: Checking tournament from ${source} for cross-tables sync...`);
+      const syncedData = await crossTablesSync.syncTournamentWithCrossTablesData(tournamentData);
+      return syncedData;
     } else {
-      console.log(`⏭️ LoadTournamentFile: Skipping enrichment for ${source} (polling mode)`);
+      console.log(`⏭️ LoadTournamentFile: Skipping sync for ${source} (polling mode)`);
       return tournamentData;
     }
   } catch (error) {

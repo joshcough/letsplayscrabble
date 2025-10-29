@@ -1,6 +1,7 @@
 import React from "react";
 
 import { TournamentDataIncremental } from "../../types/broadcast";
+import * as Domain from "@shared/types/domain";
 import {
   getHighScoreForDivision,
   getHighScoreFromChanges,
@@ -16,21 +17,46 @@ interface HighScoreData {
 // 1. Detection logic - returns data or null
 const detectHighScore = (
   update: TournamentDataIncremental,
-  divisionData: any,
+  divisionData: Domain.Division,
 ): HighScoreData | null => {
   console.log("🏆 HighScoreDetector: Checking for new high scores...");
 
   // Get the highest score from just the changes for our division
   const changesHighScore = getHighScoreFromChanges(
     update.changes,
-    divisionData.division.id,
+    divisionData.id,
     divisionData.players,
   );
 
   // Get the previous high score for the division (0 if no previous data)
+  // previousData is now division-scoped, so we can calculate directly from it
   const previousHighScore = update.previousData
-    ? getHighScoreForDivision(update.previousData, divisionData.id)
+    ? getHighScoreFromGames(update.previousData.division.games, update.previousData.division.players)
     : { score: 0, playerName: "", gameId: 0 };
+
+  // Helper to calculate high score from games
+  function getHighScoreFromGames(games: Domain.Game[], players: Domain.Player[]) {
+    let highScore = 0;
+    let highScorePlayerName = "";
+    let highScoreGameId = 0;
+
+    for (const game of games) {
+      if (game.player1Score && game.player1Score > highScore) {
+        highScore = game.player1Score;
+        const player = players.find((p) => p.id === game.player1Id);
+        highScorePlayerName = player?.name || "Unknown";
+        highScoreGameId = game.id;
+      }
+      if (game.player2Score && game.player2Score > highScore) {
+        highScore = game.player2Score;
+        const player = players.find((p) => p.id === game.player2Id);
+        highScorePlayerName = player?.name || "Unknown";
+        highScoreGameId = game.id;
+      }
+    }
+
+    return { score: highScore, playerName: highScorePlayerName, gameId: highScoreGameId };
+  }
 
   // Check if the highest score in the changes beats the previous record (or is the first score)
   if (
@@ -54,7 +80,7 @@ const detectHighScore = (
 // 2. Render logic - pure UI component
 const renderHighScore = (
   data: HighScoreData,
-  divisionData: any,
+  divisionData: Domain.Division,
 ): JSX.Element => (
   <div className="relative bg-white text-gray-900 p-4 sm:p-6 lg:p-12 rounded-lg shadow-2xl border-2 border-gray-300 w-full max-w-sm sm:max-w-md lg:max-w-2xl mx-auto">
     <div className="text-center space-y-2 sm:space-y-4 lg:space-y-6">
@@ -82,7 +108,7 @@ const renderHighScore = (
 
       {/* Division Name */}
       <div className="text-xs sm:text-base lg:text-xl text-gray-500 font-medium">
-        Division {divisionData.division.name}
+        Division {divisionData.name}
       </div>
     </div>
   </div>
@@ -91,7 +117,7 @@ const renderHighScore = (
 // 3. Combined detector - calls detect, then render
 export const highScoreDetector = (
   update: TournamentDataIncremental,
-  divisionData: any,
+  divisionData: Domain.Division,
 ): JSX.Element | null => {
   const data = detectHighScore(update, divisionData);
   if (!data) return null;

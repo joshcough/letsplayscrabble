@@ -15,6 +15,7 @@ import { TournamentRepository } from "./repositories/tournamentRepository";
 import createAdminRoutes from "./routes/admin";
 import authRoutes from "./routes/auth";
 import { cacheRoutes } from "./routes/cache";
+import createDevRoutes from "./routes/dev";
 import createOverlayRoutes from "./routes/overlay";
 import userSettingsRoutes from "./routes/userSettings";
 import { protectedPollingRoutes } from "./routes/tournament/polling";
@@ -151,6 +152,7 @@ setInterval(() => {
 // Unprotected routes
 app.use("/api/auth", authRoutes);
 app.use("/api/overlay", createOverlayRoutes(currentMatchRepository));
+app.use("/api/dev", createDevRoutes()); // Dev routes for testing
 
 app.use("/api/public", unprotectedTournamentRoutes(tournamentRepository));
 

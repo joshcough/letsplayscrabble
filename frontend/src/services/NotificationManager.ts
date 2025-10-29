@@ -5,7 +5,7 @@ import { highScoreDetector } from '../pages/notifications/HighScore';
 import { winningStreakDetector } from '../pages/notifications/WinningStreak';
 
 // Queue item with priority and status
-interface QueuedNotification {
+export interface QueuedNotification {
   id: string;
   notification: NotificationData;
   priority: number; // 1-10, higher = more important
@@ -13,6 +13,15 @@ interface QueuedNotification {
   queuedAt: number;
   scheduledAt?: number;
   displayStartTime?: number;
+}
+
+// Queue status returned by getQueueStatus
+export interface QueueStatus {
+  isProcessing: boolean;
+  currentNotification: QueuedNotification | null;
+  pendingCount: number;
+  totalInQueue: number;
+  historyCount: number;
 }
 
 export class NotificationManager {
@@ -75,35 +84,32 @@ export class NotificationManager {
     console.log('🔔 NotificationManager: Processing tournament update for notifications', {
       tournamentId: data.tournamentId,
       userId: data.userId,
-      affectedDivisions: data.affectedDivisions
+      divisionId: data.data.division.id
     });
 
-    // Check each affected division for notifications
-    for (const divisionId of data.affectedDivisions) {
-      const divisionData = data.data.divisions.find(d => d.id === divisionId);
-      if (!divisionData) continue;
+    // data.data now contains division-scoped data with a single division
+    const divisionData = data.data.division;
 
-      // Run each detector
-      for (const detector of this.detectors) {
-        try {
-          const notificationElement = detector(data, divisionData);
-          if (notificationElement) {
-            // Convert the React element to our notification data format
-            const notification = this.extractNotificationData(
-              notificationElement, 
-              data.tournamentId, 
-              divisionId, 
-              data.userId
-            );
-            
-            if (notification) {
-              this.queueNotification(notification);
-            }
-            break; // Only one notification per division update
+    // Run each detector on this division
+    for (const detector of this.detectors) {
+      try {
+        const notificationElement = detector(data, divisionData);
+        if (notificationElement) {
+          // Convert the React element to our notification data format
+          const notification = this.extractNotificationData(
+            notificationElement,
+            data.tournamentId,
+            divisionData.id,
+            data.userId
+          );
+
+          if (notification) {
+            this.queueNotification(notification);
           }
-        } catch (error) {
-          console.error('🔔 NotificationManager: Error running detector:', error);
+          break; // Only one notification per division update
         }
+      } catch (error) {
+        console.error('🔔 NotificationManager: Error running detector:', error);
       }
     }
   }
@@ -362,7 +368,7 @@ export class NotificationManager {
   }
 
   // Public Queue Status Methods
-  public getQueueStatus() {
+  public getQueueStatus(): QueueStatus {
     return {
       isProcessing: this.isProcessing,
       currentNotification: this.currentNotification,

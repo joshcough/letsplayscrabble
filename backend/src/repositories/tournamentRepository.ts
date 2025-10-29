@@ -193,7 +193,7 @@ export class TournamentRepository {
       }
 
       // Convert file data to database format for incremental updates
-      const createTournamentData = convertFileToDatabase(
+      const createTournamentData = await convertFileToDatabase(
         newData,
         {
           name: tournament.name,
@@ -653,7 +653,7 @@ export class TournamentRepository {
         continue;
       }
 
-      // Update players for this division (needed for CrossTables enrichment persistence)
+      // Update players for this division (needed for CrossTables sync persistence)
       await this.updatePlayersForDivision(
         trx,
         tournamentId,
@@ -745,7 +745,7 @@ export class TournamentRepository {
     divisionId: number,
     players: DB.CreatePlayerRow[],
   ): Promise<void> {
-    // Update existing players with new data (especially xtid from CrossTables enrichment)
+    // Update existing players with new data (especially xtid from CrossTables sync)
     console.log(`🔄 TournamentRepository: Updating ${players.length} players for division ${divisionId} in tournament ${tournamentId}`);
     
     for (const playerData of players) {
@@ -754,7 +754,7 @@ export class TournamentRepository {
       }
       
       // Build update object, preserving existing xtid if new data doesn't have one
-      const updateData: any = {
+      const updateData: Partial<Pick<DB.PlayerRow, 'name' | 'initial_rating' | 'photo' | 'etc_data' | 'xtid'>> = {
         name: playerData.name,
         initial_rating: playerData.initial_rating,
         photo: playerData.photo,
@@ -810,16 +810,16 @@ export class TournamentRepository {
     return newPlayers;
   }
 
-  async updatePlayersWithXtids(tournamentId: number, enrichedXtids: Map<number, number>): Promise<void> {
-    console.log(`🔄 TournamentRepository: Updating ${enrichedXtids.size} players with CrossTables xtids for tournament ${tournamentId}`);
+  async updatePlayersWithXtids(tournamentId: number, syncedXtids: Map<number, number>): Promise<void> {
+    console.log(`🔄 TournamentRepository: Updating ${syncedXtids.size} players with CrossTables xtids for tournament ${tournamentId}`);
     
-    if (enrichedXtids.size === 0) {
+    if (syncedXtids.size === 0) {
       console.log(`✅ TournamentRepository: No xtids to update for tournament ${tournamentId}`);
       return;
     }
     
     return knexDb.transaction(async (trx) => {
-      for (const [seed, xtid] of enrichedXtids) {
+      for (const [seed, xtid] of syncedXtids) {
         console.log(`🔍 TournamentRepository: Updating player with seed ${seed} to xtid ${xtid}`);
         
         const rowsUpdated = await trx("players")
