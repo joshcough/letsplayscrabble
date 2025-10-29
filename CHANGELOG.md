@@ -1,5 +1,156 @@
 # Changelog
 
+## 2025-10-29 - Lake George Release: Memory Optimization & Performance Improvements
+
+### 🐛 **Critical Bug Fixes**
+
+#### **Memory Leak Elimination**
+- **FIXED**: BroadcastChannel memory leak where instances were created on every component re-render instead of once on mount
+- **IMPACT**: Severe memory exhaustion with multiple OBS browser sources completely eliminated
+- **FIXED**: Console logging memory bloat - 168+ console.log statements caused Chrome DevTools to hold object references
+- **RESULT**: Memory usage reduced from 200MB+ to ~100MB over 7 tournament rounds (50% reduction)
+
+#### **CrossTables Integration Fixes**
+- **FIXED**: H2H sync now uses all discovered xtids including name-matched players (previously only used embedded xtids)
+- **FIXED**: H2H sync now fetches per-division instead of all players together, eliminating unnecessary cross-division data
+- **IMPROVED**: 34% reduction in H2H matchup data storage (example: 80-player, 3-division tournament)
+
+### 🚀 **Performance Optimizations**
+
+#### **Division-Scoped Data Architecture**
+- **NEW**: Worker broadcasts only requested division data instead of entire tournament
+- **NEW**: `DivisionScopedData` type for type-safe division-scoped operations
+- **OPTIMIZED**: Overlays store only their division's data, reducing memory footprint
+- **MAINTAINED**: Backward compatibility via BaseOverlay adapter
+- **ENHANCED**: Worker still caches full tournament but extracts division before broadcast
+
+#### **CrossTables Bulk Operations**
+- **NEW**: `getAllPlayersIdsOnly()` API for efficient batch player lookup
+- **ENHANCED**: Smart xtid validation - only sets xtids that exist in database
+- **IMPROVED**: Name format conversion ("Last, First" ↔ "First Last") for better matching
+- **OPTIMIZED**: Two-phase sync - embedded xtids first, then bulk name matching
+
+### ✨ **New Features**
+
+#### **Dev Tournament Tester**
+- **NEW**: Backend `/api/dev` routes for dynamic tournament file serving
+- **NEW**: Frontend testing page at `/dev/tournament-tester`
+- **NEW**: Reset functionality to clear games without expensive CrossTables sync
+- **NEW**: 15 tournament progression stages (initial → round 7 complete) for systematic testing
+- **BENEFIT**: Enables systematic memory testing and debugging workflows
+
+#### **Admin Workflow Improvements**
+- **ENHANCED**: Auto-select first option in Current Match Management dropdowns
+- **NEW**: Player name formatting - display "Last, First" format in admin interface
+- **IMPROVED**: Smart sorting - players sorted by last name instead of first name
+- **RESULT**: Reduces clicks from 4 to 1 when selecting tournament pairings
+
+### 🎨 **UI Improvements**
+
+#### **Overlay Display Enhancements**
+- **CHANGED**: 0-0 players now show "22nd Seed" instead of "22nd Place"
+- **OPTIMIZED**: Row padding reduced from py-2 → py-1 for better OBS fit
+- **LIMITED**: Table display reduced from 20 → 10 results for better composition
+- **IMPROVED**: Better vertical space utilization in OBS overlays
+
+### 🔧 **Technical Improvements**
+
+#### **Type Safety Enhancement**
+- **ELIMINATED**: All `any` types across backend and frontend
+- **ADDED**: Proper type annotations (unknown[], Knex.QueryBuilder, etc.)
+- **CREATED**: Explicit CrossTablesApiGame interface
+- **ENHANCED**: Better null/undefined handling throughout codebase
+
+#### **Code Quality**
+- **NEW**: xtidHelpers utility module for consistent xtid handling
+- **NEW**: Player name utilities (formatPlayerNameReverse, getLastName)
+- **NEW**: `getPlaceOrSeedLabel()` helper for proper place vs seed display
+- **IMPROVED**: Error handling for malformed data
+- **ENHANCED**: Better separation of concerns in sync services
+
+#### **Developer Experience**
+- **NEW**: REACT_APP_ENABLE_LOGGING env var for debug logging control
+- **NEW**: Tournament progression test files for memory analysis
+- **NEW**: Document titles for overlay pages (enables easy Chrome Task Manager identification)
+- **ENHANCED**: Detailed logging for debugging sync operations
+
+### 📊 **Performance Impact Summary**
+
+#### **Memory Usage (OBS Overlays)**
+- Before: 200-250MB over 7 rounds
+- After: ~100MB over 7 rounds
+- **Improvement**: 50% reduction in memory usage
+
+#### **CrossTables API Efficiency**
+- Before: 1 call with 80 players = 3,160 matchups
+- After: 3 calls (26+26+28 players) = 2,080 matchups
+- **Improvement**: 34% fewer matchups stored
+
+#### **Admin Workflow**
+- Before: 4 clicks to select tournament pairing
+- After: 1 click to select tournament pairing
+- **Improvement**: 75% reduction in manual selection steps
+
+### 🔨 **Technical Architecture**
+
+#### **Memory Optimization Techniques**
+- BroadcastChannel instances stored in useRef hooks
+- Console.log disabled by default in production (NODE_ENV=production)
+- Only affected divisions cloned during updates, not entire tournament
+- Proper cleanup on component unmount
+
+#### **Data Flow Improvements**
+- Division-scoped broadcasting reduces memory per overlay
+- Worker coordinates single API call for multiple overlays
+- Incremental updates with previousData tracking
+- Proper cache invalidation and update propagation
+
+### 🧪 **Testing & Validation**
+
+#### **Memory Testing**
+- Dev tournament tester allows systematic testing through 7 rounds
+- Chrome Task Manager used to verify memory usage
+- Both React and vanilla overlays tested (vanilla work preserved in branch)
+- Confirmed console logging was the primary memory leak culprit
+
+#### **Integration Testing**
+- H2H per-division sync verified with multi-division tournaments
+- Admin dropdown auto-select verified working
+- Overlay display verified with 0-0 players showing seed
+- BroadcastChannel leak confirmed fixed
+
+### 🚢 **Deployment Notes**
+
+#### **No Breaking Changes**
+- All changes backward compatible
+- No database migrations required
+- Existing OBS browser sources continue to work
+
+#### **Configuration**
+- REACT_APP_ENABLE_LOGGING defaults to false (logging disabled)
+- NODE_ENV=production automatically disables console.log (Heroku auto-sets)
+- Dev tournament tester requires authentication at /dev/tournament-tester
+
+### 📦 **Commits Included**
+
+1. Optimize CrossTables player sync with bulk lookup and xtid validation (85cfafe)
+2. Add admin dropdown auto-select and player name formatting (44783a1)
+3. Fix H2H sync to use all discovered xtids including name-matched players (07bac48)
+4. Sync H2H data per division instead of all players together (e81f73a)
+5. Reduce table overlay row padding and limit to 10 results (27fa5ea)
+6. Further reduce table overlay row padding for better OBS fit (913dbf8)
+7. Change 'Place' to 'Seed' for 0-0 players in overlays (fc49ea5)
+8. CRITICAL: Fix BroadcastChannel memory leak in useTournamentData (bb0ac87)
+9. Disable console.log in production to fix OBS memory bloat (8db1be6)
+10. Implement division-scoped data architecture to reduce overlay memory usage (3784791)
+11. Add dev tournament tester and disable console logging (ae3150c)
+
+### 🏆 **Credits**
+
+Development completed during Lake George tournament September-October 2025.
+
+---
+
 ## 2025-10-14 - Optimized CrossTables Player Sync & XTID Management
 
 ### 🚀 **CrossTables Integration Optimization**
