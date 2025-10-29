@@ -34,15 +34,13 @@ const TournamentStatsOverlayPage: React.FC<{ apiService: ApiService }> = ({
   // If we're using current match, use BaseOverlay, otherwise use direct useTournamentData
   if (shouldUseCurrentMatch) {
     return (
-      <ThemeProvider>
-        {(theme, themeClasses) => (
-          <BaseOverlay apiService={apiService}>
-            {({
-              tournament,
-              divisionData,
-              divisionName: currentDivisionName,
-              currentMatch,
-            }) => {
+      <BaseOverlay apiService={apiService}>
+        {({ tournament, divisionData, divisionName: currentDivisionName, currentMatch }) => (
+          <ThemeProvider
+            tournamentId={tournament.id}
+            tournamentTheme={tournament.theme || 'scrabble'}
+          >
+            {(theme, themeClasses) => {
               // Calculate stats for current division
               const stats = calculateTournamentStats(
                 divisionData.games,
@@ -59,26 +57,20 @@ const TournamentStatsOverlayPage: React.FC<{ apiService: ApiService }> = ({
                 />
               );
             }}
-          </BaseOverlay>
+          </ThemeProvider>
         )}
-      </ThemeProvider>
-    );
-  } else {
-    // URL-based approach (no current match dependency)
-    return (
-      <ThemeProvider>
-        {(theme, themeClasses) => (
-          <URLBasedStatsDisplay
-            tournamentId={Number(tournamentId)}
-            divisionName={divisionName}
-            apiService={apiService}
-            theme={theme}
-            themeClasses={themeClasses}
-          />
-        )}
-      </ThemeProvider>
+      </BaseOverlay>
     );
   }
+
+  // URL-based approach (no current match dependency)
+  return (
+    <URLBasedStatsDisplay
+      tournamentId={Number(tournamentId)}
+      divisionName={divisionName}
+      apiService={apiService}
+    />
+  );
 };
 
 // Component for URL-based stats (no current match)
@@ -86,9 +78,7 @@ const URLBasedStatsDisplay: React.FC<{
   tournamentId: number;
   divisionName?: string;
   apiService: ApiService;
-  theme: Theme;
-  themeClasses: ReturnType<typeof getThemeClasses>;
-}> = ({ tournamentId, divisionName, apiService, theme, themeClasses }) => {
+}> = ({ tournamentId, divisionName, apiService }) => {
   const {
     tournamentData,
     loading: dataLoading,
@@ -133,22 +123,39 @@ const URLBasedStatsDisplay: React.FC<{
     }
   }
 
-  return (
-    <LoadingErrorWrapper loading={dataLoading} error={fetchError}>
-      {stats && tournamentData ? (
-        <StatsDisplay
-          stats={stats}
-          title={title}
-          tournamentName={tournamentData.tournament.name}
-          theme={theme}
-          themeClasses={themeClasses}
-        />
-      ) : (
-        <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
-          <div className={theme.colors.textPrimary}>Loading...</div>
+  if (!tournamentData) {
+    return (
+      <LoadingErrorWrapper loading={dataLoading} error={fetchError}>
+        <div className="min-h-screen flex items-center justify-center p-6">
+          <div>Loading...</div>
         </div>
+      </LoadingErrorWrapper>
+    );
+  }
+
+  return (
+    <ThemeProvider
+      tournamentId={tournamentData.tournament.id}
+      tournamentTheme={tournamentData.tournament.theme || 'scrabble'}
+    >
+      {(theme, themeClasses) => (
+        <LoadingErrorWrapper loading={dataLoading} error={fetchError}>
+          {stats && tournamentData ? (
+            <StatsDisplay
+              stats={stats}
+              title={title}
+              tournamentName={tournamentData.tournament.name}
+              theme={theme}
+              themeClasses={themeClasses}
+            />
+          ) : (
+            <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
+              <div className={theme.colors.textPrimary}>Loading...</div>
+            </div>
+          )}
+        </LoadingErrorWrapper>
       )}
-    </LoadingErrorWrapper>
+    </ThemeProvider>
   );
 };
 

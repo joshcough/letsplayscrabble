@@ -198,8 +198,6 @@ const URLBasedPlayerDisplay: React.FC<{
   playerNameParam: string | null;
   playerParam: string | null;
   apiService: ApiService;
-  theme: Theme;
-  themeClasses: ReturnType<typeof getThemeClasses>;
 }> = ({
   tournamentId,
   divisionName,
@@ -208,8 +206,6 @@ const URLBasedPlayerDisplay: React.FC<{
   playerNameParam,
   playerParam,
   apiService,
-  theme,
-  themeClasses,
 }) => {
   const {
     tournamentData,
@@ -286,66 +282,83 @@ const URLBasedPlayerDisplay: React.FC<{
     return null;
   }, [playerStats, playerIdParam, playerNameParam, playerParam]);
 
+  if (!tournamentData) {
+    return (
+      <LoadingErrorWrapper loading={dataLoading} error={fetchError}>
+        <div className="min-h-screen flex items-center justify-center p-6">
+          <div>Loading...</div>
+        </div>
+      </LoadingErrorWrapper>
+    );
+  }
+
   return (
-    <LoadingErrorWrapper loading={dataLoading} error={fetchError}>
-      {(() => {
-        // Additional validation after data is loaded
-        if (!dataLoading && !fetchError && !targetDivision) {
-          return (
-            <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
-              <div className={`${theme.colors.textPrimary}`}>
-                Division "{divisionName}" not found in this tournament
+    <ThemeProvider
+      tournamentId={tournamentData.tournament.id}
+      tournamentTheme={tournamentData.tournament.theme || 'scrabble'}
+    >
+      {(theme, themeClasses) => (
+        <LoadingErrorWrapper loading={dataLoading} error={fetchError}>
+          {(() => {
+            // Additional validation after data is loaded
+            if (!dataLoading && !fetchError && !targetDivision) {
+              return (
+                <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
+                  <div className={`${theme.colors.textPrimary}`}>
+                    Division "{divisionName}" not found in this tournament
+                  </div>
+                </div>
+              );
+            }
+
+            if (
+              !dataLoading &&
+              !fetchError &&
+              targetDivision &&
+              !targetPlayer &&
+              source !== "tournament-info"
+            ) {
+              return (
+                <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
+                  <div className={`${theme.colors.textPrimary}`}>
+                    Player{" "}
+                    {playerIdParam || playerNameParam || `player ${playerParam}`} not
+                    found in division {divisionName}
+                  </div>
+                </div>
+              );
+            }
+
+            if (tournamentData && targetDivision) {
+              // Convert division-scoped data to Tournament for renderPlayerData
+              const tournamentForDisplay: Domain.Tournament = {
+                ...tournamentData.tournament,
+                divisions: [tournamentData.division],
+              };
+
+              return (
+                <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
+                  {renderPlayerData(
+                    source,
+                    targetPlayer,
+                    theme,
+                    themeClasses,
+                    targetDivision,
+                    tournamentForDisplay,
+                  )}
+                </div>
+              );
+            }
+
+            return (
+              <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
+                <div className={`${theme.colors.textPrimary}`}>Loading...</div>
               </div>
-            </div>
-          );
-        }
-
-        if (
-          !dataLoading &&
-          !fetchError &&
-          targetDivision &&
-          !targetPlayer &&
-          source !== "tournament-info"
-        ) {
-          return (
-            <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
-              <div className={`${theme.colors.textPrimary}`}>
-                Player{" "}
-                {playerIdParam || playerNameParam || `player ${playerParam}`} not
-                found in division {divisionName}
-              </div>
-            </div>
-          );
-        }
-
-        if (tournamentData && targetDivision) {
-          // Convert division-scoped data to Tournament for renderPlayerData
-          const tournamentForDisplay: Domain.Tournament = {
-            ...tournamentData.tournament,
-            divisions: [tournamentData.division],
-          };
-
-          return (
-            <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
-              {renderPlayerData(
-                source,
-                targetPlayer,
-                theme,
-                themeClasses,
-                targetDivision,
-                tournamentForDisplay,
-              )}
-            </div>
-          );
-        }
-
-        return (
-          <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
-            <div className={`${theme.colors.textPrimary}`}>Loading...</div>
-          </div>
-        );
-      })()}
-    </LoadingErrorWrapper>
+            );
+          })()}
+        </LoadingErrorWrapper>
+      )}
+    </ThemeProvider>
   );
 };
 
@@ -385,71 +398,66 @@ const PlayerModernOverlay: React.FC<{ apiService: ApiService }> = ({
     hasCurrentMatchPlayer,
   });
 
-  return (
-    <ThemeProvider>
-      {(theme, themeClasses) => {
-        // Validation
-        if (!source) {
-          return (
-            <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
-              <div className={`${theme.colors.textPrimary}`}>Source parameter is required</div>
-            </div>
-          );
-        }
+  // Validation - early returns without theme
+  if (!source) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div>Source parameter is required</div>
+      </div>
+    );
+  }
 
-        if (shouldUseCurrentMatch) {
-          // Current match mode - must specify player 1 or 2
-          if (!hasCurrentMatchPlayer) {
-            return (
-              <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
-                <div className={`${theme.colors.textPrimary}`}>
-                  Current match mode requires player parameter (1 or 2)
-                </div>
-              </div>
-            );
-          }
+  if (shouldUseCurrentMatch && !hasCurrentMatchPlayer) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div>Current match mode requires player parameter (1 or 2)</div>
+      </div>
+    );
+  }
 
-          return (
-            <BaseOverlay apiService={apiService}>
-              {({
+  if (shouldUseCurrentMatch) {
+    // Current match mode
+    return (
+      <BaseOverlay apiService={apiService}>
+        {({ tournament, divisionData, divisionName: currentDivisionName, currentMatch }) => (
+          <ThemeProvider
+            tournamentId={tournament.id}
+            tournamentTheme={tournament.theme || 'scrabble'}
+          >
+            {(theme, themeClasses) => {
+              console.log("🎯 BaseOverlay data:", {
                 tournament,
                 divisionData,
-                divisionName: currentDivisionName,
+                currentDivisionName,
                 currentMatch,
-              }) => {
-          console.log("🎯 BaseOverlay data:", {
-            tournament,
-            divisionData,
-            currentDivisionName,
-            currentMatch,
-          });
+              });
 
-                if (!currentMatch) {
-                  return (
-                    <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
-                      <div className={`${theme.colors.textPrimary}`}>
-                        No current match data available
-                      </div>
+              if (!currentMatch) {
+                return (
+                  <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
+                    <div className={`${theme.colors.textPrimary}`}>
+                      No current match data available
                     </div>
-                  );
-                }
+                  </div>
+                );
+              }
 
-          // Find the current game
-          const currentGame = divisionData.games.find(
-            (game) =>
-              game.pairingId === currentMatch.pairingId &&
-              game.roundNumber === currentMatch.round,
-          );
+              // Find the current game
+              const currentGame = divisionData.games.find(
+                (game) =>
+                  game.pairingId === currentMatch.pairingId &&
+                  game.roundNumber === currentMatch.round,
+              );
 
-                if (!currentGame) {
-                  return (
-                    <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
-                      <div className={`${theme.colors.textPrimary}`}>
-                        Current game not found in tournament data
-                      </div>
+              if (!currentGame) {
+                return (
+                  <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
+                    <div className={`${theme.colors.textPrimary}`}>
+                      Current game not found in tournament data
                     </div>
-                  );
-                }
+                  </div>
+                );
+              }
 
           // Calculate player stats
           const {
@@ -497,52 +505,45 @@ const PlayerModernOverlay: React.FC<{ apiService: ApiService }> = ({
                   );
                 }
 
-                return (
-                  <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
-                    {renderPlayerData(source, targetPlayer, theme, themeClasses, divisionData, tournament)}
-                  </div>
-                );
-              }}
-            </BaseOverlay>
-          );
-        } else {
-          // URL-based mode
-          if (!tournamentId || !divisionName) {
-            return (
-              <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
-                <div className={`${theme.colors.textPrimary}`}>
-                  Tournament ID and division name are required in URL
+              return (
+                <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
+                  {renderPlayerData(source, targetPlayer, theme, themeClasses, divisionData, tournament)}
                 </div>
-              </div>
-            );
-          }
+              );
+            }}
+          </ThemeProvider>
+        )}
+      </BaseOverlay>
+    );
+  }
 
-          if (!hasSpecificPlayer && !hasCurrentMatchPlayer) {
-            return (
-              <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
-                <div className={`${theme.colors.textPrimary}`}>
-                  Either playerId, playerName, or player parameter is required
-                </div>
-              </div>
-            );
-          }
+  // URL-based mode
+  if (!tournamentId || !divisionName) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div>Tournament ID and division name are required in URL</div>
+      </div>
+    );
+  }
 
-          return (
-            <URLBasedPlayerDisplay
-              tournamentId={Number(tournamentId)}
-              divisionName={divisionName}
-              source={source}
-              playerIdParam={playerIdParam}
-              playerNameParam={playerNameParam}
-              playerParam={playerParam}
-              apiService={apiService}
-              theme={theme}
-              themeClasses={themeClasses}
-            />
-          );
-        }
-      }}
-    </ThemeProvider>
+  if (!hasSpecificPlayer && !hasCurrentMatchPlayer) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div>Either playerId, playerName, or player parameter is required</div>
+      </div>
+    );
+  }
+
+  return (
+    <URLBasedPlayerDisplay
+      tournamentId={Number(tournamentId)}
+      divisionName={divisionName}
+      source={source}
+      playerIdParam={playerIdParam}
+      playerNameParam={playerNameParam}
+      playerParam={playerParam}
+      apiService={apiService}
+    />
   );
 };
 

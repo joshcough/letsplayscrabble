@@ -47,15 +47,18 @@ const HeadToHeadOverlayPage: React.FC<HeadToHeadOverlayPageProps> = ({ apiServic
   }, []);
 
   return (
-    <ThemeProvider>
-      {(theme, themeClasses) => (
-        <BaseOverlay apiService={apiService}>
-          {({ tournament, divisionData, divisionName, currentMatch }) => {
+    <BaseOverlay apiService={apiService}>
+      {({ tournament, divisionData, divisionName, currentMatch }) => (
+        <ThemeProvider
+          tournamentId={tournament.id}
+          tournamentTheme={tournament.theme || 'scrabble'}
+        >
+          {(theme, themeClasses) => {
             return renderCareerH2H({ tournament, divisionData, divisionName, currentMatch }, hasSpecificPlayers, theme, themeClasses, playerId1, playerId2);
           }}
-        </BaseOverlay>
+        </ThemeProvider>
       )}
-    </ThemeProvider>
+    </BaseOverlay>
   );
 };
 

@@ -176,28 +176,25 @@ const CrossTablesPlayerProfileModernOverlay: React.FC<{ apiService: ApiService }
   // Determine mode: specific player ID vs current match
   const hasSpecificPlayer = !!(tournamentId && divisionName && playerId);
 
-  return (
-    <ThemeProvider>
-      {(theme, themeClasses) => {
-        // Validation
-        if (!hasSpecificPlayer && (!playerParam || (playerParam !== "1" && playerParam !== "2"))) {
-          return (
-            <div className={`${theme.colors.pageBackground} min-h-screen flex items-center justify-center p-6`}>
-              <div className={`${theme.colors.textPrimary}`}>
-                Either provide tournament/division/player IDs in URL, or use ?player=1 or ?player=2 for current match
-              </div>
-            </div>
-          );
-        }
+  // Validation - early return without theme
+  if (!hasSpecificPlayer && (!playerParam || (playerParam !== "1" && playerParam !== "2"))) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div>
+          Either provide tournament/division/player IDs in URL, or use ?player=1 or ?player=2 for current match
+        </div>
+      </div>
+    );
+  }
 
-        return (
-          <BaseOverlay apiService={apiService}>
-            {({
-              tournament,
-              divisionData,
-              divisionName: currentDivisionName,
-              currentMatch,
-            }) => {
+  return (
+    <BaseOverlay apiService={apiService}>
+      {({ tournament, divisionData, divisionName: currentDivisionName, currentMatch }) => (
+        <ThemeProvider
+          tournamentId={tournament.id}
+          tournamentTheme={tournament.theme || 'scrabble'}
+        >
+          {(theme, themeClasses) => {
               let targetPlayer;
 
               if (hasSpecificPlayer) {
@@ -257,12 +254,11 @@ const CrossTablesPlayerProfileModernOverlay: React.FC<{ apiService: ApiService }
                 }
               }
 
-              return renderPlayerProfile(targetPlayer, divisionData, tournament, theme, themeClasses);
-            }}
-          </BaseOverlay>
-        );
-      }}
-    </ThemeProvider>
+            return renderPlayerProfile(targetPlayer, divisionData, tournament, theme, themeClasses);
+          }}
+        </ThemeProvider>
+      )}
+    </BaseOverlay>
   );
 };
 
