@@ -54,13 +54,22 @@ export interface TournamentDataIncremental {
   tournamentId: number;
   divisionId: number; // Now required
   data: DivisionScopedData; // Changed from full Tournament to division-scoped
-  previousData?: DivisionScopedData; // Optional previous state (also division-scoped)
+
+  // TODO: previousData was removed to reduce broadcast message size by ~50%
+  // It was only used by notification detectors (HighScore needed previous high score)
+  // When implementing notifications, either:
+  // 1. Pre-calculate needed values (e.g., previousHighScore) in worker and add to metadata
+  // 2. Or re-enable previousData just for notification overlay pages
+  // previousData?: DivisionScopedData;
+
   changes: Domain.GameChanges;
   affectedDivisions: number[]; // Keep for notifications that care about multiple divisions
   metadata: {
     addedCount: number;
     updatedCount: number;
     timestamp: number;
+    // TODO: Add pre-calculated notification metadata here when implementing notifications
+    // e.g., previousHighScore?: number;
   };
   reason: "games_added";
 }

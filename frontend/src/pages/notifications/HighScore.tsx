@@ -28,11 +28,15 @@ const detectHighScore = (
     divisionData.players,
   );
 
+  // TODO: previousData was removed from broadcasts to reduce memory usage by ~50%
+  // When re-enabling notifications, either:
+  // 1. Pre-calculate previousHighScore in WorkerSocketManager and add to metadata
+  // 2. Or re-enable previousData field in TournamentDataIncremental
+  // For now, this detector is non-functional (NotificationManager returns early)
+
   // Get the previous high score for the division (0 if no previous data)
   // previousData is now division-scoped, so we can calculate directly from it
-  const previousHighScore = update.previousData
-    ? getHighScoreFromGames(update.previousData.division.games, update.previousData.division.players)
-    : { score: 0, playerName: "", gameId: 0 };
+  const previousHighScore = { score: 0, playerName: "", gameId: 0 }; // update.previousData removed
 
   // Helper to calculate high score from games
   function getHighScoreFromGames(games: Domain.Game[], players: Domain.Player[]) {

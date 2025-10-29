@@ -129,13 +129,22 @@ const TournamentNotificationOverlay = ({
           return;
         }
 
-        if (!data.previousData || !data.data) {
+        // TODO: previousData removed from broadcasts to reduce memory by ~50%
+        // Notifications are disabled until we implement metadata calculation in worker
+        if (!data.data) {
           console.log(
-            "🎯 TournamentNotification: Missing previous or new data",
+            "🎯 TournamentNotification: Missing data",
           );
           return;
         }
 
+        console.log(
+          "🎯 TournamentNotification: Notifications disabled - previousData not available (memory optimization)"
+        );
+        return;
+
+        // Unreachable code below - kept for when notifications are re-enabled
+        /*
         // Collect ALL notifications from this update
         const detectedNotifications: JSX.Element[] = [];
 
@@ -154,6 +163,7 @@ const TournamentNotificationOverlay = ({
           );
           setNotificationQueue((prev) => [...prev, ...detectedNotifications]);
         }
+        */
       },
     );
 

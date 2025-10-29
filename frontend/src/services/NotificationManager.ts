@@ -79,14 +79,24 @@ export class NotificationManager {
   }
 
   private processTournamentUpdate(data: TournamentDataIncremental) {
-    if (!data.previousData || !data.data) return;
+    // TODO: previousData was removed to save memory (reduced broadcast size by ~50%)
+    // Notifications are currently disabled until we implement proper metadata calculation
+    // When re-enabling: either pre-calculate values in worker or re-add previousData
+    if (!data.data) return;
 
     console.log('🔔 NotificationManager: Processing tournament update for notifications', {
       tournamentId: data.tournamentId,
       userId: data.userId,
-      divisionId: data.data.division.id
+      divisionId: data.data.division.id,
+      note: 'previousData not available - notifications disabled until metadata calculation implemented'
     });
 
+    // Early return: notifications disabled without previousData
+    console.warn('🔔 NotificationManager: Notifications disabled - previousData not in broadcast (memory optimization)');
+    return;
+
+    // Unreachable code below - kept for when notifications are re-enabled
+    /*
     // data.data now contains division-scoped data with a single division
     const divisionData = data.data.division;
 
@@ -112,6 +122,7 @@ export class NotificationManager {
         console.error('🔔 NotificationManager: Error running detector:', error);
       }
     }
+    */
   }
 
   private extractNotificationData(

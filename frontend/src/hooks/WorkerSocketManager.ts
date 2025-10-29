@@ -377,17 +377,6 @@ class WorkerSocketManager {
 
       this.broadcastWebSocketMessage("GamesAdded", data);
 
-      // Get current data before applying changes (for previousData)
-      const previousData = this.cacheManager.get(
-        data.userId,
-        data.tournamentId,
-      );
-
-      // Clone the previous data to avoid mutation issues
-      const previousDataSnapshot = previousData
-        ? JSON.parse(JSON.stringify(previousData))
-        : null;
-
       // Apply incremental changes to cache
       const success = this.cacheManager.applyTournamentUpdate(
         data.userId,
@@ -396,12 +385,15 @@ class WorkerSocketManager {
       );
 
       if (success) {
-        // Broadcast incremental update with full tournament data
+        // Broadcast incremental update
+        // NOTE: We no longer send previousData to reduce message size by ~50%
+        // This was only used by notification detectors (not in production)
+        // When implementing notifications, consider pre-calculating needed metadata
+        // instead of sending full previous state
         this.broadcastTournamentIncremental(
           data.userId,
           data.tournamentId,
           data.update,
-          previousDataSnapshot,
         );
       } else {
         // Fallback to full refresh if cache update failed
@@ -436,7 +428,6 @@ class WorkerSocketManager {
     userId: number,
     tournamentId: number,
     update: import("@shared/types/domain").TournamentUpdate,
-    previousData?: import("@shared/types/domain").Tournament | null,
   ) {
     const affectedDivisions = this.cacheManager.getAffectedDivisions(
       update.changes,
@@ -463,9 +454,6 @@ class WorkerSocketManager {
         updatedTournamentData,
         divisionId,
       );
-      const previousDivisionData = previousData
-        ? this.extractDivisionScopedData(previousData, divisionId)
-        : undefined;
 
       if (!updatedDivisionData) {
         console.error(
@@ -479,7 +467,7 @@ class WorkerSocketManager {
         tournamentId,
         divisionId, // Now required - identifies which division this update is for
         data: updatedDivisionData, // Division-scoped data
-        previousData: previousDivisionData || undefined, // Previous division state
+        // previousData removed to reduce message size by ~50% (only used by notifications)
         changes: update.changes, // What changed (still full changes for notifications)
         affectedDivisions, // Keep for reference (notifications might care about other divisions)
         metadata: {
