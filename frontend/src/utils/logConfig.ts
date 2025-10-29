@@ -1,10 +1,13 @@
-// Emergency production logging configuration
-// Wraps console methods to disable in production builds
+// Logging configuration
+// To enable logging in development: REACT_APP_ENABLE_LOGGING=true npm start
+// Production always has logging disabled to prevent memory bloat
 
-const isProduction = process.env.NODE_ENV === 'production';
+const ENABLE_LOGGING =
+  process.env.NODE_ENV !== 'production' &&
+  process.env.REACT_APP_ENABLE_LOGGING === 'true';
 
-if (isProduction) {
-  // Override console.log in production to prevent memory bloat in OBS
+if (!ENABLE_LOGGING) {
+  // Disable console.log and console.debug to prevent memory bloat
   const noop = () => {};
   console.log = noop;
   console.debug = noop;
@@ -12,6 +15,5 @@ if (isProduction) {
 }
 
 export const logConfig = {
-  isProduction,
-  loggingEnabled: !isProduction
+  loggingEnabled: ENABLE_LOGGING
 };

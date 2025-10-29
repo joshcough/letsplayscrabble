@@ -17,6 +17,7 @@ import WorkerPage from "./pages/WorkerPage";
 import AdminLandingPage from "./pages/admin/AdminLandingPage";
 import CurrentMatchAdminPage from "./pages/admin/CurrentMatchAdminPage";
 import NotificationTestPage from "./pages/admin/NotificationTestPage";
+import TournamentTesterPage from "./pages/dev/TournamentTesterPage";
 import AllNotifications from "./pages/notifications/AllNotifications";
 // Overlay imports
 import CrossTablesPlayerProfileOverlay from "./pages/overlay/CrossTablesPlayerProfileOverlayPage";
@@ -237,6 +238,14 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           element={
             <ProtectedRoute>
               <NotificationTestPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dev/tournament-tester"
+          element={
+            <ProtectedRoute>
+              <TournamentTesterPage apiService={apiService} />
             </ProtectedRoute>
           }
         />
