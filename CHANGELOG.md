@@ -1,5 +1,24 @@
 # Changelog
 
+## 2025-10-29 - URL Parameter Override for Production Logging
+
+### ✨ **New Feature**
+
+#### **Production Debugging Enhancement**
+- **NEW**: URL parameter `?logging=true` to enable console logging on specific pages in production
+- **BENEFIT**: Debug production issues without affecting all OBS overlays
+- **USAGE**: Add `?logging=true` to any URL to see console logs in that browser tab only
+- **EXAMPLE**: `https://yourapp.com/users/1/overlay/standings?logging=true`
+- **MAINTAINED**: OBS browser sources without the parameter continue with logging disabled
+
+### 🔧 **Technical Details**
+- URL parameter check happens before environment variable check
+- Works in browser only (safely handles SSR with typeof window check)
+- Centralized in `logConfig.ts` for consistent behavior across all pages
+- No code changes or redeployment needed to enable debugging
+
+---
+
 ## 2025-10-29 - Lake George Release: Memory Optimization & Performance Improvements
 
 ### 🐛 **Critical Bug Fixes**
