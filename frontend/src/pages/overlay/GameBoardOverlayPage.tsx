@@ -26,6 +26,10 @@ const GameBoardOverlay: React.FC<{ apiService: ApiService }> = ({
 }) => {
   const { userId, tournamentId, divisionName } = useParams<RouteParams>();
 
+  React.useEffect(() => {
+    document.title = "LPS: Game Board";
+  }, []);
+
   const shouldUseCurrentMatch = !tournamentId;
 
   if (shouldUseCurrentMatch) {

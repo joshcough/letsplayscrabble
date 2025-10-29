@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 import { ApiService } from "../services/interfaces";
@@ -6,7 +6,11 @@ import { useThemeContext } from "../context/ThemeContext";
 
 const HomePage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const { theme } = useThemeContext();
-  
+
+  useEffect(() => {
+    document.title = "LPS: Home";
+  }, []);
+
   return (
     <div>
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">

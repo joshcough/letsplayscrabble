@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   BaseOverlay,
@@ -41,7 +41,11 @@ interface HeadToHeadOverlayPageProps {
 const HeadToHeadOverlayPage: React.FC<HeadToHeadOverlayPageProps> = ({ apiService }) => {
   const { tournamentId, divisionName, playerId1, playerId2 } = useParams<RouteParams>();
   const hasSpecificPlayers = !!(tournamentId && divisionName && playerId1 && playerId2);
-  
+
+  useEffect(() => {
+    document.title = "LPS: Head to Head";
+  }, []);
+
   return (
     <ThemeProvider>
       {(theme, themeClasses) => (

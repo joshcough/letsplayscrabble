@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
 import * as Domain from "@shared/types/domain";
@@ -358,6 +358,11 @@ const PlayerModernOverlay: React.FC<{ apiService: ApiService }> = ({
   const playerIdParam = searchParams.get("playerId");
   const playerNameParam = searchParams.get("playerName");
   const playerParam = searchParams.get("player"); // "1" or "2" for current match
+
+  // Set page title
+  useEffect(() => {
+    document.title = "LPS: Player";
+  }, []);
 
   console.log("🎯 PlayerModernOverlay params:", {
     userId,

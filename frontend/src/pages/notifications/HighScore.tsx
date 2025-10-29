@@ -114,14 +114,16 @@ const renderHighScore = (
   </div>
 );
 
-// 3. Combined detector - calls detect, then render
+// 3. Combined detector - calls detect, then return component with props
 export const highScoreDetector = (
   update: TournamentDataIncremental,
   divisionData: Domain.Division,
 ): JSX.Element | null => {
   const data = detectHighScore(update, divisionData);
   if (!data) return null;
-  return renderHighScore(data, divisionData);
+  // Return the HighScore component (function) instead of rendered JSX
+  // This allows NotificationManager to extract the props
+  return <HighScore playerName={data.playerName} score={data.score} previousHighScore={data.previousHighScore} />;
 };
 
 // Export a simple component for direct use

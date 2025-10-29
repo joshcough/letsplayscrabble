@@ -120,14 +120,16 @@ const renderWinningStreak = (
   </div>
 );
 
-// 3. Combined detector - calls detect, then render
+// 3. Combined detector - calls detect, then return component with props
 export const winningStreakDetector = (
   update: TournamentDataIncremental,
   divisionData: Domain.Division,
 ): JSX.Element | null => {
   const data = detectWinningStreak(update, divisionData);
   if (!data) return null;
-  return renderWinningStreak(data, divisionData);
+  // Return the WinningStreak component (function) instead of rendered JSX
+  // This allows NotificationManager to extract the props
+  return <WinningStreak playerName={data.playerName} streakLength={data.streakLength} />;
 };
 
 // Export a simple component for direct use

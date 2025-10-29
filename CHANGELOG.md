@@ -1,5 +1,64 @@
 # Changelog
 
+## 2025-10-29 - Dev Tournament Tester Improvements & Page Titles
+
+### ✨ **New Features**
+
+#### **Dev Tournament Tester Enhancements**
+- **NEW**: "Run Simulation" button - auto-advances every 10 seconds through all rounds
+- **NEW**: "Next →" button to advance through tournament stages with one click
+- **NEW**: State persistence - remembers current stage across backend restarts
+- **NEW**: 30-round tournament support (previously only 7 rounds)
+- **NEW**: "Clear All Games" button (renamed from "Reset" for clarity)
+- **IMPROVED**: Compact UI - all controls fit on one screen without scrolling
+- **IMPROVED**: Dropdown syncs with backend's current file automatically
+- **IMPROVED**: Simulation automatically stops when reaching the last stage
+- **REMOVED**: Vanilla overlay link (no longer needed)
+- **REMOVED**: Previous button (going backwards not supported)
+- **FILE**: Backend state saved to `tools/.dev-tournament-state.json`
+
+#### **Page Title Standardization**
+- **NEW**: All pages now have consistent "LPS: " prefixed titles
+- **BENEFIT**: Easy identification in Chrome Task Manager for memory monitoring
+- **PAGES**: Worker Page, Standings, Player, Current Match Admin, Home, Tournament Manager, Head to Head, Game Board, Admin, Tournament Details, Dev Tournament Tester
+
+### 🐛 **Bug Fixes**
+
+#### **Notification Manager Fix**
+- **FIXED**: NotificationManager warnings about extracting data from React elements
+- **CAUSE**: Detectors were returning plain `<div>` JSX instead of component functions
+- **SOLUTION**: Changed detectors to return `<HighScore>` and `<WinningStreak>` components with props
+- **RESULT**: NotificationManager can now properly extract props for notification broadcasting
+
+### 📊 **Memory Testing Results**
+
+#### **Confirmed Stable Memory Usage**
+- **TESTED**: 30 rounds of tournament progression (60 file changes)
+- **BASELINE**: ~167MB at start
+- **END**: ~169MB after 30 rounds
+- **RESULT**: No significant memory growth over extended testing
+- **SPIKE**: ~20MB temporary spike during pairing updates (returns to baseline after completion)
+- **CONCLUSION**: Memory leak completely resolved with console logging disabled
+
+### 🔧 **Technical Details**
+
+#### **Backend State Persistence**
+- Dev tournament state written to JSON file on every file change
+- State loaded on server startup to restore previous position
+- Enables testing through server restarts without losing progress
+
+#### **30-Round File Generation**
+- Tournament generator creates 61 files (1 initial + 60 for 30 rounds)
+- Backend dynamically generates AVAILABLE_FILES array for all 30 rounds
+- Dropdown programmatically populated from round 1 through round 30
+
+#### **Frontend State Sync**
+- `loadCurrentFile()` syncs dropdown with backend on page load
+- Next button automatically triggers update and advances current file
+- Jump button allows skipping to any specific stage
+
+---
+
 ## 2025-10-29 - URL Parameter Override for Production Logging
 
 ### ✨ **New Feature**

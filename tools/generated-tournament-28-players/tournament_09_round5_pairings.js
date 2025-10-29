@@ -1,11 +1,11 @@
 // 09_round5_pairings
-// Generated: 2025-10-16T17:22:24.575Z
+// Generated: 2025-10-29T13:32:26.782Z
 
 newt = {
   "config": {
     "event_name": "Tournament (2 Divisions)",
-    "event_date": "October 16, 2025",
-    "max_rounds": 7
+    "event_date": "October 29, 2025",
+    "max_rounds": 30
   },
   "divisions": [
     {
@@ -18,14 +18,14 @@ newt = {
               1,
               1,
               1,
-              1,
+              2,
               1
             ],
             "newr": [
               2184,
-              2164,
-              2139,
-              2146
+              2191,
+              2166,
+              2178
             ],
             "xtid": [
               6003
@@ -35,34 +35,34 @@ newt = {
           "name": "Nigel Richards:XT006003",
           "pairings": [
             2,
-            4,
+            26,
             15,
-            11,
-            14
+            17,
+            20
           ],
           "photo": "pix/nigel_richards.jpg",
           "rating": 2170,
           "scores": [
-            549,
-            453,
-            470,
-            485
+            512,
+            522,
+            489,
+            502
           ]
         },
         {
           "etc": {
             "p12": [
               2,
-              2,
               1,
-              2,
+              1,
+              1,
               1
             ],
             "newr": [
               2112,
-              2088,
-              2068,
-              2048
+              2120,
+              2132,
+              2144
             ],
             "xtid": [
               17589
@@ -72,18 +72,18 @@ newt = {
           "name": "Joey Krafchick:XT017589",
           "pairings": [
             1,
-            8,
-            20,
-            21,
-            18
+            16,
+            11,
+            10,
+            12
           ],
           "photo": "pix/joey_krafchick.jpg",
           "rating": 2126,
           "scores": [
-            495,
-            454,
-            510,
-            403
+            482,
+            524,
+            451,
+            474
           ]
         },
         {
@@ -91,15 +91,15 @@ newt = {
             "p12": [
               1,
               1,
-              2,
+              1,
               1,
               1
             ],
             "newr": [
               2056,
-              2035,
-              2045,
-              2022
+              2034,
+              2016,
+              1993
             ],
             "xtid": [
               19535
@@ -108,35 +108,35 @@ newt = {
           "id": 3,
           "name": "Will Anderson:XT019535",
           "pairings": [
-            6,
-            13,
+            17,
+            20,
+            28,
             18,
-            14,
-            19
+            16
           ],
           "photo": "pix/will_anderson.jpg",
           "rating": 2072,
           "scores": [
-            461,
-            454,
-            541,
-            409
+            414,
+            509,
+            517,
+            520
           ]
         },
         {
           "etc": {
             "p12": [
               2,
-              2,
               1,
               1,
-              2
+              1,
+              1
             ],
             "newr": [
-              2103,
-              2123,
-              2132,
-              2143
+              2071,
+              2079,
+              2057,
+              2035
             ],
             "xtid": [
               20032
@@ -145,463 +145,19 @@ newt = {
           "id": 4,
           "name": "Jackson Smylie:XT020032",
           "pairings": [
-            22,
-            1,
-            10,
+            12,
+            18,
+            13,
             25,
-            26
+            8
           ],
           "photo": "pix/jackson_smylie.jpg",
           "rating": 2086,
           "scores": [
-            453,
-            473,
-            429,
-            543
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              1,
-              1,
-              2,
-              2
-            ],
-            "newr": [
-              1944,
-              1928,
-              1943,
-              1960
-            ],
-            "xtid": [
-              578
-            ]
-          },
-          "id": 5,
-          "name": "Joe Edley:XT000578",
-          "pairings": [
-            11,
-            17,
-            16,
-            10,
-            15
-          ],
-          "photo": "pix/joe_edley.jpg",
-          "rating": 1928,
-          "scores": [
-            520,
-            418,
-            505,
-            446
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              1,
-              1,
-              1,
-              2
-            ],
-            "newr": [
-              2081,
-              2094,
-              2105,
-              2087
-            ],
-            "xtid": [
-              1847
-            ]
-          },
-          "id": 6,
-          "name": "Ian Weinstein:XT001847",
-          "pairings": [
-            3,
-            21,
-            23,
-            26,
-            22
-          ],
-          "photo": "pix/ian_weinstein.jpg",
-          "rating": 2065,
-          "scores": [
-            475,
-            542,
-            518,
-            529
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              2,
-              2,
-              2,
-              2
-            ],
-            "newr": [
-              1925,
-              1907,
-              1927,
-              1913
-            ],
-            "xtid": [
-              20689
-            ]
-          },
-          "id": 7,
-          "name": "Chloe Fatsis:XT020689",
-          "pairings": [
-            15,
-            14,
-            21,
-            13,
-            11
-          ],
-          "photo": "pix/chloe_fatsis.jpg",
-          "rating": 1940,
-          "scores": [
-            439,
-            434,
-            487,
-            474
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              1,
-              2,
-              1,
-              2
-            ],
-            "newr": [
-              1920,
-              1944,
-              1958,
-              1941
-            ],
-            "xtid": [
-              1
-            ]
-          },
-          "id": 8,
-          "name": "Kevin Fraley:XT000001",
-          "pairings": [
-            10,
-            2,
-            14,
-            12,
-            21
-          ],
-          "photo": "pix/kevin_fraley.jpg",
-          "rating": 1936,
-          "scores": [
-            456,
-            464,
-            522,
-            427
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              2,
-              2,
-              1,
-              1
-            ],
-            "newr": [
-              1921,
-              1941,
-              1929,
-              1944
-            ],
-            "xtid": [
-              663
-            ]
-          },
-          "id": 9,
-          "name": "Marty Gabriel:XT000663",
-          "pairings": [
-            23,
-            19,
-            28,
-            27,
-            16
-          ],
-          "photo": "pix/marty_gabriel.jpg",
-          "rating": 1937,
-          "scores": [
-            404,
-            502,
-            474,
-            548
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              1,
-              2,
-              1,
-              2
-            ],
-            "newr": [
-              1953,
-              1970,
-              1961,
-              1944
-            ],
-            "xtid": [
-              20243
-            ]
-          },
-          "id": 10,
-          "name": "Andy Hoang:XT020243",
-          "pairings": [
-            8,
-            15,
-            4,
-            5,
-            24
-          ],
-          "photo": "pix/andy_hoang.jpg",
-          "rating": 1937,
-          "scores": [
-            507,
-            431,
-            408,
-            409
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              2,
-              1,
-              2,
-              1
-            ],
-            "newr": [
-              1917,
-              1938,
-              1929,
-              1922
-            ],
-            "xtid": [
-              731
-            ]
-          },
-          "id": 11,
-          "name": "Lisa Odom:XT000731",
-          "pairings": [
-            5,
-            20,
-            22,
-            1,
-            7
-          ],
-          "photo": "pix/lisa_odom.jpg",
-          "rating": 1933,
-          "scores": [
-            501,
-            536,
-            423,
-            465
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              1,
-              2,
-              2,
-              2
-            ],
-            "newr": [
-              1928,
-              1943,
-              1932,
-              1949
-            ],
-            "xtid": [
-              435
-            ]
-          },
-          "id": 12,
-          "name": "Chris Cree:XT000435",
-          "pairings": [
-            27,
-            16,
-            26,
-            8,
-            23
-          ],
-          "photo": "pix/chris_cree.jpg",
-          "rating": 1912,
-          "scores": [
-            452,
-            520,
-            406,
-            540
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              2,
-              1,
-              1,
-              1
-            ],
-            "newr": [
-              1953,
-              1974,
-              1961,
-              1975
-            ],
-            "xtid": [
-              20252
-            ]
-          },
-          "id": 13,
-          "name": "Jason Li:XT020252",
-          "pairings": [
-            21,
-            3,
-            24,
-            7,
-            25
-          ],
-          "photo": "pix/jason_li.jpg",
-          "rating": 1967,
-          "scores": [
-            514,
-            533,
-            411,
-            533
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              1,
-              1,
-              2,
-              2
-            ],
-            "newr": [
-              1889,
-              1907,
-              1893,
-              1916
-            ],
-            "xtid": [
-              1232
-            ]
-          },
-          "id": 14,
-          "name": "Steve Grob:XT001232",
-          "pairings": [
-            16,
-            7,
-            8,
-            3,
-            1
-          ],
-          "photo": "pix/steve_grob.jpg",
-          "rating": 1905,
-          "scores": [
-            494,
-            442,
             508,
-            491
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              2,
-              2,
-              2,
-              1
-            ],
-            "newr": [
-              1971,
-              1954,
-              1979,
-              1998
-            ],
-            "xtid": [
-              13509
-            ]
-          },
-          "id": 15,
-          "name": "Cesar Del Solar:XT013509",
-          "pairings": [
-            7,
-            10,
-            1,
-            24,
-            5
-          ],
-          "photo": "pix/cesar_del_solar.jpg",
-          "rating": 1956,
-          "scores": [
-            483,
-            425,
-            487,
-            516
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              2,
-              2,
-              2,
-              2
-            ],
-            "newr": [
-              1917,
-              1902,
-              1887,
-              1909
-            ],
-            "xtid": [
-              976
-            ]
-          },
-          "id": 16,
-          "name": "Tony Leah:XT000976",
-          "pairings": [
-            14,
-            12,
-            5,
-            20,
-            9
-          ],
-          "photo": "pix/tony_leah.jpg",
-          "rating": 1901,
-          "scores": [
-            517,
-            488,
-            450,
-            450
+            532,
+            412,
+            482
           ]
         },
         {
@@ -615,30 +171,67 @@ newt = {
             ],
             "newr": [
               1942,
-              1958,
-              1945,
-              1936
+              1963,
+              1951,
+              1968
             ],
             "xtid": [
-              20531
+              610
             ]
           },
-          "id": 17,
-          "name": "Michael Fagen:XT020531",
+          "id": 5,
+          "name": "Maxim Panitch:XT000610",
           "pairings": [
-            18,
-            5,
-            25,
+            21,
             22,
-            28
+            24,
+            13,
+            15
           ],
-          "photo": "pix/michael_fagen.jpg",
+          "photo": "pix/maxim_panitch.jpg",
           "rating": 1926,
           "scores": [
-            460,
-            446,
-            409,
-            441
+            529,
+            476,
+            445,
+            522
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              1,
+              2,
+              2,
+              1
+            ],
+            "newr": [
+              1917,
+              1909,
+              1899,
+              1883
+            ],
+            "xtid": [
+              976
+            ]
+          },
+          "id": 6,
+          "name": "Tony Leah:XT000976",
+          "pairings": [
+            18,
+            12,
+            10,
+            19,
+            21
+          ],
+          "photo": "pix/tony_leah.jpg",
+          "rating": 1901,
+          "scores": [
+            423,
+            509,
+            410,
+            495
           ]
         },
         {
@@ -646,6 +239,524 @@ newt = {
             "p12": [
               1,
               1,
+              1,
+              2,
+              2
+            ],
+            "newr": [
+              2015,
+              1996,
+              2008,
+              1990
+            ],
+            "xtid": [
+              2105
+            ]
+          },
+          "id": 7,
+          "name": "Rafi Stern:XT002105",
+          "pairings": [
+            9,
+            15,
+            16,
+            26,
+            28
+          ],
+          "photo": "pix/rafi_stern.jpg",
+          "rating": 2001,
+          "scores": [
+            467,
+            425,
+            537,
+            454
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              1,
+              2,
+              1,
+              2
+            ],
+            "newr": [
+              1925,
+              1940,
+              1960,
+              1944
+            ],
+            "xtid": [
+              2163
+            ]
+          },
+          "id": 8,
+          "name": "Sam Rosin:XT002163",
+          "pairings": [
+            23,
+            19,
+            22,
+            20,
+            4
+          ],
+          "photo": "pix/sam_rosin.jpg",
+          "rating": 1940,
+          "scores": [
+            413,
+            526,
+            470,
+            414
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              1,
+              2,
+              2,
+              2
+            ],
+            "newr": [
+              1953,
+              1967,
+              1990,
+              1978
+            ],
+            "xtid": [
+              20252
+            ]
+          },
+          "id": 9,
+          "name": "Jason Li:XT020252",
+          "pairings": [
+            7,
+            25,
+            12,
+            24,
+            26
+          ],
+          "photo": "pix/jason_li.jpg",
+          "rating": 1967,
+          "scores": [
+            458,
+            532,
+            502,
+            425
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              1,
+              1,
+              2,
+              1
+            ],
+            "newr": [
+              2026,
+              2037,
+              2047,
+              2035
+            ],
+            "xtid": [
+              6969
+            ]
+          },
+          "id": 10,
+          "name": "Nigel Peltier:XT006969",
+          "pairings": [
+            22,
+            21,
+            6,
+            2,
+            14
+          ],
+          "photo": "pix/nigel_peltier.jpg",
+          "rating": 2042,
+          "scores": [
+            454,
+            458,
+            428,
+            443
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              2,
+              2,
+              2,
+              2
+            ],
+            "newr": [
+              2036,
+              2020,
+              2008,
+              1996
+            ],
+            "xtid": [
+              22806
+            ]
+          },
+          "id": 11,
+          "name": "Zachary Ansell:XT022806",
+          "pairings": [
+            28,
+            24,
+            2,
+            12,
+            22
+          ],
+          "photo": "pix/zachary_ansell.jpg",
+          "rating": 2020,
+          "scores": [
+            509,
+            450,
+            421,
+            435
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2,
+              1,
+              1,
+              2
+            ],
+            "newr": [
+              2117,
+              2125,
+              2102,
+              2114
+            ],
+            "xtid": [
+              20383
+            ]
+          },
+          "id": 12,
+          "name": "Mack Meller:XT020383",
+          "pairings": [
+            4,
+            6,
+            9,
+            11,
+            2
+          ],
+          "photo": "pix/mack_meller.jpg",
+          "rating": 2102,
+          "scores": [
+            510,
+            524,
+            406,
+            549
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2,
+              2,
+              1,
+              1
+            ],
+            "newr": [
+              1956,
+              1946,
+              1968,
+              1951
+            ],
+            "xtid": [
+              20689
+            ]
+          },
+          "id": 13,
+          "name": "Chloe Fatsis:XT020689",
+          "pairings": [
+            20,
+            17,
+            4,
+            5,
+            19
+          ],
+          "photo": "pix/chloe_fatsis.jpg",
+          "rating": 1940,
+          "scores": [
+            542,
+            437,
+            495,
+            413
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              1,
+              2,
+              2,
+              2
+            ],
+            "newr": [
+              1928,
+              1914,
+              1899,
+              1920
+            ],
+            "xtid": [
+              26567
+            ]
+          },
+          "id": 14,
+          "name": "David Spargo:XT026567",
+          "pairings": [
+            19,
+            23,
+            26,
+            27,
+            10
+          ],
+          "photo": "pix/david_spargo.jpg",
+          "rating": 1912,
+          "scores": [
+            506,
+            402,
+            419,
+            525
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2,
+              2,
+              2,
+              1
+            ],
+            "newr": [
+              1949,
+              1968,
+              1993,
+              1978
+            ],
+            "xtid": [
+              731
+            ]
+          },
+          "id": 15,
+          "name": "Lisa Odom:XT000731",
+          "pairings": [
+            25,
+            7,
+            1,
+            23,
+            5
+          ],
+          "photo": "pix/lisa_odom.jpg",
+          "rating": 1933,
+          "scores": [
+            464,
+            537,
+            541,
+            530
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              2,
+              2,
+              1,
+              2
+            ],
+            "newr": [
+              1920,
+              1912,
+              1900,
+              1883
+            ],
+            "xtid": [
+              1
+            ]
+          },
+          "id": 16,
+          "name": "Kevin Fraley:XT000001",
+          "pairings": [
+            26,
+            2,
+            7,
+            21,
+            3
+          ],
+          "photo": "pix/kevin_fraley.jpg",
+          "rating": 1936,
+          "scores": [
+            491,
+            475,
+            509,
+            488
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              1,
+              2,
+              1,
+              1
+            ],
+            "newr": [
+              2081,
+              2091,
+              2070,
+              2058
+            ],
+            "xtid": [
+              1847
+            ]
+          },
+          "id": 17,
+          "name": "Ian Weinstein:XT001847",
+          "pairings": [
+            3,
+            13,
+            23,
+            1,
+            25
+          ],
+          "photo": "pix/ian_weinstein.jpg",
+          "rating": 2065,
+          "scores": [
+            538,
+            478,
+            431,
+            426
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2,
+              2,
+              2,
+              1
+            ],
+            "newr": [
+              1889,
+              1881,
+              1866,
+              1889
+            ],
+            "xtid": [
+              1232
+            ]
+          },
+          "id": 18,
+          "name": "Steve Grob:XT001232",
+          "pairings": [
+            6,
+            4,
+            25,
+            3,
+            27
+          ],
+          "photo": "pix/steve_grob.jpg",
+          "rating": 1905,
+          "scores": [
+            418,
+            445,
+            427,
+            549
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              2,
+              2,
+              1,
+              2
+            ],
+            "newr": [
+              1896,
+              1881,
+              1898,
+              1914
+            ],
+            "xtid": [
+              435
+            ]
+          },
+          "id": 19,
+          "name": "Chris Cree:XT000435",
+          "pairings": [
+            14,
+            8,
+            21,
+            6,
+            13
+          ],
+          "photo": "pix/chris_cree.jpg",
+          "rating": 1912,
+          "scores": [
+            436,
+            508,
+            490,
+            542
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              2,
+              1,
+              2,
+              2
+            ],
+            "newr": [
+              1921,
+              1943,
+              1963,
+              1979
+            ],
+            "xtid": [
+              20243
+            ]
+          },
+          "id": 20,
+          "name": "Andy Hoang:XT020243",
+          "pairings": [
+            13,
+            3,
+            27,
+            8,
+            1
+          ],
+          "photo": "pix/andy_hoang.jpg",
+          "rating": 1937,
+          "scores": [
+            454,
+            549,
+            466,
+            548
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2,
               1,
               2,
               2
@@ -653,362 +764,29 @@ newt = {
             "newr": [
               1910,
               1899,
-              1889,
-              1877
+              1882,
+              1899
             ],
             "xtid": [
-              610
-            ]
-          },
-          "id": 18,
-          "name": "Maxim Panitch:XT000610",
-          "pairings": [
-            17,
-            24,
-            3,
-            19,
-            2
-          ],
-          "photo": "pix/maxim_panitch.jpg",
-          "rating": 1926,
-          "scores": [
-            444,
-            456,
-            461,
-            447
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              1,
-              1,
-              1,
-              2
-            ],
-            "newr": [
-              2008,
-              1988,
-              1968,
-              1980
-            ],
-            "xtid": [
-              583
-            ]
-          },
-          "id": 19,
-          "name": "Kenji Matsumoto:XT000583",
-          "pairings": [
-            25,
-            9,
-            27,
-            18,
-            3
-          ],
-          "photo": "pix/kenji_matsumoto.jpg",
-          "rating": 2024,
-          "scores": [
-            410,
-            477,
-            447,
-            521
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              1,
-              2,
-              1,
-              1
-            ],
-            "newr": [
-              2026,
-              2005,
-              2025,
-              2003
-            ],
-            "xtid": [
-              6969
-            ]
-          },
-          "id": 20,
-          "name": "Nigel Peltier:XT006969",
-          "pairings": [
-            28,
-            11,
-            2,
-            16,
-            27
-          ],
-          "photo": "pix/nigel_peltier.jpg",
-          "rating": 2042,
-          "scores": [
-            414,
-            488,
-            525,
-            407
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              2,
-              1,
-              1,
-              1
-            ],
-            "newr": [
-              2015,
-              2002,
-              1982,
-              2002
-            ],
-            "xtid": [
-              2105
+              20531
             ]
           },
           "id": 21,
-          "name": "Rafi Stern:XT002105",
+          "name": "Michael Fagen:XT020531",
           "pairings": [
-            13,
-            6,
-            7,
-            2,
-            8
-          ],
-          "photo": "pix/rafi_stern.jpg",
-          "rating": 2001,
-          "scores": [
-            528,
-            410,
-            410,
-            475
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              1,
-              2,
-              1,
-              1
-            ],
-            "newr": [
-              2085,
-              2093,
-              2102,
-              2111
-            ],
-            "xtid": [
-              20383
-            ]
-          },
-          "id": 22,
-          "name": "Mack Meller:XT020383",
-          "pairings": [
-            4,
-            27,
-            11,
-            17,
+            5,
+            10,
+            19,
+            16,
             6
           ],
-          "photo": "pix/mack_meller.jpg",
-          "rating": 2102,
+          "photo": "pix/michael_fagen.jpg",
+          "rating": 1926,
           "scores": [
-            402,
-            488,
-            436,
-            546
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              1,
-              2,
-              2,
-              1
-            ],
-            "newr": [
-              1956,
-              1976,
-              1965,
-              1985
-            ],
-            "xtid": [
-              2163
-            ]
-          },
-          "id": 23,
-          "name": "Sam Rosin:XT002163",
-          "pairings": [
-            9,
-            25,
-            6,
-            28,
-            12
-          ],
-          "photo": "pix/sam_rosin.jpg",
-          "rating": 1940,
-          "scores": [
-            510,
-            489,
-            401,
-            449
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              2,
-              2,
-              1,
-              1
-            ],
-            "newr": [
-              2020,
-              2031,
-              2044,
-              2025
-            ],
-            "xtid": [
-              1060
-            ]
-          },
-          "id": 24,
-          "name": "Carl Johnson:XT001060",
-          "pairings": [
-            26,
-            18,
-            13,
-            15,
-            10
-          ],
-          "photo": "pix/carl_johnson.jpg",
-          "rating": 2037,
-          "scores": [
-            517,
-            531,
-            457,
-            451
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              2,
-              1,
-              2,
-              2
-            ],
-            "newr": [
-              2036,
-              2016,
-              2029,
-              2018
-            ],
-            "xtid": [
-              22806
-            ]
-          },
-          "id": 25,
-          "name": "Zachary Ansell:XT022806",
-          "pairings": [
-            19,
-            23,
-            17,
-            4,
-            13
-          ],
-          "photo": "pix/zachary_ansell.jpg",
-          "rating": 2020,
-          "scores": [
-            501,
-            482,
-            451,
-            492
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              2,
-              1,
-              2,
-              1
-            ],
-            "newr": [
-              2043,
-              2060,
-              2071,
-              2089
-            ],
-            "xtid": [
-              53
-            ]
-          },
-          "id": 26,
-          "name": "Joel Sherman:XT000053",
-          "pairings": [
-            24,
-            28,
-            12,
-            6,
-            4
-          ],
-          "photo": "pix/joel_sherman.jpg",
-          "rating": 2026,
-          "scores": [
-            536,
-            519,
-            513,
-            548
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              2,
-              2,
-              2,
-              2
-            ],
-            "newr": [
-              1896,
-              1888,
-              1908,
-              1893
-            ],
-            "xtid": [
-              26567
-            ]
-          },
-          "id": 27,
-          "name": "David Spargo:XT026567",
-          "pairings": [
-            12,
-            22,
-            19,
-            9,
-            20
-          ],
-          "photo": "pix/david_spargo.jpg",
-          "rating": 1912,
-          "scores": [
-            408,
-            426,
-            476,
-            492
+            486,
+            419,
+            444,
+            529
           ]
         },
         {
@@ -1022,32 +800,254 @@ newt = {
             ],
             "newr": [
               2058,
-              2041,
-              2053,
-              2033
+              2037,
+              2017,
+              2001
+            ],
+            "xtid": [
+              451
             ]
           },
-          "id": 28,
-          "name": "Orry Swift",
+          "id": 22,
+          "name": "Orry Swift:XT000451",
           "pairings": [
-            20,
-            26,
-            9,
-            23,
-            17
+            10,
+            5,
+            8,
+            28,
+            11
           ],
           "photo": "pix/orry_swift.jpg",
           "rating": 2042,
           "scores": [
+            486,
             434,
-            450,
-            496,
-            418
+            434,
+            435
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2,
+              1,
+              1,
+              1
+            ],
+            "newr": [
+              1971,
+              1985,
+              2006,
+              2021
+            ],
+            "xtid": [
+              13509
+            ]
+          },
+          "id": 23,
+          "name": "Cesar Del Solar:XT013509",
+          "pairings": [
+            8,
+            14,
+            17,
+            15,
+            24
+          ],
+          "photo": "pix/cesar_del_solar.jpg",
+          "rating": 1956,
+          "scores": [
+            474,
+            548,
+            455,
+            534
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              1,
+              1,
+              1,
+              2
+            ],
+            "newr": [
+              2043,
+              2059,
+              2071,
+              2083
+            ],
+            "xtid": [
+              53
+            ]
+          },
+          "id": 24,
+          "name": "Joel Sherman:XT000053",
+          "pairings": [
+            27,
+            11,
+            5,
+            9,
+            23
+          ],
+          "photo": "pix/joel_sherman.jpg",
+          "rating": 2026,
+          "scores": [
+            498,
+            485,
+            479,
+            483
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              2,
+              1,
+              2,
+              2
+            ],
+            "newr": [
+              1912,
+              1898,
+              1913,
+              1935
+            ],
+            "xtid": [
+              578
+            ]
+          },
+          "id": 25,
+          "name": "Joe Edley:XT000578",
+          "pairings": [
+            15,
+            9,
+            18,
+            4,
+            17
+          ],
+          "photo": "pix/joe_edley.jpg",
+          "rating": 1928,
+          "scores": [
+            451,
+            455,
+            517,
+            502
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2,
+              1,
+              1,
+              1
+            ],
+            "newr": [
+              1953,
+              1946,
+              1961,
+              1979
+            ],
+            "xtid": [
+              663
+            ]
+          },
+          "id": 26,
+          "name": "Marty Gabriel:XT000663",
+          "pairings": [
+            16,
+            1,
+            14,
+            7,
+            9
+          ],
+          "photo": "pix/marty_gabriel.jpg",
+          "rating": 1937,
+          "scores": [
+            521,
+            425,
+            440,
+            465
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2,
+              2,
+              1,
+              2
+            ],
+            "newr": [
+              2020,
+              2035,
+              2015,
+              1994
+            ],
+            "xtid": [
+              1060
+            ]
+          },
+          "id": 27,
+          "name": "Carl Johnson:XT001060",
+          "pairings": [
+            24,
+            28,
+            20,
+            14,
+            18
+          ],
+          "photo": "pix/carl_johnson.jpg",
+          "rating": 2037,
+          "scores": [
+            413,
+            476,
+            402,
+            437
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              1,
+              2,
+              2,
+              1
+            ],
+            "newr": [
+              2008,
+              1993,
+              2011,
+              2027
+            ]
+          },
+          "id": 28,
+          "name": "Kenji Matsumoto",
+          "pairings": [
+            11,
+            27,
+            3,
+            22,
+            7
+          ],
+          "photo": "pix/kenji_matsumoto.jpg",
+          "rating": 2024,
+          "scores": [
+            434,
+            458,
+            518,
+            491
           ]
         }
       ],
       "first_out_of_the_money": [],
-      "maxr": 7,
+      "maxr": 30,
       "maxrp": 0,
       "rating_list": "nsa",
       "rating_system": "nsa2008",
@@ -1090,444 +1090,444 @@ newt = {
           "etc": {
             "p12": [
               1,
+              1,
               2,
-              1,
-              1,
+              2,
               2
             ],
             "newr": [
-              748,
-              778,
-              763,
-              789
+              917,
+              889,
+              859,
+              885
             ],
             "xtid": [
-              20835
+              28236
             ]
           },
           "id": 1,
-          "name": "Melissa Coleman:XT020835",
+          "name": "Benjamin Muschol:XT028236",
           "pairings": [
-            26,
-            11,
-            23,
-            7,
-            28
+            16,
+            3,
+            22,
+            15,
+            8
           ],
-          "photo": "pix/melissa_coleman.jpg",
-          "rating": 766,
+          "photo": "pix/benjamin_muschol.jpg",
+          "rating": 906,
           "scores": [
-            406,
-            467,
-            415,
-            508
+            444,
+            397,
+            381,
+            512
           ]
         },
         {
           "etc": {
             "p12": [
-              1,
+              2,
               1,
               2,
               2,
               1
             ],
             "newr": [
-              1106,
-              1118,
-              1136,
-              1123
+              415,
+              442,
+              427,
+              459
             ],
             "xtid": [
-              27003
+              28300
             ]
           },
           "id": 2,
-          "name": "Amika Gair-MacMichael:XT027003",
+          "name": "Moises Godinez:XT028300",
           "pairings": [
-            16,
-            17,
-            5,
-            25,
-            29
+            6,
+            14,
+            8,
+            28,
+            11
           ],
-          "photo": "pix/amika_gair_macmichael.jpg",
-          "rating": 1123,
+          "photo": "pix/moises_godinez.jpg",
+          "rating": 430,
           "scores": [
-            439,
-            436,
-            406,
-            435
+            419,
+            480,
+            403,
+            485
           ]
         },
         {
           "etc": {
             "p12": [
-              1,
               2,
-              1,
               2,
-              2
+              2,
+              2,
+              1
             ],
             "newr": [
-              1110,
-              1098,
-              1110,
-              1131
+              558,
+              586,
+              616,
+              645
             ],
             "xtid": [
-              28273
+              28448
             ]
           },
           "id": 3,
-          "name": "Dalton Hoffine:XT028273",
+          "name": "Deepak Doraiswamy:XT028448",
           "pairings": [
-            21,
-            27,
+            5,
+            1,
             17,
-            18,
-            5
+            13,
+            26
           ],
-          "photo": "pix/dalton_hoffine.jpg",
-          "rating": 1126,
+          "photo": "pix/deepak_doraiswamy.jpg",
+          "rating": 542,
           "scores": [
-            449,
-            395,
-            511,
-            430
+            488,
+            483,
+            421,
+            494
           ]
         },
         {
           "etc": {
             "p12": [
-              1,
-              1,
               2,
-              1,
-              1
+              2,
+              2,
+              2,
+              2
             ],
             "newr": [
-              1232,
-              1244,
-              1254,
-              1265
+              50,
+              50,
+              82,
+              112
             ],
             "xtid": [
-              5555
+              27536
             ]
           },
           "id": 4,
-          "name": "Leslie Millard:XT005555",
+          "name": "Brooke Mosesman:XT027536",
           "pairings": [
-            27,
+            22,
             21,
-            15,
-            16,
-            26
+            28,
+            5,
+            12
           ],
-          "photo": "pix/leslie_millard.jpg",
-          "rating": 1216,
+          "photo": "pix/brooke_mosesman.jpg",
+          "rating": 54,
           "scores": [
-            415,
-            488,
-            485,
-            513
+            457,
+            398,
+            483,
+            483
           ]
         },
         {
           "etc": {
             "p12": [
-              2,
-              2,
+              1,
               1,
               2,
-              1
+              1,
+              2
             ],
             "newr": [
-              1182,
-              1165,
-              1147,
-              1165
+              528,
+              554,
+              534,
+              504
             ],
             "xtid": [
-              1119
+              26563
             ]
           },
           "id": 5,
-          "name": "Olinga Flisock:XT001119",
+          "name": "Chris Seiser:XT026563",
           "pairings": [
-            6,
-            10,
-            2,
-            11,
-            3
-          ],
-          "photo": "pix/olinga_flisock.jpg",
-          "rating": 1166,
-          "scores": [
-            498,
-            384,
-            397,
-            501
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              1,
-              1,
-              2,
-              1
-            ],
-            "newr": [
-              1155,
-              1170,
-              1152,
-              1163
-            ],
-            "xtid": [
-              1715
-            ]
-          },
-          "id": 6,
-          "name": "Rhonda Morris:XT001715",
-          "pairings": [
-            5,
-            24,
+            3,
             16,
-            14,
-            13
+            6,
+            4,
+            25
           ],
-          "photo": "pix/rhonda_morris.jpg",
-          "rating": 1171,
+          "photo": "pix/chris_seiser.jpg",
+          "rating": 544,
           "scores": [
-            433,
-            516,
-            391,
-            395
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              2,
-              1,
-              2,
-              2
-            ],
-            "newr": [
-              1021,
-              1013,
-              1034,
-              1008
-            ],
-            "xtid": [
-              20219
-            ]
-          },
-          "id": 7,
-          "name": "Andrew Morgan:XT020219",
-          "pairings": [
-            30,
-            18,
-            24,
-            1,
-            11
-          ],
-          "photo": "pix/andrew_morgan.jpg",
-          "rating": 1037,
-          "scores": [
-            372,
-            385,
-            426,
-            407
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              1,
-              1,
-              1,
-              2
-            ],
-            "newr": [
-              1233,
-              1203,
-              1180,
-              1180
-            ],
-            "xtid": [
-              27661
-            ]
-          },
-          "id": 8,
-          "name": "Nolan Miranda:XT027661",
-          "pairings": [
-            11,
-            26,
-            19,
-            12,
-            27
-          ],
-          "photo": "pix/nolan_miranda.jpg",
-          "rating": 1217,
-          "scores": [
-            466,
-            453,
-            396,
-            422
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              2,
-              2,
-              1,
-              1
-            ],
-            "newr": [
-              1166,
-              1151,
-              1136,
-              1114
-            ],
-            "xtid": [
-              28237
-            ]
-          },
-          "id": 9,
-          "name": "Scott Montgomery:XT028237",
-          "pairings": [
-            29,
-            12,
-            11,
-            20,
-            24
-          ],
-          "photo": "pix/scott_montgomery.jpg",
-          "rating": 1182,
-          "scores": [
-            382,
-            400,
-            478,
-            421
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              1,
-              2,
-              2,
-              1
-            ],
-            "newr": [
-              1168,
-              1185,
-              1204,
-              1175
-            ],
-            "xtid": [
-              28153
-            ]
-          },
-          "id": 10,
-          "name": "Jonathan Cai:XT028153",
-          "pairings": [
-            24,
-            5,
-            22,
-            26,
-            16
-          ],
-          "photo": "pix/jonathan_cai.jpg",
-          "rating": 1152,
-          "scores": [
-            493,
-            487,
-            436,
-            439
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              1,
-              1,
-              1,
-              1
-            ],
-            "newr": [
-              1202,
-              1172,
-              1187,
-              1169
-            ],
-            "xtid": [
-              471
-            ]
-          },
-          "id": 11,
-          "name": "Brett Perkins:XT000471",
-          "pairings": [
-            8,
-            1,
-            9,
-            5,
-            7
-          ],
-          "photo": "pix/brett_perkins.jpg",
-          "rating": 1218,
-          "scores": [
-            381,
-            444,
-            512,
+            477,
+            497,
+            463,
             409
           ]
         },
         {
           "etc": {
             "p12": [
+              1,
+              2,
+              1,
+              2,
+              2
+            ],
+            "newr": [
+              460,
+              466,
+              486,
+              484
+            ],
+            "xtid": [
+              19066
+            ]
+          },
+          "id": 6,
+          "name": "Irene Gedney:XT019066",
+          "pairings": [
+            2,
+            12,
+            5,
+            20,
+            21
+          ],
+          "photo": "pix/irene_gedney.jpg",
+          "rating": 445,
+          "scores": [
+            504,
+            466,
+            502,
+            469
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2,
+              2,
+              1,
+              2
+            ],
+            "newr": [
+              506,
+              535,
+              528,
+              554
+            ],
+            "xtid": [
+              28863
+            ]
+          },
+          "id": 7,
+          "name": "Lisa Yachnin:XT028863",
+          "pairings": [
+            8,
+            9,
+            11,
+            16,
+            10
+          ],
+          "photo": "pix/lisa_yachnin.jpg",
+          "rating": 525,
+          "scores": [
+            440,
+            435,
+            406,
+            456
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
               2,
               1,
               1,
+              1,
+              1
+            ],
+            "newr": [
+              469,
+              467,
+              482,
+              480
+            ],
+            "xtid": [
+              28856
+            ]
+          },
+          "id": 8,
+          "name": "Dayra Rodriguez Delgado:XT028856",
+          "pairings": [
+            7,
+            20,
+            2,
+            19,
+            1
+          ],
+          "photo": "pix/dayra_rodriguez_delgado.jpg",
+          "rating": 450,
+          "scores": [
+            503,
+            383,
+            517,
+            485
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              1,
+              1,
+              1,
+              2
+            ],
+            "newr": [
+              920,
+              891,
+              901,
+              875
+            ],
+            "xtid": [
+              27248
+            ]
+          },
+          "id": 9,
+          "name": "Arthur Berger:XT027248",
+          "pairings": [
+            20,
+            7,
+            27,
+            14,
+            27
+          ],
+          "photo": "pix/arthur_berger.jpg",
+          "rating": 935,
+          "scores": [
+            460,
+            383,
+            469,
+            400
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              2,
+              2,
               2,
               1
             ],
             "newr": [
-              1181,
-              1196,
-              1177,
-              1177
+              713,
+              707,
+              734,
+              764
             ],
             "xtid": [
-              19090
+              20937
+            ]
+          },
+          "id": 10,
+          "name": "Leslie Bradshaw:XT020937",
+          "pairings": [
+            11,
+            19,
+            18,
+            23,
+            7
+          ],
+          "photo": "pix/leslie_bradshaw.jpg",
+          "rating": 729,
+          "scores": [
+            432,
+            401,
+            494,
+            475
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2,
+              1,
+              2,
+              2
+            ],
+            "newr": [
+              752,
+              745,
+              752,
+              747
+            ],
+            "xtid": [
+              18610
+            ]
+          },
+          "id": 11,
+          "name": "Russ Coward:XT018610",
+          "pairings": [
+            10,
+            13,
+            7,
+            24,
+            2
+          ],
+          "photo": "pix/russ_coward.jpg",
+          "rating": 736,
+          "scores": [
+            486,
+            400,
+            432,
+            371
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              1,
+              2,
+              2,
+              1
+            ],
+            "newr": [
+              596,
+              590,
+              621,
+              620
+            ],
+            "xtid": [
+              27276
             ]
           },
           "id": 12,
-          "name": "Cheryl Kagan:XT019090",
+          "name": "Robert Rivard:XT027276",
           "pairings": [
-            25,
-            9,
-            21,
-            8,
-            14
+            14,
+            6,
+            23,
+            26,
+            4
           ],
-          "photo": "pix/cheryl_kagan.jpg",
-          "rating": 1197,
+          "photo": "pix/robert_rivard.jpg",
+          "rating": 574,
           "scores": [
-            380,
-            442,
-            372,
-            422
+            494,
+            466,
+            506,
+            411
           ]
         },
         {
@@ -1537,33 +1537,144 @@ newt = {
               1,
               2,
               1,
-              2
+              1
             ],
             "newr": [
-              1052,
-              1069,
-              1091,
-              1078
+              972,
+              979,
+              994,
+              965
             ],
             "xtid": [
-              2912
+              11424
             ]
           },
           "id": 13,
-          "name": "Jim Piazza:XT002912",
+          "name": "Deb Mulrooney:XT011424",
           "pairings": [
-            15,
-            14,
-            27,
-            21,
-            6
+            19,
+            11,
+            20,
+            3,
+            24
           ],
-          "photo": "pix/jim_piazza.jpg",
-          "rating": 1067,
+          "photo": "pix/deb_mulrooney.jpg",
+          "rating": 954,
           "scores": [
-            431,
-            518,
-            463,
+            483,
+            512,
+            423,
+            385
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2,
+              2,
+              2,
+              2
+            ],
+            "newr": [
+              693,
+              666,
+              654,
+              680
+            ],
+            "xtid": [
+              3346
+            ]
+          },
+          "id": 14,
+          "name": "Lana Westcott:XT003346",
+          "pairings": [
+            12,
+            2,
+            16,
+            9,
+            18
+          ],
+          "photo": "pix/lana_westcott.jpg",
+          "rating": 715,
+          "scores": [
+            401,
+            468,
+            408,
+            486
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              1,
+              1,
+              1,
+              1
+            ],
+            "newr": [
+              1166,
+              1148,
+              1126,
+              1100
+            ],
+            "xtid": [
+              20285
+            ]
+          },
+          "id": 15,
+          "name": "Marichelle Roque-Lutz:XT020285",
+          "pairings": [
+            27,
+            26,
+            21,
+            1,
+            28
+          ],
+          "photo": "pix/marichelle_roque_lutz.jpg",
+          "rating": 1148,
+          "scores": [
+            420,
+            409,
+            419,
+            412
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              2,
+              1,
+              2,
+              2
+            ],
+            "newr": [
+              788,
+              762,
+              774,
+              748
+            ],
+            "xtid": [
+              5642
+            ]
+          },
+          "id": 16,
+          "name": "Samuel Austin:XT005642",
+          "pairings": [
+            1,
+            5,
+            14,
+            7,
+            23
+          ],
+          "photo": "pix/samuel_austin.jpg",
+          "rating": 799,
+          "scores": [
+            420,
+            421,
+            465,
             393
           ]
         },
@@ -1571,222 +1682,148 @@ newt = {
           "etc": {
             "p12": [
               1,
+              1,
+              1,
               2,
-              1,
-              1,
-              2
+              1
             ],
             "newr": [
-              1074,
-              1057,
-              1046,
-              1035
+              1051,
+              1075,
+              1045,
+              1061
             ],
             "xtid": [
-              658
+              18227
             ]
           },
-          "id": 14,
-          "name": "Betsey Wood:XT000658",
+          "id": 17,
+          "name": "Vicki Halper:XT018227",
           "pairings": [
-            20,
-            13,
-            29,
-            6,
-            12
+            18,
+            23,
+            3,
+            21,
+            20
           ],
-          "photo": "pix/betsey_wood.jpg",
-          "rating": 1058,
+          "photo": "pix/vicki_halper.jpg",
+          "rating": 1036,
           "scores": [
-            515,
-            503,
-            482,
-            373
+            496,
+            417,
+            382,
+            436
           ]
         },
         {
           "etc": {
             "p12": [
-              1,
+              2,
               2,
               1,
-              1,
-              2
+              2,
+              1
             ],
             "newr": [
-              1102,
-              1107,
-              1097,
-              1111
+              995,
+              988,
+              961,
+              985
             ],
             "xtid": [
-              1599
+              1828
             ]
           },
-          "id": 15,
-          "name": "Ted Gest:XT001599",
+          "id": 18,
+          "name": "Georgia T Philpot:XT001828",
           "pairings": [
-            13,
-            23,
-            4,
-            30,
-            22
+            17,
+            28,
+            10,
+            27,
+            14
           ],
-          "photo": "pix/ted_gest.jpg",
-          "rating": 1087,
+          "photo": "pix/georgia_t_philpot.jpg",
+          "rating": 1010,
           "scores": [
-            432,
-            494,
-            448,
+            380,
+            393,
+            445,
             507
           ]
         },
         {
           "etc": {
             "p12": [
-              2,
               1,
-              2,
-              2,
-              2
-            ],
-            "newr": [
-              1110,
-              1123,
-              1141,
-              1130
-            ],
-            "xtid": [
-              288
-            ]
-          },
-          "id": 16,
-          "name": "Joan Knobelsdorf:XT000288",
-          "pairings": [
-            2,
-            19,
-            6,
-            4,
-            10
-          ],
-          "photo": "pix/joan_knobelsdorf.jpg",
-          "rating": 1093,
-          "scores": [
-            489,
-            505,
-            514,
-            372
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
               1,
               2,
               2,
-              1,
-              2
-            ],
-            "newr": [
-              1013,
-              1001,
-              989,
-              1010
-            ],
-            "xtid": [
-              457
-            ]
-          },
-          "id": 17,
-          "name": "Broderick Larkins:XT000457",
-          "pairings": [
-            19,
-            2,
-            3,
-            24,
-            20
-          ],
-          "photo": "pix/broderick_larkins.jpg",
-          "rating": 1029,
-          "scores": [
-            449,
-            416,
-            401,
-            419
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              1,
-              1,
-              1,
               1
             ],
             "newr": [
-              1210,
-              1218,
-              1226,
-              1205
+              976,
+              982,
+              1003,
+              1005
             ],
             "xtid": [
-              1333
-            ]
-          },
-          "id": 18,
-          "name": "Bryan Pepper:XT001333",
-          "pairings": [
-            22,
-            7,
-            20,
-            3,
-            30
-          ],
-          "photo": "pix/bryan_pepper.jpg",
-          "rating": 1226,
-          "scores": [
-            373,
-            393,
-            468,
-            423
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              2,
-              2,
-              2,
-              2
-            ],
-            "newr": [
-              1044,
-              1031,
-              1054,
-              1046
-            ],
-            "xtid": [
-              18184
+              655
             ]
           },
           "id": 19,
-          "name": "Alex Greenman:XT018184",
+          "name": "Judi Boviard:XT000655",
           "pairings": [
-            17,
-            16,
+            13,
+            10,
+            25,
             8,
-            22,
-            23
+            22
           ],
-          "photo": "pix/alex_greenman.jpg",
-          "rating": 1028,
+          "photo": "pix/judi_boviard.jpg",
+          "rating": 994,
           "scores": [
-            501,
-            503,
-            463,
-            431
+            443,
+            477,
+            383,
+            489
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2,
+              1,
+              1,
+              2
+            ],
+            "newr": [
+              964,
+              966,
+              951,
+              953
+            ],
+            "xtid": [
+              27863
+            ]
+          },
+          "id": 20,
+          "name": "Jim Gormally:XT027863",
+          "pairings": [
+            9,
+            8,
+            13,
+            6,
+            17
+          ],
+          "photo": "pix/jim_gormally.jpg",
+          "rating": 949,
+          "scores": [
+            520,
+            517,
+            379,
+            471
           ]
         },
         {
@@ -1795,78 +1832,78 @@ newt = {
               2,
               1,
               2,
-              2,
+              1,
               1
             ],
             "newr": [
-              1032,
-              1014,
-              1006,
-              1028
+              1021,
+              1021,
+              1043,
+              1027
             ],
             "xtid": [
-              125
-            ]
-          },
-          "id": 20,
-          "name": "Rick Settle:XT000125",
-          "pairings": [
-            14,
-            28,
-            18,
-            9,
-            17
-          ],
-          "photo": "pix/rick_settle.jpg",
-          "rating": 1048,
-          "scores": [
-            514,
-            431,
-            402,
-            499
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              2,
-              2,
-              2,
-              2
-            ],
-            "newr": [
-              1141,
-              1129,
-              1148,
-              1161
-            ],
-            "xtid": [
-              26433
+              6984
             ]
           },
           "id": 21,
-          "name": "Jack Lechner:XT026433",
+          "name": "Peter Filandro:XT006984",
           "pairings": [
-            3,
+            24,
             4,
-            12,
-            13,
-            25
+            15,
+            17,
+            6
           ],
-          "photo": "pix/jack_lechner.jpg",
-          "rating": 1125,
+          "photo": "pix/peter_filandro.jpg",
+          "rating": 1037,
           "scores": [
-            473,
-            451,
-            394,
-            397
+            401,
+            408,
+            519,
+            404
           ]
         },
         {
           "etc": {
             "p12": [
+              1,
               2,
+              1,
+              1,
+              2
+            ],
+            "newr": [
+              379,
+              378,
+              408,
+              439
+            ],
+            "xtid": [
+              28378
+            ]
+          },
+          "id": 22,
+          "name": "Kat Anderson:XT028378",
+          "pairings": [
+            4,
+            24,
+            1,
+            25,
+            19
+          ],
+          "photo": "pix/kat_anderson.jpg",
+          "rating": 375,
+          "scores": [
+            459,
+            453,
+            446,
+            474
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
               2,
               1,
               1,
@@ -1874,289 +1911,30 @@ newt = {
             ],
             "newr": [
               1242,
-              1250,
-              1231,
-              1239
-            ],
-            "xtid": [
-              2509
-            ]
-          },
-          "id": 22,
-          "name": "Elspeth Abbate:XT002509",
-          "pairings": [
-            18,
-            30,
-            10,
-            19,
-            15
-          ],
-          "photo": "pix/elspeth_abbate.jpg",
-          "rating": 1226,
-          "scores": [
-            497,
-            494,
-            426,
-            463
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              1,
-              2,
-              2,
-              1
-            ],
-            "newr": [
-              803,
-              798,
-              813,
-              842
-            ],
-            "xtid": [
-              23742
-            ]
-          },
-          "id": 23,
-          "name": "Linda Cohan:XT023742",
-          "pairings": [
-            28,
-            15,
-            1,
-            29,
-            19
-          ],
-          "photo": "pix/linda_cohan.jpg",
-          "rating": 777,
-          "scores": [
-            431,
-            411,
-            446,
-            422
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              2,
-              2,
-              2,
-              2
-            ],
-            "newr": [
-              1136,
-              1121,
-              1100,
-              1079
-            ],
-            "xtid": [
-              1821
-            ]
-          },
-          "id": 24,
-          "name": "Michael Christophel:XT001821",
-          "pairings": [
-            10,
-            6,
-            7,
-            17,
-            9
-          ],
-          "photo": "pix/michael_christophel.jpg",
-          "rating": 1152,
-          "scores": [
-            417,
-            372,
-            409,
-            391
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              2,
-              1,
-              1,
-              1
-            ],
-            "newr": [
-              1213,
-              1228,
-              1198,
-              1211
-            ],
-            "xtid": [
-              2054
-            ]
-          },
-          "id": 25,
-          "name": "Russell McKinstry:XT002054",
-          "pairings": [
-            12,
-            29,
-            26,
-            2,
-            21
-          ],
-          "photo": "pix/russell_mckinstry.jpg",
-          "rating": 1197,
-          "scores": [
-            411,
-            441,
-            383,
-            445
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              2,
-              2,
-              1,
-              2
-            ],
-            "newr": [
-              735,
-              765,
-              795,
-              824
-            ],
-            "xtid": [
-              28075
-            ]
-          },
-          "id": 26,
-          "name": "Jean Caputo:XT028075",
-          "pairings": [
-            1,
-            8,
-            25,
-            10,
-            4
-          ],
-          "photo": "pix/jean_caputo.jpg",
-          "rating": 717,
-          "scores": [
-            484,
-            475,
-            476,
-            457
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              1,
-              1,
-              2,
-              1
-            ],
-            "newr": [
-              1198,
-              1210,
-              1188,
-              1164
-            ],
-            "xtid": [
-              28117
-            ]
-          },
-          "id": 27,
-          "name": "Daniel Higgins:XT028117",
-          "pairings": [
-            4,
-            3,
-            13,
-            28,
-            8
-          ],
-          "photo": "pix/daniel_higgins.jpg",
-          "rating": 1214,
-          "scores": [
-            393,
-            442,
-            460,
-            412
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              1,
-              2,
-              2,
-              1,
-              1
-            ],
-            "newr": [
-              991,
-              1009,
-              995,
-              1019
-            ],
-            "xtid": [
-              27054
-            ]
-          },
-          "id": 28,
-          "name": "Izak Bulten:XT027054",
-          "pairings": [
-            23,
-            20,
-            30,
-            27,
-            1
-          ],
-          "photo": "pix/izak_bulten.jpg",
-          "rating": 1017,
-          "scores": [
-            410,
-            498,
-            488,
-            427
-          ]
-        },
-        {
-          "etc": {
-            "p12": [
-              2,
-              1,
-              2,
-              1,
-              2
-            ],
-            "newr": [
-              1190,
-              1175,
-              1186,
+              1218,
+              1187,
               1157
             ],
             "xtid": [
-              21054
+              1333
             ]
           },
-          "id": 29,
-          "name": "Deanne Dorsa:XT021054",
+          "id": 23,
+          "name": "Bryan Pepper:XT001333",
           "pairings": [
-            9,
-            25,
-            14,
-            23,
-            2
+            28,
+            17,
+            12,
+            10,
+            16
           ],
-          "photo": "pix/deanne_dorsa.jpg",
-          "rating": 1174,
+          "photo": "pix/bryan_pepper.jpg",
+          "rating": 1226,
           "scores": [
-            416,
-            378,
-            488,
-            409
+            486,
+            398,
+            381,
+            436
           ]
         },
         {
@@ -2165,37 +1943,185 @@ newt = {
               1,
               1,
               1,
-              2,
+              1,
               2
             ],
             "newr": [
               1055,
-              1047,
-              1061,
-              1047
+              1056,
+              1044,
+              1049
+            ],
+            "xtid": [
+              24280
             ]
           },
-          "id": 30,
-          "name": "Carol Robbins",
+          "id": 24,
+          "name": "Fred Morlan:XT024280",
           "pairings": [
-            7,
+            21,
             22,
-            28,
-            15,
-            18
+            26,
+            11,
+            13
           ],
-          "photo": "pix/carol_robbins.jpg",
+          "photo": "pix/fred_morlan.jpg",
           "rating": 1039,
           "scores": [
-            500,
-            398,
-            504,
-            377
+            407,
+            514,
+            441,
+            416
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              2,
+              1,
+              2,
+              1
+            ],
+            "newr": [
+              1083,
+              1103,
+              1082,
+              1051
+            ],
+            "xtid": [
+              20585
+            ]
+          },
+          "id": 25,
+          "name": "Anthony Canzoneri:XT020585",
+          "pairings": [
+            26,
+            27,
+            19,
+            22,
+            5
+          ],
+          "photo": "pix/anthony_canzoneri.jpg",
+          "rating": 1099,
+          "scores": [
+            372,
+            515,
+            382,
+            459
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              2,
+              2,
+              1,
+              2
+            ],
+            "newr": [
+              1118,
+              1136,
+              1148,
+              1149
+            ],
+            "xtid": [
+              25334
+            ]
+          },
+          "id": 26,
+          "name": "Evan Bialo:XT025334",
+          "pairings": [
+            25,
+            15,
+            24,
+            12,
+            3
+          ],
+          "photo": "pix/evan_bialo.jpg",
+          "rating": 1102,
+          "scores": [
+            399,
+            433,
+            499,
+            507
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              1,
+              1,
+              2,
+              1,
+              1
+            ],
+            "newr": [
+              1173,
+              1153,
+              1143,
+              1119
+            ],
+            "xtid": [
+              126
+            ]
+          },
+          "id": 27,
+          "name": "Yoli Ushry:XT000126",
+          "pairings": [
+            15,
+            25,
+            9,
+            18,
+            9
+          ],
+          "photo": "pix/yoli_ushry.jpg",
+          "rating": 1191,
+          "scores": [
+            389,
+            432,
+            469,
+            383
+          ]
+        },
+        {
+          "etc": {
+            "p12": [
+              2,
+              1,
+              1,
+              1,
+              2
+            ],
+            "newr": [
+              1201,
+              1208,
+              1176,
+              1144
+            ]
+          },
+          "id": 28,
+          "name": "Nolan Miranda",
+          "pairings": [
+            23,
+            18,
+            4,
+            2,
+            15
+          ],
+          "photo": "pix/nolan_miranda.jpg",
+          "rating": 1217,
+          "scores": [
+            389,
+            409,
+            428,
+            373
           ]
         }
       ],
       "first_out_of_the_money": [],
-      "maxr": 7,
+      "maxr": 30,
       "maxrp": 0,
       "rating_list": "nsa",
       "rating_system": "nsa2008",
@@ -2227,9 +2153,7 @@ newt = {
         25,
         26,
         27,
-        28,
-        29,
-        30
+        28
       ]
     }
   ]

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import TournamentList from "../../components/tournaments/TournamentList";
@@ -10,6 +10,10 @@ const TournamentManagerPage: React.FC<{ apiService: ApiService }> = ({
 }) => {
   const navigate = useNavigate();
   const { theme } = useThemeContext();
+
+  useEffect(() => {
+    document.title = "LPS: Tournament Manager";
+  }, []);
 
   const handleTournamentClick = (id: number) => {
     navigate(`/tournaments/${id}`);

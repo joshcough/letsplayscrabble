@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { TournamentTableOverlay } from "../../components/shared/TournamentTableOverlay";
 import {
@@ -12,6 +12,11 @@ import { Theme } from "../../types/theme";
 const StandingsOverlayPage: React.FC<{ apiService: ApiService }> = ({
   apiService,
 }) => {
+  // Set page title
+  useEffect(() => {
+    document.title = "LPS: Standings";
+  }, []);
+
   const columns = [
     { key: "rank", label: "Rank" },
     { key: "name", label: "Name" },

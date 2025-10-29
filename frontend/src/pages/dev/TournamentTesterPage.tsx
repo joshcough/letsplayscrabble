@@ -16,10 +16,11 @@ const TournamentTesterPage: React.FC<{ apiService: ApiService }> = ({ apiService
     const saved = localStorage.getItem('devTournamentId');
     return saved ? parseInt(saved, 10) : null;
   });
+  const [isSimulating, setIsSimulating] = useState(false);
 
   // Set page title
   useEffect(() => {
-    document.title = "Dev Tournament Tester - Scrabble Stats";
+    document.title = "LPS: Dev Tournament Tester";
   }, []);
 
   // Save devTournamentId to localStorage when it changes
@@ -60,9 +61,6 @@ const TournamentTesterPage: React.FC<{ apiService: ApiService }> = ({ apiService
       const data = await response.json();
       if (data.success) {
         setAvailableFiles(data.data);
-        if (data.data.length > 0 && !selectedFile) {
-          setSelectedFile(data.data[0].value);
-        }
       }
     } catch (error) {
       console.error('Failed to load available files:', error);
@@ -75,6 +73,7 @@ const TournamentTesterPage: React.FC<{ apiService: ApiService }> = ({ apiService
       const data = await response.json();
       if (data.success) {
         setCurrentFile(data.data.file);
+        setSelectedFile(data.data.file); // Sync dropdown with current file
       }
     } catch (error) {
       console.error('Failed to load current file:', error);
@@ -109,6 +108,62 @@ const TournamentTesterPage: React.FC<{ apiService: ApiService }> = ({ apiService
       setLoading(false);
     }
   };
+
+  const handleNextTournament = async () => {
+    if (availableFiles.length === 0) return;
+
+    const currentIndex = availableFiles.findIndex(f => f.value === currentFile);
+    const nextIndex = currentIndex + 1;
+
+    if (nextIndex < availableFiles.length) {
+      const nextFile = availableFiles[nextIndex].value;
+      setSelectedFile(nextFile);
+
+      // Automatically trigger the update
+      setLoading(true);
+      setMessage(null);
+
+      try {
+        const response = await fetch('http://localhost:3001/api/dev/set-tournament', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ file: nextFile }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          setCurrentFile(data.data.file);
+          setMessage({ type: 'success', text: `Advanced to: ${nextFile}` });
+        } else {
+          setMessage({ type: 'error', text: data.error || 'Failed to advance tournament' });
+        }
+      } catch (error) {
+        setMessage({ type: 'error', text: 'Failed to advance tournament' });
+        console.error('Failed to advance tournament:', error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setMessage({ type: 'error', text: 'Already at last stage' });
+      setIsSimulating(false); // Stop simulation when we reach the end
+    }
+  };
+
+  const toggleSimulation = () => {
+    setIsSimulating(!isSimulating);
+  };
+
+  // Auto-advance simulation - runs every 10 seconds when enabled
+  useEffect(() => {
+    if (!isSimulating) return;
+
+    const interval = setInterval(() => {
+      handleNextTournament();
+    }, 10000); // 10 seconds
+
+    return () => clearInterval(interval);
+  }, [isSimulating, currentFile, availableFiles]); // Re-create interval when currentFile changes
 
   const handleCreateDevTournament = async () => {
     setLoading(true);
@@ -225,11 +280,8 @@ const TournamentTesterPage: React.FC<{ apiService: ApiService }> = ({ apiService
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-100 via-orange-100 to-yellow-100 p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-xl p-8">
-          <h1 className="text-4xl font-bold text-amber-900 mb-2">Tournament Memory Tester</h1>
-          <p className="text-amber-700 mb-8">
-            Create a dev tournament and step through rounds to monitor memory usage in overlays
-          </p>
+        <div className="bg-white rounded-lg shadow-xl p-6">
+          <h1 className="text-3xl font-bold text-amber-900 mb-4">Tournament Memory Tester</h1>
 
           {/* Message Display */}
           {message && (
@@ -245,95 +297,82 @@ const TournamentTesterPage: React.FC<{ apiService: ApiService }> = ({ apiService
           )}
 
           {/* Create Dev Tournament */}
-          <div className="mb-8 p-6 bg-amber-50 rounded-lg border-2 border-amber-200">
-            <h2 className="text-2xl font-bold text-amber-900 mb-4">Step 1: Create Dev Tournament</h2>
-            <p className="text-amber-700 mb-4">
-              Creates a new tournament pointing to <code className="bg-amber-200 px-2 py-1 rounded">http://localhost:3001/api/dev/tourney.js</code>
-              <br />
-              {devTournamentId && (
-                <span className="text-sm font-semibold text-amber-900">Dev tournament already exists (ID: {devTournamentId}). Click to recreate.</span>
-              )}
-              {!devTournamentId && (
-                <span className="text-sm">No dev tournament exists. Create one to begin testing.</span>
-              )}
-            </p>
-            <div className="flex gap-4">
+          <div className="mb-4 p-4 bg-amber-50 rounded-lg border-2 border-amber-200">
+            <h2 className="text-xl font-bold text-amber-900 mb-3">Step 1: Create Dev Tournament</h2>
+            <div className="flex gap-4 mb-3">
               <button
                 onClick={handleCreateDevTournament}
                 disabled={loading}
-                className="bg-amber-600 hover:bg-amber-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                className="bg-amber-600 hover:bg-amber-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg transition-colors"
               >
-                {loading ? 'Creating...' : devTournamentId ? 'Recreate Dev Tournament' : 'Create Dev Tournament'}
+                {loading ? 'Creating...' : devTournamentId ? 'Recreate' : 'Create'}
               </button>
               <button
                 onClick={handleResetTournament}
                 disabled={loading || !devTournamentId}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg transition-colors"
               >
-                {loading ? 'Resetting...' : 'Reset to Initial State'}
+                {loading ? 'Clearing...' : 'Clear All Games'}
               </button>
             </div>
             {devTournamentId && (
-              <div className="mt-4 p-4 bg-white rounded border border-amber-300">
-                <p className="font-semibold text-amber-900">Dev Tournament ID: {devTournamentId}</p>
-                <p className="text-sm text-amber-700 mt-2">
-                  Open overlay: <a href={`/users/1/overlay/standings`} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Standings Overlay</a>
-                </p>
-                <p className="text-sm text-amber-700">
-                  Open vanilla overlay: <a href={`/overlays/standings/index.html?userId=1`} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Vanilla Standings</a>
+              <div className="p-3 bg-white rounded border border-amber-300">
+                <p className="text-sm text-amber-900">
+                  <strong>ID: {devTournamentId}</strong> • <a href={`/users/1/overlay/standings`} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Open Overlay</a>
                 </p>
               </div>
             )}
           </div>
 
           {/* Select Tournament Stage */}
-          <div className="mb-8 p-6 bg-blue-50 rounded-lg border-2 border-blue-200">
-            <h2 className="text-2xl font-bold text-blue-900 mb-4">Step 2: Update Tournament Stage</h2>
-            <p className="text-blue-700 mb-4">
-              Currently serving: <strong>{currentFile || 'Loading...'}</strong>
+          <div className="mb-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+            <h2 className="text-xl font-bold text-blue-900 mb-2">Step 2: Advance Tournament</h2>
+            <p className="text-sm text-blue-700 mb-3">
+              Current: <strong>{currentFile || 'Loading...'}</strong>
             </p>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-blue-900 font-semibold mb-2">
-                  Select Tournament Stage:
-                </label>
-                <select
-                  value={selectedFile}
-                  onChange={(e) => setSelectedFile(e.target.value)}
-                  className="w-full p-3 border-2 border-blue-300 rounded-lg focus:border-blue-500 focus:outline-none"
+            <div className="space-y-3">
+              <select
+                value={selectedFile}
+                onChange={(e) => setSelectedFile(e.target.value)}
+                className="w-full p-2 border-2 border-blue-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm"
+              >
+                {availableFiles.map((file) => (
+                  <option key={file.value} value={file.value}>
+                    {file.label}
+                  </option>
+                ))}
+              </select>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleNextTournament}
+                  disabled={loading || isSimulating}
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors flex-grow text-lg"
                 >
-                  {availableFiles.map((file) => (
-                    <option key={file.value} value={file.value}>
-                      {file.label}
-                    </option>
-                  ))}
-                </select>
+                  Next →
+                </button>
+                <button
+                  onClick={handleSetTournament}
+                  disabled={loading || !selectedFile || isSimulating}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm"
+                >
+                  {loading ? 'Updating...' : 'Jump'}
+                </button>
               </div>
 
               <button
-                onClick={handleSetTournament}
-                disabled={loading || !selectedFile}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                onClick={toggleSimulation}
+                disabled={loading}
+                className={`w-full font-bold py-2 px-4 rounded-lg transition-colors text-sm ${
+                  isSimulating
+                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                    : 'bg-purple-600 hover:bg-purple-700 text-white'
+                }`}
               >
-                {loading ? 'Updating...' : 'Update Tournament Stage'}
+                {isSimulating ? '⏸ Stop Simulation' : '▶ Run Simulation (10s intervals)'}
               </button>
             </div>
-          </div>
-
-          {/* Instructions */}
-          <div className="p-6 bg-gray-50 rounded-lg border-2 border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">How to Test Memory</h2>
-            <ol className="list-decimal list-inside space-y-2 text-gray-700">
-              <li>Create a new dev tournament (above)</li>
-              <li>Open the overlay in a new tab (links appear after creating tournament)</li>
-              <li>Open Chrome Task Manager (<kbd>Shift+Esc</kbd>)</li>
-              <li>Note the memory usage for the overlay tab</li>
-              <li>Update to the next tournament stage using the dropdown</li>
-              <li>Wait ~10 seconds for polling to detect changes</li>
-              <li>Check memory usage again</li>
-              <li>Repeat through all stages to monitor memory growth</li>
-            </ol>
           </div>
         </div>
       </div>

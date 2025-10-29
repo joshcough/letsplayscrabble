@@ -86,3 +86,4 @@ frontend/.cache/
 
 # Other
 tools/generated-tournament/
+tools/.dev-tournament-state.json

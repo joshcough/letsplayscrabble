@@ -1,9 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useThemeContext } from "../../context/ThemeContext";
 
 const AdminLandingPage: React.FC = () => {
   const { theme } = useThemeContext();
+
+  useEffect(() => {
+    document.title = "LPS: Admin";
+  }, []);
 
   return (
     <div className={`min-h-screen ${theme.colors.pageBackground}`}>

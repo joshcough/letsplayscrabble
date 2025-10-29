@@ -1,34 +1,62 @@
 import express, { Router, RequestHandler } from "express";
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
 
 import * as Api from "../utils/apiHelpers";
 import { withErrorHandling } from "../utils/apiHelpers";
 import { pool } from "../config/database";
 
-// In-memory storage for current dev tournament file
-let currentDevTournamentFile = "tournament_00_initial.js";
-
 const TOURNAMENT_FILES_DIR = join(__dirname, "../../../tools/generated-tournament-28-players");
+const STATE_FILE = join(__dirname, "../../../tools/.dev-tournament-state.json");
 
-// Available tournament progression files
-const AVAILABLE_FILES = [
+// Helper to load state from file
+function loadState(): string {
+  try {
+    if (existsSync(STATE_FILE)) {
+      const data = JSON.parse(readFileSync(STATE_FILE, "utf-8"));
+      console.log(`📂 Loaded dev tournament state: ${data.currentFile}`);
+      return data.currentFile || "tournament_00_initial.js";
+    }
+  } catch (error) {
+    console.error("Failed to load dev tournament state:", error);
+  }
+  return "tournament_00_initial.js";
+}
+
+// Helper to save state to file
+function saveState(currentFile: string): void {
+  try {
+    writeFileSync(STATE_FILE, JSON.stringify({ currentFile }, null, 2));
+    console.log(`💾 Saved dev tournament state: ${currentFile}`);
+  } catch (error) {
+    console.error("Failed to save dev tournament state:", error);
+  }
+}
+
+// Load current state from file on startup
+let currentDevTournamentFile = loadState();
+
+// Available tournament progression files (generated programmatically for 30 rounds)
+const AVAILABLE_FILES: Array<{ value: string; label: string }> = [
   { value: "tournament_00_initial.js", label: "00 - Initial (No Pairings)" },
-  { value: "tournament_01_round1_pairings.js", label: "01 - Round 1 Pairings" },
-  { value: "tournament_02_round1_complete.js", label: "02 - Round 1 Complete" },
-  { value: "tournament_03_round2_pairings.js", label: "03 - Round 2 Pairings" },
-  { value: "tournament_04_round2_complete.js", label: "04 - Round 2 Complete" },
-  { value: "tournament_05_round3_pairings.js", label: "05 - Round 3 Pairings" },
-  { value: "tournament_06_round3_complete.js", label: "06 - Round 3 Complete" },
-  { value: "tournament_07_round4_pairings.js", label: "07 - Round 4 Pairings" },
-  { value: "tournament_08_round4_complete.js", label: "08 - Round 4 Complete" },
-  { value: "tournament_09_round5_pairings.js", label: "09 - Round 5 Pairings" },
-  { value: "tournament_10_round5_complete.js", label: "10 - Round 5 Complete" },
-  { value: "tournament_11_round6_pairings.js", label: "11 - Round 6 Pairings" },
-  { value: "tournament_12_round6_complete.js", label: "12 - Round 6 Complete" },
-  { value: "tournament_13_round7_pairings.js", label: "13 - Round 7 Pairings" },
-  { value: "tournament_14_round7_complete.js", label: "14 - Round 7 Complete" },
 ];
+
+// Generate entries for rounds 1-30
+for (let round = 1; round <= 30; round++) {
+  const pairingsNum = (round - 1) * 2 + 1;
+  const completeNum = pairingsNum + 1;
+
+  AVAILABLE_FILES.push(
+    {
+      value: `tournament_${pairingsNum.toString().padStart(2, '0')}_round${round}_pairings.js`,
+      label: `${pairingsNum.toString().padStart(2, '0')} - Round ${round} Pairings`
+    },
+    {
+      value: `tournament_${completeNum.toString().padStart(2, '0')}_round${round}_complete.js`,
+      label: `${completeNum.toString().padStart(2, '0')} - Round ${round} Complete`
+    }
+  );
+}
 
 export default function createDevRoutes(): Router {
   const router = express.Router();
@@ -87,6 +115,7 @@ export default function createDevRoutes(): Router {
 
     console.log(`🔄 Updating dev tournament from ${currentDevTournamentFile} to ${file}`);
     currentDevTournamentFile = file;
+    saveState(currentDevTournamentFile);
 
     res.json(Api.success({ file: currentDevTournamentFile }));
   });

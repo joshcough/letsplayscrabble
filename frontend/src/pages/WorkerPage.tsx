@@ -43,6 +43,11 @@ const WorkerPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
   const urlParams = new URLSearchParams(window.location.search);
   const extendedMode = urlParams.has("extended");
 
+  // Set page title
+  useEffect(() => {
+    document.title = "LPS: Worker Page";
+  }, []);
+
   useEffect(() => {
     const worker = WorkerSocketManager.getInstance(apiService);
     const statusChannel = new BroadcastChannel("worker-status");
