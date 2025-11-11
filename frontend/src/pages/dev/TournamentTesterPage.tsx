@@ -43,7 +43,7 @@ const TournamentTesterPage: React.FC<{ apiService: ApiService }> = ({ apiService
 
     try {
       // Query versions for this tournament from backend
-      const response = await fetch(`http://localhost:3001/api/private/tournaments/${tournamentId}/versions`);
+      const response = await fetch(`http://localhost:3001/api/dev/versions/${tournamentId}`);
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {

@@ -315,6 +315,30 @@ export default function createDevRoutes(): Router {
     res.json(Api.success({ tournamentId }));
   });
 
+  // GET /api/dev/versions/:tournamentId - Get all versions for a tournament
+  const getVersions: RequestHandler<
+    { tournamentId: string },
+    Api.ApiResponse<Array<{ id: number; tournament_id: number; created_at: Date }>>
+  > = withErrorHandling(async (req, res) => {
+    const tournamentId = parseInt(req.params.tournamentId);
+
+    if (isNaN(tournamentId)) {
+      res.status(400).json(Api.failure("Invalid tournament ID"));
+      return;
+    }
+
+    // Get versions (just id, tournament_id, created_at - not the full data)
+    const versions = await pool.query(
+      `SELECT id, tournament_id, created_at
+       FROM tournament_data_versions
+       WHERE tournament_id = $1
+       ORDER BY created_at ASC`,
+      [tournamentId]
+    );
+
+    res.json(Api.success(versions.rows));
+  });
+
   // Routes
   router.get("/tourney.js", serveTourneyJs);
   router.get("/available-files", getAvailableFiles);
@@ -325,6 +349,7 @@ export default function createDevRoutes(): Router {
   router.post("/load-progression-files", loadProgressionFiles);
   router.post("/start-simulation", startSimulation);
   router.post("/stop-simulation", stopSimulation);
+  router.get("/versions/:tournamentId", getVersions);
 
   return router;
 }
