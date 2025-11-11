@@ -28,6 +28,13 @@ export interface TournamentDataRow {
   updated_at: Date;
 }
 
+export interface TournamentDataVersionRow {
+  id: number;
+  tournament_id: number;
+  data: File.TournamentData; // JSON field containing versioned tournament data
+  created_at: Date;
+}
+
 export interface DivisionRow {
   id: number;
   tournament_id: number;

@@ -1,5 +1,63 @@
 # Changelog
 
+## 2025-11-11 - Tournament Data Versioning
+
+### ✨ **New Feature: Automatic Tournament Data Version Tracking**
+
+#### **Overview**
+- **ADDED**: Automatic versioning system that saves timestamped snapshots of tournament data on every update
+- **PURPOSE**: Enable debugging, replay, and analysis of tournaments by preserving complete history
+- **STORAGE**: PostgreSQL table with potential future migration to S3 if needed
+
+#### **Implementation**
+- **NEW TABLE**: `tournament_data_versions`
+  - Stores tournament_id, data (JSON), created_at timestamp
+  - Indexed on (tournament_id, created_at) for efficient queries
+  - CASCADE delete when tournament is deleted
+- **NEW REPOSITORY**: `TournamentDataRepository`
+  - `updateTournamentData()` - Saves version and updates current data in transaction
+  - `getTournamentDataVersions()` - Query all versions for a tournament
+  - `getTournamentDataVersionById()` - Get specific version
+  - `getTournamentVersionStats()` - Get count and total storage size
+- **FILES CHANGED**:
+  - `migrations/20250908000000_create_tournament_data_versions.ts` - Creates table and seeds with existing data
+  - `repositories/tournamentDataRepository.ts` - New repository for version management
+  - `repositories/tournamentRepository.ts` - Updated to use TournamentDataRepository
+  - `types/database.ts` - Added TournamentDataVersionRow interface
+
+#### **How It Works**
+Every time tournament data is updated (typically every 10 seconds during polling):
+1. New data is saved to `tournament_data_versions` with timestamp
+2. Current data is updated in `tournament_data` table (for fast access)
+3. Both operations happen in a transaction (atomic)
+
+**Result**: Complete audit trail of every tournament update with timestamps
+
+#### **Storage Impact**
+- **Typical file size**: 30-50KB
+- **Expected versions per tournament**: 100-200 (~5-10MB)
+- **Worst case**: 1000 versions (~50MB) if updates happen very frequently
+- **Current approach**: PostgreSQL (manageable for years)
+- **Future option**: Export to S3 for long-term archival
+
+#### **Migration Notes**
+- Migration automatically seeds versions table with current tournament data
+- Uses original `created_at` timestamps from `tournament_data`
+- Safe to rollback if needed (no data loss)
+
+#### **Future Enhancements**
+See `docs/tournament-data-versioning.md` for detailed future work:
+- **Dev Page Replay**: Load and replay real tournaments from database (not just mock files)
+- **Tournament Data Viewer**: Frontend page to view/compare versions with timeline visualization
+- **Automated S3 Archival**: Move old versions to cheaper storage automatically
+- **Version Comparison API**: Diff two versions to see what changed
+- **Export Functionality**: Download complete tournament history
+
+#### **Documentation**
+- Added `docs/tournament-data-versioning.md` with complete technical details
+
+---
+
 ## 2025-10-29 - CRITICAL: Broadcast Message Memory Leak Fix
 
 ### 🐛 **Critical Bug Fix**
