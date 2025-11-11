@@ -6,8 +6,8 @@ import * as Api from "../utils/apiHelpers";
 import { withErrorHandling } from "../utils/apiHelpers";
 import { pool } from "../config/database";
 
-const TOURNAMENT_FILES_DIR = join(__dirname, "../../../tools/generated-tournament-28-players");
-const STATE_FILE = join(__dirname, "../../../tools/.dev-tournament-state.json");
+const TOURNAMENT_FILES_DIR = join(__dirname, "../../../../../../tools/generated-tournament-28-players");
+const STATE_FILE = join(__dirname, "../../../../../../tools/.dev-tournament-state.json");
 
 // Helper to load state from file
 function loadState(): string {
@@ -60,6 +60,24 @@ for (let round = 1; round <= 30; round++) {
 
 export default function createDevRoutes(): Router {
   const router = express.Router();
+
+  // GET /api/dev/initial-dummy.js - Serve minimal dummy tournament data for initial creation
+  const serveInitialDummy: RequestHandler = async (req, res) => {
+    const dummyData = {
+      name: "Dev Test Tournament",
+      city: "Development",
+      year: new Date().getFullYear(),
+      lexicon: "TWL",
+      divisions: [],
+      players: []
+    };
+
+    const jsContent = `var tourneyData = ${JSON.stringify(dummyData, null, 2)};`;
+
+    res.setHeader("Content-Type", "application/javascript");
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.send(jsContent);
+  };
 
   // GET /api/dev/tourney.js - Serve tournament data from database
   const serveTourneyJs: RequestHandler = async (req, res) => {
@@ -340,6 +358,7 @@ export default function createDevRoutes(): Router {
   });
 
   // Routes
+  router.get("/initial-dummy.js", serveInitialDummy);
   router.get("/tourney.js", serveTourneyJs);
   router.get("/available-files", getAvailableFiles);
   router.get("/current-file", getCurrentFile);

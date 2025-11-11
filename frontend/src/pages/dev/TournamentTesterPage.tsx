@@ -48,7 +48,8 @@ const TournamentTesterPage: React.FC<{ apiService: ApiService }> = ({ apiService
         const data = await response.json();
         if (data.success && data.data) {
           setVersions(data.data);
-          setIsSetupComplete(data.data.length > 0);
+          // Setup is complete when we have 61 progression files loaded
+          setIsSetupComplete(data.data.length >= 61);
         }
       }
     } catch (error) {
@@ -64,17 +65,22 @@ const TournamentTesterPage: React.FC<{ apiService: ApiService }> = ({ apiService
       // Delete existing dev tournament if it exists
       if (tournamentId) {
         console.log('Deleting existing dev tournament:', tournamentId);
-        await apiService.deleteTournament(tournamentId);
+        try {
+          await apiService.deleteTournament(tournamentId);
+        } catch (deleteError) {
+          // Ignore delete errors - tournament may not exist or belong to different user
+          console.warn('Could not delete tournament (may not exist or wrong user):', deleteError);
+        }
       }
 
-      // Create tournament with dataUrl pointing to dev endpoint
+      // Create tournament with a dummy URL initially - we'll change it later
       const tournamentData = {
         name: 'Dev Test Tournament',
         city: 'Development',
         year: new Date().getFullYear(),
         lexicon: 'TWL',
         longFormName: 'Dev Test Tournament - Database Simulation',
-        dataUrl: 'http://localhost:3001/api/dev/tourney.js',
+        dataUrl: 'http://localhost:3001/api/dev/initial-dummy.js', // Dummy URL for now
         enablePolling: false, // Start with polling disabled
       };
 
@@ -232,15 +238,6 @@ const TournamentTesterPage: React.FC<{ apiService: ApiService }> = ({ apiService
     await setVersion(nextIndex);
   };
 
-  const handlePrevious = async () => {
-    const prevIndex = currentVersionIndex - 1;
-    if (prevIndex < 0) {
-      setMessage({ type: 'error', text: 'Already at first version' });
-      return;
-    }
-    await setVersion(prevIndex);
-  };
-
   // Auto-advance simulation
   useEffect(() => {
     if (!isSimulating) return;
@@ -312,18 +309,11 @@ const TournamentTesterPage: React.FC<{ apiService: ApiService }> = ({ apiService
                 Version: <strong>{currentVersionIndex + 1} / {versions.length}</strong>
               </p>
 
-              <div className="flex gap-3 mb-3">
-                <button
-                  onClick={handlePrevious}
-                  disabled={loading || isSimulating || currentVersionIndex === 0}
-                  className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                >
-                  ← Previous
-                </button>
+              <div className="mb-3">
                 <button
                   onClick={handleNext}
                   disabled={loading || isSimulating || currentVersionIndex >= versions.length - 1}
-                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg transition-colors flex-grow"
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg transition-colors w-full"
                 >
                   Next →
                 </button>
