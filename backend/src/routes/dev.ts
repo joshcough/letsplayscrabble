@@ -61,17 +61,42 @@ for (let round = 1; round <= 30; round++) {
 export default function createDevRoutes(): Router {
   const router = express.Router();
 
-  // GET /api/dev/tourney.js - Serve the current dev tournament file
+  // GET /api/dev/tourney.js - Serve tournament data from database
   const serveTourneyJs: RequestHandler = async (req, res) => {
     try {
-      console.log(`📄 Serving dev tourney.js: ${currentDevTournamentFile}`);
+      // Get current version_id from dev_tournament_state
+      const stateResult = await pool.query(
+        "SELECT version_id FROM dev_tournament_state LIMIT 1"
+      );
 
-      const filePath = join(TOURNAMENT_FILES_DIR, currentDevTournamentFile);
-      const content = readFileSync(filePath, "utf-8");
+      const versionId = stateResult.rows[0]?.version_id;
+
+      if (!versionId) {
+        res.status(404).send("No version selected in dev_tournament_state");
+        return;
+      }
+
+      // Get the tournament data for this version
+      const versionResult = await pool.query(
+        "SELECT data FROM tournament_data_versions WHERE id = $1",
+        [versionId]
+      );
+
+      if (versionResult.rows.length === 0) {
+        res.status(404).send("Version not found");
+        return;
+      }
+
+      const tournamentData = versionResult.rows[0].data;
+
+      console.log(`📄 Serving dev tourney.js from version_id: ${versionId}`);
+
+      // Format as JavaScript variable (same format as the files)
+      const jsContent = `var tourneyData = ${JSON.stringify(tournamentData, null, 2)};`;
 
       res.setHeader("Content-Type", "application/javascript");
       res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-      res.send(content);
+      res.send(jsContent);
     } catch (error) {
       console.error("Failed to serve tourney.js:", error);
       res.status(500).send("Failed to serve tournament file");
@@ -159,12 +184,147 @@ export default function createDevRoutes(): Router {
     res.json(Api.success({ deletedCount }));
   });
 
+  // POST /api/dev/set-version - Set which version to serve
+  const setVersion: RequestHandler<
+    {},
+    Api.ApiResponse<{ versionId: number }>,
+    { versionId: number }
+  > = withErrorHandling(async (req, res) => {
+    const { versionId } = req.body;
+
+    if (!versionId) {
+      res.status(400).json(Api.failure("versionId is required"));
+      return;
+    }
+
+    console.log(`🔄 Setting dev tournament to version_id: ${versionId}`);
+
+    await pool.query(
+      "UPDATE dev_tournament_state SET version_id = $1, updated_at = NOW()",
+      [versionId]
+    );
+
+    res.json(Api.success({ versionId }));
+  });
+
+  // POST /api/dev/load-progression-files - Load all 61 progression files into versions table
+  const loadProgressionFiles: RequestHandler<
+    {},
+    Api.ApiResponse<{ count: number; tournamentId: number }>,
+    { tournamentId: number }
+  > = withErrorHandling(async (req, res) => {
+    const { tournamentId } = req.body;
+
+    if (!tournamentId) {
+      res.status(400).json(Api.failure("tournamentId is required"));
+      return;
+    }
+
+    console.log(`📥 Loading progression files for tournament ${tournamentId}`);
+
+    let count = 0;
+
+    // Load all 61 files and insert into tournament_data_versions
+    for (const fileInfo of AVAILABLE_FILES) {
+      const filePath = join(TOURNAMENT_FILES_DIR, fileInfo.value);
+      const content = readFileSync(filePath, "utf-8");
+
+      // Extract tournament data from JavaScript file
+      // Format is: var tourneyData = { ... };
+      const objectText = content.substring(content.indexOf("{"));
+      const evaluator = new Function("return " + objectText);
+      const data = evaluator();
+
+      // Insert into tournament_data_versions
+      await pool.query(
+        `INSERT INTO tournament_data_versions (tournament_id, data, created_at)
+         VALUES ($1, $2, NOW())`,
+        [tournamentId, JSON.stringify(data)]
+      );
+
+      count++;
+    }
+
+    console.log(`✅ Loaded ${count} progression files for tournament ${tournamentId}`);
+
+    res.json(Api.success({ count, tournamentId }));
+  });
+
+  // POST /api/dev/start-simulation - Prepare tournament for simulation
+  const startSimulation: RequestHandler<
+    {},
+    Api.ApiResponse<{ tournamentId: number }>,
+    { tournamentId: number }
+  > = withErrorHandling(async (req, res) => {
+    const { tournamentId } = req.body;
+
+    if (!tournamentId) {
+      res.status(400).json(Api.failure("tournamentId is required"));
+      return;
+    }
+
+    console.log(`🎬 Starting simulation for tournament ${tournamentId}`);
+
+    // Update tournament_data to point to dev endpoint and disable version saving
+    await pool.query(
+      `UPDATE tournament_data
+       SET data_url = 'http://localhost:3001/api/dev/tourney.js',
+           poll_until = NOW() + INTERVAL '7 days'
+       WHERE tournament_id = $1`,
+      [tournamentId]
+    );
+
+    // Set save_versions = false on tournament
+    await pool.query(
+      `UPDATE tournaments
+       SET save_versions = false
+       WHERE id = $1`,
+      [tournamentId]
+    );
+
+    console.log(`✅ Tournament ${tournamentId} ready for simulation`);
+
+    res.json(Api.success({ tournamentId }));
+  });
+
+  // POST /api/dev/stop-simulation - Stop simulation and disable polling
+  const stopSimulation: RequestHandler<
+    {},
+    Api.ApiResponse<{ tournamentId: number }>,
+    { tournamentId: number }
+  > = withErrorHandling(async (req, res) => {
+    const { tournamentId } = req.body;
+
+    if (!tournamentId) {
+      res.status(400).json(Api.failure("tournamentId is required"));
+      return;
+    }
+
+    console.log(`🛑 Stopping simulation for tournament ${tournamentId}`);
+
+    // Disable polling
+    await pool.query(
+      `UPDATE tournament_data
+       SET poll_until = NULL
+       WHERE tournament_id = $1`,
+      [tournamentId]
+    );
+
+    console.log(`✅ Simulation stopped for tournament ${tournamentId}`);
+
+    res.json(Api.success({ tournamentId }));
+  });
+
   // Routes
   router.get("/tourney.js", serveTourneyJs);
   router.get("/available-files", getAvailableFiles);
   router.get("/current-file", getCurrentFile);
   router.post("/set-tournament", setTournament);
   router.post("/clear-games", clearGames);
+  router.post("/set-version", setVersion);
+  router.post("/load-progression-files", loadProgressionFiles);
+  router.post("/start-simulation", startSimulation);
+  router.post("/stop-simulation", stopSimulation);
 
   return router;
 }
