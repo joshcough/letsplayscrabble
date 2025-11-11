@@ -59,6 +59,13 @@ export class TournamentRepository {
         poll_until: createTournament.tournament.poll_until,
       });
 
+      // Save initial version to versions table
+      await trx("tournament_data_versions").insert({
+        tournament_id: tournament.id,
+        data: createTournament.tournament.data,
+        created_at: knexDb.fn.now(),
+      });
+
       // Store data in normalized tables
       await this.storeTournamentDataIncremental(
         trx,

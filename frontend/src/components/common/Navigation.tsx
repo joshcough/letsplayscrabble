@@ -6,7 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useThemeContext } from "../../context/ThemeContext";
 
 type NavPath = "/" | "/tournaments/manager" | "/overlays";
-type AdminPath = "/admin" | "/admin/current-match" | "/admin/notifications";
+type AdminPath = "/admin" | "/admin/current-match" | "/admin/notifications" | "/dev/tournament-tester";
 
 const Navigation: React.FC = () => {
   const location = useLocation();
@@ -83,7 +83,7 @@ const Navigation: React.FC = () => {
   };
 
   const getAdminActiveClass = (): string => {
-    if (location.pathname.startsWith('/admin')) {
+    if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/dev')) {
       return `${theme.colors.hoverBackground} ${theme.colors.pageTextPrimary || theme.colors.textPrimary}`;
     }
     return "";
@@ -97,6 +97,8 @@ const Navigation: React.FC = () => {
         return "Current Match";
       case "/admin/notifications":
         return "Notification Management";
+      case "/dev/tournament-tester":
+        return "Tournament Tester";
     }
   };
 
@@ -142,7 +144,13 @@ const Navigation: React.FC = () => {
   };
 
   const paths: NavPath[] = ["/", "/tournaments/manager", "/overlays"];
-  const adminPaths: AdminPath[] = ["/admin", "/admin/current-match", "/admin/notifications"];
+  const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+  const adminPaths: AdminPath[] = [
+    "/admin",
+    "/admin/current-match",
+    "/admin/notifications",
+    ...(isLocalhost ? ["/dev/tournament-tester" as AdminPath] : [])
+  ];
 
   return (
     <nav className={`${theme.colors.cardBackground} border-b-4 ${theme.colors.primaryBorder}`}>
