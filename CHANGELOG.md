@@ -1,5 +1,26 @@
 # Changelog
 
+## 2025-11-11 - Overlays Page Redesign & High Scores Table Overlay
+
+### ✨ **New Feature: High Scores Table Overlay**
+- **ADDED**: Table-based High Scores overlay to match other leaderboard overlays
+- **ROUTES**: Added `/users/:userId/overlay/high_scores/:tournamentId?/:divisionName?`
+- **FILES**:
+  - `src/pages/overlay/HighScoresOverlayPage.tsx` - New table overlay component
+  - `src/App.tsx` - Added routes for new overlay
+
+### 🎨 **UI Improvement: Overlays Page Redesign**
+- **IMPROVED**: Reorganized Overlays page to be more compact and better organized
+- **CHANGES**:
+  - Grouped table/pics variants together into single cards with side-by-side buttons
+  - Reduced card sizes (padding and text) for more efficient use of space
+  - Increased grid from 3 to 4 columns
+  - Reorganized into 3 sections:
+    - **Leaderboards**: Standings, Rating Gain, Scoring Leaders, High Scores (with table/pics variants)
+    - **Player Stats & Comparisons**: Cross-Tables Profile, Head-to-Head, Tournament Stats
+    - **Other**: Worker Page, Game Board (marked as in development), Misc Overlay Testing
+- **RESULT**: Page is much less cluttered and easier to navigate
+
 ## 2025-11-11 - Tournament Data Versioning
 
 ### ✨ **New Feature: Automatic Tournament Data Version Tracking**

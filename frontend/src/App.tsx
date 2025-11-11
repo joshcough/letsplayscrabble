@@ -22,6 +22,7 @@ import AllNotifications from "./pages/notifications/AllNotifications";
 // Overlay imports
 import CrossTablesPlayerProfileOverlay from "./pages/overlay/CrossTablesPlayerProfileOverlayPage";
 import HeadToHeadOverlay from "./pages/overlay/HeadToHeadOverlayPage";
+import HighScoresOverlayPage from "./pages/overlay/HighScoresOverlayPage";
 import HighScoresWithPicsOverlayPage from "./pages/overlay/HighScoresWithPicsOverlayPage";
 import MiscOverlayPage from "./pages/overlay/MiscOverlayPage";
 import MiscOverlayTestingPage from "./pages/overlay/MiscOverlayTestingPage";
@@ -136,6 +137,10 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           element={<RatingGainWithPicsOverlayPage apiService={apiService} />}
         />
         <Route
+          path="/users/:userId/overlay/high_scores/:tournamentId?/:divisionName?"
+          element={<HighScoresOverlayPage apiService={apiService} />}
+        />
+        <Route
           path="/users/:userId/overlay/high_scores_with_pics/:tournamentId?/:divisionName?"
           element={<HighScoresWithPicsOverlayPage apiService={apiService} />}
         />
@@ -176,6 +181,10 @@ const AppContent: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
         <Route
           path="/overlay/rating_gain_with_pics/:tournamentId?/:divisionName?"
           element={<RatingGainWithPicsOverlayPage apiService={apiService} />}
+        />
+        <Route
+          path="/overlay/high_scores/:tournamentId?/:divisionName?"
+          element={<HighScoresOverlayPage apiService={apiService} />}
         />
         <Route
           path="/overlay/high_scores_with_pics/:tournamentId?/:divisionName?"
