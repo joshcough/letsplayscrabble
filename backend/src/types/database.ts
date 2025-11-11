@@ -17,6 +17,7 @@ export interface TournamentRow {
   data_url: string; // TODO: doesnt actually live in this table.
   theme?: string | null; // Theme name for this tournament
   transparent_background?: boolean | null; // Use transparent background for overlays (for OBS)
+  save_versions: boolean; // Whether to save data versions to tournament_data_versions table
 }
 
 export interface TournamentDataRow {

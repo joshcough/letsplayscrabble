@@ -17,6 +17,11 @@ export async function up(knex: Knex): Promise<void> {
     table.index(["tournament_id", "created_at"]);
   });
 
+  // Add save_versions flag to tournaments table
+  await knex.schema.alterTable("tournaments", (table) => {
+    table.boolean("save_versions").notNullable().defaultTo(true);
+  });
+
   // Seed versions table with current data from each tournament
   const tournamentData = await knex("tournament_data").select(
     "tournament_id",
@@ -36,5 +41,8 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
+  await knex.schema.alterTable("tournaments", (table) => {
+    table.dropColumn("save_versions");
+  });
   await knex.schema.dropTable("tournament_data_versions");
 }

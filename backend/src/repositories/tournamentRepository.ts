@@ -59,12 +59,14 @@ export class TournamentRepository {
         poll_until: createTournament.tournament.poll_until,
       });
 
-      // Save initial version to versions table
-      await trx("tournament_data_versions").insert({
-        tournament_id: tournament.id,
-        data: createTournament.tournament.data,
-        created_at: knexDb.fn.now(),
-      });
+      // Save initial version to versions table (if save_versions is true, which it defaults to)
+      if (tournament.save_versions !== false) {
+        await trx("tournament_data_versions").insert({
+          tournament_id: tournament.id,
+          data: createTournament.tournament.data,
+          created_at: knexDb.fn.now(),
+        });
+      }
 
       // Store data in normalized tables
       await this.storeTournamentDataIncremental(
@@ -151,6 +153,9 @@ export class TournamentRepository {
         created_at: row.created_at,
         updated_at: row.updated_at,
         user_id: row.user_id,
+        save_versions: row.save_versions,
+        theme: row.theme,
+        transparent_background: row.transparent_background,
       },
       tournamentData: {
         tournament_id: row.tournament_id,

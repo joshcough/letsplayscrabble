@@ -12,19 +12,28 @@ export class TournamentDataRepository {
       .first();
   }
 
-  // Update tournament data and save new version to versions table
+  // Update tournament data and save new version to versions table (if enabled)
   async updateTournamentData(
     tournamentId: number,
     dataUrl: string,
     newData: File.TournamentData,
   ): Promise<DB.TournamentDataRow> {
     return knexDb.transaction(async (trx) => {
+      // Check if we should save versions for this tournament
+      const tournament = await trx("tournaments")
+        .where("id", tournamentId)
+        .select("save_versions")
+        .first();
+
       // Save the NEW data to versions table (so it contains all versions including current)
-      await trx("tournament_data_versions").insert({
-        tournament_id: tournamentId,
-        data: newData,
-        created_at: knexDb.fn.now(),
-      });
+      // Only save if save_versions is true (defaults to true)
+      if (tournament?.save_versions !== false) {
+        await trx("tournament_data_versions").insert({
+          tournament_id: tournamentId,
+          data: newData,
+          created_at: knexDb.fn.now(),
+        });
+      }
 
       // Update the tournament_data table with new data
       const [updatedTournamentData] = await trx("tournament_data")
