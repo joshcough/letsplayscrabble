@@ -2,6 +2,7 @@ import * as Domain from "@shared/types/domain";
 import { GamesAddedMessage } from "@shared/types/websocket";
 import cron, { ScheduledTask } from "node-cron";
 import { Server as SocketIOServer } from "socket.io";
+import crypto from "crypto";
 
 import { TournamentRepository } from "../repositories/tournamentRepository";
 import * as DB from "../types/database";
@@ -13,6 +14,14 @@ import { convertFileToDatabase } from "./fileToDatabaseConversions";
 import { loadTournamentFile } from "./loadTournamentFile";
 import { CrossTablesSyncService } from "./crossTablesSync";
 import { crossTablesSync } from "./crossTablesSync";
+
+/**
+ * Calculate SHA-256 hash of tournament data
+ */
+function calculateDataHash(data: any): string {
+  const jsonString = JSON.stringify(data);
+  return crypto.createHash('sha256').update(jsonString).digest('hex');
+}
 
 export class TournamentPollingService {
   private isRunning: boolean;
@@ -30,8 +39,8 @@ export class TournamentPollingService {
   async start(): Promise<void> {
     if (this.isRunning) return;
 
-    // Run every 10 seconds
-    this.job = cron.schedule("*/10 * * * * *", async () => {
+    // Run every 5 seconds (temporary for testing - normally 10)
+    this.job = cron.schedule("*/5 * * * * *", async () => {
       try {
         await this.pollActiveTournaments();
       } catch (error) {
@@ -40,7 +49,7 @@ export class TournamentPollingService {
     });
 
     this.isRunning = true;
-    console.log("Tournament polling service started");
+    console.log("Tournament polling service started (5 second interval)");
   }
 
   stop(): void {
@@ -61,9 +70,12 @@ export class TournamentPollingService {
       try {
         const newData = await loadTournamentFile(tournamentData.data_url, true);
 
-        // Simple string comparison - if the data changed, update it
-        if (JSON.stringify(newData) !== JSON.stringify(tournamentData.data)) {
-          console.log(`Found new data for ${tournament.id}:${tournament.name}`);
+        // Hash-based comparison - much more reliable than JSON.stringify
+        const oldHash = calculateDataHash(tournamentData.data);
+        const newHash = calculateDataHash(newData);
+
+        if (newHash !== oldHash) {
+          console.log(`Found new data for ${tournament.id}:${tournament.name} (hash changed: ${oldHash.substring(0, 8)}... → ${newHash.substring(0, 8)}...)`);
 
           // Only sync cross-tables if this looks like a new tournament load (not just score updates)
           const hasExistingData = tournamentData.data && tournamentData.data.divisions && tournamentData.data.divisions.length > 0;

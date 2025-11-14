@@ -1,14 +1,15 @@
 import express, { Router, RequestHandler } from "express";
 import { readFileSync, writeFileSync, existsSync } from "fs";
-import { join } from "path";
+import { join, resolve } from "path";
 import bcrypt from "bcrypt";
 
 import * as Api from "../utils/apiHelpers";
 import { withErrorHandling } from "../utils/apiHelpers";
 import { pool } from "../config/database";
 
-const TOURNAMENT_FILES_DIR = join(__dirname, "../../../../../../tools/generated-tournament-28-players");
-const STATE_FILE = join(__dirname, "../../../../../../tools/.dev-tournament-state.json");
+// Hardcoded paths for local dev testing
+const TOURNAMENT_FILES_DIR = "/Users/joshuacough/work/letsplayscrabble/tools/generated-tournament-28-players";
+const STATE_FILE = "/Users/joshuacough/work/letsplayscrabble/tools/.dev-tournament-state.json";
 
 // Helper to load state from file
 function loadState(): string {
