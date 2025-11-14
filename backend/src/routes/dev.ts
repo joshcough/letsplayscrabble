@@ -1,6 +1,7 @@
 import express, { Router, RequestHandler } from "express";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
+import bcrypt from "bcrypt";
 
 import * as Api from "../utils/apiHelpers";
 import { withErrorHandling } from "../utils/apiHelpers";
@@ -357,6 +358,72 @@ export default function createDevRoutes(): Router {
     res.json(Api.success(versions.rows));
   });
 
+  // GET /api/dev/users - Get all users
+  const getUsers: RequestHandler<
+    {},
+    Api.ApiResponse<Array<{ id: number; username: string }>>
+  > = withErrorHandling(async (req, res) => {
+    const users = await pool.query(
+      "SELECT id, username FROM users ORDER BY id ASC"
+    );
+
+    res.json(Api.success(users.rows));
+  });
+
+  // POST /api/dev/create-user - Create a new user
+  const createUser: RequestHandler<
+    {},
+    Api.ApiResponse<{ id: number; username: string }>,
+    { username: string; password: string }
+  > = withErrorHandling(async (req, res) => {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      res.status(400).json(Api.failure("Username and password are required"));
+      return;
+    }
+
+    console.log(`🔧 Creating user: ${username}`);
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const result = await pool.query(
+      "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username",
+      [username, passwordHash]
+    );
+
+    console.log(`✅ User created: ${username} (ID: ${result.rows[0].id})`);
+
+    res.json(Api.success(result.rows[0]));
+  });
+
+  // POST /api/dev/delete-user - Delete a user
+  const deleteUser: RequestHandler<
+    {},
+    Api.ApiResponse<{ userId: number }>,
+    { userId: number }
+  > = withErrorHandling(async (req, res) => {
+    const { userId } = req.body;
+
+    if (!userId) {
+      res.status(400).json(Api.failure("userId is required"));
+      return;
+    }
+
+    if (userId === 1) {
+      res.status(400).json(Api.failure("Cannot delete the main admin user"));
+      return;
+    }
+
+    console.log(`🗑️  Deleting user ID: ${userId}`);
+
+    await pool.query("DELETE FROM users WHERE id = $1", [userId]);
+
+    console.log(`✅ User deleted: ${userId}`);
+
+    res.json(Api.success({ userId }));
+  });
+
   // Routes
   router.get("/initial-dummy.js", serveInitialDummy);
   router.get("/tourney.js", serveTourneyJs);
@@ -369,6 +436,9 @@ export default function createDevRoutes(): Router {
   router.post("/start-simulation", startSimulation);
   router.post("/stop-simulation", stopSimulation);
   router.get("/versions/:tournamentId", getVersions);
+  router.get("/users", getUsers);
+  router.post("/create-user", createUser);
+  router.post("/delete-user", deleteUser);
 
   return router;
 }

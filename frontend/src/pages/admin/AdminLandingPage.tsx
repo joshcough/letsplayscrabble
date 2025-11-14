@@ -1,9 +1,11 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useThemeContext } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 
 const AdminLandingPage: React.FC = () => {
   const { theme } = useThemeContext();
+  const { userId } = useAuth();
 
   useEffect(() => {
     document.title = "LPS: Admin";
@@ -80,6 +82,37 @@ const AdminLandingPage: React.FC = () => {
               </Link>
             </div>
           </div>
+
+          {/* User Management - Only visible to admin (user ID 1) */}
+          {userId === 1 && (
+            <div className={`${theme.colors.cardBackground} rounded-lg shadow-md border-2 ${theme.colors.primaryBorder}`}>
+              <div className="p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mr-4">
+                    <span className="text-2xl">👥</span>
+                  </div>
+                  <div>
+                    <h2 className={`text-2xl font-bold ${theme.colors.textPrimary}`}>
+                      User Management
+                    </h2>
+                    <p className={`${theme.colors.textSecondary}`}>
+                      Create and manage user accounts
+                    </p>
+                  </div>
+                </div>
+                <p className={`${theme.colors.textSecondary} mb-6`}>
+                  Add new users, manage existing accounts, and control user access.
+                  Create credentials for tournament directors and overlay operators.
+                </p>
+                <Link
+                  to="/dev/user-management"
+                  className={`inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md transition-colors font-medium`}
+                >
+                  Manage Users
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

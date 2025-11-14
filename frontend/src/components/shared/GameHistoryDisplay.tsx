@@ -26,8 +26,13 @@ const GameHistoryDisplay: React.FC<GameHistoryDisplayProps> = ({
     games.length === 1 ? "Last Game:" : `Last ${games.length} Games:`;
 
   const getGameResult = (game: GameResult) => {
-    const isWin = game.playerScore > game.opponentScore;
-    return isWin ? "Win" : "Loss";
+    if (game.playerScore > game.opponentScore) {
+      return "Win";
+    } else if (game.playerScore === game.opponentScore) {
+      return "Tie";
+    } else {
+      return "Loss";
+    }
   };
 
   return (
@@ -51,6 +56,8 @@ const GameHistoryDisplay: React.FC<GameHistoryDisplayProps> = ({
                 className={`whitespace-nowrap font-extrabold ${
                   getGameResult(game) === "Win"
                     ? "text-red-600"
+                    : getGameResult(game) === "Tie"
+                    ? "text-gray-600"
                     : "text-blue-600"
                 }`}
               >
