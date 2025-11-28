@@ -5,6 +5,7 @@ import { UserTournamentParams } from "@shared/types/api";
 import { TournamentRepository } from "../../repositories/tournamentRepository";
 import * as DB from "../../types/database";
 import * as Api from "../../utils/apiHelpers";
+import { transformToDivisionScopedData } from "../../utils/domainTransforms";
 
 // UserTournamentParams now imported from shared types
 
@@ -52,7 +53,14 @@ export function unprotectedTournamentRoutes(
         res,
         "Tournament or division not found",
         async (tournament) => {
-          res.json(Api.success(tournament));
+          // If divisionId is specified, return DivisionScopedData
+          if (divisionId !== undefined) {
+            const divisionScopedData = transformToDivisionScopedData(tournament, divisionId);
+            res.json(Api.success(divisionScopedData));
+          } else {
+            // Otherwise return full tournament
+            res.json(Api.success(tournament));
+          }
         },
       );
     },

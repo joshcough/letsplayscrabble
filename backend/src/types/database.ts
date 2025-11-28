@@ -15,8 +15,8 @@ export interface TournamentRow {
   user_id: number;
   poll_until: Date | null; // TODO: doesnt actually live in this table
   data_url: string; // TODO: doesnt actually live in this table.
-  theme?: string | null; // Theme name for this tournament
-  transparent_background?: boolean | null; // Use transparent background for overlays (for OBS)
+  theme: string; // Theme name for this tournament (defaults to 'scrabble')
+  transparent_background: boolean; // Use transparent background for overlays (for OBS) (defaults to false)
   save_versions: boolean; // Whether to save data versions to tournament_data_versions table
 }
 
@@ -77,8 +77,8 @@ export interface PlayerRowWithCrossTables extends PlayerRow {
   xt_country?: string | null;
   tournament_results?: string | null; // JSON string
   tournament_count?: number | null;
-  average_score?: number | null;
-  opponent_average_score?: number | null;
+  average_score?: string | null; // PostgreSQL numeric(5,1) returns as string
+  opponent_average_score?: string | null; // PostgreSQL numeric(5,1) returns as string
 }
 
 export interface GameRow {

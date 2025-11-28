@@ -108,9 +108,9 @@ export interface TournamentSummary {
   lexicon: string;
   longFormName: string;
   dataUrl: string;
-  pollUntil?: Date | null; // When polling expires (for admin monitoring)
-  theme?: string; // Theme name for this tournament
-  transparentBackground?: boolean; // Use transparent background for overlays (for OBS)
+  pollUntil: Date | null; // When polling expires (for admin monitoring)
+  theme: string; // Theme name for this tournament (should be defaulted)
+  transparentBackground: boolean; // Use transparent background for overlays (for OBS)
 }
 
 /**
@@ -126,8 +126,8 @@ export interface Tournament {
   longFormName: string;
   dataUrl: string;
   divisions: Division[];
-  theme?: string; // Theme name for this tournament
-  transparentBackground?: boolean; // Use transparent background for overlays (for OBS)
+  theme: string; // Theme name for this tournament
+  transparentBackground: boolean; // Use transparent background for overlays (for OBS)
 }
 
 /**
@@ -236,4 +236,13 @@ export interface CreateCurrentMatch {
   divisionId: number;
   round: number;
   pairingId: number;
+}
+
+/**
+ * Division-scoped data (what frontend components receive)
+ * Contains tournament metadata and a single division's data
+ */
+export interface DivisionScopedData {
+  tournament: TournamentSummary;
+  division: Division;
 }

@@ -1,0 +1,17 @@
+{
+  "name": "letsplayscrabble-purescript-frontend",
+  "version": "1.0.0",
+  "description": "PureScript frontend for Let's Play Scrabble",
+  "scripts": {
+    "build": "spago build",
+    "watch": "spago build --watch",
+    "dev": "vite",
+    "bundle": "spago bundle-app --main Main --to public/bundle.js"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

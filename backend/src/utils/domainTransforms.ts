@@ -23,8 +23,8 @@ export function transformTournamentRowToSummary(
     pollUntil: tournamentRow.poll_until
       ? new Date(tournamentRow.poll_until)
       : null,
-    theme: tournamentRow.theme || undefined,
-    transparentBackground: tournamentRow.transparent_background || undefined,
+    theme: tournamentRow.theme || "scrabble",
+    transparentBackground: tournamentRow.transparent_background ?? false,
   };
 }
 
@@ -57,8 +57,8 @@ export async function transformToDomainTournament(
           country: playerRow.xt_country || undefined,
           // Enhanced tournament data
           tournamentCount: playerRow.tournament_count || undefined,
-          averageScore: playerRow.average_score || undefined,
-          opponentAverageScore: playerRow.opponent_average_score || undefined,
+          averageScore: playerRow.average_score ? parseFloat(playerRow.average_score) : undefined,
+          opponentAverageScore: playerRow.opponent_average_score ? parseFloat(playerRow.opponent_average_score) : undefined,
           results: playerRow.tournament_results ? 
             (typeof playerRow.tournament_results === 'string' ? 
               JSON.parse(playerRow.tournament_results) : 
@@ -124,8 +124,8 @@ export async function transformToDomainTournament(
     lexicon: flatTournament.tournament.lexicon,
     longFormName: flatTournament.tournament.long_form_name,
     dataUrl: flatTournament.tournament.data_url,
-    theme: flatTournament.tournament.theme || undefined,
-    transparentBackground: flatTournament.tournament.transparent_background || undefined,
+    theme: flatTournament.tournament.theme || "scrabble",
+    transparentBackground: flatTournament.tournament.transparent_background ?? false,
     divisions,
   };
 }
@@ -196,5 +196,35 @@ export function transformCreateCurrentMatchToDatabase(
     division_id: domainCreateMatch.divisionId,
     round: domainCreateMatch.round,
     pairing_id: domainCreateMatch.pairingId,
+  };
+}
+
+/**
+ * Transform Tournament to DivisionScopedData by extracting a specific division
+ * Throws error if division is not found
+ */
+export function transformToDivisionScopedData(
+  tournament: Domain.Tournament,
+  divisionId: number,
+): Domain.DivisionScopedData {
+  const division = tournament.divisions.find(d => d.id === divisionId);
+  if (!division) {
+    throw new Error(`Division ${divisionId} not found in tournament ${tournament.id}`);
+  }
+
+  return {
+    tournament: {
+      id: tournament.id,
+      name: tournament.name,
+      city: tournament.city,
+      year: tournament.year,
+      lexicon: tournament.lexicon,
+      longFormName: tournament.longFormName,
+      dataUrl: tournament.dataUrl,
+      pollUntil: null,
+      theme: tournament.theme,
+      transparentBackground: tournament.transparentBackground,
+    },
+    division,
   };
 }
