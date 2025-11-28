@@ -28,76 +28,82 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           );
         }
 
-  const overlays = [
+  const overlayGroups = [
     {
-      title: "Worker Page",
-      path: "/worker",
-      description:
-        "Background service that manages real-time data updates for all overlays",
-      isSpecial: true,
+      category: "Leaderboards",
+      overlays: [
+        {
+          title: "Standings",
+          variants: [
+            { label: "Table", path: `/users/${userId}/overlay/standings` },
+            { label: "With Pics", path: `/users/${userId}/overlay/standings_with_pics` },
+          ],
+        },
+        {
+          title: "Rating Gain",
+          variants: [
+            { label: "Table", path: `/users/${userId}/overlay/rating_gain` },
+            { label: "With Pics", path: `/users/${userId}/overlay/rating_gain_with_pics` },
+          ],
+        },
+        {
+          title: "Scoring Leaders",
+          variants: [
+            { label: "Table", path: `/users/${userId}/overlay/scoring_leaders` },
+            { label: "With Pics", path: `/users/${userId}/overlay/scoring_leaders_with_pics` },
+          ],
+        },
+        {
+          title: "High Scores",
+          variants: [
+            { label: "Table", path: `/users/${userId}/overlay/high_scores` },
+            { label: "With Pics", path: `/users/${userId}/overlay/high_scores_with_pics` },
+          ],
+        },
+      ],
     },
     {
-      title: "Rating Gain Leaders",
-      path: `/users/${userId}/overlay/rating_gain`,
-      description: "Players ranked by rating change",
+      category: "Player Stats & Comparisons",
+      overlays: [
+        {
+          title: "Cross-Tables Profile",
+          path: `/users/${userId}/overlay/cross_tables_profile?player=1`,
+          description: "Player ratings & stats",
+          requiresParams: true,
+        },
+        {
+          title: "Head-to-Head",
+          path: `/users/${userId}/overlay/head_to_head`,
+          description: "Compare two players",
+          requiresParams: true,
+        },
+        {
+          title: "Tournament Stats",
+          path: `/users/${userId}/overlay/tournament_stats`,
+          description: "Tournament analytics",
+        },
+      ],
     },
     {
-      title: "Rating Gain with Pictures",
-      path: `/users/${userId}/overlay/rating_gain_with_pics`,
-      description: "Rating gain leaders with player photos",
-    },
-    {
-      title: "High Scores with Pictures",
-      path: `/users/${userId}/overlay/high_scores_with_pics`,
-      description: "High score leaders with player photos",
-    },
-    {
-      title: "Standings",
-      path: `/users/${userId}/overlay/standings`,
-      description: "Division standings in table",
-    },
-    {
-      title: "Standings with Pictures",
-      path: `/users/${userId}/overlay/standings_with_pics`,
-      description: "Division standings with pictures",
-    },
-    {
-      title: "Scoring Leaders",
-      path: `/users/${userId}/overlay/scoring_leaders`,
-      description: "Players ranked by average score",
-    },
-    {
-      title: "Scoring Leaders with Pictures",
-      path: `/users/${userId}/overlay/scoring_leaders_with_pics`,
-      description: "Scoring leaders with player photos",
-    },
-    {
-      title: "Tournament Stats",
-      path: `/users/${userId}/overlay/tournament_stats`,
-      description: "Tournament statistics and analytics",
-    },
-    {
-      title: "Game Board",
-      path: `/users/${userId}/overlay/game_board`,
-      description: "Live game board display with player info and transparent areas for camera overlays",
-    },
-    {
-      title: "Cross-Tables Player Profile",
-      path: `/users/${userId}/overlay/cross_tables_profile?player=1`,
-      description: "Player profiles with cross-tables ratings, rankings, and career stats. Use ?player=1/2 for current match or /tournamentId/divisionName/playerId for specific player",
-      requiresParams: true,
-    },
-    {
-      title: "Head-to-Head Comparison",
-      path: `/users/${userId}/overlay/head_to_head`,
-      description: "Compare two players with head-to-head record, average scores, and tournament standings. Uses current match players or /tournamentId/divisionName/playerId1/playerId2 for specific players",
-      requiresParams: true,
-    },
-    {
-      title: "Misc Overlay Testing",
-      path: "/overlay/misc_testing",
-      description:
-        "Test page showing all available misc overlay sources and examples",
+      category: "Other",
+      overlays: [
+        {
+          title: "Worker Page",
+          path: "/worker",
+          description: "Required for real-time updates",
+          isSpecial: true,
+        },
+        {
+          title: "Game Board",
+          path: `/users/${userId}/overlay/game_board`,
+          description: "Live game board (in development)",
+        },
+        {
+          title: "Misc Overlay Testing",
+          path: "/overlay/misc_testing",
+          description: "Test misc overlay sources",
+        },
+      ],
     },
   ];
 
@@ -112,50 +118,70 @@ const OverlaysPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
           Tournament overlays with theming support
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {overlays.map((overlay) => (
-              <Link
-                key={overlay.path}
-                to={overlay.path}
-                className={`block p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border backdrop-blur-xl ${
-                  overlay.isSpecial
-                    ? "bg-gradient-to-br from-orange-900/50 to-red-900/50 border-orange-400/50 hover:border-orange-300/70 hover:from-orange-900/60 hover:to-red-900/60"
-                    : `${theme.colors.cardBackground} ${theme.colors.primaryBorder} ${theme.colors.hoverBackground}`
-                }`}
-            >
-              <h3
-                className={`text-xl font-semibold mb-3 ${
-                  overlay.isSpecial ? "text-orange-300" : theme.colors.textAccent
-                }`}
-              >
-                {overlay.title}
-                {overlay.isSpecial && (
-                  <span className="ml-2 text-xs bg-orange-500/30 text-orange-800 px-2 py-1 rounded-full border border-orange-400/30">
-                    Required
-                  </span>
-                )}
-                {overlay.requiresParams && (
-                  <span className={`ml-2 text-xs bg-blue-500/30 ${theme.colors.textPrimary} px-2 py-1 rounded-full border border-blue-400/30`}>
-                    Params
-                  </span>
-                )}
-              </h3>
-              <p
-                className={`text-sm mb-4 ${
-                  overlay.isSpecial ? "text-orange-200" : theme.colors.textPrimary
-                }`}
-              >
-                {overlay.description}
-              </p>
-              <div
-                className={`text-sm font-medium ${
-                  overlay.isSpecial
-                    ? "text-orange-200 hover:text-orange-100"
-                    : `${theme.colors.textAccent} hover:opacity-80`
-                } transition-colors`}
-              >
+        <div className="space-y-8">
+          {overlayGroups.map((group) => (
+            <div key={group.category}>
+              <h2 className={`text-2xl font-bold mb-4 ${theme.colors.textAccent}`}>
+                {group.category}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {group.overlays.map((overlay) => (
+                  <div
+                    key={overlay.title}
+                    className={`p-4 rounded-xl shadow-lg border backdrop-blur-xl ${
+                      (overlay as any).isSpecial
+                        ? "bg-gradient-to-br from-orange-900/50 to-red-900/50 border-orange-400/50"
+                        : `${theme.colors.cardBackground} ${theme.colors.primaryBorder}`
+                    }`}
+                  >
+                    <h3 className={`text-lg font-semibold mb-2 ${(overlay as any).isSpecial ? "text-orange-300" : theme.colors.textAccent}`}>
+                      {overlay.title}
+                      {(overlay as any).isSpecial && (
+                        <span className="ml-2 text-xs bg-orange-500/30 text-orange-800 px-2 py-1 rounded-full border border-orange-400/30">
+                          Required
+                        </span>
+                      )}
+                      {(overlay as any).requiresParams && (
+                        <span className={`ml-2 text-xs bg-blue-500/30 ${theme.colors.textPrimary} px-2 py-1 rounded-full border border-blue-400/30`}>
+                          Params
+                        </span>
+                      )}
+                    </h3>
+
+                    {(overlay as any).description && (
+                      <p className={`text-sm mb-3 ${(overlay as any).isSpecial ? "text-orange-200" : theme.colors.textPrimary}`}>
+                        {(overlay as any).description}
+                      </p>
+                    )}
+
+                    {(overlay as any).variants ? (
+                      <div className="flex gap-2">
+                        {(overlay as any).variants.map((variant: any) => (
+                          <Link
+                            key={variant.path}
+                            to={variant.path}
+                            className={`flex-1 text-center py-2 px-3 rounded-lg text-sm font-medium transition-all ${theme.colors.cardBackground} ${theme.colors.primaryBorder} border ${theme.colors.hoverBackground}`}
+                          >
+                            {variant.label}
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <Link
+                        to={(overlay as any).path}
+                        className={`block text-center py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                          (overlay as any).isSpecial
+                            ? "bg-orange-700/30 border border-orange-400/50 text-orange-200 hover:bg-orange-700/50"
+                            : `${theme.colors.cardBackground} ${theme.colors.primaryBorder} border ${theme.colors.hoverBackground}`
+                        }`}
+                      >
+                        Open
+                      </Link>
+                    )}
+                  </div>
+                ))}
               </div>
-            </Link>
+            </div>
           ))}
         </div>
 

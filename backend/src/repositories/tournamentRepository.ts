@@ -9,6 +9,7 @@ import { GameChanges, TournamentUpdate } from "../types/database";
 import * as File from "../types/scrabbleFileFormat";
 import { debugPrintCreateTournament } from "../utils/debugHelpers";
 import { transformToDomainTournament } from "../utils/domainTransforms";
+import { TournamentDataRepository } from "./tournamentDataRepository";
 
 // Internal type for repository use - uses seeds before conversion to DB IDs
 type GameWithSeeds = {
@@ -23,9 +24,13 @@ type GameWithSeeds = {
 };
 
 export class TournamentRepository {
+  private tournamentDataRepo: TournamentDataRepository;
+
   constructor(
     private readonly crossTablesHeadToHeadService?: CrossTablesHeadToHeadService,
-  ) {}
+  ) {
+    this.tournamentDataRepo = new TournamentDataRepository();
+  }
   async create(
     createTournament: DB.CreateTournament,
   ): Promise<DB.TournamentRow> {
@@ -53,6 +58,15 @@ export class TournamentRepository {
         data: createTournament.tournament.data,
         poll_until: createTournament.tournament.poll_until,
       });
+
+      // Save initial version to versions table (if save_versions is true, which it defaults to)
+      if (tournament.save_versions !== false) {
+        await trx("tournament_data_versions").insert({
+          tournament_id: tournament.id,
+          data: createTournament.tournament.data,
+          created_at: knexDb.fn.now(),
+        });
+      }
 
       // Store data in normalized tables
       await this.storeTournamentDataIncremental(
@@ -139,6 +153,9 @@ export class TournamentRepository {
         created_at: row.created_at,
         updated_at: row.updated_at,
         user_id: row.user_id,
+        save_versions: row.save_versions,
+        theme: row.theme,
+        transparent_background: row.transparent_background,
       },
       tournamentData: {
         tournament_id: row.tournament_id,
@@ -168,19 +185,12 @@ export class TournamentRepository {
     newData: File.TournamentData,
   ): Promise<DB.TournamentUpdate> {
     return knexDb.transaction(async (trx) => {
-      // Update the tournament_data table
-      const [updatedTournamentData] = await trx("tournament_data")
-        .where("tournament_id", tournamentId)
-        .update({
-          data_url: dataUrl,
-          data: newData,
-          updated_at: knexDb.fn.now(),
-        })
-        .returning("*");
-
-      if (!updatedTournamentData) {
-        throw new Error(`Tournament data ${tournamentId} not found`);
-      }
+      // Update tournament data and save version (done in tournamentDataRepo)
+      await this.tournamentDataRepo.updateTournamentData(
+        tournamentId,
+        dataUrl,
+        newData,
+      );
 
       // Get the tournament record
       const tournament = await trx("tournaments")

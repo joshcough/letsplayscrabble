@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Tournament Data Versioning**: Hash-based tournament data comparison for efficient polling
+  - Replaced JSON.stringify comparison with SHA-256 hash comparison
+  - Reduced memory usage and improved performance for tournament data updates
+  - Added version comparison script for debugging tournament data changes
+  - Tournament versions are now only saved when actual data changes are detected
+
 ### Fixed
 - **CrossTables Player Profile Overlay**: Fixed tournament name and record not displaying properly
   - Added proper field mapping transformation in CrossTables API client (tourneyname→name, w→wins, l→losses, t→ties, etc.)

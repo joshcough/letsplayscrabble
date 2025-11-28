@@ -4,6 +4,7 @@ import { Server as SocketIOServer } from "socket.io";
 
 import { TournamentIdParams } from "@shared/types/api";
 
+import { pool } from "../../config/database";
 import { TournamentRepository } from "../../repositories/tournamentRepository";
 import { convertFileToDatabase } from "../../services/fileToDatabaseConversions";
 import { loadTournamentFile } from "../../services/loadTournamentFile";
@@ -364,12 +365,45 @@ export function protectedTournamentRoutes(
       );
     });
 
+  // GET /api/private/tournaments/:id/versions - Get all versions for a tournament
+  const getTournamentVersions: RequestHandler<
+    { id: string },
+    Api.ApiResponse<Array<{ id: number; tournament_id: number; created_at: Date }>>
+  > = Api.withErrorHandling(async (req, res) => {
+    const tournamentId = parseInt(req.params.id);
+    const userId = req.user!.id;
+
+    if (isNaN(tournamentId)) {
+      res.status(400).json(Api.failure("Invalid tournament ID"));
+      return;
+    }
+
+    // Verify ownership
+    const tournament = await repo.findByIdForUser(tournamentId, userId);
+    if (!tournament) {
+      res.status(404).json(Api.failure("Tournament not found"));
+      return;
+    }
+
+    // Get versions (just id, tournament_id, created_at - not the full data)
+    const versions = await pool.query(
+      `SELECT id, tournament_id, created_at
+       FROM tournament_data_versions
+       WHERE tournament_id = $1
+       ORDER BY created_at ASC`,
+      [tournamentId]
+    );
+
+    res.json(Api.success(versions.rows));
+  });
+
   router.get("/list", getTournamentListForUser);
   router.post("/", createTournament);
   router.put("/:id", updateTournament);
   router.delete("/:id", deleteTournament);
   router.post("/:id/refetch", refetchTournament);
   router.post("/:id/full-refetch", fullRefetchTournament);
+  router.get("/:id/versions", getTournamentVersions);
 
   return router;
 }

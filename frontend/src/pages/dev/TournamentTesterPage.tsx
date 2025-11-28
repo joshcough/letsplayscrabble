@@ -1,199 +1,98 @@
 import React, { useState, useEffect } from 'react';
 import { ApiService } from '../../services/interfaces';
 
-interface TournamentFile {
-  value: string;
-  label: string;
+interface TournamentVersion {
+  id: number;
+  tournament_id: number;
+  created_at: string;
 }
 
 const TournamentTesterPage: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
-  const [availableFiles, setAvailableFiles] = useState<TournamentFile[]>([]);
-  const [currentFile, setCurrentFile] = useState<string>('');
-  const [selectedFile, setSelectedFile] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [devTournamentId, setDevTournamentId] = useState<number | null>(() => {
+  const [tournamentId, setTournamentId] = useState<number | null>(() => {
     const saved = localStorage.getItem('devTournamentId');
     return saved ? parseInt(saved, 10) : null;
   });
+  const [versions, setVersions] = useState<TournamentVersion[]>([]);
+  const [currentVersionIndex, setCurrentVersionIndex] = useState(0);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [isSetupComplete, setIsSetupComplete] = useState(false);
 
   // Set page title
   useEffect(() => {
     document.title = "LPS: Dev Tournament Tester";
   }, []);
 
-  // Save devTournamentId to localStorage when it changes
+  // Save tournamentId to localStorage when it changes
   useEffect(() => {
-    if (devTournamentId !== null) {
-      localStorage.setItem('devTournamentId', devTournamentId.toString());
+    if (tournamentId !== null) {
+      localStorage.setItem('devTournamentId', tournamentId.toString());
     }
-  }, [devTournamentId]);
+  }, [tournamentId]);
 
-  // Load available files and current file on mount
+  // Load versions when tournament changes
   useEffect(() => {
-    loadAvailableFiles();
-    loadCurrentFile();
-    checkForExistingDevTournament();
-  }, []);
-
-  const checkForExistingDevTournament = async () => {
-    try {
-      const response = await apiService.listTournaments();
-      if (response.success && response.data) {
-        // Look for existing dev tournament by dataUrl
-        const existingDevTournament = response.data.find(
-          t => t.dataUrl === 'http://localhost:3001/api/dev/tourney.js'
-        );
-        if (existingDevTournament) {
-          setDevTournamentId(existingDevTournament.id);
-          console.log('Found existing dev tournament:', existingDevTournament.id);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to check for existing dev tournament:', error);
+    if (tournamentId) {
+      loadVersions();
     }
-  };
+  }, [tournamentId]);
 
-  const loadAvailableFiles = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/dev/available-files');
-      const data = await response.json();
-      if (data.success) {
-        setAvailableFiles(data.data);
-      }
-    } catch (error) {
-      console.error('Failed to load available files:', error);
-    }
-  };
-
-  const loadCurrentFile = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/dev/current-file');
-      const data = await response.json();
-      if (data.success) {
-        setCurrentFile(data.data.file);
-        setSelectedFile(data.data.file); // Sync dropdown with current file
-      }
-    } catch (error) {
-      console.error('Failed to load current file:', error);
-    }
-  };
-
-  const handleSetTournament = async () => {
-    if (!selectedFile) return;
-
-    setLoading(true);
-    setMessage(null);
+  const loadVersions = async () => {
+    if (!tournamentId) return;
 
     try {
-      const response = await fetch('http://localhost:3001/api/dev/set-tournament', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ file: selectedFile }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setCurrentFile(data.data.file);
-        setMessage({ type: 'success', text: `Tournament updated to: ${selectedFile}` });
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to update tournament' });
-      }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to update tournament' });
-      console.error('Failed to set tournament:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleNextTournament = async () => {
-    if (availableFiles.length === 0) return;
-
-    const currentIndex = availableFiles.findIndex(f => f.value === currentFile);
-    const nextIndex = currentIndex + 1;
-
-    if (nextIndex < availableFiles.length) {
-      const nextFile = availableFiles[nextIndex].value;
-      setSelectedFile(nextFile);
-
-      // Automatically trigger the update
-      setLoading(true);
-      setMessage(null);
-
-      try {
-        const response = await fetch('http://localhost:3001/api/dev/set-tournament', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ file: nextFile }),
-        });
-
+      // Query versions for this tournament from backend
+      const response = await fetch(`http://localhost:3001/api/dev/versions/${tournamentId}`);
+      if (response.ok) {
         const data = await response.json();
-
-        if (data.success) {
-          setCurrentFile(data.data.file);
-          setMessage({ type: 'success', text: `Advanced to: ${nextFile}` });
-        } else {
-          setMessage({ type: 'error', text: data.error || 'Failed to advance tournament' });
+        if (data.success && data.data) {
+          setVersions(data.data);
+          // Setup is complete when we have 61 progression files loaded
+          setIsSetupComplete(data.data.length >= 61);
         }
-      } catch (error) {
-        setMessage({ type: 'error', text: 'Failed to advance tournament' });
-        console.error('Failed to advance tournament:', error);
-      } finally {
-        setLoading(false);
       }
-    } else {
-      setMessage({ type: 'error', text: 'Already at last stage' });
-      setIsSimulating(false); // Stop simulation when we reach the end
+    } catch (error) {
+      console.error('Failed to load versions:', error);
     }
   };
 
-  const toggleSimulation = () => {
-    setIsSimulating(!isSimulating);
-  };
-
-  // Auto-advance simulation - runs every 10 seconds when enabled
-  useEffect(() => {
-    if (!isSimulating) return;
-
-    const interval = setInterval(() => {
-      handleNextTournament();
-    }, 10000); // 10 seconds
-
-    return () => clearInterval(interval);
-  }, [isSimulating, currentFile, availableFiles]); // Re-create interval when currentFile changes
-
-  const handleCreateDevTournament = async () => {
+  const handleCreateTournament = async () => {
     setLoading(true);
     setMessage(null);
 
     try {
       // Delete existing dev tournament if it exists
-      if (devTournamentId) {
-        console.log('Deleting existing dev tournament:', devTournamentId);
-        await apiService.deleteTournament(devTournamentId);
+      if (tournamentId) {
+        console.log('Deleting existing dev tournament:', tournamentId);
+        try {
+          await apiService.deleteTournament(tournamentId);
+        } catch (deleteError) {
+          // Ignore delete errors - tournament may not exist or belong to different user
+          console.warn('Could not delete tournament (may not exist or wrong user):', deleteError);
+        }
       }
 
-      // Create tournament with dataUrl pointing to dev endpoint
+      // Create tournament with a dummy URL initially - we'll change it later
       const tournamentData = {
         name: 'Dev Test Tournament',
         city: 'Development',
         year: new Date().getFullYear(),
         lexicon: 'TWL',
-        longFormName: 'Dev Test Tournament - Memory Testing',
-        dataUrl: 'http://localhost:3001/api/dev/tourney.js',
-        enablePolling: true,
+        longFormName: 'Dev Test Tournament - Database Simulation',
+        dataUrl: 'http://localhost:3001/api/dev/initial-dummy.js', // Dummy URL for now
+        enablePolling: false, // Start with polling disabled
       };
 
       const response = await apiService.createTournament(tournamentData);
 
       if (response.success && response.data) {
-        setDevTournamentId(response.data.id);
+        setTournamentId(response.data.id);
+        setIsSetupComplete(false);
+        setVersions([]);
         setMessage({
           type: 'success',
-          text: `Dev tournament created! ID: ${response.data.id}. Polling is enabled.`
+          text: `Tournament created! ID: ${response.data.id}. Click "Setup Simulation" to load progression files.`
         });
       } else {
         setMessage({ type: 'error', text: 'Failed to create tournament' });
@@ -206,82 +105,155 @@ const TournamentTesterPage: React.FC<{ apiService: ApiService }> = ({ apiService
     }
   };
 
-  const handleResetTournament = async () => {
-    if (!devTournamentId) return;
+  const handleSetupSimulation = async () => {
+    if (!tournamentId) return;
 
     setLoading(true);
     setMessage(null);
 
     try {
-      // Step 1: Delete all games from database for this tournament
-      console.log('Deleting all games for tournament:', devTournamentId);
-      const clearGamesResponse = await fetch('http://localhost:3001/api/dev/clear-games', {
+      // Load all progression files into database
+      const response = await fetch('http://localhost:3001/api/dev/load-progression-files', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tournamentId: devTournamentId }),
+        body: JSON.stringify({ tournamentId }),
       });
 
-      const clearGamesData = await clearGamesResponse.json();
+      const data = await response.json();
 
-      if (!clearGamesData.success) {
-        setMessage({ type: 'error', text: 'Failed to clear games from database' });
-        return;
+      if (data.success) {
+        setMessage({
+          type: 'success',
+          text: `Loaded ${data.data.count} progression files! Ready to simulate.`
+        });
+        await loadVersions(); // Reload versions
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Failed to load progression files' });
       }
-
-      console.log(`Deleted ${clearGamesData.data.deletedCount} games`);
-
-      // Step 2: Change backend file to initial state
-      const fileResponse = await fetch('http://localhost:3001/api/dev/set-tournament', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ file: 'tournament_00_initial.js' }),
-      });
-
-      const fileData = await fileResponse.json();
-
-      if (!fileData.success) {
-        setMessage({ type: 'error', text: 'Failed to reset tournament file' });
-        return;
-      }
-
-      setCurrentFile(fileData.data.file);
-
-      // Step 3: Immediately set to round 1 pairings so next polling cycle picks it up
-      const pairingsResponse = await fetch('http://localhost:3001/api/dev/set-tournament', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ file: 'tournament_01_round1_pairings.js' }),
-      });
-
-      const pairingsData = await pairingsResponse.json();
-
-      if (pairingsData.success) {
-        setCurrentFile(pairingsData.data.file);
-        setSelectedFile('tournament_01_round1_pairings.js');
-        console.log('Set to round 1 pairings');
-      }
-
-      // Step 4: Clear cache so polling refreshes with pairings
-      console.log('Clearing cache...');
-      await apiService.clearTournamentCache();
-
-      setMessage({
-        type: 'success',
-        text: `Tournament reset! Deleted ${clearGamesData.data.deletedCount} games. Set to Round 1 pairings. Polling will update in ~10s.`
-      });
     } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to reset tournament' });
-      console.error('Failed to reset tournament:', error);
+      setMessage({ type: 'error', text: 'Failed to load progression files' });
+      console.error('Failed to setup simulation:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleStartSimulation = async () => {
+    if (!tournamentId || versions.length === 0) return;
+
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      // Start simulation - this sets data_url, save_versions=false, enables polling
+      const response = await fetch('http://localhost:3001/api/dev/start-simulation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tournamentId }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Set to first version
+        await setVersion(0);
+        setIsSimulating(true);
+        setMessage({
+          type: 'success',
+          text: 'Simulation started! Advancing every 10 seconds...'
+        });
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Failed to start simulation' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to start simulation' });
+      console.error('Failed to start simulation:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStopSimulation = async () => {
+    if (!tournamentId) return;
+
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch('http://localhost:3001/api/dev/stop-simulation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tournamentId }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setIsSimulating(false);
+        setMessage({
+          type: 'success',
+          text: 'Simulation stopped!'
+        });
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Failed to stop simulation' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to stop simulation' });
+      console.error('Failed to stop simulation:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setVersion = async (index: number) => {
+    if (index < 0 || index >= versions.length) return;
+
+    const version = versions[index];
+
+    try {
+      const response = await fetch('http://localhost:3001/api/dev/set-version', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ versionId: version.id }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setCurrentVersionIndex(index);
+        console.log(`Set to version ${index + 1}/${versions.length} (ID: ${version.id})`);
+      }
+    } catch (error) {
+      console.error('Failed to set version:', error);
+    }
+  };
+
+  const handleNext = async () => {
+    const nextIndex = currentVersionIndex + 1;
+    if (nextIndex >= versions.length) {
+      setMessage({ type: 'error', text: 'Already at last version' });
+      setIsSimulating(false);
+      return;
+    }
+    await setVersion(nextIndex);
+  };
+
+  // Auto-advance simulation
+  useEffect(() => {
+    if (!isSimulating) return;
+
+    const interval = setInterval(() => {
+      handleNext();
+    }, 10000); // 10 seconds
+
+    return () => clearInterval(interval);
+  }, [isSimulating, currentVersionIndex, versions]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-100 via-orange-100 to-yellow-100 p-8">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-xl p-6">
-          <h1 className="text-3xl font-bold text-amber-900 mb-4">Tournament Memory Tester</h1>
+          <h1 className="text-3xl font-bold text-amber-900 mb-4">Tournament Simulator (Database-Driven)</h1>
 
           {/* Message Display */}
           {message && (
@@ -296,75 +268,61 @@ const TournamentTesterPage: React.FC<{ apiService: ApiService }> = ({ apiService
             </div>
           )}
 
-          {/* Create Dev Tournament */}
+          {/* Step 1: Create Tournament */}
           <div className="mb-4 p-4 bg-amber-50 rounded-lg border-2 border-amber-200">
-            <h2 className="text-xl font-bold text-amber-900 mb-3">Step 1: Create Dev Tournament</h2>
-            <div className="flex gap-4 mb-3">
-              <button
-                onClick={handleCreateDevTournament}
-                disabled={loading}
-                className="bg-amber-600 hover:bg-amber-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-              >
-                {loading ? 'Creating...' : devTournamentId ? 'Recreate' : 'Create'}
-              </button>
-              <button
-                onClick={handleResetTournament}
-                disabled={loading || !devTournamentId}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-              >
-                {loading ? 'Clearing...' : 'Clear All Games'}
-              </button>
-            </div>
-            {devTournamentId && (
-              <div className="p-3 bg-white rounded border border-amber-300">
+            <h2 className="text-xl font-bold text-amber-900 mb-3">Step 1: Create Tournament</h2>
+            <button
+              onClick={handleCreateTournament}
+              disabled={loading}
+              className="bg-amber-600 hover:bg-amber-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+            >
+              {loading ? 'Creating...' : tournamentId ? 'Recreate' : 'Create'}
+            </button>
+            {tournamentId && (
+              <div className="mt-3 p-3 bg-white rounded border border-amber-300">
                 <p className="text-sm text-amber-900">
-                  <strong>ID: {devTournamentId}</strong> • <a href={`/users/1/overlay/standings`} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Open Overlay</a>
+                  <strong>ID: {tournamentId}</strong> • <a href={`/users/1/overlay/standings`} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Open Overlay</a>
                 </p>
               </div>
             )}
           </div>
 
-          {/* Select Tournament Stage */}
-          <div className="mb-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-            <h2 className="text-xl font-bold text-blue-900 mb-2">Step 2: Advance Tournament</h2>
-            <p className="text-sm text-blue-700 mb-3">
-              Current: <strong>{currentFile || 'Loading...'}</strong>
-            </p>
-
-            <div className="space-y-3">
-              <select
-                value={selectedFile}
-                onChange={(e) => setSelectedFile(e.target.value)}
-                className="w-full p-2 border-2 border-blue-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm"
+          {/* Step 2: Setup Simulation */}
+          {tournamentId && !isSetupComplete && (
+            <div className="mb-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <h2 className="text-xl font-bold text-blue-900 mb-3">Step 2: Load Progression Files</h2>
+              <button
+                onClick={handleSetupSimulation}
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg transition-colors"
               >
-                {availableFiles.map((file) => (
-                  <option key={file.value} value={file.value}>
-                    {file.label}
-                  </option>
-                ))}
-              </select>
+                {loading ? 'Loading...' : 'Setup Simulation (Load 61 Files)'}
+              </button>
+            </div>
+          )}
 
-              <div className="flex gap-3">
+          {/* Step 3: Run Simulation */}
+          {tournamentId && isSetupComplete && (
+            <div className="mb-4 p-4 bg-green-50 rounded-lg border-2 border-green-200">
+              <h2 className="text-xl font-bold text-green-900 mb-3">Step 3: Simulate</h2>
+              <p className="text-sm text-green-700 mb-3">
+                Version: <strong>{currentVersionIndex + 1} / {versions.length}</strong>
+              </p>
+
+              <div className="mb-3">
                 <button
-                  onClick={handleNextTournament}
-                  disabled={loading || isSimulating}
-                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors flex-grow text-lg"
+                  onClick={handleNext}
+                  disabled={loading || isSimulating || currentVersionIndex >= versions.length - 1}
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg transition-colors w-full"
                 >
                   Next →
-                </button>
-                <button
-                  onClick={handleSetTournament}
-                  disabled={loading || !selectedFile || isSimulating}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm"
-                >
-                  {loading ? 'Updating...' : 'Jump'}
                 </button>
               </div>
 
               <button
-                onClick={toggleSimulation}
+                onClick={isSimulating ? handleStopSimulation : handleStartSimulation}
                 disabled={loading}
-                className={`w-full font-bold py-2 px-4 rounded-lg transition-colors text-sm ${
+                className={`w-full font-bold py-2 px-4 rounded-lg transition-colors ${
                   isSimulating
                     ? 'bg-red-600 hover:bg-red-700 text-white'
                     : 'bg-purple-600 hover:bg-purple-700 text-white'
@@ -373,7 +331,7 @@ const TournamentTesterPage: React.FC<{ apiService: ApiService }> = ({ apiService
                 {isSimulating ? '⏸ Stop Simulation' : '▶ Run Simulation (10s intervals)'}
               </button>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

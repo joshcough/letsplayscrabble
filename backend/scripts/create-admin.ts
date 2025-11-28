@@ -16,11 +16,11 @@ async function createAdmin(username: string, password: string): Promise<void> {
 
   try {
     await pool.query(
-      "INSERT INTO admin_users (username, password_hash) VALUES ($1, $2)",
+      "INSERT INTO users (username, password_hash) VALUES ($1, $2)",
       [username, passwordHash],
     );
 
-    console.log("Admin user created successfully");
+    console.log("User created successfully");
     await pool.end();
     process.exit(0);
   } catch (error) {
