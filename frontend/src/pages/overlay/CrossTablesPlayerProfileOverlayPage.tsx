@@ -8,6 +8,7 @@ import {
 import { ThemeProvider } from "../../components/shared/ThemeProvider";
 import { ApiService } from "../../services/interfaces";
 import { Theme } from "../../types/theme";
+import { formatDate } from "../../utils/formatUtils";
 import { getCurrentRating, formatPlayerName } from "../../utils/playerUtils";
 import { getThemeClasses } from "../../utils/themeUtils";
 
@@ -144,19 +145,25 @@ const renderPlayerProfile = (
                 <div className={`${theme.colors.textAccent} text-xl font-bold mb-2`}>
                   {isWin ? '🏆 Recent Tournament Win' : 'Recent Tournament'}
                 </div>
-                <div className={`${theme.colors.textPrimary} text-2xl font-bold`}>
+                <div className={`${theme.colors.textPrimary} text-2xl font-bold mb-3`}>
                   {recentTournament.name}
                 </div>
-                {recentTournament.date && (
-                  <div className={`${theme.colors.textAccent} text-lg mt-1 font-semibold`}>
-                    {recentTournament.date}
-                  </div>
-                )}
-                {recentTournament.wins !== undefined && recentTournament.losses !== undefined && (
-                  <div className={`${theme.colors.textPrimary} font-mono text-xl font-bold mt-2`}>
-                    {recentTournament.wins}-{recentTournament.losses}
-                  </div>
-                )}
+                <table>
+                  <tbody>
+                    {recentTournament.date && (
+                      <tr>
+                        <td className={`${theme.colors.textAccent} text-xl font-semibold opacity-70 pr-3 align-top whitespace-nowrap`}>Date:</td>
+                        <td className={`${theme.colors.textAccent} text-xl font-bold`}>{formatDate(recentTournament.date)}</td>
+                      </tr>
+                    )}
+                    {recentTournament.wins !== undefined && recentTournament.losses !== undefined && (
+                      <tr>
+                        <td className={`${theme.colors.textAccent} text-xl font-semibold opacity-70 pr-3 align-top whitespace-nowrap`}>Record:</td>
+                        <td className={`${theme.colors.textPrimary} font-mono text-xl font-bold`}>{recentTournament.wins}-{recentTournament.losses}</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             )}
         </div>
