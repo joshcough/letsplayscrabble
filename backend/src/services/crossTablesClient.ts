@@ -44,7 +44,22 @@ export class CrossTablesClient {
         // Use the player-level average scores from the main player data
         averageScore: playerData.scoreavg ? parseInt(playerData.scoreavg) : undefined,
         opponentAverageScore: playerData.scoreoppavg ? parseInt(playerData.scoreoppavg) : undefined,
-        results: playerData.results || []
+        // Transform tournament results from CrossTables API format to our domain format
+        results: (playerData.results || []).map((result: any) => ({
+          tourneyid: parseInt(result.tourneyid || '0'),
+          name: result.tourneyname || result.name || '', // Map tourneyname -> name
+          date: result.date || '',
+          division: result.division || '',
+          wins: parseInt(result.w || '0'),
+          losses: parseInt(result.l || '0'),
+          ties: parseInt(result.t || '0'),
+          place: parseInt(result.position || result.place || '0'),
+          totalplayers: parseInt(result.entrants || result.totalplayers || '0'),
+          rating: parseInt(result.newrating || result.rating || '0'),
+          ratingchange: parseInt(result.ratingchange || '0'),
+          points: parseInt(result.points || '0'),
+          averagepoints: parseInt(result.averagepoints || '0')
+        }))
       };
       
       return detailedPlayer;
