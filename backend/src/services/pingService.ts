@@ -28,7 +28,6 @@ export class PingService {
           messageId: this.count++,
         };
 
-        console.log("Sending ping", pingData);
         this.io.emit("Ping", pingData);
       } catch (error) {
         console.error("Error in ping service:", error);

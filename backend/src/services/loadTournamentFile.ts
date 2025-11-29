@@ -41,7 +41,7 @@ export async function loadTournamentFile(
       const syncedData = await crossTablesSync.syncTournamentWithCrossTablesData(tournamentData);
       return syncedData;
     } else {
-      console.log(`⏭️ LoadTournamentFile: Skipping sync for ${source} (polling mode)`);
+      // Polling mode - skip sync, stay quiet
       return tournamentData;
     }
   } catch (error) {

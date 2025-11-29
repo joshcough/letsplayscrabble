@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **CrossTables Player Discovery**: Fixed player lookup to find all players, not just first 200
+  - Changed from fetching complete player list (limited to 200 results) to individual name searches
+  - Now successfully finds players with any xtid, not just playerid 1-203
+  - Improved logging to show individual search progress
+  - Example: Tournament with 12 players now finds all 12 xtids instead of only 7
+  - Files modified:
+    - `backend/src/services/crossTablesSync.ts`: Updated `discoverXtidsForPlayersWithDivisions()` to use `searchPlayers()` API for each player individually
+    - `backend/src/services/crossTablesClient.ts`: Already had `searchPlayers()` method with proper `search` parameter support
+
+### Performance
+- **Backend Logging**: Reduced polling noise when no changes detected
+  - Removed verbose logs during tournament polling when there's nothing to update
+  - Polling interval changed from 5 seconds back to 10 seconds
+  - Removed "Sending ping" log from ping service
+  - Only logs when actual data changes or errors occur
+  - Files modified:
+    - `backend/src/services/pollingService.ts`
+    - `backend/src/services/pingService.ts`
+    - `backend/src/services/loadTournamentFile.ts`
+    - `backend/src/repositories/tournamentRepository.ts`
+
 ### Added
 - **Tournament Data Versioning**: Hash-based tournament data comparison for efficient polling
   - Replaced JSON.stringify comparison with SHA-256 hash comparison

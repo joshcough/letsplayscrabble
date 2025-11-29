@@ -152,37 +152,36 @@ export class CrossTablesSyncService {
   }
 
   private async discoverXtidsForPlayersWithDivisions(players: { name: string; cleanName: string; divisionName: string }[]): Promise<Map<string, number[]>> {
-    console.log('🌐 Fetching complete CrossTables player list for name matching...');
+    console.log(`🔍 Looking up ${players.length} players individually via CrossTables search API...`);
 
     try {
-      const allPlayers = await CrossTablesClient.getAllPlayersIdsOnly();
-      console.log(`📋 Loaded ${allPlayers.length} players from CrossTables for matching`);
-
       const discoveredXtidsByDivision = new Map<string, number[]>();
 
       for (const { name, cleanName, divisionName } of players) {
         // Convert name format: "Last, First" → "First Last"
         const convertedName = this.convertNameFormat(cleanName);
-        console.log(`🔄 Converting "${cleanName}" to "${convertedName}" for matching in division "${divisionName}"`);
+        console.log(`🔍 Searching CrossTables for "${convertedName}" in division "${divisionName}"`);
 
-        const matches = this.findPlayerMatches(convertedName, allPlayers);
+        // Use individual search instead of loading all players (which only returns first 200)
+        const matches = await CrossTablesClient.searchPlayers(convertedName);
 
         if (matches.length === 1) {
-          const xtid = parseInt(matches[0].playerid);
+          const xtid = matches[0].playerid; // Already a number, no need to parse
 
           // Add to division's xtid list
           const divisionXtids = discoveredXtidsByDivision.get(divisionName) || [];
           divisionXtids.push(xtid);
           discoveredXtidsByDivision.set(divisionName, divisionXtids);
 
-          console.log(`✅ Matched "${convertedName}" to xtid ${xtid} in division "${divisionName}"`);
+          console.log(`✅ Found "${convertedName}" -> xtid ${xtid} in division "${divisionName}"`);
         } else if (matches.length === 0) {
-          console.log(`❌ No matches found for "${convertedName}" in division "${divisionName}"`);
+          console.log(`❌ No CrossTables match for "${convertedName}" in division "${divisionName}"`);
         } else {
           console.log(`⚠️ Found ${matches.length} matches for "${convertedName}" in division "${divisionName}" - skipping ambiguous match`);
         }
       }
 
+      console.log(`✅ Discovered ${Array.from(discoveredXtidsByDivision.values()).flat().length} xtids via individual searches`);
       return discoveredXtidsByDivision;
     } catch (error) {
       console.error('❌ Failed to discover xtids:', error);

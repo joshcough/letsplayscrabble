@@ -39,8 +39,8 @@ export class TournamentPollingService {
   async start(): Promise<void> {
     if (this.isRunning) return;
 
-    // Run every 5 seconds (temporary for testing - normally 10)
-    this.job = cron.schedule("*/5 * * * * *", async () => {
+    // Run every 10 seconds
+    this.job = cron.schedule("*/10 * * * * *", async () => {
       try {
         await this.pollActiveTournaments();
       } catch (error) {
@@ -49,7 +49,7 @@ export class TournamentPollingService {
     });
 
     this.isRunning = true;
-    console.log("Tournament polling service started (5 second interval)");
+    console.log("Tournament polling service started (10 second interval)");
   }
 
   stop(): void {
@@ -61,11 +61,13 @@ export class TournamentPollingService {
   }
 
   private async pollActiveTournaments(): Promise<void> {
-    console.log("Tournament polling service is polling...");
-
     await this.clearExpiredPolls();
 
     const activeTournaments = await this.repo.findActivePollableWithData();
+
+    if (activeTournaments.length === 0) {
+      return; // Nothing to poll, stay quiet
+    }
     for (const { tournament, tournamentData } of activeTournaments) {
       try {
         const newData = await loadTournamentFile(tournamentData.data_url, true);
@@ -120,12 +122,9 @@ export class TournamentPollingService {
           this.io.emit("GamesAdded", gamesAddedMessage);
         } else {
           // No game data changes, but check if there are new players in the file
-          console.log(`🔍 No game data changes for tournament ${tournament.id}, checking for new players...`);
-          
-          // Check if there are new players in the file that we haven't processed yet
           const newPlayers = await this.repo.findNewPlayersInFile(tournament.id, newData);
           if (newPlayers.length > 0) {
-            console.log(`🆕 Found ${newPlayers.length} new players in file for tournament ${tournament.id} - will sync and add to database`);
+            console.log(`🆕 Found ${newPlayers.length} new players in file for tournament ${tournament.id} - syncing with CrossTables`);
             
             // Extract cross-tables IDs from new players in the file data for targeted sync
             const newPlayerXtids: number[] = [];
@@ -181,9 +180,8 @@ export class TournamentPollingService {
               timestamp: Date.now(),
             };
             this.io.emit("GamesAdded", gamesAddedMessage);
-          } else {
-            console.log(`✅ No new players found for tournament ${tournament.id} - skipping CrossTables sync`);
           }
+          // No log when there's nothing to do - stay quiet
         }
       } catch (error) {
         console.error(`Error polling tournament ${tournament.id}:`, error);

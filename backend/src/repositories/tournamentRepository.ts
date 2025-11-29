@@ -791,19 +791,16 @@ export class TournamentRepository {
   }
 
   async findNewPlayersInFile(tournamentId: number, fileData: File.TournamentData): Promise<Array<{ name: string; seed: number; divisionName: string }>> {
-    console.log(`🔍 TournamentRepository: Checking for new players in file vs database for tournament ${tournamentId}`);
-    
     // Get all existing players from database for this tournament
     const existingPlayers = await knexDb("players")
       .select("seed", "name")
       .where("tournament_id", tournamentId);
-    
+
     const existingPlayerSeeds = new Set(existingPlayers.map(p => p.seed));
-    console.log(`📊 TournamentRepository: Found ${existingPlayers.length} existing players in database`);
-    
+
     // Find players in file who don't exist in database
     const newPlayers: Array<{ name: string; seed: number; divisionName: string }> = [];
-    
+
     for (const [divisionName, division] of Object.entries(fileData.divisions)) {
       for (const player of division.players) {
         if (player && !existingPlayerSeeds.has(player.id)) {
@@ -815,8 +812,11 @@ export class TournamentRepository {
         }
       }
     }
-    
-    console.log(`🆕 TournamentRepository: Found ${newPlayers.length} new players in file:`, newPlayers.map(p => `${p.name} (seed ${p.seed})`));
+
+    // Only log when new players are actually found
+    if (newPlayers.length > 0) {
+      console.log(`🆕 TournamentRepository: Found ${newPlayers.length} new players in file:`, newPlayers.map(p => `${p.name} (seed ${p.seed})`));
+    }
     return newPlayers;
   }
 
