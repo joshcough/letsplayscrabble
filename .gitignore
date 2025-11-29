@@ -84,6 +84,10 @@ frontend/.cache/
 /purescript/
 /generated-tournament/
 
+# PureScript build artifacts
+purescript-frontend/output/
+purescript-frontend/.spago/
+
 # Other
 tools/generated-tournament/
 tools/.dev-tournament-state.json
