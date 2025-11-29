@@ -4,6 +4,7 @@ import {
   BaseOverlay,
   BaseOverlayDataProps
 } from '../../components/shared/BaseOverlay';
+import PlayerImage from '../../components/shared/PlayerImage';
 import { ApiService } from '../../services/interfaces';
 import { ThemeProvider } from '../../components/shared/ThemeProvider';
 import { Theme } from '../../types/theme';
@@ -239,17 +240,12 @@ const renderCareerH2H = (
             <div className="flex flex-col">
               <div className="flex items-center gap-6 mb-4">
                 {/* Photo */}
-                {p1.xtData?.photourl || p1.photo ? (
-                  <img
-                    src={p1.xtData?.photourl || p1.photo || undefined}
-                    alt={formatPlayerName(p1.name)}
-                    className={`w-28 h-32 ${themeClasses.playerImage}`}
-                  />
-                ) : (
-                  <div className="w-28 h-32 rounded-xl flex items-center justify-center font-bold text-3xl shadow-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white">
-                    {formatPlayerName(p1.name).split(' ').map((n: string) => n.charAt(0)).join('')}
-                  </div>
-                )}
+                <PlayerImage
+                  player={p1}
+                  tournamentDataUrl={data.tournament.dataUrl}
+                  className={`w-28 h-32 ${themeClasses.playerImage}`}
+                  placeholderClassName="w-28 h-32 rounded-xl flex items-center justify-center font-bold text-3xl shadow-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white"
+                />
 
                 {/* Name and Location */}
                 <div>
@@ -313,17 +309,12 @@ const renderCareerH2H = (
                 </div>
 
                 {/* Photo */}
-                {p2.xtData?.photourl || p2.photo ? (
-                  <img
-                    src={p2.xtData?.photourl || p2.photo || undefined}
-                    alt={formatPlayerName(p2.name)}
-                    className={`w-28 h-32 ${themeClasses.playerImage}`}
-                  />
-                ) : (
-                  <div className="w-28 h-32 rounded-xl flex items-center justify-center font-bold text-3xl shadow-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white">
-                    {formatPlayerName(p2.name).split(' ').map((n: string) => n.charAt(0)).join('')}
-                  </div>
-                )}
+                <PlayerImage
+                  player={p2}
+                  tournamentDataUrl={data.tournament.dataUrl}
+                  className={`w-28 h-32 ${themeClasses.playerImage}`}
+                  placeholderClassName="w-28 h-32 rounded-xl flex items-center justify-center font-bold text-3xl shadow-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white"
+                />
               </div>
 
               {/* Current Record */}

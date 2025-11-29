@@ -6,6 +6,7 @@ import {
   BaseOverlay,
 } from "../../components/shared/BaseOverlay";
 import { ThemeProvider } from "../../components/shared/ThemeProvider";
+import PlayerImage from "../../components/shared/PlayerImage";
 import { ApiService } from "../../services/interfaces";
 import { Theme } from "../../types/theme";
 import { formatDate } from "../../utils/formatUtils";
@@ -73,17 +74,12 @@ const renderPlayerProfile = (
         <div className="flex gap-8">
           {/* Photo Section */}
           <div className="flex-shrink-0">
-            {xtData?.photourl || player.photo ? (
-              <img 
-                src={xtData?.photourl || player.photo || undefined} 
-                alt={formatPlayerName(player.name)}
-                className="w-40 h-40 rounded-2xl object-cover border-2 border-blue-400/50 shadow-lg"
-              />
-            ) : (
-              <div className={`w-40 h-40 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center ${theme.colors.textPrimary} font-bold text-4xl shadow-lg`}>
-                {formatPlayerName(player.name).charAt(0)}
-              </div>
-            )}
+            <PlayerImage
+              player={player}
+              tournamentDataUrl={tournament.dataUrl}
+              className="w-40 h-40 rounded-2xl object-cover border-2 border-blue-400/50 shadow-lg"
+              placeholderClassName={`w-40 h-40 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center ${theme.colors.textPrimary} font-bold text-4xl shadow-lg`}
+            />
             {location && (
               <div className={`text-xl font-bold ${theme.colors.textAccent} mt-4 text-center`}>
                 {location}

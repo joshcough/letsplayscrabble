@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- **Player Image Fallback Priority**: Fixed player cards and h2h overlay to prioritize tournament file photos over CrossTables photos
+  - Previously, overlays checked CrossTables photo first, causing players with file photos but no XT photos (like Crayne Spanier) to show placeholder instead of their actual photo
+  - Created reusable `PlayerImage` component to encapsulate image fallback logic
+  - Image fallback order now consistent across all overlays:
+    1. Tournament file photo (`player.photo`)
+    2. CrossTables photo (`player.xtData.photourl`)
+    3. Initials placeholder
+  - Files modified:
+    - `frontend/src/components/shared/PlayerImage.tsx`: New reusable component for player images
+    - `frontend/src/pages/overlay/CrossTablesPlayerProfileOverlayPage.tsx`: Updated to use PlayerImage component
+    - `frontend/src/pages/overlay/HeadToHeadOverlayPage.tsx`: Updated to use PlayerImage component
+
 - **CrossTables Player Discovery**: Fixed player lookup to find all players, not just first 200
   - Changed from fetching complete player list (limited to 200 results) to individual name searches
   - Now successfully finds players with any xtid, not just playerid 1-203
