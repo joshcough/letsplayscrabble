@@ -1,0 +1,30 @@
+# PureScript compiled output
+output/
+
+# Node modules
+node_modules/
+
+# Build artifacts
+public/bundle.js
+public/worker-bundle.js
+public/test-bundle.js
+public/styles.css
+
+# Generated entry files
+main-entry.js
+worker-entry.js
+test-entry.js
+
+# Test files
+src/TestMain.purs
+public/test.html
+
+# Spago
+.spago/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store

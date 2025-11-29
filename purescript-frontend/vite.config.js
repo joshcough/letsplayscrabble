@@ -1,17 +1,14 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite';
 
 export default defineConfig({
   server: {
     port: 4000,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3001',
-        changeOrigin: true
-      }
-    }
   },
-  root: 'public',
+  css: {
+    postcss: './postcss.config.js',
+  },
+  publicDir: 'public',
   build: {
-    outDir: '../dist'
-  }
-})
+    outDir: 'dist',
+  },
+});

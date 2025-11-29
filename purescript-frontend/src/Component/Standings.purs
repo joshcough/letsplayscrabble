@@ -6,17 +6,20 @@ import Prelude
 
 import BroadcastChannel.Manager as BroadcastManager
 import BroadcastChannel.Messages (TournamentDataResponse, SubscribeMessage)
+import Config.Themes (getTheme)
 import Data.Array (length)
+import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Effect.Console as Console
-import Domain.Types (DivisionScopedData, TournamentId(..), DivisionId(..))
+import Effect.Unsafe (unsafePerformEffect)
+import Domain.Types (DivisionScopedData, TournamentId(..), DivisionId)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Class (liftEffect)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Stats.PlayerStats (RankedPlayerStats, SortType(..), calculateRankedStats)
-import Types.Theme (Theme, defaultTheme)
+import Types.Theme (Theme)
 import Utils.FormatUtils (formatNumberWithSign)
 
 -- | Component state
@@ -67,7 +70,7 @@ initialState input =
   , divisionName: ""
   , loading: true
   , error: Nothing
-  , theme: defaultTheme
+  , theme: getTheme "scrabble" -- Default to scrabble, will be updated when data arrives
   , input: Just input
   }
 
@@ -99,65 +102,116 @@ renderError err =
 
 -- | Render standings table
 renderStandings :: forall w. State -> HH.HTML w Action
-renderStandings state =
-  HH.div
-    [ HP.class_ (HH.ClassName "container mx-auto p-4") ]
-    [ HH.h1
-        [ HP.class_ (HH.ClassName "text-4xl font-bold mb-4") ]
-        [ HH.text $ "Standings - " <> state.divisionName ]
-    , HH.table
-        [ HP.class_ (HH.ClassName "w-full border-collapse") ]
-        [ renderTableHeader
-        , HH.tbody_ $ map (renderPlayerRow state.theme) state.players
+renderStandings state = do
+  let _ = unsafePerformEffect $ Console.log "[Standings] renderStandings called - WITH NEW STYLING!"
+  let theme = state.theme
+  case state.tournament of
+    Nothing -> HH.text "No tournament data"
+    Just tournamentData ->
+      HH.div
+        [ HP.class_ (HH.ClassName "min-h-screen bg-white") ]
+        [ HH.div
+            [ HP.class_ (HH.ClassName $ theme.colors.pageBackground <> " min-h-screen flex items-center justify-center p-6") ]
+            [ HH.div
+            [ HP.class_ (HH.ClassName "max-w-7xl w-full") ]
+            [ -- Header
+              HH.div
+                [ HP.class_ (HH.ClassName "text-center mb-8") ]
+                [ HH.h1
+                    [ HP.class_ (HH.ClassName $ "text-6xl font-black leading-tight mb-4 " <> theme.colors.textPrimary) ]
+                    [ HH.text "Standings" ]
+                , HH.div
+                    [ HP.class_ (HH.ClassName $ "text-3xl font-bold " <> theme.colors.textSecondary) ]
+                    [ HH.text $ tournamentData.tournament.name <> " " <> tournamentData.tournament.lexicon <> " • Division " <> state.divisionName ]
+                ]
+            , -- Card container
+              HH.div
+                [ HP.class_ (HH.ClassName $ theme.colors.cardBackground <> " rounded-2xl px-6 py-3 border-2 " <> theme.colors.primaryBorder <> " shadow-2xl " <> theme.colors.shadowColor) ]
+                [ HH.div
+                    [ HP.class_ (HH.ClassName "overflow-x-auto") ]
+                    [ HH.table
+                        [ HP.class_ (HH.ClassName "w-full") ]
+                        [ renderTableHeader theme
+                        , HH.tbody_ $ renderTopPlayers theme state.players
+                        ]
+                    ]
+                ]
+            ]
         ]
-    ]
+        ]
 
 -- | Render table header
-renderTableHeader :: forall w i. HH.HTML w i
-renderTableHeader =
+renderTableHeader :: forall w i. Theme -> HH.HTML w i
+renderTableHeader theme =
   HH.thead_
-    [ HH.tr_
+    [ HH.tr
+        [ HP.class_ (HH.ClassName $ "border-b-2 " <> theme.colors.primaryBorder) ]
         [ HH.th
-            [ HP.class_ (HH.ClassName "border p-2 text-left") ]
+            [ HP.class_ (HH.ClassName $ "px-4 py-1 text-xl font-black uppercase tracking-wider " <> theme.colors.textPrimary <> " text-center")
+            , HP.style "min-width: 100px"
+            ]
             [ HH.text "Rank" ]
         , HH.th
-            [ HP.class_ (HH.ClassName "border p-2 text-left") ]
+            [ HP.class_ (HH.ClassName $ "px-4 py-1 text-xl font-black uppercase tracking-wider " <> theme.colors.textPrimary <> " text-left")
+            , HP.style "min-width: 200px"
+            ]
             [ HH.text "Name" ]
         , HH.th
-            [ HP.class_ (HH.ClassName "border p-2 text-left") ]
+            [ HP.class_ (HH.ClassName $ "px-4 py-1 text-xl font-black uppercase tracking-wider " <> theme.colors.textPrimary <> " text-center")
+            , HP.style "min-width: 100px"
+            ]
             [ HH.text "Record" ]
         , HH.th
-            [ HP.class_ (HH.ClassName "border p-2 text-left") ]
+            [ HP.class_ (HH.ClassName $ "px-4 py-1 text-xl font-black uppercase tracking-wider " <> theme.colors.textPrimary <> " text-center")
+            , HP.style "min-width: 100px"
+            ]
             [ HH.text "Spread" ]
         ]
     ]
 
--- | Render player row
-renderPlayerRow :: forall w i. Theme -> RankedPlayerStats -> HH.HTML w i
-renderPlayerRow theme player =
-  HH.tr_
+-- | Render player row with index for medals
+renderPlayerRow :: forall w i. Theme -> Int -> RankedPlayerStats -> HH.HTML w i
+renderPlayerRow theme index player =
+  HH.tr
+    [ HP.class_ (HH.ClassName $ "border-b last:border-0 transition-colors " <> theme.colors.secondaryBorder <> " " <> theme.colors.hoverBackground) ]
     [ HH.td
-        [ HP.class_ (HH.ClassName "border p-2") ]
+        [ HP.class_ (HH.ClassName $ "px-4 py-1 text-xl font-bold " <> theme.colors.textPrimary <> " text-center") ]
         [ HH.span
             [ HP.class_ (HH.ClassName "text-2xl font-black") ]
             [ HH.text $ "#" <> show player.rank ]
         ]
     , HH.td
-        [ HP.class_ (HH.ClassName "border p-2") ]
-        [ HH.text player.name ]
+        [ HP.class_ (HH.ClassName $ "px-4 py-1 text-xl font-bold " <> theme.colors.textPrimary <> " text-left") ]
+        [ HH.div
+            [ HP.class_ (HH.ClassName "flex items-center gap-2") ]
+            [ if index < 3 then
+                HH.span
+                  [ HP.class_ (HH.ClassName "text-lg") ]
+                  [ HH.text $ getMedalEmoji index ]
+              else
+                HH.text ""
+            , HH.text player.name
+            ]
+        ]
     , HH.td
-        [ HP.class_ (HH.ClassName "border p-2") ]
+        [ HP.class_ (HH.ClassName $ "px-4 py-1 text-xl font-bold " <> theme.colors.textPrimary <> " text-center") ]
         [ HH.span
             [ HP.class_ (HH.ClassName "font-mono font-black text-2xl") ]
             [ HH.text $ formatRecord player ]
         ]
     , HH.td
-        [ HP.class_ (HH.ClassName "border p-2") ]
+        [ HP.class_ (HH.ClassName $ "px-4 py-1 text-xl font-bold " <> theme.colors.textPrimary <> " text-center") ]
         [ HH.span
             [ HP.class_ (HH.ClassName $ "font-black text-2xl " <> getSpreadColor theme player.spread) ]
             [ HH.text $ formatNumberWithSign player.spread ]
         ]
     ]
+
+-- | Render top 10 players
+renderTopPlayers :: forall w i. Theme -> Array RankedPlayerStats -> Array (HH.HTML w i)
+renderTopPlayers theme players =
+  Array.take 10 players
+    # Array.mapWithIndex (\index player -> renderPlayerRow theme index player)
 
 -- | Format win-loss record
 formatRecord :: RankedPlayerStats -> String
@@ -170,9 +224,9 @@ formatRecord player =
 -- | Get color class for spread
 getSpreadColor :: Theme -> Int -> String
 getSpreadColor theme spread
-  | spread > 0 = "text-red-600"
-  | spread < 0 = "text-blue-600"
-  | otherwise = theme.colors.textPrimary
+  | spread > 0 = theme.colors.positiveColor
+  | spread < 0 = theme.colors.negativeColor
+  | otherwise = theme.colors.neutralColor
 
 -- | Handle actions
 handleAction :: forall o m. MonadAff m => Action -> H.HalogenM State Action () o m Unit
@@ -225,6 +279,11 @@ handleAction = case _ of
     liftEffect $ Console.log $ "[Standings] Players count: " <> show (length response.data.division.players)
     liftEffect $ Console.log $ "[Standings] Games count: " <> show (length response.data.division.games)
 
+    -- Get theme from tournament data
+    let themeName = response.data.tournament.theme
+    let theme = getTheme themeName
+    liftEffect $ Console.log $ "[Standings] Using theme: " <> themeName
+
     -- Calculate player stats
     let
       players = calculateRankedStats
@@ -234,11 +293,12 @@ handleAction = case _ of
 
     liftEffect $ Console.log $ "[Standings] Calculated " <> show (length players) <> " ranked players"
 
-    -- Update state with new data
+    -- Update state with new data and theme
     H.modify_ _
       { tournament = Just response.data
       , players = players
       , divisionName = response.data.division.name
+      , theme = theme
       , loading = false
       , error = Nothing
       }
@@ -251,3 +311,11 @@ handleAction = case _ of
     case state.manager of
       Just manager -> BroadcastManager.close manager
       Nothing -> pure unit
+
+-- | Get medal emoji for top 3 positions
+getMedalEmoji :: Int -> String
+getMedalEmoji index = case index of
+  0 -> "🥇"
+  1 -> "🥈"
+  2 -> "🥉"
+  _ -> ""
