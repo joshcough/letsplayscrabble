@@ -31,9 +31,14 @@ export function protectedTournamentRoutes(
   > = Api.withErrorHandling(async (req, res) => {
     const metadata = req.body;
     const userId = req.user!.id;
+
+    // Trim dataUrl to handle accidental whitespace
+    const dataUrl = metadata.dataUrl.trim();
+    const trimmedMetadata = { ...metadata, dataUrl };
+
     // Load file data
-    const rawData = await loadTournamentFile(metadata.dataUrl);
-    
+    const rawData = await loadTournamentFile(dataUrl);
+
     // FIRST: Ensure all cross-tables players exist (synchronous) and get discovered xtids by division
     console.log('Syncing cross-tables data before tournament creation...');
     let divisionXtids = new Map<string, number[]>();
@@ -67,11 +72,11 @@ export function protectedTournamentRoutes(
       // Continue anyway - head-to-head data is supplementary
       console.log('Continuing with tournament creation despite H2H sync errors...');
     }
-    
-    // Convert to database format
+
+    // Convert to database format (use trimmed metadata)
     const createTournamentData = await convertFileToDatabase(
       rawData,
-      metadata,
+      trimmedMetadata,
       userId,
     );
     

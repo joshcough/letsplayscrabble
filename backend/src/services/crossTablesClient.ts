@@ -6,10 +6,32 @@ export class CrossTablesClient {
 
   static async getPlayer(playerid: number): Promise<CrossTablesPlayer | null> {
     try {
-      const response = await axios.get<CrossTablesPlayer>(
-        `${this.BASE_URL}/players.php?playerlist=${playerid}`
+      // Use player.php endpoint instead of players.php because playerlist has a bug
+      // where it silently drops some players
+      const response = await axios.get<{ player: any }>(
+        `${this.BASE_URL}/player.php?player=${playerid}`
       );
-      return Array.isArray(response.data) && response.data.length > 0 ? response.data[0] : null;
+
+      const playerData = response.data?.player;
+      if (!playerData) return null;
+
+      // Transform to CrossTablesPlayer format (basic fields only)
+      return {
+        playerid: parseInt(playerData.playerid || '0'),
+        name: playerData.name || '',
+        twlrating: playerData.twlrating ? parseInt(playerData.twlrating) : undefined,
+        cswrating: playerData.cswrating ? parseInt(playerData.cswrating) : undefined,
+        twlranking: playerData.twlranking ? parseInt(playerData.twlranking) : undefined,
+        cswranking: playerData.cswranking ? parseInt(playerData.cswranking) : undefined,
+        w: playerData.w ? parseInt(playerData.w) : undefined,
+        l: playerData.l ? parseInt(playerData.l) : undefined,
+        t: playerData.t ? parseInt(playerData.t) : undefined,
+        b: playerData.b ? parseInt(playerData.b) : undefined,
+        photourl: playerData.photourl,
+        city: playerData.city,
+        state: playerData.state,
+        country: playerData.country,
+      };
     } catch (error) {
       console.error(`Failed to fetch player ${playerid} from cross-tables:`, error);
       return null;

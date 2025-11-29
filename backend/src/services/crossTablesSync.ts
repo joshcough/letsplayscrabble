@@ -219,23 +219,32 @@ export class CrossTablesSyncService {
     for (let i = 0; i < batches.length; i++) {
       const batch = batches[i];
       console.log(`Processing batch ${i + 1}/${batches.length} (${batch.length} players)`);
-      
+
       try {
         // Try batch fetch first (more efficient)
         const players = await CrossTablesClient.getPlayers(batch);
-        
+
         if (players.length > 0) {
           await this.repo.upsertPlayers(players);
           console.log(`Stored ${players.length} players from batch`);
+
+          // Check if batch API silently dropped some players (CrossTables API bug)
+          if (players.length < batch.length) {
+            const fetchedIds = new Set(players.map(p => p.playerid));
+            const missingIds = batch.filter(id => !fetchedIds.has(id));
+            console.log(`⚠️  Batch API only returned ${players.length}/${batch.length} players, fetching ${missingIds.length} missing individually`);
+            await this.fetchPlayersIndividually(missingIds);
+          }
         } else {
-          // If batch fetch fails or returns no data, try individual fetches
+          // If batch fetch returns no data, try individual fetches
+          console.log(`Batch fetch returned no players, fetching ${batch.length} individually`);
           await this.fetchPlayersIndividually(batch);
         }
       } catch (error) {
         console.error(`Batch fetch failed for batch ${i + 1}, trying individual fetches:`, error);
         await this.fetchPlayersIndividually(batch);
       }
-      
+
       // Add delay between batches to be respectful to the API
       if (i < batches.length - 1) {
         await this.delay(1000); // 1 second delay
