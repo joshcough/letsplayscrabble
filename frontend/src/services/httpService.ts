@@ -93,6 +93,8 @@ export class HttpApiService implements ApiService {
       long_form_name: string;
       data_url: string;
       poll_until: string | null;
+      theme: string;
+      transparent_background: boolean;
     }
 
     const response = await this.fetchWithAuth<TournamentRow[]>(
@@ -112,6 +114,8 @@ export class HttpApiService implements ApiService {
         longFormName: row.long_form_name,
         dataUrl: row.data_url,
         pollUntil: row.poll_until ? new Date(row.poll_until) : null,
+        theme: row.theme,
+        transparentBackground: row.transparent_background,
       }),
     );
 

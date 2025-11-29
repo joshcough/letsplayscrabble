@@ -57,6 +57,8 @@ const server = http.createServer(app);
 const allowedOrigins = [
   "http://localhost:3000",
   "https://localhost:3000",
+  "http://localhost:4000",
+  "https://localhost:4000",
   "https://letsplayscrabble-dev-test-d51cd69c9755.herokuapp.com",
 ] as const;
 
@@ -97,7 +99,7 @@ const pingService = new PingService(io);
 app.use(morgan("combined"));
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "http://localhost:4000"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,

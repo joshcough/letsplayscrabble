@@ -19,8 +19,8 @@ export interface TournamentMetadata {
   lexicon: string;
   longFormName: string;
   dataUrl: string;
-  theme?: string;
-  transparentBackground?: boolean;
+  theme: string;
+  transparentBackground: boolean;
 }
 
 // Division-scoped data payload (tournament metadata + single division)

@@ -13,8 +13,16 @@ import { LoadingErrorWrapper } from "./LoadingErrorWrapper";
 // This maintains backward compatibility with existing overlay code
 function createTournamentFromDivisionData(data: DivisionScopedData): Domain.Tournament {
   return {
-    ...data.tournament,
-    divisions: [data.division], // Only include the one division we have
+    id: data.tournament.id,
+    name: data.tournament.name,
+    city: data.tournament.city,
+    year: data.tournament.year,
+    lexicon: data.tournament.lexicon,
+    longFormName: data.tournament.longFormName,
+    dataUrl: data.tournament.dataUrl,
+    theme: data.tournament.theme,
+    transparentBackground: data.tournament.transparentBackground,
+    divisions: [data.division],
   };
 }
 
