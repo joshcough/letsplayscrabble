@@ -7,6 +7,7 @@ import Component.LoginPage as LoginPage
 import Component.Navigation as Navigation
 import Component.OverlaysPage as OverlaysPage
 import Component.TournamentManagerPage as TournamentManagerPage
+import Component.AddTournament as AddTournament
 import Component.TournamentDetailsPage as TournamentDetailsPage
 import Component.CurrentMatchPage as CurrentMatchPage
 import Utils.Auth as Auth
@@ -72,6 +73,7 @@ type Slots =
   , navigation :: forall query. H.Slot query Navigation.Output Unit
   , overlays :: forall query. H.Slot query Route Unit
   , tournamentManager :: forall query. H.Slot query TournamentManagerPage.Output Unit
+  , addTournament :: forall query. H.Slot query Void Unit
   , tournamentDetails :: forall query. H.Slot query TournamentDetailsPage.Output Unit
   , currentMatch :: forall query. H.Slot query CurrentMatchPage.Output Unit
   , standings :: forall query. H.Slot query Void Unit
@@ -91,6 +93,7 @@ _login = Proxy :: Proxy "login"
 _navigation = Proxy :: Proxy "navigation"
 _overlays = Proxy :: Proxy "overlays"
 _tournamentManager = Proxy :: Proxy "tournamentManager"
+_addTournament = Proxy :: Proxy "addTournament"
 _tournamentDetails = Proxy :: Proxy "tournamentDetails"
 _currentMatch = Proxy :: Proxy "currentMatch"
 _standings = Proxy :: Proxy "standings"
@@ -152,6 +155,16 @@ render state =
             ]
         _, _ ->
           HH.slot _tournamentManager unit TournamentManagerPage.component unit HandleTournamentManagerOutput
+
+    Just AddTournament ->
+      case state.username, state.userId of
+        Just username, Just userId ->
+          HH.div_
+            [ HH.slot _navigation unit Navigation.component { username, userId } HandleNavigationOutput
+            , HH.slot_ _addTournament unit AddTournament.component unit
+            ]
+        _, _ ->
+          HH.slot_ _addTournament unit AddTournament.component unit
 
     Just (TournamentDetail tournamentId) ->
       case state.username, state.userId of
@@ -357,6 +370,10 @@ handleAction = case _ of
         liftEffect $ log $ "[Router] Navigating to tournament: " <> show tournamentId
         liftEffect $ setHash (print routeCodec (TournamentDetail tournamentId))
         H.modify_ _ { route = Just (TournamentDetail tournamentId) }
+      TournamentManagerPage.NavigateToAddTournament -> do
+        liftEffect $ log "[Router] Navigating to Add Tournament..."
+        liftEffect $ setHash (print routeCodec AddTournament)
+        H.modify_ _ { route = Just AddTournament }
 
   HandleCurrentMatchOutput output -> do
     case output of

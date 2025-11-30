@@ -15,6 +15,7 @@ data Route
   | Login
   | Overlays
   | TournamentManager
+  | AddTournament
   | TournamentDetail Int  -- Tournament ID
   | CurrentMatch
   | Standings
@@ -66,6 +67,7 @@ instance Show Route where
     Login -> "Login"
     Overlays -> "Overlays"
     TournamentManager -> "TournamentManager"
+    AddTournament -> "AddTournament"
     TournamentDetail id -> "TournamentDetail " <> show id
     CurrentMatch -> "CurrentMatch"
     Standings _ -> "Standings"
@@ -84,6 +86,7 @@ routeCodec = root $ sum
   , "Login": "login" / noArgs
   , "Overlays": "overlays" / noArgs
   , "TournamentManager": "tournaments" / "manager" / noArgs
+  , "AddTournament": "tournaments" / "add" / noArgs
   , "TournamentDetail": "tournaments" / int segment
   , "CurrentMatch": "current-match" / noArgs
   , "Standings": "overlay" / "standings" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }

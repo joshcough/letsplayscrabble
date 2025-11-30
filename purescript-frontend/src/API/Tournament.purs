@@ -51,6 +51,48 @@ decodeTournamentListResponse json = do
     error <- lmap printJsonDecodeError $ obj .: "error"
     Left error
 
+-- | Create tournament parameters
+type CreateTournamentParams =
+  { name :: String
+  , city :: String
+  , year :: Int
+  , lexicon :: String
+  , longFormName :: String
+  , dataUrl :: String
+  , theme :: String
+  }
+
+-- | Create a new tournament
+createTournament :: CreateTournamentParams -> Aff (Either String TournamentSummary)
+createTournament params = do
+  maybeToken <- liftEffect Auth.getAuthToken
+  case maybeToken of
+    Nothing -> pure $ Left "Not authenticated"
+    Just token -> do
+      let headers = [ RequestHeader "Authorization" ("Bearer " <> token)
+                    , RequestHeader "Content-Type" "application/json"
+                    ]
+      let body =
+            "name" := params.name
+            ~> "city" := params.city
+            ~> "year" := params.year
+            ~> "lexicon" := params.lexicon
+            ~> "longFormName" := params.longFormName
+            ~> "dataUrl" := params.dataUrl
+            ~> "theme" := params.theme
+            ~> encodeJson {}
+      result <- AW.request $ AW.defaultRequest
+        { url = "http://localhost:3001/api/private/tournaments"
+        , method = Left POST
+        , headers = headers
+        , content = Just $ RequestBody.json body
+        , responseFormat = ResponseFormat.json
+        }
+
+      case result of
+        Left err -> pure $ Left $ "Network error: " <> printError err
+        Right response -> pure $ decodeTournamentRowResponse response.body
+
 -- | List all tournaments
 listTournaments :: Aff (Either String (Array TournamentSummary))
 listTournaments = do

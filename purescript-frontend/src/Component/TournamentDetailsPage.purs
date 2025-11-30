@@ -4,7 +4,8 @@ module Component.TournamentDetailsPage where
 import Prelude
 
 import API.Tournament as TournamentAPI
-import Config.Themes (getTheme, allThemes)
+import Component.ThemeSelector as ThemeSelector
+import Config.Themes (getTheme)
 import Data.Either (Either(..))
 import Data.Int (fromString) as Int
 import Data.JSDate (parse, toDateString)
@@ -304,62 +305,13 @@ renderThemeSection editing currentTheme themeName selectedThemeId =
   , HH.div
       [ HP.class_ (HH.ClassName $ "py-2 border-t col-span-1 " <> currentTheme.colors.secondaryBorder) ]
       [ if editing then
-          HH.div
-            [ HP.class_ (HH.ClassName "grid grid-cols-2 gap-4") ]
-            (map (renderThemeCard selectedThemeId) allThemes)
+          ThemeSelector.renderThemeSelector selectedThemeId currentTheme (HandleFieldChange ThemeField)
         else
           HH.div
             [ HP.class_ (HH.ClassName $ currentTheme.colors.textPrimary) ]
             [ HH.text themeName ]
       ]
   ]
-
--- Render a single theme card with preview
-renderThemeCard :: forall w. String -> Theme -> HH.HTML w Action
-renderThemeCard selectedThemeId themeOption =
-  let isSelected = selectedThemeId == themeOption.id
-      borderClass = if isSelected then "border-blue-600 border-2" else "border-gray-300 border"
-  in
-    HH.div
-      [ HP.class_ (HH.ClassName $ "cursor-pointer p-3 rounded-lg " <> borderClass <> " hover:border-blue-400 transition-colors")
-      , HE.onClick \_ -> HandleFieldChange ThemeField themeOption.id
-      ]
-      [ HH.div
-          [ HP.class_ (HH.ClassName "flex items-center justify-between mb-2") ]
-          [ HH.div
-              [ HP.class_ (HH.ClassName "font-medium") ]
-              [ HH.text themeOption.name ]
-          , if isSelected then
-              HH.div
-                [ HP.class_ (HH.ClassName "w-3 h-3 bg-blue-600 rounded-full") ]
-                []
-            else
-              HH.div
-                [ HP.class_ (HH.ClassName "w-3 h-3 border-2 border-gray-400 rounded-full") ]
-                []
-          ]
-      , HH.div
-          [ HP.class_ (HH.ClassName $ "h-20 rounded " <> themeOption.colors.pageBackground) ]
-          [ HH.div
-              [ HP.class_ (HH.ClassName "h-full p-2 flex flex-col justify-between") ]
-              [ HH.div
-                  [ HP.class_ (HH.ClassName $ "h-2 w-full rounded " <> themeOption.colors.titleGradient) ]
-                  []
-              , HH.div
-                  [ HP.class_ (HH.ClassName "flex gap-1") ]
-                  [ HH.div
-                      [ HP.class_ (HH.ClassName $ "h-2 w-8 rounded " <> themeOption.colors.positiveColor) ]
-                      []
-                  , HH.div
-                      [ HP.class_ (HH.ClassName $ "h-2 w-8 rounded " <> themeOption.colors.negativeColor) ]
-                      []
-                  , HH.div
-                      [ HP.class_ (HH.ClassName $ "h-2 w-8 rounded " <> themeOption.colors.textAccent) ]
-                      []
-                  ]
-              ]
-          ]
-      ]
 
 renderFieldOrInput :: forall w. Boolean -> Theme -> String -> String -> String -> Field -> Array (HH.HTML w Action)
 renderFieldOrInput editing theme label value editValue field =

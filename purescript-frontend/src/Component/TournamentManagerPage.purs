@@ -26,9 +26,11 @@ data Action
   = Initialize
   | LoadTournaments
   | TournamentClick Int
+  | AddTournamentClick
 
 data Output
   = NavigateToTournament Int
+  | NavigateToAddTournament
 
 component :: forall query m. MonadAff m => H.Component query Unit Output m
 component = H.mkComponent
@@ -71,6 +73,7 @@ render state =
                       theme.colors.textPrimary <> " rounded-md " <> theme.colors.hoverBackground <>
                       " transition-colors " <> theme.colors.shadowColor <> " shadow-md border-2 " <>
                       theme.colors.primaryBorder)
+                  , HE.onClick \_ -> AddTournamentClick
                   ]
                   [ HH.text "Add New Tournament" ]
               ]
@@ -137,3 +140,6 @@ handleAction = case _ of
 
   TournamentClick id -> do
     H.raise $ NavigateToTournament id
+
+  AddTournamentClick -> do
+    H.raise NavigateToAddTournament
