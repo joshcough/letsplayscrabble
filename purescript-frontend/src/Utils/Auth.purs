@@ -3,6 +3,7 @@ module Utils.Auth where
 
 import Prelude
 
+import Data.Int as Int
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Web.HTML (window)
@@ -60,10 +61,7 @@ getUserId = do
   w <- window
   storage <- localStorage w
   maybeIdStr <- getItem userIdKey storage
-  pure $ maybeIdStr >>= \idStr ->
-    case readInt 10 idStr of
-      Just id -> Just id
-      Nothing -> Nothing
+  pure $ maybeIdStr >>= Int.fromString
 
 -- | Get username from localStorage
 getUsername :: Effect (Maybe String)
@@ -71,5 +69,3 @@ getUsername = do
   w <- window
   storage <- localStorage w
   getItem usernameKey storage
-
-foreign import readInt :: Int -> String -> Maybe Int

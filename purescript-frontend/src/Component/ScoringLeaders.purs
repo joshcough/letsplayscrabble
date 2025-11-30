@@ -81,7 +81,8 @@ renderScoringLeaders state =
                                   [ HP.class_ (HH.ClassName $ "border-b-2 " <> theme.colors.primaryBorder) ]
                                   [ HH.th [ HP.class_ (HH.ClassName $ "px-4 py-1 text-center " <> theme.colors.textPrimary <> " text-xl font-black uppercase tracking-wider") ] [ HH.text "Rank" ]
                                   , HH.th [ HP.class_ (HH.ClassName $ "px-4 py-1 text-left " <> theme.colors.textPrimary <> " text-xl font-black uppercase tracking-wider") ] [ HH.text "Name" ]
-                                  , HH.th [ HP.class_ (HH.ClassName $ "px-4 py-1 text-center " <> theme.colors.textPrimary <> " text-xl font-black uppercase tracking-wider") ] [ HH.text "Avg Score" ]
+                                  , HH.th [ HP.class_ (HH.ClassName $ "px-4 py-1 text-center " <> theme.colors.textPrimary <> " text-xl font-black uppercase tracking-wider") ] [ HH.text "Avg Pts For" ]
+                                  , HH.th [ HP.class_ (HH.ClassName $ "px-4 py-1 text-center " <> theme.colors.textPrimary <> " text-xl font-black uppercase tracking-wider") ] [ HH.text "Avg Pts Ag" ]
                                   ]
                               ]
                           , HH.tbody_
@@ -102,6 +103,7 @@ renderPlayerRow theme index player =
       _ -> Nothing
 
     avgScoreText = toStringWith (fixed 1) player.averageScore
+    avgOppScoreText = toStringWith (fixed 1) player.averageOpponentScore
   in
     HH.tr
       [ HP.class_ (HH.ClassName $ "border-b last:border-0 transition-colors " <> theme.colors.secondaryBorder <> " " <> theme.colors.hoverBackground) ]
@@ -126,5 +128,11 @@ renderPlayerRow theme index player =
           [ HH.span
               [ HP.class_ (HH.ClassName "font-mono font-black text-2xl") ]
               [ HH.text avgScoreText ]
+          ]
+      , HH.td
+          [ HP.class_ (HH.ClassName $ "px-4 py-1 text-center " <> theme.colors.textPrimary <> " text-xl font-bold") ]
+          [ HH.span
+              [ HP.class_ (HH.ClassName "font-mono font-black text-xl") ]
+              [ HH.text avgOppScoreText ]
           ]
       ]

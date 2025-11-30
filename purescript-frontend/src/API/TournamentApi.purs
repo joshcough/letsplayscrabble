@@ -3,20 +3,18 @@ module Api.TournamentApi where
 
 import Prelude
 
+import Affjax.Web as AX
+import Affjax.ResponseFormat as ResponseFormat
+import Affjax.RequestHeader (RequestHeader(..))
 import Data.Argonaut.Core (Json)
 import Data.Argonaut.Decode (decodeJson, (.:), printJsonDecodeError, JsonDecodeError(..))
 import Data.Either (Either(..))
+import Data.HTTP.Method (Method(..))
 import Data.Maybe (Maybe(..))
-import Domain.Types (TournamentId(..), DivisionId(..), DivisionScopedData)
-import Effect (Effect)
-import Effect.Aff (Aff, makeAff, nonCanceler)
+import Domain.Types (TournamentId(..), DivisionScopedData)
+import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Effect.Console as Console
-import Effect.Exception (error)
-import Foreign (unsafeFromForeign)
-
--- | FFI: Fetch JSON from URL
-foreign import fetchJsonImpl :: String -> (Json -> Effect Unit) -> (String -> Effect Unit) -> Effect Unit
 
 -- | Fetch tournament data
 -- | Now accepts optional divisionName parameter
@@ -25,23 +23,32 @@ fetchTournamentData userId (TournamentId tournamentId) maybeDivisionName = do
   let url = buildUrl userId tournamentId maybeDivisionName
   liftEffect $ Console.log $ "[TournamentApi] Fetching from: " <> url
 
-  -- Fetch JSON from API
-  json <- makeAff \cb -> do
-    fetchJsonImpl url
-      (\j -> cb (Right j))
-      (\err -> cb (Left (error err)))
-    pure nonCanceler
+  -- Fetch JSON from API using Affjax
+  result <- AX.request (AX.defaultRequest
+    { url = url
+    , method = Left GET
+    , responseFormat = ResponseFormat.json
+    , headers =
+        [ RequestHeader "Content-Type" "application/json"
+        ]
+    , withCredentials = true
+    })
 
-  liftEffect $ Console.log "[TournamentApi] Received response, decoding..."
-
-  -- Decode the API response envelope { success: true, data: ... }
-  case decodeApiResponse json of
+  case result of
     Left err -> do
-      liftEffect $ Console.log $ "[TournamentApi] Decode error: " <> printJsonDecodeError err
-      pure $ Left $ "Failed to decode response: " <> printJsonDecodeError err
-    Right data_ -> do
-      liftEffect $ Console.log "[TournamentApi] Successfully decoded response"
-      pure $ Right data_
+      liftEffect $ Console.log $ "[TournamentApi] HTTP error: " <> AX.printError err
+      pure $ Left $ "HTTP error: " <> AX.printError err
+    Right response -> do
+      liftEffect $ Console.log "[TournamentApi] Received response, decoding..."
+
+      -- Decode the API response envelope { success: true, data: ... }
+      case decodeApiResponse response.body of
+        Left err -> do
+          liftEffect $ Console.log $ "[TournamentApi] Decode error: " <> printJsonDecodeError err
+          pure $ Left $ "Failed to decode response: " <> printJsonDecodeError err
+        Right data_ -> do
+          liftEffect $ Console.log "[TournamentApi] Successfully decoded response"
+          pure $ Right data_
 
   where
     buildUrl :: Int -> Int -> Maybe String -> String
