@@ -23,12 +23,14 @@ data Output
   = Logout
   | NavigateToOverlays
   | NavigateToTournamentManager
+  | NavigateToCurrentMatch
 
 type State =
   { username :: String
   , userId :: Int
   , theme :: Theme
   , isDropdownOpen :: Boolean
+  , isAdminDropdownOpen :: Boolean
   }
 
 data Action
@@ -36,7 +38,9 @@ data Action
   | HandleLogout
   | HandleOverlaysClick
   | HandleTournamentManagerClick
+  | HandleCurrentMatchClick
   | ToggleDropdown MouseEvent
+  | ToggleAdminDropdown MouseEvent
   | CloseDropdown
 
 component :: forall query m. MonadEffect m => H.Component query Input Output m
@@ -55,6 +59,7 @@ initialState input =
   , userId: input.userId
   , theme: getTheme "scrabble"
   , isDropdownOpen: false
+  , isAdminDropdownOpen: false
   }
 
 render :: forall m. State -> H.ComponentHTML Action () m
@@ -64,7 +69,9 @@ render state =
       hoverBg = theme.colors.hoverBackground
   in
     HH.nav
-      [ HP.class_ (HH.ClassName $ theme.colors.cardBackground <> " border-b-4 " <> theme.colors.primaryBorder) ]
+      [ HP.class_ (HH.ClassName $ theme.colors.cardBackground <> " border-b-4 " <> theme.colors.primaryBorder)
+      , HP.attr (HH.AttrName "style") "position: relative; z-index: 1000;"
+      ]
       [ HH.div
           [ HP.class_ (HH.ClassName "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8") ]
           [ HH.div
@@ -95,28 +102,52 @@ render state =
                       , HE.onClick \_ -> HandleOverlaysClick
                       ]
                       [ HH.text "Overlays" ]
-                  , -- Admin dropdown (TODO: implement dropdown)
-                    HH.button
-                      [ HP.class_ (HH.ClassName $ "inline-flex items-center px-4 py-2 mt-3 mb-3 " <>
-                          pageTextPrimary <> " font-medium rounded " <>
-                          hoverBg <> " transition-colors duration-200")
+                  , -- Admin dropdown
+                    HH.div
+                      [ HP.class_ (HH.ClassName "relative")
+                      , HP.attr (HH.AttrName "style") "z-index: 1001;"
                       ]
-                      [ HH.text "Admin"
-                      , -- Dropdown arrow SVG
-                        HH.elementNS (Namespace "http://www.w3.org/2000/svg") (HH.ElemName "svg")
-                          [ HP.attr (HH.AttrName "class") "ml-2 h-4 w-4 transition-transform"
-                          , HP.attr (HH.AttrName "fill") "none"
-                          , HP.attr (HH.AttrName "stroke") "currentColor"
-                          , HP.attr (HH.AttrName "viewBox") "0 0 24 24"
+                      [ HH.button
+                          [ HP.class_ (HH.ClassName $ "inline-flex items-center px-4 py-2 mt-3 mb-3 " <>
+                              pageTextPrimary <> " font-medium rounded " <>
+                              hoverBg <> " transition-colors duration-200")
+                          , HE.onClick ToggleAdminDropdown
                           ]
-                          [ HH.elementNS (Namespace "http://www.w3.org/2000/svg") (HH.ElemName "path")
-                              [ HP.attr (HH.AttrName "stroke-linecap") "round"
-                              , HP.attr (HH.AttrName "stroke-linejoin") "round"
-                              , HP.attr (HH.AttrName "stroke-width") "2"
-                              , HP.attr (HH.AttrName "d") "M19 9l-7 7-7-7"
+                          [ HH.text "Admin"
+                          , -- Dropdown arrow SVG
+                            HH.elementNS (Namespace "http://www.w3.org/2000/svg") (HH.ElemName "svg")
+                              [ HP.attr (HH.AttrName "class") $ "ml-2 h-4 w-4 transition-transform " <>
+                                  if state.isAdminDropdownOpen then "rotate-180" else ""
+                              , HP.attr (HH.AttrName "fill") "none"
+                              , HP.attr (HH.AttrName "stroke") "currentColor"
+                              , HP.attr (HH.AttrName "viewBox") "0 0 24 24"
                               ]
-                              []
+                              [ HH.elementNS (Namespace "http://www.w3.org/2000/svg") (HH.ElemName "path")
+                                  [ HP.attr (HH.AttrName "stroke-linecap") "round"
+                                  , HP.attr (HH.AttrName "stroke-linejoin") "round"
+                                  , HP.attr (HH.AttrName "stroke-width") "2"
+                                  , HP.attr (HH.AttrName "d") "M19 9l-7 7-7-7"
+                                  ]
+                                  []
+                              ]
                           ]
+                      , -- Admin dropdown menu
+                        if state.isAdminDropdownOpen
+                          then
+                            HH.div
+                              [ HP.class_ (HH.ClassName "absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5")
+                              , HP.attr (HH.AttrName "style") "z-index: 9999;"
+                              ]
+                              [ HH.div
+                                  [ HP.class_ (HH.ClassName "py-1") ]
+                                  [ HH.button
+                                      [ HP.class_ (HH.ClassName "block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200")
+                                      , HE.onClick \_ -> HandleCurrentMatchClick
+                                      ]
+                                      [ HH.text "Current Match" ]
+                                  ]
+                              ]
+                          else HH.text ""
                       ]
                   ]
               , -- Right side - User dropdown
@@ -191,9 +222,17 @@ handleAction = case _ of
 
   HandleTournamentManagerClick -> H.raise NavigateToTournamentManager
 
+  HandleCurrentMatchClick -> do
+    H.modify_ _ { isAdminDropdownOpen = false }
+    H.raise NavigateToCurrentMatch
+
   ToggleDropdown _ -> do
     state <- H.get
     H.modify_ _ { isDropdownOpen = not state.isDropdownOpen }
+
+  ToggleAdminDropdown _ -> do
+    state <- H.get
+    H.modify_ _ { isAdminDropdownOpen = not state.isAdminDropdownOpen }
 
   CloseDropdown ->
     H.modify_ _ { isDropdownOpen = false }

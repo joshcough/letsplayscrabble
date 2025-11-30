@@ -5,7 +5,7 @@ import Prelude hiding ((/))
 
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe)
-import Routing.Duplex (RouteDuplex', root, int, optional, string, boolean)
+import Routing.Duplex (RouteDuplex', root, int, optional, string, boolean, segment)
 import Routing.Duplex.Generic (noArgs, sum)
 import Routing.Duplex.Generic.Syntax ((/), (?))
 
@@ -15,6 +15,8 @@ data Route
   | Login
   | Overlays
   | TournamentManager
+  | TournamentDetail Int  -- Tournament ID
+  | CurrentMatch
   | Standings
       { userId :: Int
       , tournamentId :: Maybe Int
@@ -51,6 +53,8 @@ instance Show Route where
     Login -> "Login"
     Overlays -> "Overlays"
     TournamentManager -> "TournamentManager"
+    TournamentDetail id -> "TournamentDetail " <> show id
+    CurrentMatch -> "CurrentMatch"
     Standings _ -> "Standings"
     HighScores _ -> "HighScores"
     RatingGain _ -> "RatingGain"
@@ -65,6 +69,8 @@ routeCodec = root $ sum
   , "Login": "login" / noArgs
   , "Overlays": "overlays" / noArgs
   , "TournamentManager": "tournaments" / "manager" / noArgs
+  , "TournamentDetail": "tournaments" / int segment
+  , "CurrentMatch": "current-match" / noArgs
   , "Standings": "overlay" / "standings" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
   , "HighScores": "overlay" / "high-scores" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
   , "RatingGain": "overlay" / "rating-gain" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }

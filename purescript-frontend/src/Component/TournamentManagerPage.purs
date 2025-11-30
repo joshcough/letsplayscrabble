@@ -27,7 +27,10 @@ data Action
   | LoadTournaments
   | TournamentClick Int
 
-component :: forall query input output m. MonadAff m => H.Component query input output m
+data Output
+  = NavigateToTournament Int
+
+component :: forall query m. MonadAff m => H.Component query Unit Output m
 component = H.mkComponent
   { initialState
   , render
@@ -118,7 +121,7 @@ renderTournament theme tournament =
   where
   unwrapTournamentId (TournamentId id) = id
 
-handleAction :: forall output m. MonadAff m => Action -> H.HalogenM State Action () output m Unit
+handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
 handleAction = case _ of
   Initialize -> do
     handleAction LoadTournaments
@@ -133,5 +136,4 @@ handleAction = case _ of
         H.modify_ _ { loading = false, tournaments = tournaments }
 
   TournamentClick id -> do
-    -- TODO: Navigate to tournament detail page
-    pure unit
+    H.raise $ NavigateToTournament id

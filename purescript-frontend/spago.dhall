@@ -26,6 +26,7 @@
   , "halogen-vdom"
   , "http-methods"
   , "integers"
+  , "js-date"
   , "lazy"
   , "lists"
   , "maybe"

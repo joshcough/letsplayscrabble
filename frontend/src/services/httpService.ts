@@ -129,7 +129,7 @@ export class HttpApiService implements ApiService {
     });
   }
 
-  async updateTournament(id: number, params: UpdateTournamentParams): Promise<ApiResponse<Domain.Tournament>> {
+  async updateTournament(id: number, params: UpdateTournamentParams): Promise<ApiResponse<{ tournament: Domain.TournamentSummary; changes: Domain.GameChanges }>> {
     console.log("🚀 Sending tournament update:", { id, params });
     return await this.fetchWithAuth(`/api/private/tournaments/${id}`, {
       method: "PUT",

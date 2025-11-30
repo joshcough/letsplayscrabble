@@ -7,6 +7,8 @@ import Component.LoginPage as LoginPage
 import Component.Navigation as Navigation
 import Component.OverlaysPage as OverlaysPage
 import Component.TournamentManagerPage as TournamentManagerPage
+import Component.TournamentDetailsPage as TournamentDetailsPage
+import Component.CurrentMatchPage as CurrentMatchPage
 import Utils.Auth as Auth
 import Component.Standings as Standings
 import Component.StandingsWithPics as StandingsWithPics
@@ -51,6 +53,9 @@ data Action
   | HandleOverlaysOutput Route
   | HandleLoginSuccess LoginOutput
   | HandleNavigationOutput Navigation.Output
+  | HandleTournamentDetailsOutput TournamentDetailsPage.Output
+  | HandleTournamentManagerOutput TournamentManagerPage.Output
+  | HandleCurrentMatchOutput CurrentMatchPage.Output
 
 -- | Login output type
 type LoginOutput =
@@ -64,7 +69,9 @@ type Slots =
   ( login :: forall query. H.Slot query LoginOutput Unit
   , navigation :: forall query. H.Slot query Navigation.Output Unit
   , overlays :: forall query. H.Slot query Route Unit
-  , tournamentManager :: forall query. H.Slot query Void Unit
+  , tournamentManager :: forall query. H.Slot query TournamentManagerPage.Output Unit
+  , tournamentDetails :: forall query. H.Slot query TournamentDetailsPage.Output Unit
+  , currentMatch :: forall query. H.Slot query CurrentMatchPage.Output Unit
   , standings :: forall query. H.Slot query Void Unit
   , standingsWithPics :: forall query. H.Slot query Void Unit
   , highScores :: forall query. H.Slot query Void Unit
@@ -80,6 +87,8 @@ _login = Proxy :: Proxy "login"
 _navigation = Proxy :: Proxy "navigation"
 _overlays = Proxy :: Proxy "overlays"
 _tournamentManager = Proxy :: Proxy "tournamentManager"
+_tournamentDetails = Proxy :: Proxy "tournamentDetails"
+_currentMatch = Proxy :: Proxy "currentMatch"
 _standings = Proxy :: Proxy "standings"
 _standingsWithPics = Proxy :: Proxy "standingsWithPics"
 _highScores = Proxy :: Proxy "highScores"
@@ -133,10 +142,30 @@ render state =
         Just username, Just userId ->
           HH.div_
             [ HH.slot _navigation unit Navigation.component { username, userId } HandleNavigationOutput
-            , HH.slot_ _tournamentManager unit TournamentManagerPage.component unit
+            , HH.slot _tournamentManager unit TournamentManagerPage.component unit HandleTournamentManagerOutput
             ]
         _, _ ->
-          HH.slot_ _tournamentManager unit TournamentManagerPage.component unit
+          HH.slot _tournamentManager unit TournamentManagerPage.component unit HandleTournamentManagerOutput
+
+    Just (TournamentDetail tournamentId) ->
+      case state.username, state.userId of
+        Just username, Just userId ->
+          HH.div_
+            [ HH.slot _navigation unit Navigation.component { username, userId } HandleNavigationOutput
+            , HH.slot _tournamentDetails unit TournamentDetailsPage.component { tournamentId } HandleTournamentDetailsOutput
+            ]
+        _, _ ->
+          HH.slot _tournamentDetails unit TournamentDetailsPage.component { tournamentId } HandleTournamentDetailsOutput
+
+    Just CurrentMatch ->
+      case state.username, state.userId of
+        Just username, Just userId ->
+          HH.div_
+            [ HH.slot _navigation unit Navigation.component { username, userId } HandleNavigationOutput
+            , HH.slot _currentMatch unit CurrentMatchPage.component unit HandleCurrentMatchOutput
+            ]
+        _, _ ->
+          HH.slot _currentMatch unit CurrentMatchPage.component unit HandleCurrentMatchOutput
 
     Just (Standings params) ->
       case params.pics of
@@ -234,6 +263,8 @@ handleAction = case _ of
           -- If not authenticated and trying to access protected route, redirect to login
           Overlays -> H.modify_ _ { route = Just (if isAuth then Overlays else Login) }
           TournamentManager -> H.modify_ _ { route = Just (if isAuth then TournamentManager else Login) }
+          TournamentDetail id -> H.modify_ _ { route = Just (if isAuth then TournamentDetail id else Login) }
+          CurrentMatch -> H.modify_ _ { route = Just (if isAuth then CurrentMatch else Login) }
           -- Allow access to public routes
           Login -> H.modify_ _ { route = Just Login }
           Worker -> H.modify_ _ { route = Just Worker }
@@ -282,6 +313,31 @@ handleAction = case _ of
         liftEffect $ log "[Router] Navigating to Tournament Manager..."
         liftEffect $ setHash (print routeCodec TournamentManager)
         H.modify_ _ { route = Just TournamentManager }
+      Navigation.NavigateToCurrentMatch -> do
+        liftEffect $ log "[Router] Navigating to Current Match..."
+        liftEffect $ setHash (print routeCodec CurrentMatch)
+        H.modify_ _ { route = Just CurrentMatch }
+
+  HandleTournamentDetailsOutput output -> do
+    case output of
+      TournamentDetailsPage.NavigateBack -> do
+        liftEffect $ log "[Router] Navigating back to Tournament Manager..."
+        liftEffect $ setHash (print routeCodec TournamentManager)
+        H.modify_ _ { route = Just TournamentManager }
+
+  HandleTournamentManagerOutput output -> do
+    case output of
+      TournamentManagerPage.NavigateToTournament tournamentId -> do
+        liftEffect $ log $ "[Router] Navigating to tournament: " <> show tournamentId
+        liftEffect $ setHash (print routeCodec (TournamentDetail tournamentId))
+        H.modify_ _ { route = Just (TournamentDetail tournamentId) }
+
+  HandleCurrentMatchOutput output -> do
+    case output of
+      CurrentMatchPage.NavigateBack -> do
+        liftEffect $ log "[Router] Navigating back from Current Match..."
+        liftEffect $ setHash (print routeCodec Overlays)
+        H.modify_ _ { route = Just Overlays }
 
 handleQuery :: forall output m a. MonadAff m => Query a -> H.HalogenM State Action Slots output m (Maybe a)
 handleQuery = case _ of
@@ -294,6 +350,8 @@ handleQuery = case _ of
           Home -> if state.isAuthenticated then Overlays else Login
           Overlays -> if state.isAuthenticated then Overlays else Login
           TournamentManager -> if state.isAuthenticated then TournamentManager else Login
+          TournamentDetail id -> if state.isAuthenticated then TournamentDetail id else Login
+          CurrentMatch -> if state.isAuthenticated then CurrentMatch else Login
           Login -> Login
           Worker -> Worker
           -- All other overlay routes require auth

@@ -112,3 +112,7 @@ getTheme themeName = fromMaybe scrabbleTheme (Map.lookup themeName themes)
 -- | Default theme
 defaultTheme :: Theme
 defaultTheme = scrabbleTheme
+
+-- | Get all themes as an array
+allThemes :: Array Theme
+allThemes = [modernTheme, scrabbleTheme, july4Theme, originalTheme]

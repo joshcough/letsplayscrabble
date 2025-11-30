@@ -3,6 +3,7 @@ import { ParamsDictionary } from "express-serve-static-core";
 import { Server as SocketIOServer } from "socket.io";
 
 import { TournamentIdParams } from "@shared/types/api";
+import * as Domain from "@shared/types/domain";
 
 import { pool } from "../../config/database";
 import { TournamentRepository } from "../../repositories/tournamentRepository";
@@ -12,6 +13,7 @@ import { CrossTablesSyncService } from "../../services/crossTablesSync";
 import { CrossTablesHeadToHeadService } from "../../services/crossTablesHeadToHeadService";
 import * as DB from "../../types/database";
 import * as Api from "../../utils/apiHelpers";
+import { transformTournamentRowToSummary, transformGameChangesToDomain } from "../../utils/domainTransforms";
 
 interface TournamentIdParamsDict extends ParamsDictionary, TournamentIdParams {}
 
@@ -111,7 +113,7 @@ export function protectedTournamentRoutes(
 
   const updateTournament: RequestHandler<
     TournamentIdParamsDict,
-    Api.ApiResponse<DB.TournamentUpdate>,
+    Api.ApiResponse<{ tournament: Domain.TournamentSummary; changes: Domain.GameChanges }>,
     DB.TournamentMetadata
   > = Api.withErrorHandling(async (req, res) => {
     const { id } = req.params;
@@ -175,14 +177,14 @@ export function protectedTournamentRoutes(
               }
               
               // Update everything in one transaction through repo
-              const update: DB.TournamentUpdate =
+              const dbUpdate: DB.TournamentUpdate =
                 await repo.updateTournamentWithNewData(
                   tournamentId,
                   userId,
                   metadata,
                   await convertFileToDatabase(newData, metadata, userId),
                 );
-              
+
               // Update tournament player xtids to link with CrossTables data
               try {
                 await crossTablesSync.updateTournamentPlayerXtids(tournamentId, newData);
@@ -191,43 +193,68 @@ export function protectedTournamentRoutes(
                 console.error(`ERROR: Failed to update tournament player xtids for tournament ${tournamentId}:`, error);
                 // Don't fail tournament update for this
               }
-              
+
+              // Fetch the updated tournament with all fields (including data_url and poll_until from join)
+              const tournamentRow = await repo.findByIdForUser(tournamentId, userId);
+              if (!tournamentRow) {
+                res.status(404).json(Api.failure("Tournament not found after update"));
+                return;
+              }
+
+              // Transform to domain model
+              const tournamentSummary = transformTournamentRowToSummary(tournamentRow);
+
+              const update = {
+                tournament: tournamentSummary,
+                changes: transformGameChangesToDomain(dbUpdate.changes),
+              };
+
               // Check for theme changes and broadcast via websocket
               if (oldTheme !== newTheme && newTheme) {
                 console.log(`🎨 Tournament ${tournamentId} theme changed from ${oldTheme || 'default'} to ${newTheme}`);
                 io.emit('tournament-theme-changed', {
                   tournamentId,
                   theme: newTheme,
-                  tournamentName: update.tournament.name,
+                  tournamentName: tournamentSummary.name,
                   userId
                 });
               }
-              
+
               res.json(Api.success(update));
             } else {
               // Just update metadata fields through repo
-              const tournament: DB.TournamentRow =
-                await repo.updateTournamentMetadata(
-                  tournamentId,
-                  userId,
-                  metadata,
-                );
-              const update: DB.TournamentUpdate = {
-                tournament,
+              await repo.updateTournamentMetadata(
+                tournamentId,
+                userId,
+                metadata,
+              );
+
+              // Fetch the updated tournament with all fields (including data_url and poll_until from join)
+              const tournamentRow = await repo.findByIdForUser(tournamentId, userId);
+              if (!tournamentRow) {
+                res.status(404).json(Api.failure("Tournament not found after update"));
+                return;
+              }
+
+              // Transform to domain model
+              const tournamentSummary = transformTournamentRowToSummary(tournamentRow);
+
+              const update = {
+                tournament: tournamentSummary,
                 changes: { added: [], updated: [] },
               };
-              
+
               // Check for theme changes and broadcast via websocket
               if (oldTheme !== newTheme && newTheme) {
                 console.log(`🎨 Tournament ${tournamentId} theme changed from ${oldTheme || 'default'} to ${newTheme}`);
                 io.emit('tournament-theme-changed', {
                   tournamentId,
                   theme: newTheme,
-                  tournamentName: tournament.name,
+                  tournamentName: tournamentSummary.name,
                   userId
                 });
               }
-              
+
               res.json(Api.success(update));
             }
           },
@@ -238,10 +265,11 @@ export function protectedTournamentRoutes(
 
   const getTournamentListForUser: RequestHandler<
     {},
-    Api.ApiResponse<DB.TournamentRow[]>
+    Api.ApiResponse<Domain.TournamentSummary[]>
   > = Api.withErrorHandling(async (req, res) => {
-    const result = await repo.findAllForUser(req.user!.id);
-    res.json(Api.success(result));
+    const tournamentRows = await repo.findAllForUser(req.user!.id);
+    const tournamentSummaries = tournamentRows.map(transformTournamentRowToSummary);
+    res.json(Api.success(tournamentSummaries));
   });
 
   const refetchTournament: RequestHandler<TournamentIdParamsDict> =

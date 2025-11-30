@@ -50,7 +50,7 @@ export interface TournamentService {
   ): Promise<ApiResponse<Domain.TournamentSummary>>;
   listTournaments(): Promise<ApiResponse<Domain.TournamentSummary[]>>;
   createTournament(params: CreateTournamentParams): Promise<ApiResponse<Domain.Tournament>>;
-  updateTournament(id: number, params: UpdateTournamentParams): Promise<ApiResponse<Domain.Tournament>>;
+  updateTournament(id: number, params: UpdateTournamentParams): Promise<ApiResponse<{ tournament: Domain.TournamentSummary; changes: Domain.GameChanges }>>;
   deleteTournament(id: number): Promise<ApiResponse<void>>;
 
   // Division operations

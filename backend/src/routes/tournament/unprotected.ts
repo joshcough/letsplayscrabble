@@ -1,11 +1,12 @@
 import express, { Router, Response, RequestHandler, Request } from "express";
 
 import { UserTournamentParams } from "@shared/types/api";
+import * as Domain from "@shared/types/domain";
 
 import { TournamentRepository } from "../../repositories/tournamentRepository";
 import * as DB from "../../types/database";
 import * as Api from "../../utils/apiHelpers";
-import { transformToDivisionScopedData } from "../../utils/domainTransforms";
+import { transformToDivisionScopedData, transformTournamentRowToSummary } from "../../utils/domainTransforms";
 
 // UserTournamentParams now imported from shared types
 
@@ -80,7 +81,7 @@ export function unprotectedTournamentRoutes(
     },
   );
 
-  // Get tournament metadata only
+  // Get tournament metadata only (returns domain model)
   const getTournamentRowForUser = withInputValidation(
     async ({ userId, tournamentId }, req, res) => {
       await Api.withDataOr404(
@@ -88,7 +89,8 @@ export function unprotectedTournamentRoutes(
         res,
         "Tournament not found",
         async (tournamentRow) => {
-          res.json(Api.success(tournamentRow));
+          const tournamentSummary = transformTournamentRowToSummary(tournamentRow);
+          res.json(Api.success(tournamentSummary));
         },
       );
     },
