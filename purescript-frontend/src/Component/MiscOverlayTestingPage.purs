@@ -78,6 +78,24 @@ overlayGroups =
         , { source: "player2-rating", description: "Player 2 Rating" }
         ]
     }
+  , { title: "Under Camera Displays"
+    , sources:
+        [ { source: "player1-under-cam", description: "Player 1 Under Cam (full with seed)" }
+        , { source: "player2-under-cam", description: "Player 2 Under Cam (full with seed)" }
+        , { source: "player1-under-cam-no-seed", description: "Player 1 Under Cam (no seed)" }
+        , { source: "player2-under-cam-no-seed", description: "Player 2 Under Cam (no seed)" }
+        , { source: "player1-under-cam-small", description: "Player 1 Under Cam (small)" }
+        , { source: "player2-under-cam-small", description: "Player 2 Under Cam (small)" }
+        , { source: "player1-under-cam-with-rating", description: "Player 1 Under Cam (with rating)" }
+        , { source: "player2-under-cam-with-rating", description: "Player 2 Under Cam (with rating)" }
+        ]
+    }
+  , { title: "Best of 7 & Tournament"
+    , sources:
+        [ { source: "player1-bo7", description: "Player 1 Best of 7 Record" }
+        , { source: "player2-bo7", description: "Player 2 Best of 7 Record" }
+        ]
+    }
   ]
 
 render :: forall m. State -> H.ComponentHTML Action () m

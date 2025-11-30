@@ -32,6 +32,16 @@ data SourceType
   | Player2RankOrdinal
   | Player1Rating
   | Player2Rating
+  | Player1UnderCam
+  | Player2UnderCam
+  | Player1UnderCamNoSeed
+  | Player2UnderCamNoSeed
+  | Player1UnderCamSmall
+  | Player2UnderCamSmall
+  | Player1UnderCamWithRating
+  | Player2UnderCamWithRating
+  | Player1Bo7
+  | Player2Bo7
   | UnknownSource
 
 derive instance Eq SourceType
@@ -55,6 +65,16 @@ parseSource = case _ of
   "player2-rank-ordinal" -> Player2RankOrdinal
   "player1-rating" -> Player1Rating
   "player2-rating" -> Player2Rating
+  "player1-under-cam" -> Player1UnderCam
+  "player2-under-cam" -> Player2UnderCam
+  "player1-under-cam-no-seed" -> Player1UnderCamNoSeed
+  "player2-under-cam-no-seed" -> Player2UnderCamNoSeed
+  "player1-under-cam-small" -> Player1UnderCamSmall
+  "player2-under-cam-small" -> Player2UnderCamSmall
+  "player1-under-cam-with-rating" -> Player1UnderCamWithRating
+  "player2-under-cam-with-rating" -> Player2UnderCamWithRating
+  "player1-bo7" -> Player1Bo7
+  "player2-bo7" -> Player2Bo7
   _ -> UnknownSource
 
 -- | Helper to format player record
@@ -79,6 +99,46 @@ formatRankOrdinal rank =
                    3 -> "rd"
                    _ -> "th"
   in show rank <> suffix
+
+-- | Get "Seed" or "Place" label based on whether player has played games
+getPlaceOrSeedLabel :: RankedPlayerStats -> String
+getPlaceOrSeedLabel player =
+  if player.wins == 0 && player.losses == 0 then "Seed" else "Place"
+
+-- | Format under-cam record (W-L-T +/-spread)
+formatUnderCamRecord :: RankedPlayerStats -> String
+formatUnderCamRecord player =
+  formatRecord player <> " " <> formatSpread player.spread
+
+-- | Format full under-cam (with place and seed)
+formatFullUnderCam :: RankedPlayerStats -> String
+formatFullUnderCam player =
+  let label = getPlaceOrSeedLabel player
+      rankOrd = formatRankOrdinal player.rank
+      seedOrd = formatRankOrdinal player.seed
+      recordPart = formatUnderCamRecord player
+  in if label == "Seed"
+       then recordPart <> " | " <> rankOrd <> " Seed"
+       else recordPart <> " | " <> rankOrd <> " Place (" <> seedOrd <> " Seed)"
+
+-- | Format under-cam without seed
+formatUnderCamNoSeed :: RankedPlayerStats -> String
+formatUnderCamNoSeed player =
+  let label = getPlaceOrSeedLabel player
+      rankOrd = formatRankOrdinal player.rank
+  in formatUnderCamRecord player <> " | " <> rankOrd <> " " <> label
+
+-- | Format under-cam with rating
+formatUnderCamWithRating :: RankedPlayerStats -> String
+formatUnderCamWithRating player =
+  let label = getPlaceOrSeedLabel player
+      rankOrd = formatRankOrdinal player.rank
+  in formatUnderCamRecord player <> " | " <> rankOrd <> " " <> label <> " | Rating " <> show player.currentRating
+
+-- | Format best of 7 record
+formatBestOf7 :: RankedPlayerStats -> String
+formatBestOf7 player =
+  "Best of 7 Record: " <> formatUnderCamRecord player
 
 type Input =
   { userId :: Int
@@ -181,6 +241,26 @@ renderPlayerData state source =
                       HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ "Rating: " <> show p1.currentRating ]
                     Player2Rating ->
                       HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ "Rating: " <> show p2.currentRating ]
+                    Player1UnderCam ->
+                      HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ formatFullUnderCam p1 ]
+                    Player2UnderCam ->
+                      HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ formatFullUnderCam p2 ]
+                    Player1UnderCamNoSeed ->
+                      HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ formatUnderCamNoSeed p1 ]
+                    Player2UnderCamNoSeed ->
+                      HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ formatUnderCamNoSeed p2 ]
+                    Player1UnderCamSmall ->
+                      HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ formatUnderCamRecord p1 ]
+                    Player2UnderCamSmall ->
+                      HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ formatUnderCamRecord p2 ]
+                    Player1UnderCamWithRating ->
+                      HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ formatUnderCamWithRating p1 ]
+                    Player2UnderCamWithRating ->
+                      HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ formatUnderCamWithRating p2 ]
+                    Player1Bo7 ->
+                      HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ formatBestOf7 p1 ]
+                    Player2Bo7 ->
+                      HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ formatBestOf7 p2 ]
                     UnknownSource ->
                       HH.div [ HP.class_ (HH.ClassName "text-black p-2") ] [ HH.text "Unknown source type" ]
                 _, _ ->
