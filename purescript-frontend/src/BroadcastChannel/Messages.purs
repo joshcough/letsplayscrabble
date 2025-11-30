@@ -29,12 +29,21 @@ derive instance eqBroadcastMessageType :: Eq BroadcastMessageType
 instance showBroadcastMessageType :: Show BroadcastMessageType where
   show = genericShow
 
+-- | Division selection (only present when tournament is specified)
+type DivisionSelection =
+  { divisionName :: String
+  }
+
+-- | Tournament selection (only present when not using current match)
+type TournamentSelection =
+  { tournamentId :: TournamentId
+  , division :: Maybe DivisionSelection
+  }
+
 -- | Subscribe message (sent by components to request data)
 type SubscribeMessage =
   { userId :: Int
-  , tournamentId :: TournamentId
-  , divisionId :: Maybe DivisionId
-  , divisionName :: Maybe String
+  , tournament :: Maybe TournamentSelection
   }
 
 -- | Tournament data response (worker → component, initial data)
@@ -42,6 +51,7 @@ type TournamentDataResponse =
   { userId :: Int
   , tournamentId :: TournamentId
   , divisionId :: DivisionId
+  , isCurrentMatch :: Boolean
   , data :: DivisionScopedData
   }
 
@@ -116,10 +126,8 @@ decodeSubscribeMessage json = do
   obj <- decodeJson json
   data_ <- obj .: "data"
   userId <- data_ .: "userId"
-  tournamentId <- data_ .: "tournamentId"
-  divisionId <- data_ .:? "divisionId"
-  divisionName <- data_ .:? "divisionName"
-  pure { userId, tournamentId, divisionId, divisionName }
+  tournament <- data_ .:? "tournament"
+  pure { userId, tournament }
 
 {-
 instance decodeTournamentDataResponse :: DecodeJson TournamentDataResponse where

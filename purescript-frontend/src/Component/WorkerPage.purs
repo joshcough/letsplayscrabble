@@ -3,12 +3,14 @@ module Component.WorkerPage where
 
 import Prelude
 
+import Api.CurrentMatchApi as CurrentMatchApi
 import Api.TournamentApi as TournamentApi
 import BroadcastChannel.Manager as BroadcastManager
 import BroadcastChannel.Messages (SubscribeMessage, TournamentDataResponse)
 import Control.Monad.Rec.Class (forever)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
 import Domain.Types (TournamentId(..), DivisionId(..))
 import Effect.Aff as Aff
 import Effect.Aff.Class (class MonadAff)
@@ -157,39 +159,97 @@ handleAction = case _ of
   HandleSubscribe msg -> do
     liftEffect $ Effect.Console.log "[WorkerPage] Received subscribe message"
     liftEffect $ Effect.Console.log $ "[WorkerPage] userId=" <> show msg.userId <>
-      ", tournamentId=" <> show msg.tournamentId <>
-      ", divisionId=" <> show msg.divisionId
+      ", tournament=" <> show msg.tournament
 
-    -- Fetch tournament data from API
-    liftEffect $ Effect.Console.log "[WorkerPage] Fetching tournament data from API..."
-    result <- H.liftAff $ TournamentApi.fetchTournamentData msg.userId msg.tournamentId msg.divisionId
+    -- Extract tournament/division info from message
+    case msg.tournament of
+      Nothing -> do
+        liftEffect $ Effect.Console.log "[WorkerPage] No tournament specified - fetching current match"
 
-    case result of
-      Left err -> do
-        liftEffect $ Effect.Console.log $ "[WorkerPage] API fetch failed: " <> err
-        -- TODO: Broadcast error message
-        pure unit
+        -- Fetch current match from API
+        currentMatchResult <- H.liftAff $ CurrentMatchApi.fetchCurrentMatch msg.userId
 
-      Right data_ -> do
-        liftEffect $ Effect.Console.log "[WorkerPage] API fetch succeeded, broadcasting response..."
+        case currentMatchResult of
+          Left err -> do
+            liftEffect $ Effect.Console.log $ "[WorkerPage] Error fetching current match: " <> err
+            pure unit
 
-        -- Get the divisionId from the response data
-        let divisionId = data_.division.id
+          Right Nothing -> do
+            liftEffect $ Effect.Console.log "[WorkerPage] No current match found for user"
+            pure unit
 
-        -- Create response message
-        let response :: TournamentDataResponse
-            response =
-              { userId: msg.userId
-              , tournamentId: msg.tournamentId
-              , divisionId: divisionId
-              , data: data_
-              }
+          Right (Just currentMatch) -> do
+            let cm = unwrap currentMatch
+            liftEffect $ Effect.Console.log $ "[WorkerPage] Current match found: tournament=" <>
+              show cm.tournamentId <> ", division=" <> cm.divisionName
 
-        -- Broadcast response to all listeners
-        state <- H.get
-        case state.broadcastManager of
-          Just manager -> do
-            BroadcastManager.postTournamentDataResponse manager response
-            liftEffect $ Effect.Console.log "[WorkerPage] Response broadcasted successfully"
-          Nothing -> do
-            liftEffect $ Effect.Console.log "[WorkerPage] ERROR: No broadcast manager available"
+            -- Now fetch tournament data using current match info
+            result <- H.liftAff $ TournamentApi.fetchTournamentData msg.userId
+              (TournamentId cm.tournamentId)
+              (Just cm.divisionName)
+
+            case result of
+              Left err -> do
+                liftEffect $ Effect.Console.log $ "[WorkerPage] Error fetching tournament data: " <> err
+                pure unit
+
+              Right tournamentData -> do
+                liftEffect $ Effect.Console.log "[WorkerPage] Successfully fetched tournament data for current match"
+
+                -- Broadcast the data
+                state <- H.get
+                case state.broadcastManager of
+                  Just mgr -> do
+                    let response =
+                          { userId: msg.userId
+                          , tournamentId: TournamentId cm.tournamentId
+                          , divisionId: DivisionId cm.divisionId
+                          , isCurrentMatch: true
+                          , data: tournamentData
+                          }
+                    liftEffect $ BroadcastManager.postTournamentDataResponse mgr response
+                    liftEffect $ Effect.Console.log "[WorkerPage] Broadcast tournament data for current match"
+                  Nothing -> liftEffect $ Effect.Console.log "[WorkerPage] No broadcast manager"
+
+      Just tournament -> do
+        let tournamentId = tournament.tournamentId
+        let divisionName = case tournament.division of
+              Just div -> Just div.divisionName
+              Nothing -> Nothing
+
+        liftEffect $ Effect.Console.log $ "[WorkerPage] Tournament: " <> show tournamentId <> ", Division: " <> show divisionName
+
+        -- Fetch tournament data from API with divisionName query param
+        liftEffect $ Effect.Console.log "[WorkerPage] Fetching tournament data from API..."
+        result <- H.liftAff $ TournamentApi.fetchTournamentData msg.userId tournamentId divisionName
+
+        case result of
+          Left err -> do
+            liftEffect $ Effect.Console.log $ "[WorkerPage] API fetch failed: " <> err
+            -- TODO: Broadcast error message
+            pure unit
+
+          Right data_ -> do
+            liftEffect $ Effect.Console.log "[WorkerPage] API fetch succeeded, broadcasting response..."
+
+            -- Get the divisionId from the response data
+            let divisionId = data_.division.id
+
+            -- Create response message
+            let response :: TournamentDataResponse
+                response =
+                  { userId: msg.userId
+                  , tournamentId: tournamentId
+                  , divisionId: divisionId
+                  , isCurrentMatch: false  -- This is a specific tournament request
+                  , data: data_
+                  }
+
+            -- Broadcast response to all listeners
+            state <- H.get
+            case state.broadcastManager of
+              Just manager -> do
+                BroadcastManager.postTournamentDataResponse manager response
+                liftEffect $ Effect.Console.log "[WorkerPage] Response broadcasted successfully"
+              Nothing -> do
+                liftEffect $ Effect.Console.log "[WorkerPage] ERROR: No broadcast manager available"

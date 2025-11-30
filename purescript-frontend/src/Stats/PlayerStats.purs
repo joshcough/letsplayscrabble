@@ -28,6 +28,7 @@ type PlayerStats =
   , averageOpponentScore :: Number
   , highScore :: Int
   , photo :: Maybe String
+  , xtPhotoUrl :: Maybe String
   }
 
 -- | Player statistics with rank
@@ -46,6 +47,7 @@ type RankedPlayerStats =
   , averageOpponentScore :: Number
   , highScore :: Int
   , photo :: Maybe String
+  , xtPhotoUrl :: Maybe String
   , rank :: Int
   }
 
@@ -81,6 +83,11 @@ calculatePlayerStats player games =
       history -> fromMaybe player.initialRating (history !! (length history - 1))
 
     ratingDiff = currentRating - player.initialRating
+
+    -- Extract XT photo URL from xtData if available
+    xtPhotoUrl = case player.xtData of
+      Just xt -> xt.photourl
+      Nothing -> Nothing
   in
     { playerId: player.id
     , name: player.name
@@ -96,6 +103,7 @@ calculatePlayerStats player games =
     , averageOpponentScore: avgOppScore
     , highScore: stats.highScore
     , photo: player.photo
+    , xtPhotoUrl
     }
   where
     isPlayerGame :: Game -> Boolean
@@ -220,6 +228,7 @@ addRanks players =
     , averageOpponentScore: player.averageOpponentScore
     , highScore: player.highScore
     , photo: player.photo
+    , xtPhotoUrl: player.xtPhotoUrl
     , rank: idx + 1
     }
   ) players

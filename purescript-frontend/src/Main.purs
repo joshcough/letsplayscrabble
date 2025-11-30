@@ -3,36 +3,34 @@ module Main where
 
 import Prelude
 
-import Component.Standings as Standings
-import Data.Maybe (fromMaybe)
-import Domain.Types (TournamentId(..), DivisionId(..))
+import Component.Router as Router
 import Effect (Effect)
 import Effect.Class (liftEffect)
-import Effect.Console (log)
+import Effect.Class.Console as Console
+import Halogen as H
 import Halogen.Aff as HA
 import Halogen.VDom.Driver (runUI)
-import Utils.UrlParams (parseUrlParams)
+import Route (routeCodec)
+import Routing.Duplex (parse)
+import Routing.Hash (matchesWith)
 
 -- | Main entry point
--- | Renders the Standings component with URL parameters
+-- | Renders the Router component and sets up hash routing
 main :: Effect Unit
-main = HA.runHalogenAff do
-  liftEffect $ log "[Main] Starting..."
-  body <- HA.awaitBody
-  liftEffect $ log "[Main] Got body"
+main = do
+  Console.log "[Main] Starting router..."
+  HA.runHalogenAff do
+    body <- HA.awaitBody
+    liftEffect $ Console.log "[Main] Got body, mounting router"
+    io <- runUI Router.component unit body
+    liftEffect $ Console.log "[Main] Router mounted"
 
-  -- Parse URL parameters
-  urlParams <- liftEffect parseUrlParams
-  liftEffect $ log "[Main] Parsed URL params"
-
-  -- Build input from URL params with sensible defaults
-  let input =
-        { userId: fromMaybe 1 urlParams.userId
-        , tournamentId: TournamentId (fromMaybe 1 urlParams.tournamentId)
-        , divisionId: map DivisionId urlParams.divisionId
-        , divisionName: urlParams.divisionName
-        }
-
-  liftEffect $ log "[Main] Running Standings component"
-  _ <- runUI Standings.component input body
-  liftEffect $ log "[Main] Standings component mounted"
+    -- Set up hash change listener
+    liftEffect $ Console.log "[Main] Setting up hash change listener"
+    liftEffect $ void $ matchesWith (parse routeCodec) \old new -> do
+      Console.log "[Main] ========================================="
+      Console.log "[Main] HASH CHANGE EVENT FIRED!"
+      Console.log $ "[Main] Hash changed from " <> show old <> " to " <> show new
+      Console.log "[Main] ========================================="
+      HA.runHalogenAff $ void $ io.query $ H.mkTell $ Router.Navigate new
+    liftEffect $ Console.log "[Main] Hash change listener set up"

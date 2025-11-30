@@ -19,9 +19,10 @@ import Foreign (unsafeFromForeign)
 foreign import fetchJsonImpl :: String -> (Json -> Effect Unit) -> (String -> Effect Unit) -> Effect Unit
 
 -- | Fetch tournament data
-fetchTournamentData :: Int -> TournamentId -> Maybe DivisionId -> Aff (Either String DivisionScopedData)
-fetchTournamentData userId (TournamentId tournamentId) maybeDivisionId = do
-  let url = buildUrl userId tournamentId maybeDivisionId
+-- | Now accepts optional divisionName parameter
+fetchTournamentData :: Int -> TournamentId -> Maybe String -> Aff (Either String DivisionScopedData)
+fetchTournamentData userId (TournamentId tournamentId) maybeDivisionName = do
+  let url = buildUrl userId tournamentId maybeDivisionName
   liftEffect $ Console.log $ "[TournamentApi] Fetching from: " <> url
 
   -- Fetch JSON from API
@@ -43,14 +44,14 @@ fetchTournamentData userId (TournamentId tournamentId) maybeDivisionId = do
       pure $ Right data_
 
   where
-    buildUrl :: Int -> Int -> Maybe DivisionId -> String
+    buildUrl :: Int -> Int -> Maybe String -> String
     buildUrl uid tid Nothing =
       "http://localhost:3001/api/public/users/" <> show uid <>
       "/tournaments/" <> show tid
-    buildUrl uid tid (Just (DivisionId did)) =
+    buildUrl uid tid (Just divName) =
       "http://localhost:3001/api/public/users/" <> show uid <>
       "/tournaments/" <> show tid <>
-      "/divisions/" <> show did
+      "?divisionName=" <> divName
 
     decodeApiResponse :: Json -> Either JsonDecodeError DivisionScopedData
     decodeApiResponse json = do
