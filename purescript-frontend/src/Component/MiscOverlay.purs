@@ -42,6 +42,7 @@ data SourceType
   | Player2UnderCamWithRating
   | Player1Bo7
   | Player2Bo7
+  | TournamentData
   | UnknownSource
 
 derive instance Eq SourceType
@@ -75,6 +76,7 @@ parseSource = case _ of
   "player2-under-cam-with-rating" -> Player2UnderCamWithRating
   "player1-bo7" -> Player1Bo7
   "player2-bo7" -> Player2Bo7
+  "tournament-data" -> TournamentData
   _ -> UnknownSource
 
 -- | Helper to format player record
@@ -179,7 +181,11 @@ renderMiscOverlay state source =
   else case state.error of
     Just err -> BaseOverlay.renderError err
     Nothing -> case state.tournament of
-      Just _ -> renderPlayerData state source
+      Just _ ->
+        -- TournamentData doesn't need player data, just tournament + current match
+        if source == TournamentData
+          then renderTournamentData state
+          else renderPlayerData state source
       Nothing -> BaseOverlay.renderError "No tournament data"
 
 renderPlayerData :: forall m. BaseOverlay.State -> SourceType -> H.ComponentHTML Action () m
@@ -261,7 +267,22 @@ renderPlayerData state source =
                       HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ formatBestOf7 p1 ]
                     Player2Bo7 ->
                       HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ formatBestOf7 p2 ]
+                    TournamentData ->
+                      -- This shouldn't be reached since TournamentData is handled separately
+                      BaseOverlay.renderError "Tournament data should not be rendered here"
                     UnknownSource ->
                       HH.div [ HP.class_ (HH.ClassName "text-black p-2") ] [ HH.text "Unknown source type" ]
                 _, _ ->
                   BaseOverlay.renderError "Players not found"
+
+renderTournamentData :: forall m. BaseOverlay.State -> H.ComponentHTML Action () m
+renderTournamentData state =
+  case state.tournament, state.currentMatch of
+    Just tournamentData, Just currentMatch ->
+      let tournament = tournamentData.tournament
+          text = tournament.name <> " | " <> tournament.lexicon <> " | Round " <> show currentMatch.round
+      in HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text text ]
+    Just _, Nothing ->
+      BaseOverlay.renderError "No current match for tournament data"
+    Nothing, _ ->
+      BaseOverlay.renderError "No tournament data"

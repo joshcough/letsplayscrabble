@@ -94,6 +94,7 @@ overlayGroups =
     , sources:
         [ { source: "player1-bo7", description: "Player 1 Best of 7 Record" }
         , { source: "player2-bo7", description: "Player 2 Best of 7 Record" }
+        , { source: "tournament-data", description: "Tournament Name, Lexicon, Round" }
         ]
     }
   ]
@@ -128,7 +129,7 @@ renderGroup theme userId group =
         [ HP.class_ (HH.ClassName $ "text-2xl font-semibold mb-4 border-b pb-2 " <> theme.colors.textAccent) ]
         [ HH.text group.title ]
     , HH.div
-        [ HP.class_ (HH.ClassName "space-y-4") ]
+        [ HP.class_ (HH.ClassName "space-y-6") ]
         (map (renderSource theme userId) group.sources)
     ]
 
@@ -155,10 +156,10 @@ renderSource theme userId source =
       , HH.div
           [ HP.class_ (HH.ClassName "mt-3") ]
           [ HH.div
-              [ HP.class_ (HH.ClassName "p-3 bg-gray-50 border rounded min-h-[60px] flex items-center") ]
+              [ HP.class_ (HH.ClassName "p-2 bg-gray-50 border rounded min-h-[30px] flex items-center") ]
               [ HH.iframe
                   [ HP.src iframeSrc
-                  , HP.class_ (HH.ClassName "w-full h-16 border-0")
+                  , HP.class_ (HH.ClassName "w-full h-8 border-0")
                   , HP.title $ "Stats overlay: " <> source.source
                   ]
               ]
