@@ -93,6 +93,9 @@ type AdminPanelUpdate =
   { userId :: Int
   , tournamentId :: TournamentId
   , divisionId :: DivisionId
+  , divisionName :: String
+  , round :: Int
+  , pairingId :: Int
   }
 
 -- | Notification cancel message
@@ -217,13 +220,19 @@ instance decodeAdminPanelUpdate :: DecodeJson AdminPanelUpdate where
     userId <- obj .: "userId"
     tournamentId <- obj .: "tournamentId"
     divisionId <- obj .: "divisionId"
-    pure { userId, tournamentId, divisionId }
+    divisionName <- obj .: "divisionName"
+    round <- obj .: "round"
+    pairingId <- obj .: "pairingId"
+    pure { userId, tournamentId, divisionId, divisionName, round, pairingId }
 
 instance encodeAdminPanelUpdate :: EncodeJson AdminPanelUpdate where
   encodeJson msg =
     "userId" := msg.userId
     ~> "tournamentId" := msg.tournamentId
     ~> "divisionId" := msg.divisionId
+    ~> "divisionName" := msg.divisionName
+    ~> "round" := msg.round
+    ~> "pairingId" := msg.pairingId
     ~> jsonEmptyObject
 
 instance decodeNotificationCancelMessage :: DecodeJson NotificationCancelMessage where

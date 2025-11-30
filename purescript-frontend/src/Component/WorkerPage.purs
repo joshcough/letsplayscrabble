@@ -200,6 +200,23 @@ handleAction = case _ of
                 state <- H.get
                 case state.broadcastManager of
                   Just mgr -> do
+                    -- First, broadcast AdminPanelUpdate so components know which game to display
+                    case cm.pairingId of
+                      Just pairingId -> do
+                        let adminUpdate =
+                              { userId: msg.userId
+                              , tournamentId: TournamentId cm.tournamentId
+                              , divisionId: DivisionId cm.divisionId
+                              , divisionName: cm.divisionName
+                              , round: cm.round
+                              , pairingId
+                              }
+                        liftEffect $ BroadcastManager.postAdminPanelUpdate mgr adminUpdate
+                        liftEffect $ Effect.Console.log "[WorkerPage] Broadcast admin panel update for current match"
+                      Nothing ->
+                        liftEffect $ Effect.Console.log "[WorkerPage] No pairing ID in current match"
+
+                    -- Then broadcast the tournament data
                     let response =
                           { userId: msg.userId
                           , tournamentId: TournamentId cm.tournamentId
@@ -208,7 +225,7 @@ handleAction = case _ of
                           , data: tournamentData
                           }
                     liftEffect $ BroadcastManager.postTournamentDataResponse mgr response
-                    liftEffect $ Effect.Console.log "[WorkerPage] Broadcast tournament data for current match"
+                    liftEffect $ Effect.Console.log $ "[WorkerPage] Broadcast tournament data for current match (round=" <> show cm.round <> ", pairingId=" <> show cm.pairingId <> ")"
                   Nothing -> liftEffect $ Effect.Console.log "[WorkerPage] No broadcast manager"
 
       Just tournament -> do

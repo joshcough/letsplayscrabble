@@ -157,6 +157,12 @@ renderPlayerStatsCategory theme =
             , description: Just "Career matchup stats"
             , requiresParams: false
             }
+        , renderSimpleOverlay theme
+            { title: "Misc Overlays"
+            , route: MiscOverlayTesting
+            , description: Just "Small text overlays for OBS"
+            , requiresParams: false
+            }
         ]
     ]
 

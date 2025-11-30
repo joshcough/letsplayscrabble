@@ -130,10 +130,16 @@ routeMessage msgType json listeners =
         Right msg -> HS.notify listeners.gamesListener msg
         Left _ -> pure unit
 
-    "ADMIN_PANEL_UPDATE" ->
-      case decodeJson json of
-        Right msg -> HS.notify listeners.adminListener msg
-        Left _ -> pure unit
+    "ADMIN_PANEL_UPDATE" -> do
+      Console.log "[BroadcastManager] Routing ADMIN_PANEL_UPDATE message"
+      let result = do
+            obj <- decodeJson json
+            obj .: "data"
+      case result of
+        Right msg -> do
+          Console.log "[BroadcastManager] Successfully decoded ADMIN_PANEL_UPDATE, notifying listener"
+          HS.notify listeners.adminListener msg
+        Left err -> Console.log $ "[BroadcastManager] Failed to decode ADMIN_PANEL_UPDATE: " <> show err
 
     "NOTIFICATION_CANCEL" ->
       case decodeJson json of
@@ -178,6 +184,28 @@ encodeTournamentDataResponse :: TournamentDataResponse -> Json
 encodeTournamentDataResponse msg =
   "type" := "TOURNAMENT_DATA_RESPONSE"
   ~> "data" := msg
+  ~> jsonEmptyObject
+
+-- | Post an admin panel update message
+postAdminPanelUpdate :: forall m. MonadEffect m => BroadcastManager -> AdminPanelUpdate -> m Unit
+postAdminPanelUpdate manager msg = liftEffect do
+  Console.log "[BroadcastManager] postAdminPanelUpdate called"
+  let json = encodeAdminPanelUpdate msg
+  Console.log "[BroadcastManager] Encoded admin panel update, posting to channel"
+  BC.postMessage manager.channel (unsafeToForeign json)
+  Console.log "[BroadcastManager] Admin panel update posted"
+
+-- | Encode admin panel update message
+encodeAdminPanelUpdate :: AdminPanelUpdate -> Json
+encodeAdminPanelUpdate msg =
+  "type" := "ADMIN_PANEL_UPDATE"
+  ~> "data" := ("userId" := msg.userId
+              ~> "tournamentId" := msg.tournamentId
+              ~> "divisionId" := msg.divisionId
+              ~> "divisionName" := msg.divisionName
+              ~> "round" := msg.round
+              ~> "pairingId" := msg.pairingId
+              ~> jsonEmptyObject)
   ~> jsonEmptyObject
 
 -- | Close the broadcast channel

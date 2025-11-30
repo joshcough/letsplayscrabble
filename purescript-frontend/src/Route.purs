@@ -55,6 +55,13 @@ data Route
       , playerId1 :: Maybe Int
       , playerId2 :: Maybe Int
       }
+  | MiscOverlay
+      { userId :: Int
+      , tournamentId :: Maybe Int
+      , divisionName :: Maybe String
+      , source :: String
+      }
+  | MiscOverlayTesting
   | Worker
 
 derive instance Generic Route _
@@ -76,6 +83,8 @@ instance Show Route where
     ScoringLeaders _ -> "ScoringLeaders"
     CrossTablesPlayerProfile _ -> "CrossTablesPlayerProfile"
     HeadToHead _ -> "HeadToHead"
+    MiscOverlay _ -> "MiscOverlay"
+    MiscOverlayTesting -> "MiscOverlayTesting"
     Worker -> "Worker"
 
 -- | Route codec for parsing and printing routes
@@ -95,5 +104,7 @@ routeCodec = root $ sum
   , "ScoringLeaders": "overlay" / "scoring-leaders" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
   , "CrossTablesPlayerProfile": "overlay" / "player-profile" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, playerId: int }
   , "HeadToHead": "overlay" / "head-to-head" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, playerId1: optional <<< int, playerId2: optional <<< int }
+  , "MiscOverlay": "overlay" / "misc" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, source: string }
+  , "MiscOverlayTesting": "overlay" / "misc" / "testing" / noArgs
   , "Worker": "worker" / noArgs
   }

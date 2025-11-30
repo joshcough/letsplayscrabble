@@ -5,8 +5,9 @@ import Prelude
 
 import BroadcastChannel as BC
 import BroadcastChannel.Manager as BCM
-import Data.Argonaut.Core (Json)
+import Data.Argonaut.Core (Json, jsonEmptyObject)
 import Data.Argonaut.Decode (decodeJson, (.:))
+import Data.Argonaut.Encode ((:=), (~>))
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
@@ -101,7 +102,12 @@ initialize apiUrl stateRef = do
     handleAdminPanelUpdate foreignData = do
       state <- Ref.read stateRef
       let json = unsafeFromForeign foreignData :: Json
-      BC.postMessage state.broadcastChannel (unsafeToForeign json)
+      -- Wrap the message with type field so BroadcastManager can route it
+      let wrappedMessage =
+            "type" := "ADMIN_PANEL_UPDATE"
+            ~> "data" := json
+            ~> jsonEmptyObject
+      BC.postMessage state.broadcastChannel (unsafeToForeign wrappedMessage)
       pure unit
 
     handlePing :: Foreign -> Effect Unit

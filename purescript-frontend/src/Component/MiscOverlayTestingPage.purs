@@ -1,0 +1,172 @@
+-- | MiscOverlay Testing Page - displays iframes for all misc overlay sources
+module Component.MiscOverlayTestingPage where
+
+import Prelude
+
+import Config.Themes (getTheme)
+import Data.Array (length)
+import Data.Foldable (sum)
+import Data.Maybe (Maybe(..))
+import Effect.Aff.Class (class MonadAff)
+import Halogen as H
+import Halogen.HTML as HH
+import Halogen.HTML.Properties as HP
+import Route (Route(..), routeCodec)
+import Routing.Duplex (print)
+import Types.Theme (Theme)
+
+type State =
+  { theme :: Theme
+  }
+
+data Action
+  = Initialize
+
+component :: forall query input output m. MonadAff m => H.Component query input output m
+component = H.mkComponent
+  { initialState
+  , render
+  , eval: H.mkEval $ H.defaultEval
+      { handleAction = handleAction
+      , initialize = Just Initialize
+      }
+  }
+
+initialState :: forall input. input -> State
+initialState _ =
+  { theme: getTheme "scrabble"
+  }
+
+type OverlaySource =
+  { source :: String
+  , description :: String
+  }
+
+type OverlayGroup =
+  { title :: String
+  , sources :: Array OverlaySource
+  }
+
+-- Define the overlay sources we've implemented so far
+overlayGroups :: Array OverlayGroup
+overlayGroups =
+  [ { title: "Basic Player Info"
+    , sources:
+        [ { source: "player1-name", description: "Player 1 Name" }
+        , { source: "player2-name", description: "Player 2 Name" }
+        , { source: "player1-record", description: "Player 1 Record (W-L-T)" }
+        , { source: "player2-record", description: "Player 2 Record (W-L-T)" }
+        , { source: "player1-average-score", description: "Player 1 Average Score" }
+        , { source: "player2-average-score", description: "Player 2 Average Score" }
+        , { source: "player1-high-score", description: "Player 1 High Score" }
+        , { source: "player2-high-score", description: "Player 2 High Score" }
+        , { source: "player1-spread", description: "Player 1 Spread" }
+        , { source: "player2-spread", description: "Player 2 Spread" }
+        ]
+    }
+  , { title: "Rankings"
+    , sources:
+        [ { source: "player1-rank", description: "Player 1 Rank (number)" }
+        , { source: "player2-rank", description: "Player 2 Rank (number)" }
+        , { source: "player1-rank-ordinal", description: "Player 1 Rank (1st, 2nd, etc.)" }
+        , { source: "player2-rank-ordinal", description: "Player 2 Rank (1st, 2nd, etc.)" }
+        ]
+    }
+  , { title: "Ratings"
+    , sources:
+        [ { source: "player1-rating", description: "Player 1 Rating" }
+        , { source: "player2-rating", description: "Player 2 Rating" }
+        ]
+    }
+  ]
+
+render :: forall m. State -> H.ComponentHTML Action () m
+render state =
+  let theme = state.theme
+      userId = 2  -- TODO: get from auth context
+  in
+    HH.div
+      [ HP.class_ (HH.ClassName $ theme.colors.pageBackground <> " min-h-screen") ]
+      [ HH.div
+          [ HP.class_ (HH.ClassName "container mx-auto p-8") ]
+          [ -- Title
+            HH.h1
+              [ HP.class_ (HH.ClassName $ "text-3xl font-bold mb-8 text-center " <> theme.colors.textPrimary) ]
+              [ HH.text $ "Misc Overlay Testing Page (User ID: " <> show userId <> ")" ]
+
+          -- Render groups
+          , HH.div_ (map (renderGroup theme userId) overlayGroups)
+
+          -- Testing notes
+          , renderNotes theme userId
+          ]
+      ]
+
+renderGroup :: forall w. Theme -> Int -> OverlayGroup -> HH.HTML w Action
+renderGroup theme userId group =
+  HH.div
+    [ HP.class_ (HH.ClassName "mb-8") ]
+    [ HH.h2
+        [ HP.class_ (HH.ClassName $ "text-2xl font-semibold mb-4 border-b pb-2 " <> theme.colors.textAccent) ]
+        [ HH.text group.title ]
+    , HH.div
+        [ HP.class_ (HH.ClassName "space-y-4") ]
+        (map (renderSource theme userId) group.sources)
+    ]
+
+renderSource :: forall w. Theme -> Int -> OverlaySource -> HH.HTML w Action
+renderSource theme userId source =
+  let
+    hashPart = print routeCodec (MiscOverlay { userId, tournamentId: Nothing, divisionName: Nothing, source: source.source })
+    url = "http://localhost:4000/#" <> hashPart
+    iframeSrc = "#/overlay/misc?userId=" <> show userId <> "&source=" <> source.source
+  in
+    HH.div
+      [ HP.class_ (HH.ClassName $ "p-4 rounded-lg shadow border " <> theme.colors.cardBackground <> " " <> theme.colors.primaryBorder) ]
+      [ HH.h4
+          [ HP.class_ (HH.ClassName $ "font-semibold mb-2 " <> theme.colors.textPrimary) ]
+          [ HH.text source.description ]
+      , HH.a
+          [ HP.href url
+          , HP.target "_blank"
+          , HP.class_ (HH.ClassName "text-blue-600 hover:text-blue-800 underline text-sm break-all block mb-3")
+          ]
+          [ HH.text url ]
+
+      -- Rendered content in iframe
+      , HH.div
+          [ HP.class_ (HH.ClassName "mt-3") ]
+          [ HH.div
+              [ HP.class_ (HH.ClassName "p-3 bg-gray-50 border rounded min-h-[60px] flex items-center") ]
+              [ HH.iframe
+                  [ HP.src iframeSrc
+                  , HP.class_ (HH.ClassName "w-full h-16 border-0")
+                  , HP.title $ "Stats overlay: " <> source.source
+                  ]
+              ]
+          ]
+      ]
+
+renderNotes :: forall w. Theme -> Int -> HH.HTML w Action
+renderNotes theme userId =
+  let totalSources = sum (map (\g -> length g.sources) overlayGroups)
+  in
+    HH.div
+      [ HP.class_ (HH.ClassName $ "mt-12 p-4 rounded-lg " <> theme.colors.cardBackground) ]
+      [ HH.h3
+          [ HP.class_ (HH.ClassName $ "font-semibold mb-2 " <> theme.colors.textPrimary) ]
+          [ HH.text "Testing Notes:" ]
+      , HH.ul
+          [ HP.class_ (HH.ClassName $ "text-sm space-y-1 " <> theme.colors.textSecondary) ]
+          [ HH.li_ [ HH.text "• All links open in new tabs for easy testing" ]
+          , HH.li_ [ HH.text "• Rendered content shows below each URL" ]
+          , HH.li_ [ HH.text "• Make sure to set a current match in the admin interface first" ]
+          , HH.li_ [ HH.text "• URLs will show \"Loading...\" or \"No data\" if no match is selected" ]
+          , HH.li_ [ HH.text $ "• All URLs are scoped to your user account (ID: " <> show userId <> ")" ]
+          , HH.li_ [ HH.text $ "• Total: " <> show totalSources <> " source-based URLs (more to be added)" ]
+          ]
+      ]
+
+handleAction :: forall output m. MonadAff m => Action -> H.HalogenM State Action () output m Unit
+handleAction = case _ of
+  Initialize -> pure unit

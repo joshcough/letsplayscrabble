@@ -21,6 +21,8 @@ import Component.ScoringLeaders as ScoringLeaders
 import Component.ScoringLeadersWithPics as ScoringLeadersWithPics
 import Component.CrossTablesPlayerProfile as CrossTablesPlayerProfile
 import Component.HeadToHead as HeadToHead
+import Component.MiscOverlay as MiscOverlay
+import Component.MiscOverlayTestingPage as MiscOverlayTestingPage
 import Component.WorkerPage as WorkerPage
 import Data.Either (Either(..))
 import Effect.Unsafe (unsafePerformEffect)
@@ -86,6 +88,8 @@ type Slots =
   , scoringLeadersWithPics :: forall query. H.Slot query Void Unit
   , crossTablesPlayerProfile :: forall query. H.Slot query Void Unit
   , headToHead :: forall query. H.Slot query Void Unit
+  , miscOverlay :: forall query. H.Slot query Void Unit
+  , miscOverlayTesting :: forall query. H.Slot query Void Unit
   , worker :: forall query. H.Slot query Void Unit
   )
 
@@ -106,6 +110,8 @@ _scoringLeaders = Proxy :: Proxy "scoringLeaders"
 _scoringLeadersWithPics = Proxy :: Proxy "scoringLeadersWithPics"
 _crossTablesPlayerProfile = Proxy :: Proxy "crossTablesPlayerProfile"
 _headToHead = Proxy :: Proxy "headToHead"
+_miscOverlay = Proxy :: Proxy "miscOverlay"
+_miscOverlayTesting = Proxy :: Proxy "miscOverlayTesting"
 _worker = Proxy :: Proxy "worker"
 
 -- | Router component
@@ -193,12 +199,14 @@ render state =
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
+            , extraData: Nothing
             }
         _ ->
           HH.slot_ _standings unit Standings.component
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
+            , extraData: Nothing
             }
 
     Just (HighScores params) ->
@@ -208,12 +216,14 @@ render state =
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
+            , extraData: Nothing
             }
         _ ->
           HH.slot_ _highScores unit HighScores.component
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
+            , extraData: Nothing
             }
 
     Just (RatingGain params) ->
@@ -223,12 +233,14 @@ render state =
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
+            , extraData: Nothing
             }
         _ ->
           HH.slot_ _ratingGain unit RatingGain.component
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
+            , extraData: Nothing
             }
 
     Just (ScoringLeaders params) ->
@@ -238,12 +250,14 @@ render state =
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
+            , extraData: Nothing
             }
         _ ->
           HH.slot_ _scoringLeaders unit ScoringLeaders.component
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
+            , extraData: Nothing
             }
 
     Just (CrossTablesPlayerProfile params) ->
@@ -262,6 +276,17 @@ render state =
         , playerId1: params.playerId1
         , playerId2: params.playerId2
         }
+
+    Just (MiscOverlay params) ->
+      HH.slot_ _miscOverlay unit MiscOverlay.component
+        { userId: params.userId
+        , tournamentId: params.tournamentId
+        , divisionName: params.divisionName
+        , source: params.source
+        }
+
+    Just MiscOverlayTesting ->
+      HH.slot_ _miscOverlayTesting unit MiscOverlayTestingPage.component unit
 
     Just Worker ->
       HH.slot_ _worker unit WorkerPage.component unit
@@ -307,6 +332,8 @@ handleAction = case _ of
           -- Public overlay routes (no auth required)
           CrossTablesPlayerProfile _ -> H.modify_ _ { route = Just route }
           HeadToHead _ -> H.modify_ _ { route = Just route }
+          MiscOverlay _ -> H.modify_ _ { route = Just route }
+          MiscOverlayTesting -> H.modify_ _ { route = Just route }
           -- All other overlay routes require auth
           _ -> H.modify_ _ { route = Just (if isAuth then route else Login) }
 
@@ -400,6 +427,8 @@ handleQuery = case _ of
           -- Public overlay routes (no auth required)
           CrossTablesPlayerProfile _ -> route
           HeadToHead _ -> route
+          MiscOverlay _ -> route
+          MiscOverlayTesting -> route
           -- All other overlay routes require auth
           _ -> if state.isAuthenticated then route else Login
 

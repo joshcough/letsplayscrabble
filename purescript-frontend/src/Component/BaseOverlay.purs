@@ -6,11 +6,11 @@ module Component.BaseOverlay where
 import Prelude
 
 import BroadcastChannel.Manager as BroadcastManager
-import BroadcastChannel.Messages (TournamentDataResponse, SubscribeMessage)
+import BroadcastChannel.Messages (TournamentDataResponse, SubscribeMessage, AdminPanelUpdate)
 import Config.Themes (getTheme)
 import Data.Array (length)
 import Data.Maybe (Maybe(..))
-import Domain.Types (DivisionScopedData, TournamentId(..), DivisionId)
+import Domain.Types (DivisionScopedData, TournamentId(..), DivisionId, PairingId)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Console as Console
@@ -25,6 +25,13 @@ type Input =
   { userId :: Int
   , tournamentId :: Maybe TournamentId
   , divisionName :: Maybe String
+  , extraData :: Maybe String  -- Extra data field for component-specific needs (e.g., MiscOverlay source)
+  }
+
+-- | Export current match info type for use by other components
+type CurrentMatchInfo =
+  { round :: Int
+  , pairingId :: Int
   }
 
 -- | Component state
@@ -39,12 +46,15 @@ type State =
   , input :: Maybe Input
   , sortType :: SortType
   , subscribedToCurrentMatch :: Boolean
+  , currentMatch :: Maybe CurrentMatchInfo
+  , extraData :: Maybe String  -- Extra data from input
   }
 
 -- | Component actions
 data Action
   = Initialize
   | HandleTournamentData TournamentDataResponse
+  | HandleAdminPanelUpdate AdminPanelUpdate
   | Finalize
 
 -- | Initialize the base overlay state
@@ -62,6 +72,8 @@ initialState sortType input =
   , subscribedToCurrentMatch: case input.tournamentId of
       Nothing -> true  -- No tournament in URL means subscribe to current match
       Just _ -> false  -- Tournament in URL means subscribe to specific tournament
+  , currentMatch: Nothing
+  , extraData: input.extraData
   }
 
 -- | Handle base overlay actions
@@ -89,6 +101,12 @@ handleAction = case _ of
         void $ H.subscribe $
           manager.tournamentDataResponseEmitter
             <#> HandleTournamentData
+
+        -- Subscribe to admin panel updates
+        liftEffect $ Console.log "[BaseOverlay] Subscribing to admin panel updates"
+        void $ H.subscribe $
+          manager.adminPanelUpdateEmitter
+            <#> HandleAdminPanelUpdate
 
         -- Store manager in state
         H.modify_ _ { manager = Just manager }
@@ -155,6 +173,7 @@ handleAction = case _ of
       liftEffect $ Console.log $ "[BaseOverlay] Calculated " <> show (length players) <> " ranked players"
 
       -- Update state
+      -- Note: currentMatch is set separately via HandleAdminPanelUpdate
       H.modify_ _
         { tournament = Just response.data
         , players = players
@@ -165,6 +184,18 @@ handleAction = case _ of
         }
 
       liftEffect $ Console.log "[BaseOverlay] State updated with tournament data"
+
+  HandleAdminPanelUpdate update -> do
+    state <- H.get
+    liftEffect $ Console.log $ "[BaseOverlay] HandleAdminPanelUpdate called! subscribedToCurrentMatch=" <> show state.subscribedToCurrentMatch
+    liftEffect $ Console.log $ "[BaseOverlay] Update details: userId=" <> show update.userId <> ", tournamentId=" <> show update.tournamentId <> ", round=" <> show update.round <> ", pairingId=" <> show update.pairingId
+    -- Only process if we're subscribed to current match
+    if state.subscribedToCurrentMatch then do
+      liftEffect $ Console.log $ "[BaseOverlay] Processing admin panel update: round=" <> show update.round <> ", pairingId=" <> show update.pairingId
+      H.modify_ _ { currentMatch = Just { round: update.round, pairingId: update.pairingId } }
+      liftEffect $ Console.log "[BaseOverlay] currentMatch updated in state"
+    else
+      liftEffect $ Console.log "[BaseOverlay] Ignoring admin panel update (not subscribed to current match)"
 
   Finalize -> do
     state <- H.get
