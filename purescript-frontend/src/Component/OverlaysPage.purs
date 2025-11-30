@@ -15,10 +15,8 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Route (Route(..), routeCodec)
 import Routing.Duplex (print)
+import Routing.Hash (setHash)
 import Types.Theme (Theme)
-import Web.HTML (window)
-import Web.HTML.Location as Location
-import Web.HTML.Window (location)
 
 type State =
   { theme :: Theme
@@ -194,8 +192,6 @@ handleAction = case _ of
     let hashPath = print routeCodec route
     liftEffect $ log $ "[OverlaysPage] Setting hash to: " <> hashPath
 
-    -- Set the hash using location.hash to trigger hashchange event
-    win <- liftEffect window
-    loc <- liftEffect $ location win
-    liftEffect $ Location.setHash hashPath loc
+    -- Use Routing.Hash.setHash to properly update history
+    liftEffect $ setHash hashPath
     liftEffect $ log $ "[OverlaysPage] Hash set complete"

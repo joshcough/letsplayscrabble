@@ -1,0 +1,13 @@
+var ResponseType = function (x) {
+    return x;
+};
+var string = "";
+var document = "document";
+var blob = "blob";
+var arrayBuffer = "arraybuffer";
+export {
+    arrayBuffer,
+    blob,
+    document,
+    string
+};

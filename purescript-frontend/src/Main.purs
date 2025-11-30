@@ -4,7 +4,9 @@ module Main where
 import Prelude
 
 import Component.Router as Router
+import Data.Maybe (Maybe(..))
 import Effect (Effect)
+import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Class.Console as Console
 import Halogen as H
@@ -17,20 +19,15 @@ import Routing.Hash (matchesWith)
 -- | Main entry point
 -- | Renders the Router component and sets up hash routing
 main :: Effect Unit
-main = do
-  Console.log "[Main] Starting router..."
-  HA.runHalogenAff do
-    body <- HA.awaitBody
-    liftEffect $ Console.log "[Main] Got body, mounting router"
-    io <- runUI Router.component unit body
-    liftEffect $ Console.log "[Main] Router mounted"
+main = HA.runHalogenAff do
+  liftEffect $ Console.log "[Main] Starting router..."
+  body <- HA.awaitBody
+  liftEffect $ Console.log "[Main] Got body, mounting router"
+  io <- runUI Router.component unit body
+  liftEffect $ Console.log "[Main] Router mounted"
 
-    -- Set up hash change listener
-    liftEffect $ Console.log "[Main] Setting up hash change listener"
-    liftEffect $ void $ matchesWith (parse routeCodec) \old new -> do
-      Console.log "[Main] ========================================="
-      Console.log "[Main] HASH CHANGE EVENT FIRED!"
-      Console.log $ "[Main] Hash changed from " <> show old <> " to " <> show new
-      Console.log "[Main] ========================================="
-      HA.runHalogenAff $ void $ io.query $ H.mkTell $ Router.Navigate new
-    liftEffect $ Console.log "[Main] Hash change listener set up"
+  -- Set up hash change listener
+  liftEffect $ Console.log "[Main] Setting up hash change listener"
+  void $ liftEffect $ matchesWith (parse routeCodec) \_ new ->
+    launchAff_ $ void $ io.query $ H.mkTell $ Router.Navigate new
+  liftEffect $ Console.log "[Main] Hash change listener set up"

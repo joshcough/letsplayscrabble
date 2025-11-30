@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hash Change Test</title>
+</head>
+<body>
+    <h1>Hash Change Event Test</h1>
+    <p>Current hash: <span id="current-hash"></span></p>
+    <button onclick="window.location.hash = '/test1'">Set hash to /test1</button>
+    <button onclick="window.location.hash = '/test2'">Set hash to /test2</button>
+    <button onclick="window.history.back()">Go Back</button>
+    <div id="log"></div>
+
+    <script>
+        function log(msg) {
+            const div = document.getElementById('log');
+            const p = document.createElement('p');
+            p.textContent = new Date().toISOString() + ': ' + msg;
+            div.appendChild(p);
+            console.log(msg);
+        }
+
+        function updateHash() {
+            document.getElementById('current-hash').textContent = window.location.hash;
+        }
+
+        window.addEventListener('hashchange', function(e) {
+            log('HASHCHANGE EVENT FIRED! Old: ' + e.oldURL + ', New: ' + e.newURL);
+            updateHash();
+        });
+
+        window.addEventListener('popstate', function(e) {
+            log('POPSTATE EVENT FIRED! State: ' + JSON.stringify(e.state));
+        });
+
+        updateHash();
+        log('Listeners registered');
+    </script>
+</body>
+</html>

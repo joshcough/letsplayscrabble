@@ -1,0 +1,851 @@
+// | Broadcast message types for real-time tournament updates
+import * as Control_Applicative from "../Control.Applicative/index.js";
+import * as Control_Bind from "../Control.Bind/index.js";
+import * as Data_Argonaut_Decode_Class from "../Data.Argonaut.Decode.Class/index.js";
+import * as Data_Argonaut_Decode_Combinators from "../Data.Argonaut.Decode.Combinators/index.js";
+import * as Data_Either from "../Data.Either/index.js";
+import * as Data_Eq from "../Data.Eq/index.js";
+import * as Data_Generic_Rep from "../Data.Generic.Rep/index.js";
+import * as Data_Maybe from "../Data.Maybe/index.js";
+import * as Data_Show from "../Data.Show/index.js";
+import * as Data_Show_Generic from "../Data.Show.Generic/index.js";
+import * as Domain_Types from "../Domain.Types/index.js";
+var genericShowConstructor = /* #__PURE__ */ Data_Show_Generic.genericShowConstructor(Data_Show_Generic.genericShowArgsNoArguments);
+var showRecord = /* #__PURE__ */ Data_Show.showRecord()();
+var tournamentIsSymbol = {
+    reflectSymbol: function () {
+        return "tournament";
+    }
+};
+var showRecordFieldsConsNil = /* #__PURE__ */ Data_Show.showRecordFieldsConsNil({
+    reflectSymbol: function () {
+        return "userId";
+    }
+})(Data_Show.showInt);
+var divisionIsSymbol = {
+    reflectSymbol: function () {
+        return "division";
+    }
+};
+var showRecordFieldsCons = /* #__PURE__ */ Data_Show.showRecordFieldsCons(divisionIsSymbol);
+var tournamentIdIsSymbol = {
+    reflectSymbol: function () {
+        return "tournamentId";
+    }
+};
+var divisionNameIsSymbol = {
+    reflectSymbol: function () {
+        return "divisionName";
+    }
+};
+var showRecordFieldsCons1 = /* #__PURE__ */ Data_Show.showRecordFieldsCons({
+    reflectSymbol: function () {
+        return "data";
+    }
+});
+var showRecordFieldsCons2 = /* #__PURE__ */ Data_Show.showRecordFieldsCons({
+    reflectSymbol: function () {
+        return "divisionId";
+    }
+});
+var showRecordFieldsCons3 = /* #__PURE__ */ Data_Show.showRecordFieldsCons(tournamentIdIsSymbol)(showRecordFieldsConsNil)(Domain_Types.showTournamentId);
+var cityIsSymbol = {
+    reflectSymbol: function () {
+        return "city";
+    }
+};
+var showRecordFieldsCons4 = /* #__PURE__ */ Data_Show.showRecordFieldsCons(cityIsSymbol);
+var idIsSymbol = {
+    reflectSymbol: function () {
+        return "id";
+    }
+};
+var showRecordFieldsCons5 = /* #__PURE__ */ Data_Show.showRecordFieldsCons(idIsSymbol);
+var nameIsSymbol = {
+    reflectSymbol: function () {
+        return "name";
+    }
+};
+var showRecordFieldsCons6 = /* #__PURE__ */ Data_Show.showRecordFieldsCons(nameIsSymbol);
+var showMaybe = /* #__PURE__ */ Data_Maybe.showMaybe(Data_Show.showString);
+var initialRatingIsSymbol = {
+    reflectSymbol: function () {
+        return "initialRating";
+    }
+};
+var photoIsSymbol = {
+    reflectSymbol: function () {
+        return "photo";
+    }
+};
+var ratingsHistoryIsSymbol = {
+    reflectSymbol: function () {
+        return "ratingsHistory";
+    }
+};
+var seedIsSymbol = {
+    reflectSymbol: function () {
+        return "seed";
+    }
+};
+var xtDataIsSymbol = {
+    reflectSymbol: function () {
+        return "xtData";
+    }
+};
+var xtidIsSymbol = {
+    reflectSymbol: function () {
+        return "xtid";
+    }
+};
+var averageScoreIsSymbol = {
+    reflectSymbol: function () {
+        return "averageScore";
+    }
+};
+var bIsSymbol = {
+    reflectSymbol: function () {
+        return "b";
+    }
+};
+var countryIsSymbol = {
+    reflectSymbol: function () {
+        return "country";
+    }
+};
+var cswrankingIsSymbol = {
+    reflectSymbol: function () {
+        return "cswranking";
+    }
+};
+var cswratingIsSymbol = {
+    reflectSymbol: function () {
+        return "cswrating";
+    }
+};
+var lIsSymbol = {
+    reflectSymbol: function () {
+        return "l";
+    }
+};
+var opponentAverageScoreIsSymbol = {
+    reflectSymbol: function () {
+        return "opponentAverageScore";
+    }
+};
+var photourlIsSymbol = {
+    reflectSymbol: function () {
+        return "photourl";
+    }
+};
+var playeridIsSymbol = {
+    reflectSymbol: function () {
+        return "playerid";
+    }
+};
+var showRecordFieldsCons7 = /* #__PURE__ */ Data_Show.showRecordFieldsCons(playeridIsSymbol);
+var resultsIsSymbol = {
+    reflectSymbol: function () {
+        return "results";
+    }
+};
+var stateIsSymbol = {
+    reflectSymbol: function () {
+        return "state";
+    }
+};
+var tIsSymbol = {
+    reflectSymbol: function () {
+        return "t";
+    }
+};
+var tournamentCountIsSymbol = {
+    reflectSymbol: function () {
+        return "tournamentCount";
+    }
+};
+var twlrankingIsSymbol = {
+    reflectSymbol: function () {
+        return "twlranking";
+    }
+};
+var twlratingIsSymbol = {
+    reflectSymbol: function () {
+        return "twlrating";
+    }
+};
+var wIsSymbol = {
+    reflectSymbol: function () {
+        return "w";
+    }
+};
+var showMaybe1 = /* #__PURE__ */ Data_Maybe.showMaybe(Data_Show.showInt);
+var averagepointsIsSymbol = {
+    reflectSymbol: function () {
+        return "averagepoints";
+    }
+};
+var dateIsSymbol = {
+    reflectSymbol: function () {
+        return "date";
+    }
+};
+var showRecordFieldsCons8 = /* #__PURE__ */ Data_Show.showRecordFieldsCons(dateIsSymbol);
+var lossesIsSymbol = {
+    reflectSymbol: function () {
+        return "losses";
+    }
+};
+var placeIsSymbol = {
+    reflectSymbol: function () {
+        return "place";
+    }
+};
+var pointsIsSymbol = {
+    reflectSymbol: function () {
+        return "points";
+    }
+};
+var ratingIsSymbol = {
+    reflectSymbol: function () {
+        return "rating";
+    }
+};
+var ratingchangeIsSymbol = {
+    reflectSymbol: function () {
+        return "ratingchange";
+    }
+};
+var tiesIsSymbol = {
+    reflectSymbol: function () {
+        return "ties";
+    }
+};
+var totalplayersIsSymbol = {
+    reflectSymbol: function () {
+        return "totalplayers";
+    }
+};
+var tourneyidIsSymbol = {
+    reflectSymbol: function () {
+        return "tourneyid";
+    }
+};
+var winsIsSymbol = {
+    reflectSymbol: function () {
+        return "wins";
+    }
+};
+var annotatedIsSymbol = {
+    reflectSymbol: function () {
+        return "annotated";
+    }
+};
+var gameidIsSymbol = {
+    reflectSymbol: function () {
+        return "gameid";
+    }
+};
+var player1IsSymbol = {
+    reflectSymbol: function () {
+        return "player1";
+    }
+};
+var player2IsSymbol = {
+    reflectSymbol: function () {
+        return "player2";
+    }
+};
+var tourneynameIsSymbol = {
+    reflectSymbol: function () {
+        return "tourneyname";
+    }
+};
+var newratingIsSymbol = {
+    reflectSymbol: function () {
+        return "newrating";
+    }
+};
+var oldratingIsSymbol = {
+    reflectSymbol: function () {
+        return "oldrating";
+    }
+};
+var positionIsSymbol = {
+    reflectSymbol: function () {
+        return "position";
+    }
+};
+var scoreIsSymbol = {
+    reflectSymbol: function () {
+        return "score";
+    }
+};
+var showRecord1 = /* #__PURE__ */ showRecord(/* #__PURE__ */ showRecordFieldsCons6(/* #__PURE__ */ Data_Show.showRecordFieldsCons(newratingIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(oldratingIsSymbol)(/* #__PURE__ */ showRecordFieldsCons7(/* #__PURE__ */ Data_Show.showRecordFieldsCons(positionIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsConsNil(scoreIsSymbol)(Data_Show.showInt))(showMaybe1))(Data_Show.showInt))(Data_Show.showInt))(Data_Show.showInt))(Data_Show.showString));
+var isByeIsSymbol = {
+    reflectSymbol: function () {
+        return "isBye";
+    }
+};
+var pairingIdIsSymbol = {
+    reflectSymbol: function () {
+        return "pairingId";
+    }
+};
+var player1IdIsSymbol = {
+    reflectSymbol: function () {
+        return "player1Id";
+    }
+};
+var player1ScoreIsSymbol = {
+    reflectSymbol: function () {
+        return "player1Score";
+    }
+};
+var player2IdIsSymbol = {
+    reflectSymbol: function () {
+        return "player2Id";
+    }
+};
+var player2ScoreIsSymbol = {
+    reflectSymbol: function () {
+        return "player2Score";
+    }
+};
+var roundNumberIsSymbol = {
+    reflectSymbol: function () {
+        return "roundNumber";
+    }
+};
+var showRecord2 = /* #__PURE__ */ showRecord(/* #__PURE__ */ showRecordFieldsCons(/* #__PURE__ */ Data_Show.showRecordFieldsConsNil(tournamentIsSymbol)(/* #__PURE__ */ showRecord(/* #__PURE__ */ showRecordFieldsCons4(/* #__PURE__ */ Data_Show.showRecordFieldsCons({
+    reflectSymbol: function () {
+        return "dataUrl";
+    }
+})(/* #__PURE__ */ showRecordFieldsCons5(/* #__PURE__ */ Data_Show.showRecordFieldsCons({
+    reflectSymbol: function () {
+        return "lexicon";
+    }
+})(/* #__PURE__ */ Data_Show.showRecordFieldsCons({
+    reflectSymbol: function () {
+        return "longFormName";
+    }
+})(/* #__PURE__ */ showRecordFieldsCons6(/* #__PURE__ */ Data_Show.showRecordFieldsCons({
+    reflectSymbol: function () {
+        return "pollUntil";
+    }
+})(/* #__PURE__ */ Data_Show.showRecordFieldsCons({
+    reflectSymbol: function () {
+        return "theme";
+    }
+})(/* #__PURE__ */ Data_Show.showRecordFieldsCons({
+    reflectSymbol: function () {
+        return "transparentBackground";
+    }
+})(/* #__PURE__ */ Data_Show.showRecordFieldsConsNil({
+    reflectSymbol: function () {
+        return "year";
+    }
+})(Data_Show.showInt))(Data_Show.showBoolean))(Data_Show.showString))(showMaybe))(Data_Show.showString))(Data_Show.showString))(Data_Show.showString))(Domain_Types.showTournamentId))(Data_Show.showString))(Data_Show.showString))))(/* #__PURE__ */ showRecord(/* #__PURE__ */ Data_Show.showRecordFieldsCons({
+    reflectSymbol: function () {
+        return "games";
+    }
+})(/* #__PURE__ */ Data_Show.showRecordFieldsCons({
+    reflectSymbol: function () {
+        return "headToHeadGames";
+    }
+})(/* #__PURE__ */ showRecordFieldsCons5(/* #__PURE__ */ showRecordFieldsCons6(/* #__PURE__ */ Data_Show.showRecordFieldsConsNil({
+    reflectSymbol: function () {
+        return "players";
+    }
+})(/* #__PURE__ */ Data_Show.showArray(/* #__PURE__ */ showRecord(/* #__PURE__ */ showRecordFieldsCons5(/* #__PURE__ */ Data_Show.showRecordFieldsCons(initialRatingIsSymbol)(/* #__PURE__ */ showRecordFieldsCons6(/* #__PURE__ */ Data_Show.showRecordFieldsCons(photoIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(ratingsHistoryIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(seedIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(xtDataIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsConsNil(xtidIsSymbol)(/* #__PURE__ */ Data_Maybe.showMaybe(Domain_Types.showXTId)))(/* #__PURE__ */ Data_Maybe.showMaybe(/* #__PURE__ */ showRecord(/* #__PURE__ */ Data_Show.showRecordFieldsCons(averageScoreIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(bIsSymbol)(/* #__PURE__ */ showRecordFieldsCons4(/* #__PURE__ */ Data_Show.showRecordFieldsCons(countryIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(cswrankingIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(cswratingIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(lIsSymbol)(/* #__PURE__ */ showRecordFieldsCons6(/* #__PURE__ */ Data_Show.showRecordFieldsCons(opponentAverageScoreIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(photourlIsSymbol)(/* #__PURE__ */ showRecordFieldsCons7(/* #__PURE__ */ Data_Show.showRecordFieldsCons(resultsIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(stateIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(tIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(tournamentCountIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(twlrankingIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(twlratingIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsConsNil(wIsSymbol)(showMaybe1))(showMaybe1))(showMaybe1))(showMaybe1))(showMaybe1))(showMaybe))(/* #__PURE__ */ Data_Maybe.showMaybe(/* #__PURE__ */ Data_Show.showArray(/* #__PURE__ */ showRecord(/* #__PURE__ */ Data_Show.showRecordFieldsCons(averagepointsIsSymbol)(/* #__PURE__ */ showRecordFieldsCons8(/* #__PURE__ */ showRecordFieldsCons(/* #__PURE__ */ Data_Show.showRecordFieldsCons(lossesIsSymbol)(/* #__PURE__ */ showRecordFieldsCons6(/* #__PURE__ */ Data_Show.showRecordFieldsCons(placeIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(pointsIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(ratingIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(ratingchangeIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(tiesIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(totalplayersIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(tourneyidIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsConsNil(winsIsSymbol)(Data_Show.showInt))(Data_Show.showInt))(Data_Show.showInt))(Data_Show.showInt))(Data_Show.showInt))(Data_Show.showInt))(Data_Show.showInt))(Data_Show.showInt))(Data_Show.showString))(Data_Show.showInt))(Data_Show.showString))(Data_Show.showString))(Data_Show.showInt))))))(Data_Show.showInt))(showMaybe))(showMaybe1))(Data_Show.showString))(showMaybe1))(showMaybe1))(showMaybe1))(showMaybe))(showMaybe))(showMaybe1))(showMaybe1)))))(Data_Show.showInt))(/* #__PURE__ */ Data_Show.showArray(Data_Show.showInt)))(showMaybe))(Data_Show.showString))(Data_Show.showInt))(Domain_Types.showPlayerId)))))(Data_Show.showString))(Domain_Types.showDivisionId))(/* #__PURE__ */ Data_Show.showArray(/* #__PURE__ */ showRecord(/* #__PURE__ */ Data_Show.showRecordFieldsCons(annotatedIsSymbol)(/* #__PURE__ */ showRecordFieldsCons8(/* #__PURE__ */ Data_Show.showRecordFieldsCons(gameidIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(player1IsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(player2IsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsConsNil(tourneynameIsSymbol)(showMaybe))(showRecord1))(showRecord1))(Data_Show.showInt))(Data_Show.showString))(showMaybe)))))(/* #__PURE__ */ Data_Show.showArray(/* #__PURE__ */ showRecord(/* #__PURE__ */ showRecordFieldsCons5(/* #__PURE__ */ Data_Show.showRecordFieldsCons(isByeIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(pairingIdIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(player1IdIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(player1ScoreIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(player2IdIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsCons(player2ScoreIsSymbol)(/* #__PURE__ */ Data_Show.showRecordFieldsConsNil(roundNumberIsSymbol)(Data_Show.showInt))(showMaybe1))(Domain_Types.showPlayerId))(showMaybe1))(Domain_Types.showPlayerId))(/* #__PURE__ */ Data_Maybe.showMaybe(Domain_Types.showPairingId)))(Data_Show.showBoolean))(Domain_Types.showGameId)))))));
+var showRecordFieldsCons9 = /* #__PURE__ */ showRecordFieldsCons2(showRecordFieldsCons3)(Domain_Types.showDivisionId);
+var eqRec = /* #__PURE__ */ Data_Eq.eqRec();
+var eqRowCons = /* #__PURE__ */ Data_Eq.eqRowCons(Data_Eq.eqRowNil)();
+var eq = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Maybe.eqMaybe(/* #__PURE__ */ eqRec(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ eqRowCons(tournamentIdIsSymbol)(Domain_Types.eqTournamentId))()(divisionIsSymbol)(/* #__PURE__ */ Data_Maybe.eqMaybe(/* #__PURE__ */ eqRec(/* #__PURE__ */ eqRowCons(divisionNameIsSymbol)(Data_Eq.eqString)))))));
+var eqMaybe = /* #__PURE__ */ Data_Maybe.eqMaybe(Data_Eq.eqInt);
+var eq2 = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Eq.eqArray(/* #__PURE__ */ eqRec(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ eqRowCons(roundNumberIsSymbol)(Data_Eq.eqInt))()(player2ScoreIsSymbol)(eqMaybe))()(player2IdIsSymbol)(Domain_Types.eqPlayerId))()(player1ScoreIsSymbol)(eqMaybe))()(player1IdIsSymbol)(Domain_Types.eqPlayerId))()(pairingIdIsSymbol)(/* #__PURE__ */ Data_Maybe.eqMaybe(Domain_Types.eqPairingId)))()(isByeIsSymbol)(Data_Eq.eqBoolean))()(idIsSymbol)(Domain_Types.eqGameId))));
+var eqMaybe1 = /* #__PURE__ */ Data_Maybe.eqMaybe(Data_Eq.eqString);
+var eqRec1 = /* #__PURE__ */ eqRec(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ eqRowCons(scoreIsSymbol)(Data_Eq.eqInt))()(positionIsSymbol)(eqMaybe))()(playeridIsSymbol)(Data_Eq.eqInt))()(oldratingIsSymbol)(Data_Eq.eqInt))()(newratingIsSymbol)(Data_Eq.eqInt))()(nameIsSymbol)(Data_Eq.eqString));
+var eq3 = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Eq.eqArray(/* #__PURE__ */ eqRec(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ eqRowCons(tourneynameIsSymbol)(eqMaybe1))()(player2IsSymbol)(eqRec1))()(player1IsSymbol)(eqRec1))()(gameidIsSymbol)(Data_Eq.eqInt))()(dateIsSymbol)(Data_Eq.eqString))()(annotatedIsSymbol)(eqMaybe1))));
+var eq4 = /* #__PURE__ */ Data_Eq.eq(Domain_Types.eqDivisionId);
+var eq6 = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Eq.eqArray(/* #__PURE__ */ eqRec(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ eqRowCons(xtidIsSymbol)(/* #__PURE__ */ Data_Maybe.eqMaybe(Domain_Types.eqXTId)))()(xtDataIsSymbol)(/* #__PURE__ */ Data_Maybe.eqMaybe(/* #__PURE__ */ eqRec(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ eqRowCons(wIsSymbol)(eqMaybe))()(twlratingIsSymbol)(eqMaybe))()(twlrankingIsSymbol)(eqMaybe))()(tournamentCountIsSymbol)(eqMaybe))()(tIsSymbol)(eqMaybe))()(stateIsSymbol)(eqMaybe1))()(resultsIsSymbol)(/* #__PURE__ */ Data_Maybe.eqMaybe(/* #__PURE__ */ Data_Eq.eqArray(/* #__PURE__ */ eqRec(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ eqRowCons(winsIsSymbol)(Data_Eq.eqInt))()(tourneyidIsSymbol)(Data_Eq.eqInt))()(totalplayersIsSymbol)(Data_Eq.eqInt))()(tiesIsSymbol)(Data_Eq.eqInt))()(ratingchangeIsSymbol)(Data_Eq.eqInt))()(ratingIsSymbol)(Data_Eq.eqInt))()(pointsIsSymbol)(Data_Eq.eqInt))()(placeIsSymbol)(Data_Eq.eqInt))()(nameIsSymbol)(Data_Eq.eqString))()(lossesIsSymbol)(Data_Eq.eqInt))()(divisionIsSymbol)(Data_Eq.eqString))()(dateIsSymbol)(Data_Eq.eqString))()(averagepointsIsSymbol)(Data_Eq.eqInt))))))()(playeridIsSymbol)(Data_Eq.eqInt))()(photourlIsSymbol)(eqMaybe1))()(opponentAverageScoreIsSymbol)(eqMaybe))()(nameIsSymbol)(Data_Eq.eqString))()(lIsSymbol)(eqMaybe))()(cswratingIsSymbol)(eqMaybe))()(cswrankingIsSymbol)(eqMaybe))()(countryIsSymbol)(eqMaybe1))()(cityIsSymbol)(eqMaybe1))()(bIsSymbol)(eqMaybe))()(averageScoreIsSymbol)(eqMaybe)))))()(seedIsSymbol)(Data_Eq.eqInt))()(ratingsHistoryIsSymbol)(/* #__PURE__ */ Data_Eq.eqArray(Data_Eq.eqInt)))()(photoIsSymbol)(eqMaybe1))()(nameIsSymbol)(Data_Eq.eqString))()(initialRatingIsSymbol)(Data_Eq.eqInt))()(idIsSymbol)(Domain_Types.eqPlayerId))));
+var eq7 = /* #__PURE__ */ Data_Eq.eq(Domain_Types.eqTournamentId);
+var eq8 = /* #__PURE__ */ Data_Eq.eq(eqMaybe1);
+var bind = /* #__PURE__ */ Control_Bind.bind(Data_Either.bindEither);
+var decodeForeignObject = /* #__PURE__ */ Data_Argonaut_Decode_Class.decodeForeignObject(Data_Argonaut_Decode_Class.decodeJsonJson);
+var decodeJson = /* #__PURE__ */ Data_Argonaut_Decode_Class.decodeJson(decodeForeignObject);
+var getField = /* #__PURE__ */ Data_Argonaut_Decode_Combinators.getField(decodeForeignObject);
+var getField1 = /* #__PURE__ */ Data_Argonaut_Decode_Combinators.getField(Data_Argonaut_Decode_Class.decodeJsonInt);
+var getFieldOptional$prime = /* #__PURE__ */ Data_Argonaut_Decode_Combinators["getFieldOptional$prime"](/* #__PURE__ */ Data_Argonaut_Decode_Class.decodeRecord(/* #__PURE__ */ Data_Argonaut_Decode_Class.gDecodeJsonCons(/* #__PURE__ */ Data_Argonaut_Decode_Class.decodeFieldMaybe(/* #__PURE__ */ Data_Argonaut_Decode_Class.decodeRecord(/* #__PURE__ */ Data_Argonaut_Decode_Class.gDecodeJsonCons(/* #__PURE__ */ Data_Argonaut_Decode_Class.decodeFieldId(Data_Argonaut_Decode_Class.decodeJsonString))(Data_Argonaut_Decode_Class.gDecodeJsonNil)(divisionNameIsSymbol)()())()))(/* #__PURE__ */ Data_Argonaut_Decode_Class.gDecodeJsonCons(/* #__PURE__ */ Data_Argonaut_Decode_Class.decodeFieldId(Domain_Types.decodeJsonTournamentId))(Data_Argonaut_Decode_Class.gDecodeJsonNil)(tournamentIdIsSymbol)()())(divisionIsSymbol)()())());
+var pure = /* #__PURE__ */ Control_Applicative.pure(Data_Either.applicativeEither);
+
+// | Message types sent over broadcast channel
+var Subscribe = /* #__PURE__ */ (function () {
+    function Subscribe() {
+
+    };
+    Subscribe.value = new Subscribe();
+    return Subscribe;
+})();
+
+// | Message types sent over broadcast channel
+var TournamentDataResponse = /* #__PURE__ */ (function () {
+    function TournamentDataResponse() {
+
+    };
+    TournamentDataResponse.value = new TournamentDataResponse();
+    return TournamentDataResponse;
+})();
+
+// | Message types sent over broadcast channel
+var TournamentDataRefresh = /* #__PURE__ */ (function () {
+    function TournamentDataRefresh() {
+
+    };
+    TournamentDataRefresh.value = new TournamentDataRefresh();
+    return TournamentDataRefresh;
+})();
+
+// | Message types sent over broadcast channel
+var TournamentDataIncremental = /* #__PURE__ */ (function () {
+    function TournamentDataIncremental() {
+
+    };
+    TournamentDataIncremental.value = new TournamentDataIncremental();
+    return TournamentDataIncremental;
+})();
+
+// | Message types sent over broadcast channel
+var TournamentDataError = /* #__PURE__ */ (function () {
+    function TournamentDataError() {
+
+    };
+    TournamentDataError.value = new TournamentDataError();
+    return TournamentDataError;
+})();
+
+// | Message types sent over broadcast channel
+var GamesAdded = /* #__PURE__ */ (function () {
+    function GamesAdded() {
+
+    };
+    GamesAdded.value = new GamesAdded();
+    return GamesAdded;
+})();
+
+// | Message types sent over broadcast channel
+var AdminPanelUpdate = /* #__PURE__ */ (function () {
+    function AdminPanelUpdate() {
+
+    };
+    AdminPanelUpdate.value = new AdminPanelUpdate();
+    return AdminPanelUpdate;
+})();
+
+// | Message types sent over broadcast channel
+var NotificationCancel = /* #__PURE__ */ (function () {
+    function NotificationCancel() {
+
+    };
+    NotificationCancel.value = new NotificationCancel();
+    return NotificationCancel;
+})();
+
+// | Broadcast message wrapper
+var MsgSubscribe = /* #__PURE__ */ (function () {
+    function MsgSubscribe(value0) {
+        this.value0 = value0;
+    };
+    MsgSubscribe.create = function (value0) {
+        return new MsgSubscribe(value0);
+    };
+    return MsgSubscribe;
+})();
+
+// | Broadcast message wrapper
+var MsgTournamentDataResponse = /* #__PURE__ */ (function () {
+    function MsgTournamentDataResponse(value0) {
+        this.value0 = value0;
+    };
+    MsgTournamentDataResponse.create = function (value0) {
+        return new MsgTournamentDataResponse(value0);
+    };
+    return MsgTournamentDataResponse;
+})();
+
+// | Broadcast message wrapper
+var MsgTournamentDataRefresh = /* #__PURE__ */ (function () {
+    function MsgTournamentDataRefresh(value0) {
+        this.value0 = value0;
+    };
+    MsgTournamentDataRefresh.create = function (value0) {
+        return new MsgTournamentDataRefresh(value0);
+    };
+    return MsgTournamentDataRefresh;
+})();
+
+// | Broadcast message wrapper
+var MsgTournamentDataIncremental = /* #__PURE__ */ (function () {
+    function MsgTournamentDataIncremental(value0) {
+        this.value0 = value0;
+    };
+    MsgTournamentDataIncremental.create = function (value0) {
+        return new MsgTournamentDataIncremental(value0);
+    };
+    return MsgTournamentDataIncremental;
+})();
+
+// | Broadcast message wrapper
+var MsgTournamentDataError = /* #__PURE__ */ (function () {
+    function MsgTournamentDataError(value0) {
+        this.value0 = value0;
+    };
+    MsgTournamentDataError.create = function (value0) {
+        return new MsgTournamentDataError(value0);
+    };
+    return MsgTournamentDataError;
+})();
+
+// | Broadcast message wrapper
+var MsgGamesAdded = /* #__PURE__ */ (function () {
+    function MsgGamesAdded(value0) {
+        this.value0 = value0;
+    };
+    MsgGamesAdded.create = function (value0) {
+        return new MsgGamesAdded(value0);
+    };
+    return MsgGamesAdded;
+})();
+
+// | Broadcast message wrapper
+var MsgAdminPanelUpdate = /* #__PURE__ */ (function () {
+    function MsgAdminPanelUpdate(value0) {
+        this.value0 = value0;
+    };
+    MsgAdminPanelUpdate.create = function (value0) {
+        return new MsgAdminPanelUpdate(value0);
+    };
+    return MsgAdminPanelUpdate;
+})();
+
+// | Broadcast message wrapper
+var MsgNotificationCancel = /* #__PURE__ */ (function () {
+    function MsgNotificationCancel(value0) {
+        this.value0 = value0;
+    };
+    MsgNotificationCancel.create = function (value0) {
+        return new MsgNotificationCancel(value0);
+    };
+    return MsgNotificationCancel;
+})();
+var genericBroadcastMessageType = {
+    to: function (x) {
+        if (x instanceof Data_Generic_Rep.Inl) {
+            return Subscribe.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && x.value0 instanceof Data_Generic_Rep.Inl) {
+            return TournamentDataResponse.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0 instanceof Data_Generic_Rep.Inl)) {
+            return TournamentDataRefresh.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0 instanceof Data_Generic_Rep.Inl))) {
+            return TournamentDataIncremental.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl)))) {
+            return TournamentDataError.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl))))) {
+            return GamesAdded.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl)))))) {
+            return AdminPanelUpdate.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr)))))) {
+            return NotificationCancel.value;
+        };
+        throw new Error("Failed pattern match at BroadcastChannel.Messages (line 26, column 1 - line 26, column 78): " + [ x.constructor.name ]);
+    },
+    from: function (x) {
+        if (x instanceof Subscribe) {
+            return new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value);
+        };
+        if (x instanceof TournamentDataResponse) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value));
+        };
+        if (x instanceof TournamentDataRefresh) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value)));
+        };
+        if (x instanceof TournamentDataIncremental) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value))));
+        };
+        if (x instanceof TournamentDataError) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value)))));
+        };
+        if (x instanceof GamesAdded) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value))))));
+        };
+        if (x instanceof AdminPanelUpdate) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value)))))));
+        };
+        if (x instanceof NotificationCancel) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(Data_Generic_Rep.NoArguments.value)))))));
+        };
+        throw new Error("Failed pattern match at BroadcastChannel.Messages (line 26, column 1 - line 26, column 78): " + [ x.constructor.name ]);
+    }
+};
+var showBroadcastMessageType = {
+    show: /* #__PURE__ */ Data_Show_Generic.genericShow(genericBroadcastMessageType)(/* #__PURE__ */ Data_Show_Generic.genericShowSum(/* #__PURE__ */ genericShowConstructor({
+        reflectSymbol: function () {
+            return "Subscribe";
+        }
+    }))(/* #__PURE__ */ Data_Show_Generic.genericShowSum(/* #__PURE__ */ genericShowConstructor({
+        reflectSymbol: function () {
+            return "TournamentDataResponse";
+        }
+    }))(/* #__PURE__ */ Data_Show_Generic.genericShowSum(/* #__PURE__ */ genericShowConstructor({
+        reflectSymbol: function () {
+            return "TournamentDataRefresh";
+        }
+    }))(/* #__PURE__ */ Data_Show_Generic.genericShowSum(/* #__PURE__ */ genericShowConstructor({
+        reflectSymbol: function () {
+            return "TournamentDataIncremental";
+        }
+    }))(/* #__PURE__ */ Data_Show_Generic.genericShowSum(/* #__PURE__ */ genericShowConstructor({
+        reflectSymbol: function () {
+            return "TournamentDataError";
+        }
+    }))(/* #__PURE__ */ Data_Show_Generic.genericShowSum(/* #__PURE__ */ genericShowConstructor({
+        reflectSymbol: function () {
+            return "GamesAdded";
+        }
+    }))(/* #__PURE__ */ Data_Show_Generic.genericShowSum(/* #__PURE__ */ genericShowConstructor({
+        reflectSymbol: function () {
+            return "AdminPanelUpdate";
+        }
+    }))(/* #__PURE__ */ genericShowConstructor({
+        reflectSymbol: function () {
+            return "NotificationCancel";
+        }
+    })))))))))
+};
+var genericBroadcastMessage = {
+    to: function (x) {
+        if (x instanceof Data_Generic_Rep.Inl) {
+            return new MsgSubscribe(x.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && x.value0 instanceof Data_Generic_Rep.Inl) {
+            return new MsgTournamentDataResponse(x.value0.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0 instanceof Data_Generic_Rep.Inl)) {
+            return new MsgTournamentDataRefresh(x.value0.value0.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0 instanceof Data_Generic_Rep.Inl))) {
+            return new MsgTournamentDataIncremental(x.value0.value0.value0.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl)))) {
+            return new MsgTournamentDataError(x.value0.value0.value0.value0.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl))))) {
+            return new MsgGamesAdded(x.value0.value0.value0.value0.value0.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl)))))) {
+            return new MsgAdminPanelUpdate(x.value0.value0.value0.value0.value0.value0.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr)))))) {
+            return new MsgNotificationCancel(x.value0.value0.value0.value0.value0.value0.value0);
+        };
+        throw new Error("Failed pattern match at BroadcastChannel.Messages (line 114, column 1 - line 114, column 70): " + [ x.constructor.name ]);
+    },
+    from: function (x) {
+        if (x instanceof MsgSubscribe) {
+            return new Data_Generic_Rep.Inl(x.value0);
+        };
+        if (x instanceof MsgTournamentDataResponse) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(x.value0));
+        };
+        if (x instanceof MsgTournamentDataRefresh) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(x.value0)));
+        };
+        if (x instanceof MsgTournamentDataIncremental) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(x.value0))));
+        };
+        if (x instanceof MsgTournamentDataError) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(x.value0)))));
+        };
+        if (x instanceof MsgGamesAdded) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(x.value0))))));
+        };
+        if (x instanceof MsgAdminPanelUpdate) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(x.value0)))))));
+        };
+        if (x instanceof MsgNotificationCancel) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(x.value0)))))));
+        };
+        throw new Error("Failed pattern match at BroadcastChannel.Messages (line 114, column 1 - line 114, column 70): " + [ x.constructor.name ]);
+    }
+};
+var showBroadcastMessage = {
+    show: /* #__PURE__ */ Data_Show_Generic.genericShow(genericBroadcastMessage)(/* #__PURE__ */ Data_Show_Generic.genericShowSum(/* #__PURE__ */ Data_Show_Generic.genericShowConstructor(/* #__PURE__ */ Data_Show_Generic.genericShowArgsArgument(/* #__PURE__ */ showRecord(/* #__PURE__ */ Data_Show.showRecordFieldsCons(tournamentIsSymbol)(showRecordFieldsConsNil)(/* #__PURE__ */ Data_Maybe.showMaybe(/* #__PURE__ */ showRecord(/* #__PURE__ */ showRecordFieldsCons(/* #__PURE__ */ Data_Show.showRecordFieldsConsNil(tournamentIdIsSymbol)(Domain_Types.showTournamentId))(/* #__PURE__ */ Data_Maybe.showMaybe(/* #__PURE__ */ showRecord(/* #__PURE__ */ Data_Show.showRecordFieldsConsNil(divisionNameIsSymbol)(Data_Show.showString))))))))))({
+        reflectSymbol: function () {
+            return "MsgSubscribe";
+        }
+    }))(/* #__PURE__ */ Data_Show_Generic.genericShowSum(/* #__PURE__ */ Data_Show_Generic.genericShowConstructor(/* #__PURE__ */ Data_Show_Generic.genericShowArgsArgument(/* #__PURE__ */ showRecord(/* #__PURE__ */ showRecordFieldsCons1(/* #__PURE__ */ showRecordFieldsCons2(/* #__PURE__ */ Data_Show.showRecordFieldsCons({
+        reflectSymbol: function () {
+            return "isCurrentMatch";
+        }
+    })(showRecordFieldsCons3)(Data_Show.showBoolean))(Domain_Types.showDivisionId))(showRecord2))))({
+        reflectSymbol: function () {
+            return "MsgTournamentDataResponse";
+        }
+    }))(/* #__PURE__ */ Data_Show_Generic.genericShowSum(/* #__PURE__ */ Data_Show_Generic.genericShowConstructor(/* #__PURE__ */ Data_Show_Generic.genericShowArgsArgument(/* #__PURE__ */ showRecord(/* #__PURE__ */ showRecordFieldsCons1(showRecordFieldsCons9)(showRecord2))))({
+        reflectSymbol: function () {
+            return "MsgTournamentDataRefresh";
+        }
+    }))(/* #__PURE__ */ Data_Show_Generic.genericShowSum(/* #__PURE__ */ Data_Show_Generic.genericShowConstructor(/* #__PURE__ */ Data_Show_Generic.genericShowArgsArgument(/* #__PURE__ */ showRecord(/* #__PURE__ */ showRecordFieldsCons1(/* #__PURE__ */ showRecordFieldsCons2(/* #__PURE__ */ Data_Show.showRecordFieldsCons({
+        reflectSymbol: function () {
+            return "metadata";
+        }
+    })(showRecordFieldsCons3)(/* #__PURE__ */ showRecord(/* #__PURE__ */ Data_Show.showRecordFieldsCons({
+        reflectSymbol: function () {
+            return "addedCount";
+        }
+    })(/* #__PURE__ */ Data_Show.showRecordFieldsConsNil({
+        reflectSymbol: function () {
+            return "updatedCount";
+        }
+    })(Data_Show.showInt))(Data_Show.showInt))))(Domain_Types.showDivisionId))(showRecord2))))({
+        reflectSymbol: function () {
+            return "MsgTournamentDataIncremental";
+        }
+    }))(/* #__PURE__ */ Data_Show_Generic.genericShowSum(/* #__PURE__ */ Data_Show_Generic.genericShowConstructor(/* #__PURE__ */ Data_Show_Generic.genericShowArgsArgument(/* #__PURE__ */ showRecord(/* #__PURE__ */ Data_Show.showRecordFieldsCons({
+        reflectSymbol: function () {
+            return "error";
+        }
+    })(showRecordFieldsCons3)(Data_Show.showString))))({
+        reflectSymbol: function () {
+            return "MsgTournamentDataError";
+        }
+    }))(/* #__PURE__ */ Data_Show_Generic.genericShowSum(/* #__PURE__ */ Data_Show_Generic.genericShowConstructor(/* #__PURE__ */ Data_Show_Generic.genericShowArgsArgument(/* #__PURE__ */ showRecord(showRecordFieldsCons3)))({
+        reflectSymbol: function () {
+            return "MsgGamesAdded";
+        }
+    }))(/* #__PURE__ */ Data_Show_Generic.genericShowSum(/* #__PURE__ */ Data_Show_Generic.genericShowConstructor(/* #__PURE__ */ Data_Show_Generic.genericShowArgsArgument(/* #__PURE__ */ showRecord(showRecordFieldsCons9)))({
+        reflectSymbol: function () {
+            return "MsgAdminPanelUpdate";
+        }
+    }))(/* #__PURE__ */ Data_Show_Generic.genericShowConstructor(/* #__PURE__ */ Data_Show_Generic.genericShowArgsArgument(/* #__PURE__ */ showRecord(/* #__PURE__ */ Data_Show.showRecordFieldsConsNil({
+        reflectSymbol: function () {
+            return "timestamp";
+        }
+    })(Data_Show.showNumber))))({
+        reflectSymbol: function () {
+            return "MsgNotificationCancel";
+        }
+    })))))))))
+};
+var eqBroadcastMessageType = {
+    eq: function (x) {
+        return function (y) {
+            if (x instanceof Subscribe && y instanceof Subscribe) {
+                return true;
+            };
+            if (x instanceof TournamentDataResponse && y instanceof TournamentDataResponse) {
+                return true;
+            };
+            if (x instanceof TournamentDataRefresh && y instanceof TournamentDataRefresh) {
+                return true;
+            };
+            if (x instanceof TournamentDataIncremental && y instanceof TournamentDataIncremental) {
+                return true;
+            };
+            if (x instanceof TournamentDataError && y instanceof TournamentDataError) {
+                return true;
+            };
+            if (x instanceof GamesAdded && y instanceof GamesAdded) {
+                return true;
+            };
+            if (x instanceof AdminPanelUpdate && y instanceof AdminPanelUpdate) {
+                return true;
+            };
+            if (x instanceof NotificationCancel && y instanceof NotificationCancel) {
+                return true;
+            };
+            return false;
+        };
+    }
+};
+var eqBroadcastMessage = {
+    eq: function (x) {
+        return function (y) {
+            if (x instanceof MsgSubscribe && y instanceof MsgSubscribe) {
+                return eq(x.value0.tournament)(y.value0.tournament) && x.value0.userId === y.value0.userId;
+            };
+            if (x instanceof MsgTournamentDataResponse && y instanceof MsgTournamentDataResponse) {
+                return eq2(x.value0.data.division.games)(y.value0.data.division.games) && eq3(x.value0.data.division.headToHeadGames)(y.value0.data.division.headToHeadGames) && eq4(x.value0.data.division.id)(y.value0.data.division.id) && x.value0.data.division.name === y.value0.data.division.name && eq6(x.value0.data.division.players)(y.value0.data.division.players) && (x.value0.data.tournament.city === y.value0.data.tournament.city && x.value0.data.tournament.dataUrl === y.value0.data.tournament.dataUrl && eq7(x.value0.data.tournament.id)(y.value0.data.tournament.id) && x.value0.data.tournament.lexicon === y.value0.data.tournament.lexicon && x.value0.data.tournament.longFormName === y.value0.data.tournament.longFormName && x.value0.data.tournament.name === y.value0.data.tournament.name && eq8(x.value0.data.tournament.pollUntil)(y.value0.data.tournament.pollUntil) && x.value0.data.tournament.theme === y.value0.data.tournament.theme && x.value0.data.tournament.transparentBackground === y.value0.data.tournament.transparentBackground && x.value0.data.tournament.year === y.value0.data.tournament.year) && eq4(x.value0.divisionId)(y.value0.divisionId) && x.value0.isCurrentMatch === y.value0.isCurrentMatch && eq7(x.value0.tournamentId)(y.value0.tournamentId) && x.value0.userId === y.value0.userId;
+            };
+            if (x instanceof MsgTournamentDataRefresh && y instanceof MsgTournamentDataRefresh) {
+                return eq2(x.value0.data.division.games)(y.value0.data.division.games) && eq3(x.value0.data.division.headToHeadGames)(y.value0.data.division.headToHeadGames) && eq4(x.value0.data.division.id)(y.value0.data.division.id) && x.value0.data.division.name === y.value0.data.division.name && eq6(x.value0.data.division.players)(y.value0.data.division.players) && (x.value0.data.tournament.city === y.value0.data.tournament.city && x.value0.data.tournament.dataUrl === y.value0.data.tournament.dataUrl && eq7(x.value0.data.tournament.id)(y.value0.data.tournament.id) && x.value0.data.tournament.lexicon === y.value0.data.tournament.lexicon && x.value0.data.tournament.longFormName === y.value0.data.tournament.longFormName && x.value0.data.tournament.name === y.value0.data.tournament.name && eq8(x.value0.data.tournament.pollUntil)(y.value0.data.tournament.pollUntil) && x.value0.data.tournament.theme === y.value0.data.tournament.theme && x.value0.data.tournament.transparentBackground === y.value0.data.tournament.transparentBackground && x.value0.data.tournament.year === y.value0.data.tournament.year) && eq4(x.value0.divisionId)(y.value0.divisionId) && eq7(x.value0.tournamentId)(y.value0.tournamentId) && x.value0.userId === y.value0.userId;
+            };
+            if (x instanceof MsgTournamentDataIncremental && y instanceof MsgTournamentDataIncremental) {
+                return eq2(x.value0.data.division.games)(y.value0.data.division.games) && eq3(x.value0.data.division.headToHeadGames)(y.value0.data.division.headToHeadGames) && eq4(x.value0.data.division.id)(y.value0.data.division.id) && x.value0.data.division.name === y.value0.data.division.name && eq6(x.value0.data.division.players)(y.value0.data.division.players) && (x.value0.data.tournament.city === y.value0.data.tournament.city && x.value0.data.tournament.dataUrl === y.value0.data.tournament.dataUrl && eq7(x.value0.data.tournament.id)(y.value0.data.tournament.id) && x.value0.data.tournament.lexicon === y.value0.data.tournament.lexicon && x.value0.data.tournament.longFormName === y.value0.data.tournament.longFormName && x.value0.data.tournament.name === y.value0.data.tournament.name && eq8(x.value0.data.tournament.pollUntil)(y.value0.data.tournament.pollUntil) && x.value0.data.tournament.theme === y.value0.data.tournament.theme && x.value0.data.tournament.transparentBackground === y.value0.data.tournament.transparentBackground && x.value0.data.tournament.year === y.value0.data.tournament.year) && eq4(x.value0.divisionId)(y.value0.divisionId) && (x.value0.metadata.addedCount === y.value0.metadata.addedCount && x.value0.metadata.updatedCount === y.value0.metadata.updatedCount) && eq7(x.value0.tournamentId)(y.value0.tournamentId) && x.value0.userId === y.value0.userId;
+            };
+            if (x instanceof MsgTournamentDataError && y instanceof MsgTournamentDataError) {
+                return x.value0.error === y.value0.error && eq7(x.value0.tournamentId)(y.value0.tournamentId) && x.value0.userId === y.value0.userId;
+            };
+            if (x instanceof MsgGamesAdded && y instanceof MsgGamesAdded) {
+                return eq7(x.value0.tournamentId)(y.value0.tournamentId) && x.value0.userId === y.value0.userId;
+            };
+            if (x instanceof MsgAdminPanelUpdate && y instanceof MsgAdminPanelUpdate) {
+                return eq4(x.value0.divisionId)(y.value0.divisionId) && eq7(x.value0.tournamentId)(y.value0.tournamentId) && x.value0.userId === y.value0.userId;
+            };
+            if (x instanceof MsgNotificationCancel && y instanceof MsgNotificationCancel) {
+                return x.value0.timestamp === y.value0.timestamp;
+            };
+            return false;
+        };
+    }
+};
+
+// JSON Codecs
+// Note: Type aliases cannot have instances, so we provide manual decoder functions
+// | Decode a subscribe message from the "data" field
+var decodeSubscribeMessage = function (json) {
+    return bind(decodeJson(json))(function (obj) {
+        return bind(getField(obj)("data"))(function (data_) {
+            return bind(getField1(data_)("userId"))(function (userId) {
+                return bind(getFieldOptional$prime(data_)("tournament"))(function (tournament) {
+                    return pure({
+                        userId: userId,
+                        tournament: tournament
+                    });
+                });
+            });
+        });
+    });
+};
+export {
+    Subscribe,
+    TournamentDataResponse,
+    TournamentDataRefresh,
+    TournamentDataIncremental,
+    TournamentDataError,
+    GamesAdded,
+    AdminPanelUpdate,
+    NotificationCancel,
+    MsgSubscribe,
+    MsgTournamentDataResponse,
+    MsgTournamentDataRefresh,
+    MsgTournamentDataIncremental,
+    MsgTournamentDataError,
+    MsgGamesAdded,
+    MsgAdminPanelUpdate,
+    MsgNotificationCancel,
+    decodeSubscribeMessage,
+    genericBroadcastMessageType,
+    eqBroadcastMessageType,
+    showBroadcastMessageType,
+    genericBroadcastMessage,
+    eqBroadcastMessage,
+    showBroadcastMessage
+};

@@ -48,6 +48,9 @@ export function unprotectedTournamentRoutes(
   // Get full tournament data (returns domain model)
   const getTournamentForUser = withInputValidation(
     async ({ userId, tournamentId, divisionId }, req, res) => {
+      // Check if divisionName query parameter is provided
+      const divisionName = req.query.divisionName as string | undefined;
+
       await Api.withDataOr404(
         repo.getTournamentAsDomainModel(tournamentId, userId, divisionId),
         res,
@@ -57,8 +60,19 @@ export function unprotectedTournamentRoutes(
           if (divisionId !== undefined) {
             const divisionScopedData = transformToDivisionScopedData(tournament, divisionId);
             res.json(Api.success(divisionScopedData));
-          } else {
-            // Otherwise return full tournament
+          }
+          // If divisionName query param is specified, find division by name
+          else if (divisionName) {
+            const division = tournament.divisions.find(d => d.name === divisionName);
+            if (!division) {
+              res.status(404).json(Api.failure(`Division '${divisionName}' not found`));
+              return;
+            }
+            const divisionScopedData = transformToDivisionScopedData(tournament, division.id);
+            res.json(Api.success(divisionScopedData));
+          }
+          // Otherwise return full tournament
+          else {
             res.json(Api.success(tournament));
           }
         },

@@ -1,0 +1,298 @@
+// | WorkerPage component - Displays worker status and manages WebSocket connection
+import * as Api_TournamentApi from "../Api.TournamentApi/index.js";
+import * as BroadcastChannel_Manager from "../BroadcastChannel.Manager/index.js";
+import * as Control_Applicative from "../Control.Applicative/index.js";
+import * as Control_Bind from "../Control.Bind/index.js";
+import * as Control_Monad_Rec_Class from "../Control.Monad.Rec.Class/index.js";
+import * as Control_Monad_State_Class from "../Control.Monad.State.Class/index.js";
+import * as Data_Either from "../Data.Either/index.js";
+import * as Data_Functor from "../Data.Functor/index.js";
+import * as Data_Maybe from "../Data.Maybe/index.js";
+import * as Data_Show from "../Data.Show/index.js";
+import * as Data_Unit from "../Data.Unit/index.js";
+import * as Domain_Types from "../Domain.Types/index.js";
+import * as Effect_Aff from "../Effect.Aff/index.js";
+import * as Effect_Aff_Class from "../Effect.Aff.Class/index.js";
+import * as Effect_Class from "../Effect.Class/index.js";
+import * as Effect_Console from "../Effect.Console/index.js";
+import * as Effect_Ref from "../Effect.Ref/index.js";
+import * as Halogen_Component from "../Halogen.Component/index.js";
+import * as Halogen_HTML_Core from "../Halogen.HTML.Core/index.js";
+import * as Halogen_HTML_Elements from "../Halogen.HTML.Elements/index.js";
+import * as Halogen_HTML_Properties from "../Halogen.HTML.Properties/index.js";
+import * as Halogen_Query_HalogenM from "../Halogen.Query.HalogenM/index.js";
+import * as Halogen_Subscription from "../Halogen.Subscription/index.js";
+import * as Worker_WorkerSocketManager from "../Worker.WorkerSocketManager/index.js";
+var discard = /* #__PURE__ */ Control_Bind.discard(Control_Bind.discardUnit);
+var discard1 = /* #__PURE__ */ discard(Halogen_Query_HalogenM.bindHalogenM);
+var bind = /* #__PURE__ */ Control_Bind.bind(Halogen_Query_HalogenM.bindHalogenM);
+var $$void = /* #__PURE__ */ Data_Functor["void"](Halogen_Query_HalogenM.functorHalogenM);
+var mapFlipped = /* #__PURE__ */ Data_Functor.mapFlipped(Halogen_Subscription.functorEmitter);
+var modify_ = /* #__PURE__ */ Control_Monad_State_Class.modify_(Halogen_Query_HalogenM.monadStateHalogenM);
+var voidRight = /* #__PURE__ */ Data_Functor.voidRight(Halogen_Subscription.functorEmitter);
+var forever = /* #__PURE__ */ Control_Monad_Rec_Class.forever(Halogen_Query_HalogenM.monadRecHalogenM);
+var get = /* #__PURE__ */ Control_Monad_State_Class.get(Halogen_Query_HalogenM.monadStateHalogenM);
+var pure = /* #__PURE__ */ Control_Applicative.pure(Halogen_Query_HalogenM.applicativeHalogenM);
+var show = /* #__PURE__ */ Data_Show.show(Data_Show.showInt);
+var showRecord = /* #__PURE__ */ Data_Show.showRecord()();
+var show1 = /* #__PURE__ */ Data_Show.show(/* #__PURE__ */ Data_Maybe.showMaybe(/* #__PURE__ */ showRecord(/* #__PURE__ */ Data_Show.showRecordFieldsCons({
+    reflectSymbol: function () {
+        return "division";
+    }
+})(/* #__PURE__ */ Data_Show.showRecordFieldsConsNil({
+    reflectSymbol: function () {
+        return "tournamentId";
+    }
+})(Domain_Types.showTournamentId))(/* #__PURE__ */ Data_Maybe.showMaybe(/* #__PURE__ */ showRecord(/* #__PURE__ */ Data_Show.showRecordFieldsConsNil({
+    reflectSymbol: function () {
+        return "divisionName";
+    }
+})(Data_Show.showString)))))));
+var show2 = /* #__PURE__ */ Data_Show.show(Domain_Types.showTournamentId);
+var show3 = /* #__PURE__ */ Data_Show.show(/* #__PURE__ */ Data_Maybe.showMaybe(Data_Show.showString));
+var Initialize = /* #__PURE__ */ (function () {
+    function Initialize() {
+
+    };
+    Initialize.value = new Initialize();
+    return Initialize;
+})();
+var Finalize = /* #__PURE__ */ (function () {
+    function Finalize() {
+
+    };
+    Finalize.value = new Finalize();
+    return Finalize;
+})();
+var UpdateStatus = /* #__PURE__ */ (function () {
+    function UpdateStatus() {
+
+    };
+    UpdateStatus.value = new UpdateStatus();
+    return UpdateStatus;
+})();
+var HandleSubscribe = /* #__PURE__ */ (function () {
+    function HandleSubscribe(value0) {
+        this.value0 = value0;
+    };
+    HandleSubscribe.create = function (value0) {
+        return new HandleSubscribe(value0);
+    };
+    return HandleSubscribe;
+})();
+var initialState = function (v) {
+    return {
+        workerState: Data_Maybe.Nothing.value,
+        broadcastManager: Data_Maybe.Nothing.value,
+        status: "Initializing...",
+        error: Data_Maybe.Nothing.value,
+        lastUpdate: 0.0
+    };
+};
+var handleAction = function (dictMonadAff) {
+    var monadEffectHalogenM = Halogen_Query_HalogenM.monadEffectHalogenM(dictMonadAff.MonadEffect0());
+    var liftEffect = Effect_Class.liftEffect(monadEffectHalogenM);
+    var liftAff = Effect_Aff_Class.liftAff(Halogen_Query_HalogenM.monadAffHalogenM(dictMonadAff));
+    var postTournamentDataResponse = BroadcastChannel_Manager.postTournamentDataResponse(monadEffectHalogenM);
+    return function (v) {
+        if (v instanceof Initialize) {
+            return discard1(liftEffect(Effect_Console.log("[WorkerPage] Initialize action called")))(function () {
+                return discard1(liftEffect(Effect_Console.log("[WorkerPage] Creating BroadcastManager")))(function () {
+                    return bind(liftEffect(BroadcastChannel_Manager.create))(function (manager) {
+                        return discard1(liftEffect(Effect_Console.log("[WorkerPage] Subscribing to subscribe messages")))(function () {
+                            return discard1($$void(Halogen_Query_HalogenM.subscribe(mapFlipped(manager.subscribeEmitter)(HandleSubscribe.create))))(function () {
+                                return discard1(modify_(function (v1) {
+                                    var $53 = {};
+                                    for (var $54 in v1) {
+                                        if ({}.hasOwnProperty.call(v1, $54)) {
+                                            $53[$54] = v1[$54];
+                                        };
+                                    };
+                                    $53.broadcastManager = new Data_Maybe.Just(manager);
+                                    return $53;
+                                }))(function () {
+                                    return bind(liftEffect(function __do() {
+                                        Effect_Console.log("[WorkerPage] Creating worker state")();
+                                        var workerState = Worker_WorkerSocketManager.createWorkerState();
+                                        return Effect_Ref["new"](workerState)();
+                                    }))(function (stateRef) {
+                                        return discard1(liftEffect(function __do() {
+                                            Effect_Console.log("[WorkerPage] Calling WSM.initialize")();
+                                            return Worker_WorkerSocketManager.initialize("http://localhost:3001")(stateRef)();
+                                        }))(function () {
+                                            return discard1(modify_(function (v1) {
+                                                var $56 = {};
+                                                for (var $57 in v1) {
+                                                    if ({}.hasOwnProperty.call(v1, $57)) {
+                                                        $56[$57] = v1[$57];
+                                                    };
+                                                };
+                                                $56.workerState = new Data_Maybe.Just(stateRef);
+                                                return $56;
+                                            }))(function () {
+                                                return discard1(liftEffect(Effect_Console.log("[WorkerPage] Worker initialized")))(function () {
+                                                    return bind(liftEffect(Halogen_Subscription.create))(function (v1) {
+                                                        return bind(Halogen_Query_HalogenM.subscribe(voidRight(UpdateStatus.value)(v1.emitter)))(function () {
+                                                            return $$void(Halogen_Query_HalogenM.fork(forever(discard1(liftAff(Effect_Aff.delay(500.0)))(function () {
+                                                                return liftEffect(Halogen_Subscription.notify(v1.listener)(Data_Unit.unit));
+                                                            }))));
+                                                        });
+                                                    });
+                                                });
+                                            });
+                                        });
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        };
+        if (v instanceof Finalize) {
+            return bind(get)(function (state) {
+                if (state.workerState instanceof Data_Maybe.Just) {
+                    return liftEffect(Worker_WorkerSocketManager.cleanup(state.workerState.value0));
+                };
+                if (state.workerState instanceof Data_Maybe.Nothing) {
+                    return pure(Data_Unit.unit);
+                };
+                throw new Error("Failed pattern match at Component.WorkerPage (line 140, column 5 - line 142, column 27): " + [ state.workerState.constructor.name ]);
+            });
+        };
+        if (v instanceof UpdateStatus) {
+            return bind(get)(function (state) {
+                if (state.workerState instanceof Data_Maybe.Just) {
+                    return bind(liftEffect(Effect_Ref.read(state.workerState.value0)))(function (workerState) {
+                        return modify_(function (v1) {
+                            var $65 = {};
+                            for (var $66 in v1) {
+                                if ({}.hasOwnProperty.call(v1, $66)) {
+                                    $65[$66] = v1[$66];
+                                };
+                            };
+                            $65.status = workerState.connectionStatus;
+                            $65.error = workerState.error;
+                            $65.lastUpdate = workerState.lastDataUpdate;
+                            return $65;
+                        });
+                    });
+                };
+                if (state.workerState instanceof Data_Maybe.Nothing) {
+                    return pure(Data_Unit.unit);
+                };
+                throw new Error("Failed pattern match at Component.WorkerPage (line 147, column 5 - line 155, column 27): " + [ state.workerState.constructor.name ]);
+            });
+        };
+        if (v instanceof HandleSubscribe) {
+            return discard1(liftEffect(Effect_Console.log("[WorkerPage] Received subscribe message")))(function () {
+                return discard1(liftEffect(Effect_Console.log("[WorkerPage] userId=" + (show(v.value0.userId) + (", tournament=" + show1(v.value0.tournament))))))(function () {
+                    if (v.value0.tournament instanceof Data_Maybe.Nothing) {
+                        return discard1(liftEffect(Effect_Console.log("[WorkerPage] TODO: Fetch current match from DB")))(function () {
+                            return pure(Data_Unit.unit);
+                        });
+                    };
+                    if (v.value0.tournament instanceof Data_Maybe.Just) {
+                        var divisionName = (function () {
+                            if (v.value0.tournament.value0.division instanceof Data_Maybe.Just) {
+                                return new Data_Maybe.Just(v.value0.tournament.value0.division.value0.divisionName);
+                            };
+                            if (v.value0.tournament.value0.division instanceof Data_Maybe.Nothing) {
+                                return Data_Maybe.Nothing.value;
+                            };
+                            throw new Error("Failed pattern match at Component.WorkerPage (line 171, column 28 - line 173, column 33): " + [ v.value0.tournament.value0.division.constructor.name ]);
+                        })();
+                        return discard1(liftEffect(Effect_Console.log("[WorkerPage] Tournament: " + (show2(v.value0.tournament.value0.tournamentId) + (", Division: " + show3(divisionName))))))(function () {
+                            return discard1(liftEffect(Effect_Console.log("[WorkerPage] Fetching tournament data from API...")))(function () {
+                                return bind(liftAff(Api_TournamentApi.fetchTournamentData(v.value0.userId)(v.value0.tournament.value0.tournamentId)(Data_Maybe.Nothing.value)))(function (result) {
+                                    if (result instanceof Data_Either.Left) {
+                                        return discard1(liftEffect(Effect_Console.log("[WorkerPage] API fetch failed: " + result.value0)))(function () {
+                                            return pure(Data_Unit.unit);
+                                        });
+                                    };
+                                    if (result instanceof Data_Either.Right) {
+                                        return discard1(liftEffect(Effect_Console.log("[WorkerPage] API fetch succeeded, broadcasting response...")))(function () {
+                                            var response = {
+                                                userId: v.value0.userId,
+                                                tournamentId: v.value0.tournament.value0.tournamentId,
+                                                divisionId: result.value0.division.id,
+                                                isCurrentMatch: false,
+                                                data: result.value0
+                                            };
+                                            return bind(get)(function (state) {
+                                                if (state.broadcastManager instanceof Data_Maybe.Just) {
+                                                    return discard1(postTournamentDataResponse(state.broadcastManager.value0)(response))(function () {
+                                                        return liftEffect(Effect_Console.log("[WorkerPage] Response broadcasted successfully"));
+                                                    });
+                                                };
+                                                if (state.broadcastManager instanceof Data_Maybe.Nothing) {
+                                                    return liftEffect(Effect_Console.log("[WorkerPage] ERROR: No broadcast manager available"));
+                                                };
+                                                throw new Error("Failed pattern match at Component.WorkerPage (line 205, column 13 - line 210, column 101): " + [ state.broadcastManager.constructor.name ]);
+                                            });
+                                        });
+                                    };
+                                    throw new Error("Failed pattern match at Component.WorkerPage (line 181, column 9 - line 210, column 101): " + [ result.constructor.name ]);
+                                });
+                            });
+                        });
+                    };
+                    throw new Error("Failed pattern match at Component.WorkerPage (line 163, column 5 - line 210, column 101): " + [ v.value0.tournament.constructor.name ]);
+                });
+            });
+        };
+        throw new Error("Failed pattern match at Component.WorkerPage (line 97, column 16 - line 210, column 101): " + [ v.constructor.name ]);
+    };
+};
+var getStatusColor = function (state) {
+    if (state.error instanceof Data_Maybe.Just) {
+        return "#ff4444";
+    };
+    if (state.error instanceof Data_Maybe.Nothing) {
+        var $81 = state.status === "Connected";
+        if ($81) {
+            return "#44ff44";
+        };
+        var $82 = state.status === "Connecting" || state.status === "Initializing...";
+        if ($82) {
+            return "#ffaa44";
+        };
+        return "#666666";
+    };
+    throw new Error("Failed pattern match at Component.WorkerPage (line 89, column 3 - line 94, column 21): " + [ state.error.constructor.name ]);
+};
+var render = function (state) {
+    return Halogen_HTML_Elements.div([ Halogen_HTML_Properties.style("position: fixed; top: 10px; left: 10px; z-index: 9999") ])([ Halogen_HTML_Elements.div([ Halogen_HTML_Properties.style("background-color: rgba(0, 0, 0, 0.8); color: white; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; min-width: 300px") ])([ Halogen_HTML_Elements.div([ Halogen_HTML_Properties.style("font-weight: bold; margin-bottom: 5px") ])([ Halogen_HTML_Core.text("\ud83d\udd27 Tournament Worker Status") ]), Halogen_HTML_Elements.div([ Halogen_HTML_Properties.style("display: flex; align-items: center; gap: 10px; margin-bottom: 5px") ])([ Halogen_HTML_Elements.div([ Halogen_HTML_Properties.style("width: 10px; height: 10px; border-radius: 50%; background-color: " + getStatusColor(state)) ])([  ]), Halogen_HTML_Elements.span_([ Halogen_HTML_Core.text(state.status) ]) ]), (function () {
+        if (state.error instanceof Data_Maybe.Just) {
+            return Halogen_HTML_Elements.div([ Halogen_HTML_Properties.style("color: #ff4444; margin-bottom: 5px") ])([ Halogen_HTML_Core.text("\u274c " + state.error.value0) ]);
+        };
+        if (state.error instanceof Data_Maybe.Nothing) {
+            return Halogen_HTML_Core.text("");
+        };
+        throw new Error("Failed pattern match at Component.WorkerPage (line 75, column 11 - line 80, column 34): " + [ state.error.constructor.name ]);
+    })(), Halogen_HTML_Elements.div([ Halogen_HTML_Properties.style("font-size: 10px; color: #aaa; margin-top: 5px") ])([ Halogen_HTML_Core.text("Broadcasting on 'tournament-updates' & 'worker-status' channels") ]) ]) ]);
+};
+var component = function (dictMonadAff) {
+    return Halogen_Component.mkComponent({
+        initialState: initialState,
+        render: render,
+        "eval": Halogen_Component.mkEval({
+            handleQuery: Halogen_Component.defaultEval.handleQuery,
+            receive: Halogen_Component.defaultEval.receive,
+            handleAction: handleAction(dictMonadAff),
+            initialize: new Data_Maybe.Just(Initialize.value),
+            finalize: new Data_Maybe.Just(Finalize.value)
+        })
+    });
+};
+export {
+    Initialize,
+    Finalize,
+    UpdateStatus,
+    HandleSubscribe,
+    component,
+    initialState,
+    render,
+    getStatusColor,
+    handleAction
+};

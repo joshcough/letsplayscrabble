@@ -1,0 +1,5 @@
+import * as Unsafe_Coerce from "../Unsafe.Coerce/index.js";
+var toEventTarget = Unsafe_Coerce.unsafeCoerce;
+export {
+    toEventTarget
+};
