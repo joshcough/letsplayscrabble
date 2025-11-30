@@ -18,6 +18,7 @@ import Component.RatingGain as RatingGain
 import Component.RatingGainWithPics as RatingGainWithPics
 import Component.ScoringLeaders as ScoringLeaders
 import Component.ScoringLeadersWithPics as ScoringLeadersWithPics
+import Component.CrossTablesPlayerProfile as CrossTablesPlayerProfile
 import Component.WorkerPage as WorkerPage
 import Data.Either (Either(..))
 import Effect.Unsafe (unsafePerformEffect)
@@ -80,6 +81,7 @@ type Slots =
   , ratingGainWithPics :: forall query. H.Slot query Void Unit
   , scoringLeaders :: forall query. H.Slot query Void Unit
   , scoringLeadersWithPics :: forall query. H.Slot query Void Unit
+  , crossTablesPlayerProfile :: forall query. H.Slot query Void Unit
   , worker :: forall query. H.Slot query Void Unit
   )
 
@@ -97,6 +99,7 @@ _ratingGain = Proxy :: Proxy "ratingGain"
 _ratingGainWithPics = Proxy :: Proxy "ratingGainWithPics"
 _scoringLeaders = Proxy :: Proxy "scoringLeaders"
 _scoringLeadersWithPics = Proxy :: Proxy "scoringLeadersWithPics"
+_crossTablesPlayerProfile = Proxy :: Proxy "crossTablesPlayerProfile"
 _worker = Proxy :: Proxy "worker"
 
 -- | Router component
@@ -227,6 +230,14 @@ render state =
             , divisionName: params.divisionName
             }
 
+    Just (CrossTablesPlayerProfile params) ->
+      HH.slot_ _crossTablesPlayerProfile unit CrossTablesPlayerProfile.component
+        { userId: params.userId
+        , tournamentId: params.tournamentId
+        , divisionName: params.divisionName
+        , playerId: params.playerId
+        }
+
     Just Worker ->
       HH.slot_ _worker unit WorkerPage.component unit
 
@@ -268,7 +279,9 @@ handleAction = case _ of
           -- Allow access to public routes
           Login -> H.modify_ _ { route = Just Login }
           Worker -> H.modify_ _ { route = Just Worker }
-          -- All overlay routes require auth
+          -- Public overlay routes (no auth required)
+          CrossTablesPlayerProfile _ -> H.modify_ _ { route = Just route }
+          -- All other overlay routes require auth
           _ -> H.modify_ _ { route = Just (if isAuth then route else Login) }
 
   NavigateAction route -> do
@@ -354,6 +367,8 @@ handleQuery = case _ of
           CurrentMatch -> if state.isAuthenticated then CurrentMatch else Login
           Login -> Login
           Worker -> Worker
+          -- Public overlay routes (no auth required)
+          CrossTablesPlayerProfile _ -> route
           -- All other overlay routes require auth
           _ -> if state.isAuthenticated then route else Login
 

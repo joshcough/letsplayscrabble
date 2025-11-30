@@ -41,6 +41,12 @@ data Route
       , divisionName :: Maybe String
       , pics :: Maybe Boolean
       }
+  | CrossTablesPlayerProfile
+      { userId :: Int
+      , tournamentId :: Maybe Int
+      , divisionName :: Maybe String
+      , playerId :: Int
+      }
   | Worker
 
 derive instance Generic Route _
@@ -59,6 +65,7 @@ instance Show Route where
     HighScores _ -> "HighScores"
     RatingGain _ -> "RatingGain"
     ScoringLeaders _ -> "ScoringLeaders"
+    CrossTablesPlayerProfile _ -> "CrossTablesPlayerProfile"
     Worker -> "Worker"
 
 -- | Route codec for parsing and printing routes
@@ -75,5 +82,6 @@ routeCodec = root $ sum
   , "HighScores": "overlay" / "high-scores" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
   , "RatingGain": "overlay" / "rating-gain" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
   , "ScoringLeaders": "overlay" / "scoring-leaders" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
+  , "CrossTablesPlayerProfile": "overlay" / "player-profile" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, playerId: int }
   , "Worker": "worker" / noArgs
   }

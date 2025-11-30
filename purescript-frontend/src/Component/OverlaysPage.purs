@@ -68,10 +68,6 @@ render state =
                 , variants: [{ label: "Table", route: Standings { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Nothing } }
                            , { label: "With Pics", route: Standings { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Just true } }]
                 }
-              , { title: "High Scores"
-                , variants: [{ label: "Table", route: HighScores { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Nothing } }
-                           , { label: "With Pics", route: HighScores { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Just true } }]
-                }
               , { title: "Rating Gain"
                 , variants: [{ label: "Table", route: RatingGain { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Nothing } }
                            , { label: "With Pics", route: RatingGain { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Just true } }]
@@ -80,7 +76,14 @@ render state =
                 , variants: [{ label: "Table", route: ScoringLeaders { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Nothing } }
                            , { label: "With Pics", route: ScoringLeaders { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Just true } }]
                 }
+              , { title: "High Scores"
+                , variants: [{ label: "Table", route: HighScores { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Nothing } }
+                           , { label: "With Pics", route: HighScores { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Just true } }]
+                }
               ]
+
+          , -- Player Stats & Comparisons category
+            renderPlayerStatsCategory theme
 
           , -- Worker section
             renderWorkerSection theme
@@ -92,6 +95,12 @@ render state =
 
 type OverlayVariant = { label :: String, route :: Route }
 type Overlay = { title :: String, variants :: Array OverlayVariant }
+type SimpleOverlay =
+  { title :: String
+  , route :: Route
+  , description :: Maybe String
+  , requiresParams :: Boolean
+  }
 
 renderCategory :: forall w. Theme -> String -> Array Overlay -> HH.HTML w Action
 renderCategory theme categoryName overlays =
@@ -126,6 +135,52 @@ renderVariantButton theme variant =
         theme.colors.cardBackground <> " " <> theme.colors.primaryBorder <> " border " <> theme.colors.hoverBackground)
     ]
     [ HH.text variant.label ]
+
+renderPlayerStatsCategory :: forall w. Theme -> HH.HTML w Action
+renderPlayerStatsCategory theme =
+  HH.div
+    [ HP.class_ (HH.ClassName "mb-8") ]
+    [ HH.h2
+        [ HP.class_ (HH.ClassName $ "text-2xl font-bold mb-4 " <> theme.colors.textAccent) ]
+        [ HH.text "Player Stats & Comparisons" ]
+    , HH.div
+        [ HP.class_ (HH.ClassName "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4") ]
+        [ renderSimpleOverlay theme
+            { title: "Cross-Tables Profile"
+            , route: CrossTablesPlayerProfile { userId: 2, tournamentId: Nothing, divisionName: Nothing, playerId: 1 }
+            , description: Just "Player ratings & stats"
+            , requiresParams: true
+            }
+        ]
+    ]
+
+renderSimpleOverlay :: forall w. Theme -> SimpleOverlay -> HH.HTML w Action
+renderSimpleOverlay theme overlay =
+  HH.div
+    [ HP.class_ (HH.ClassName $ "p-4 rounded-xl shadow-lg border backdrop-blur-xl " <>
+        theme.colors.cardBackground <> " " <> theme.colors.primaryBorder) ]
+    [ HH.h3
+        [ HP.class_ (HH.ClassName $ "text-lg font-semibold mb-2 " <> theme.colors.textAccent) ]
+        [ HH.text overlay.title
+        , if overlay.requiresParams
+            then HH.span
+                  [ HP.class_ (HH.ClassName $ "ml-2 text-xs bg-blue-500/30 px-2 py-1 rounded-full border border-blue-400/30 " <> theme.colors.textPrimary) ]
+                  [ HH.text "Params" ]
+            else HH.text ""
+        ]
+    , case overlay.description of
+        Just desc ->
+          HH.p
+            [ HP.class_ (HH.ClassName $ "text-sm mb-3 " <> theme.colors.textPrimary) ]
+            [ HH.text desc ]
+        Nothing -> HH.text ""
+    , HH.button
+        [ HE.onClick \_ -> NavigateToRoute overlay.route
+        , HP.class_ (HH.ClassName $ "block text-center py-2 px-3 rounded-lg text-sm font-medium transition-all cursor-pointer w-full " <>
+            theme.colors.cardBackground <> " " <> theme.colors.primaryBorder <> " border " <> theme.colors.hoverBackground)
+        ]
+        [ HH.text "Open" ]
+    ]
 
 renderWorkerSection :: forall w. Theme -> HH.HTML w Action
 renderWorkerSection theme =
