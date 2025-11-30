@@ -4,7 +4,7 @@ module Domain.Types where
 
 import Prelude
 
-import Data.Argonaut.Decode (class DecodeJson)
+import Data.Argonaut.Decode (class DecodeJson, decodeJson, (.:), (.:?))
 import Data.Argonaut.Encode (class EncodeJson)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)

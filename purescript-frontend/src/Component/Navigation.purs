@@ -22,6 +22,7 @@ type Input =
 data Output
   = Logout
   | NavigateToOverlays
+  | NavigateToTournamentManager
 
 type State =
   { username :: String
@@ -34,6 +35,7 @@ data Action
   = Initialize
   | HandleLogout
   | HandleOverlaysClick
+  | HandleTournamentManagerClick
   | ToggleDropdown MouseEvent
   | CloseDropdown
 
@@ -77,11 +79,12 @@ render state =
                           hoverBg <> " transition-colors duration-200")
                       ]
                       [ HH.text "Home" ]
-                  , -- Tournament Manager link (TODO: implement)
+                  , -- Tournament Manager link
                     HH.button
                       [ HP.class_ (HH.ClassName $ "inline-flex items-center px-4 py-2 mt-3 mb-3 " <>
                           pageTextPrimary <> " font-medium rounded " <>
                           hoverBg <> " transition-colors duration-200")
+                      , HE.onClick \_ -> HandleTournamentManagerClick
                       ]
                       [ HH.text "Tournament Manager" ]
                   , -- Overlays link
@@ -185,6 +188,8 @@ handleAction = case _ of
     H.raise Logout
 
   HandleOverlaysClick -> H.raise NavigateToOverlays
+
+  HandleTournamentManagerClick -> H.raise NavigateToTournamentManager
 
   ToggleDropdown _ -> do
     state <- H.get

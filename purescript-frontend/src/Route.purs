@@ -14,6 +14,7 @@ data Route
   = Home
   | Login
   | Overlays
+  | TournamentManager
   | Standings
       { userId :: Int
       , tournamentId :: Maybe Int
@@ -49,6 +50,7 @@ instance Show Route where
     Home -> "Home"
     Login -> "Login"
     Overlays -> "Overlays"
+    TournamentManager -> "TournamentManager"
     Standings _ -> "Standings"
     HighScores _ -> "HighScores"
     RatingGain _ -> "RatingGain"
@@ -62,6 +64,7 @@ routeCodec = root $ sum
   { "Home": noArgs
   , "Login": "login" / noArgs
   , "Overlays": "overlays" / noArgs
+  , "TournamentManager": "tournaments" / "manager" / noArgs
   , "Standings": "overlay" / "standings" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
   , "HighScores": "overlay" / "high-scores" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
   , "RatingGain": "overlay" / "rating-gain" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }

@@ -6,6 +6,7 @@ import Prelude
 import Component.LoginPage as LoginPage
 import Component.Navigation as Navigation
 import Component.OverlaysPage as OverlaysPage
+import Component.TournamentManagerPage as TournamentManagerPage
 import Utils.Auth as Auth
 import Component.Standings as Standings
 import Component.StandingsWithPics as StandingsWithPics
@@ -27,8 +28,8 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Route (Route(..), routeCodec)
-import Routing.Duplex (parse)
-import Routing.Hash (getHash)
+import Routing.Duplex (parse, print)
+import Routing.Hash (getHash, setHash)
 import Type.Proxy (Proxy(..))
 
 -- | Router state
@@ -63,6 +64,7 @@ type Slots =
   ( login :: forall query. H.Slot query LoginOutput Unit
   , navigation :: forall query. H.Slot query Navigation.Output Unit
   , overlays :: forall query. H.Slot query Route Unit
+  , tournamentManager :: forall query. H.Slot query Void Unit
   , standings :: forall query. H.Slot query Void Unit
   , standingsWithPics :: forall query. H.Slot query Void Unit
   , highScores :: forall query. H.Slot query Void Unit
@@ -77,6 +79,7 @@ type Slots =
 _login = Proxy :: Proxy "login"
 _navigation = Proxy :: Proxy "navigation"
 _overlays = Proxy :: Proxy "overlays"
+_tournamentManager = Proxy :: Proxy "tournamentManager"
 _standings = Proxy :: Proxy "standings"
 _standingsWithPics = Proxy :: Proxy "standingsWithPics"
 _highScores = Proxy :: Proxy "highScores"
@@ -124,6 +127,16 @@ render state =
             ]
         _, _ ->
           HH.slot _overlays unit OverlaysPage.component unit HandleOverlaysOutput
+
+    Just TournamentManager ->
+      case state.username, state.userId of
+        Just username, Just userId ->
+          HH.div_
+            [ HH.slot _navigation unit Navigation.component { username, userId } HandleNavigationOutput
+            , HH.slot_ _tournamentManager unit TournamentManagerPage.component unit
+            ]
+        _, _ ->
+          HH.slot_ _tournamentManager unit TournamentManagerPage.component unit
 
     Just (Standings params) ->
       case params.pics of
@@ -220,6 +233,7 @@ handleAction = case _ of
           Home -> H.modify_ _ { route = Just (if isAuth then Overlays else Login) }
           -- If not authenticated and trying to access protected route, redirect to login
           Overlays -> H.modify_ _ { route = Just (if isAuth then Overlays else Login) }
+          TournamentManager -> H.modify_ _ { route = Just (if isAuth then TournamentManager else Login) }
           -- Allow access to public routes
           Login -> H.modify_ _ { route = Just Login }
           Worker -> H.modify_ _ { route = Just Worker }
@@ -252,7 +266,8 @@ handleAction = case _ of
         liftEffect $ log "[Router] Logging out..."
         -- Clear auth data
         liftEffect Auth.clearAuth
-        -- Update state and navigate to login
+        -- Update hash and state
+        liftEffect $ setHash (print routeCodec Login)
         H.modify_ _
           { isAuthenticated = false
           , username = Nothing
@@ -261,7 +276,12 @@ handleAction = case _ of
           }
       Navigation.NavigateToOverlays -> do
         liftEffect $ log "[Router] Navigating to Overlays..."
+        liftEffect $ setHash (print routeCodec Overlays)
         H.modify_ _ { route = Just Overlays }
+      Navigation.NavigateToTournamentManager -> do
+        liftEffect $ log "[Router] Navigating to Tournament Manager..."
+        liftEffect $ setHash (print routeCodec TournamentManager)
+        H.modify_ _ { route = Just TournamentManager }
 
 handleQuery :: forall output m a. MonadAff m => Query a -> H.HalogenM State Action Slots output m (Maybe a)
 handleQuery = case _ of
@@ -273,6 +293,7 @@ handleQuery = case _ of
     let finalRoute = case route of
           Home -> if state.isAuthenticated then Overlays else Login
           Overlays -> if state.isAuthenticated then Overlays else Login
+          TournamentManager -> if state.isAuthenticated then TournamentManager else Login
           Login -> Login
           Worker -> Worker
           -- All other overlay routes require auth
