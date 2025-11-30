@@ -111,14 +111,14 @@ renderPlayer theme dataUrl index player =
       HH.div
         [ HP.class_ (HH.ClassName $ theme.colors.cardBackground <> " rounded-xl px-6 py-4 border " <> theme.colors.secondaryBorder <> " min-h-[6rem] flex flex-col justify-center") ]
         [ HH.div
-            [ HP.class_ (HH.ClassName $ theme.colors.textPrimary <> " text-3xl font-black text-center") ]
+            [ HP.class_ (HH.ClassName "text-center") ]
             [ HH.div
-                [ HP.class_ (HH.ClassName "mb-2") ]
+                [ HP.class_ (HH.ClassName $ theme.colors.textPrimary <> " text-4xl font-black mb-2") ]
                 [ HH.text $ show player.wins <> "-" <> show player.losses <>
                     if player.ties > 0 then "-" <> show player.ties else ""
                 ]
             , HH.div
-                [ HP.class_ (HH.ClassName $ "text-2xl font-bold " <> getSpreadColor theme player.spread) ]
+                [ HP.class_ (HH.ClassName $ "text-3xl font-bold " <> getSpreadColor theme player.spread) ]
                 [ HH.text $ formatNumberWithSign player.spread ]
             ]
         ]

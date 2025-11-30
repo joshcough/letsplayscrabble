@@ -25,6 +25,18 @@ data Route
       , divisionName :: Maybe String
       , pics :: Maybe Boolean
       }
+  | RatingGain
+      { userId :: Int
+      , tournamentId :: Maybe Int
+      , divisionName :: Maybe String
+      , pics :: Maybe Boolean
+      }
+  | ScoringLeaders
+      { userId :: Int
+      , tournamentId :: Maybe Int
+      , divisionName :: Maybe String
+      , pics :: Maybe Boolean
+      }
   | Worker
 
 derive instance Generic Route _
@@ -37,6 +49,8 @@ instance Show Route where
     Overlays -> "Overlays"
     Standings _ -> "Standings"
     HighScores _ -> "HighScores"
+    RatingGain _ -> "RatingGain"
+    ScoringLeaders _ -> "ScoringLeaders"
     Worker -> "Worker"
 
 -- | Route codec for parsing and printing routes
@@ -47,5 +61,7 @@ routeCodec = root $ sum
   , "Overlays": "overlays" / noArgs
   , "Standings": "overlay" / "standings" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
   , "HighScores": "overlay" / "high-scores" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
+  , "RatingGain": "overlay" / "rating-gain" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
+  , "ScoringLeaders": "overlay" / "scoring-leaders" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
   , "Worker": "worker" / noArgs
   }

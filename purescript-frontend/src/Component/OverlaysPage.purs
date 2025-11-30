@@ -72,6 +72,14 @@ render state =
                 , variants: [{ label: "Table", route: HighScores { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Nothing } }
                            , { label: "With Pics", route: HighScores { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Just true } }]
                 }
+              , { title: "Rating Gain"
+                , variants: [{ label: "Table", route: RatingGain { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Nothing } }
+                           , { label: "With Pics", route: RatingGain { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Just true } }]
+                }
+              , { title: "Scoring Leaders"
+                , variants: [{ label: "Table", route: ScoringLeaders { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Nothing } }
+                           , { label: "With Pics", route: ScoringLeaders { userId: 2, tournamentId: Nothing, divisionName: Nothing, pics: Just true } }]
+                }
               ]
 
           , -- Worker section

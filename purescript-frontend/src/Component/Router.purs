@@ -8,6 +8,10 @@ import Component.Standings as Standings
 import Component.StandingsWithPics as StandingsWithPics
 import Component.HighScores as HighScores
 import Component.HighScoresWithPics as HighScoresWithPics
+import Component.RatingGain as RatingGain
+import Component.RatingGainWithPics as RatingGainWithPics
+import Component.ScoringLeaders as ScoringLeaders
+import Component.ScoringLeadersWithPics as ScoringLeadersWithPics
 import Component.WorkerPage as WorkerPage
 import Data.Either (Either(..))
 import Effect.Unsafe (unsafePerformEffect)
@@ -46,6 +50,10 @@ type Slots =
   , standingsWithPics :: forall query. H.Slot query Void Unit
   , highScores :: forall query. H.Slot query Void Unit
   , highScoresWithPics :: forall query. H.Slot query Void Unit
+  , ratingGain :: forall query. H.Slot query Void Unit
+  , ratingGainWithPics :: forall query. H.Slot query Void Unit
+  , scoringLeaders :: forall query. H.Slot query Void Unit
+  , scoringLeadersWithPics :: forall query. H.Slot query Void Unit
   , worker :: forall query. H.Slot query Void Unit
   )
 
@@ -54,6 +62,10 @@ _standings = Proxy :: Proxy "standings"
 _standingsWithPics = Proxy :: Proxy "standingsWithPics"
 _highScores = Proxy :: Proxy "highScores"
 _highScoresWithPics = Proxy :: Proxy "highScoresWithPics"
+_ratingGain = Proxy :: Proxy "ratingGain"
+_ratingGainWithPics = Proxy :: Proxy "ratingGainWithPics"
+_scoringLeaders = Proxy :: Proxy "scoringLeaders"
+_scoringLeadersWithPics = Proxy :: Proxy "scoringLeadersWithPics"
 _worker = Proxy :: Proxy "worker"
 
 -- | Router component
@@ -109,6 +121,36 @@ render state =
             }
         _ ->
           HH.slot_ _highScores unit HighScores.component
+            { userId: params.userId
+            , tournamentId: map TournamentId params.tournamentId
+            , divisionName: params.divisionName
+            }
+
+    Just (RatingGain params) ->
+      case params.pics of
+        Just true ->
+          HH.slot_ _ratingGainWithPics unit RatingGainWithPics.component
+            { userId: params.userId
+            , tournamentId: map TournamentId params.tournamentId
+            , divisionName: params.divisionName
+            }
+        _ ->
+          HH.slot_ _ratingGain unit RatingGain.component
+            { userId: params.userId
+            , tournamentId: map TournamentId params.tournamentId
+            , divisionName: params.divisionName
+            }
+
+    Just (ScoringLeaders params) ->
+      case params.pics of
+        Just true ->
+          HH.slot_ _scoringLeadersWithPics unit ScoringLeadersWithPics.component
+            { userId: params.userId
+            , tournamentId: map TournamentId params.tournamentId
+            , divisionName: params.divisionName
+            }
+        _ ->
+          HH.slot_ _scoringLeaders unit ScoringLeaders.component
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
