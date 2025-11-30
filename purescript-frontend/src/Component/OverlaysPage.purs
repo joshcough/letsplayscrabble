@@ -151,6 +151,12 @@ renderPlayerStatsCategory theme =
             , description: Just "Player ratings & stats"
             , requiresParams: true
             }
+        , renderSimpleOverlay theme
+            { title: "Head-to-Head"
+            , route: HeadToHead { userId: 2, tournamentId: Nothing, divisionName: Nothing, playerId1: Nothing, playerId2: Nothing }
+            , description: Just "Career matchup stats"
+            , requiresParams: false
+            }
         ]
     ]
 

@@ -19,6 +19,7 @@ import Component.RatingGainWithPics as RatingGainWithPics
 import Component.ScoringLeaders as ScoringLeaders
 import Component.ScoringLeadersWithPics as ScoringLeadersWithPics
 import Component.CrossTablesPlayerProfile as CrossTablesPlayerProfile
+import Component.HeadToHead as HeadToHead
 import Component.WorkerPage as WorkerPage
 import Data.Either (Either(..))
 import Effect.Unsafe (unsafePerformEffect)
@@ -82,6 +83,7 @@ type Slots =
   , scoringLeaders :: forall query. H.Slot query Void Unit
   , scoringLeadersWithPics :: forall query. H.Slot query Void Unit
   , crossTablesPlayerProfile :: forall query. H.Slot query Void Unit
+  , headToHead :: forall query. H.Slot query Void Unit
   , worker :: forall query. H.Slot query Void Unit
   )
 
@@ -100,6 +102,7 @@ _ratingGainWithPics = Proxy :: Proxy "ratingGainWithPics"
 _scoringLeaders = Proxy :: Proxy "scoringLeaders"
 _scoringLeadersWithPics = Proxy :: Proxy "scoringLeadersWithPics"
 _crossTablesPlayerProfile = Proxy :: Proxy "crossTablesPlayerProfile"
+_headToHead = Proxy :: Proxy "headToHead"
 _worker = Proxy :: Proxy "worker"
 
 -- | Router component
@@ -238,6 +241,15 @@ render state =
         , playerId: params.playerId
         }
 
+    Just (HeadToHead params) ->
+      HH.slot_ _headToHead unit HeadToHead.component
+        { userId: params.userId
+        , tournamentId: params.tournamentId
+        , divisionName: params.divisionName
+        , playerId1: params.playerId1
+        , playerId2: params.playerId2
+        }
+
     Just Worker ->
       HH.slot_ _worker unit WorkerPage.component unit
 
@@ -281,6 +293,7 @@ handleAction = case _ of
           Worker -> H.modify_ _ { route = Just Worker }
           -- Public overlay routes (no auth required)
           CrossTablesPlayerProfile _ -> H.modify_ _ { route = Just route }
+          HeadToHead _ -> H.modify_ _ { route = Just route }
           -- All other overlay routes require auth
           _ -> H.modify_ _ { route = Just (if isAuth then route else Login) }
 
@@ -369,6 +382,7 @@ handleQuery = case _ of
           Worker -> Worker
           -- Public overlay routes (no auth required)
           CrossTablesPlayerProfile _ -> route
+          HeadToHead _ -> route
           -- All other overlay routes require auth
           _ -> if state.isAuthenticated then route else Login
 

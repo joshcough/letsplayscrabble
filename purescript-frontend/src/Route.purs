@@ -47,6 +47,13 @@ data Route
       , divisionName :: Maybe String
       , playerId :: Int
       }
+  | HeadToHead
+      { userId :: Int
+      , tournamentId :: Maybe Int
+      , divisionName :: Maybe String
+      , playerId1 :: Maybe Int
+      , playerId2 :: Maybe Int
+      }
   | Worker
 
 derive instance Generic Route _
@@ -66,6 +73,7 @@ instance Show Route where
     RatingGain _ -> "RatingGain"
     ScoringLeaders _ -> "ScoringLeaders"
     CrossTablesPlayerProfile _ -> "CrossTablesPlayerProfile"
+    HeadToHead _ -> "HeadToHead"
     Worker -> "Worker"
 
 -- | Route codec for parsing and printing routes
@@ -83,5 +91,6 @@ routeCodec = root $ sum
   , "RatingGain": "overlay" / "rating-gain" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
   , "ScoringLeaders": "overlay" / "scoring-leaders" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
   , "CrossTablesPlayerProfile": "overlay" / "player-profile" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, playerId: int }
+  , "HeadToHead": "overlay" / "head-to-head" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, playerId1: optional <<< int, playerId2: optional <<< int }
   , "Worker": "worker" / noArgs
   }
