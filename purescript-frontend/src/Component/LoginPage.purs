@@ -1,0 +1,174 @@
+-- | Login page component
+module Component.LoginPage where
+
+import Prelude
+
+import API.Auth as AuthAPI
+import Config.Themes (getTheme)
+import Data.Either (Either(..))
+import Data.Maybe (Maybe(..))
+import Effect.Aff.Class (class MonadAff)
+import Halogen as H
+import Halogen.HTML as HH
+import Halogen.HTML.Events as HE
+import Halogen.HTML.Properties as HP
+import Types.Theme (Theme)
+import Web.Event.Event (Event, preventDefault)
+
+type State =
+  { username :: String
+  , password :: String
+  , error :: Maybe String
+  , loading :: Boolean
+  , theme :: Theme
+  }
+
+data Action
+  = Initialize
+  | UpdateUsername String
+  | UpdatePassword String
+  | HandleSubmit Event
+  | LoginSuccess { token :: String, userId :: Int, username :: String }
+  | LoginFailure String
+
+type Output =
+  { token :: String
+  , userId :: Int
+  , username :: String
+  }
+
+component :: forall query input m. MonadAff m => H.Component query input Output m
+component = H.mkComponent
+  { initialState
+  , render
+  , eval: H.mkEval $ H.defaultEval
+      { handleAction = handleAction
+      , initialize = Just Initialize
+      }
+  }
+
+initialState :: forall input. input -> State
+initialState _ =
+  { username: ""
+  , password: ""
+  , error: Nothing
+  , loading: false
+  , theme: getTheme "scrabble"
+  }
+
+render :: forall m. State -> H.ComponentHTML Action () m
+render state =
+  let theme = state.theme
+  in
+    HH.div
+      [ HP.class_ (HH.ClassName $ theme.colors.pageBackground <> " min-h-screen flex items-center justify-center p-6") ]
+      [ HH.div
+          [ HP.class_ (HH.ClassName "max-w-md w-full") ]
+          [ -- Title
+            HH.div
+              [ HP.class_ (HH.ClassName "text-center mb-8") ]
+              [ HH.h1
+                  [ HP.class_ (HH.ClassName $ "text-5xl font-black mb-2 " <>
+                      if theme.name == "original"
+                        then theme.colors.titleGradient
+                        else "text-transparent bg-clip-text " <> theme.colors.titleGradient)
+                  ]
+                  [ HH.text "Let's Play Scrabble" ]
+              , HH.p
+                  [ HP.class_ (HH.ClassName $ "text-lg " <> theme.colors.textSecondary) ]
+                  [ HH.text "Sign in to manage your tournaments" ]
+              ]
+          , -- Login form
+            HH.form
+              [ HP.class_ (HH.ClassName $ theme.colors.cardBackground <> " rounded-2xl p-8 border-2 " <> theme.colors.primaryBorder <> " shadow-2xl " <> theme.colors.shadowColor)
+              , HE.onSubmit HandleSubmit
+              ]
+              [ -- Error message
+                case state.error of
+                  Just err ->
+                    HH.div
+                      [ HP.class_ (HH.ClassName "mb-6 p-4 bg-red-900/50 border border-red-400/50 rounded-lg text-red-200 text-sm") ]
+                      [ HH.text err ]
+                  Nothing -> HH.text ""
+              , -- Username field
+                HH.div
+                  [ HP.class_ (HH.ClassName "mb-6") ]
+                  [ HH.label
+                      [ HP.class_ (HH.ClassName $ "block text-sm font-bold mb-2 " <> theme.colors.textPrimary)
+                      , HP.for "username"
+                      ]
+                      [ HH.text "Username" ]
+                  , HH.input
+                      [ HP.type_ HP.InputText
+                      , HP.id "username"
+                      , HP.value state.username
+                      , HE.onValueInput UpdateUsername
+                      , HP.class_ (HH.ClassName $ "w-full px-4 py-3 rounded-lg border-2 " <> theme.colors.primaryBorder <> " bg-black/20 " <> theme.colors.textPrimary <> " focus:outline-none focus:border-amber-400 transition-colors")
+                      , HP.placeholder "Enter your username"
+                      , HP.required true
+                      , HP.disabled state.loading
+                      ]
+                  ]
+              , -- Password field
+                HH.div
+                  [ HP.class_ (HH.ClassName "mb-6") ]
+                  [ HH.label
+                      [ HP.class_ (HH.ClassName $ "block text-sm font-bold mb-2 " <> theme.colors.textPrimary)
+                      , HP.for "password"
+                      ]
+                      [ HH.text "Password" ]
+                  , HH.input
+                      [ HP.type_ HP.InputPassword
+                      , HP.id "password"
+                      , HP.value state.password
+                      , HE.onValueInput UpdatePassword
+                      , HP.class_ (HH.ClassName $ "w-full px-4 py-3 rounded-lg border-2 " <> theme.colors.primaryBorder <> " bg-black/20 " <> theme.colors.textPrimary <> " focus:outline-none focus:border-amber-400 transition-colors")
+                      , HP.placeholder "Enter your password"
+                      , HP.required true
+                      , HP.disabled state.loading
+                      ]
+                  ]
+              , -- Submit button
+                HH.button
+                  [ HP.type_ HP.ButtonSubmit
+                  , HP.class_ (HH.ClassName $ "w-full py-3 px-4 rounded-lg font-bold text-lg transition-all " <>
+                      if state.loading
+                        then "bg-gray-600 text-gray-400 cursor-not-allowed"
+                        else "bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 cursor-pointer")
+                  , HP.disabled state.loading
+                  ]
+                  [ HH.text if state.loading then "Signing in..." else "Sign In" ]
+              ]
+          ]
+      ]
+
+handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
+handleAction = case _ of
+  Initialize -> pure unit
+
+  UpdateUsername username ->
+    H.modify_ _ { username = username, error = Nothing }
+
+  UpdatePassword password ->
+    H.modify_ _ { password = password, error = Nothing }
+
+  HandleSubmit event -> do
+    H.liftEffect $ preventDefault event
+    state <- H.get
+    H.modify_ _ { loading = true, error = Nothing }
+
+    -- Make API call
+    result <- H.liftAff $ AuthAPI.login
+      { username: state.username
+      , password: state.password
+      }
+
+    case result of
+      Right loginData -> handleAction $ LoginSuccess loginData
+      Left error -> handleAction $ LoginFailure error
+
+  LoginSuccess { token, userId, username } ->
+    H.raise { token, userId, username }
+
+  LoginFailure error ->
+    H.modify_ _ { loading = false, error = Just error }

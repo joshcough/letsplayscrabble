@@ -12,6 +12,7 @@ import Routing.Duplex.Generic.Syntax ((/), (?))
 -- | Application routes
 data Route
   = Home
+  | Login
   | Overlays
   | Standings
       { userId :: Int
@@ -46,6 +47,7 @@ derive instance Ord Route
 instance Show Route where
   show = case _ of
     Home -> "Home"
+    Login -> "Login"
     Overlays -> "Overlays"
     Standings _ -> "Standings"
     HighScores _ -> "HighScores"
@@ -58,6 +60,7 @@ instance Show Route where
 routeCodec :: RouteDuplex' Route
 routeCodec = root $ sum
   { "Home": noArgs
+  , "Login": "login" / noArgs
   , "Overlays": "overlays" / noArgs
   , "Standings": "overlay" / "standings" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
   , "HighScores": "overlay" / "high-scores" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, pics: optional <<< boolean }
