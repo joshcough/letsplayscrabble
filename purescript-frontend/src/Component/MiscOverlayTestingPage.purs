@@ -40,6 +40,7 @@ initialState _ =
 type OverlaySource =
   { source :: String
   , description :: String
+  , height :: String  -- Tailwind height class like "h-8", "h-32", etc.
   }
 
 type OverlayGroup =
@@ -52,49 +53,57 @@ overlayGroups :: Array OverlayGroup
 overlayGroups =
   [ { title: "Basic Player Info"
     , sources:
-        [ { source: "player1-name", description: "Player 1 Name" }
-        , { source: "player2-name", description: "Player 2 Name" }
-        , { source: "player1-record", description: "Player 1 Record (W-L-T)" }
-        , { source: "player2-record", description: "Player 2 Record (W-L-T)" }
-        , { source: "player1-average-score", description: "Player 1 Average Score" }
-        , { source: "player2-average-score", description: "Player 2 Average Score" }
-        , { source: "player1-high-score", description: "Player 1 High Score" }
-        , { source: "player2-high-score", description: "Player 2 High Score" }
-        , { source: "player1-spread", description: "Player 1 Spread" }
-        , { source: "player2-spread", description: "Player 2 Spread" }
+        [ { source: "player1-name", description: "Player 1 Name", height: "h-8" }
+        , { source: "player2-name", description: "Player 2 Name", height: "h-8" }
+        , { source: "player1-record", description: "Player 1 Record (W-L-T)", height: "h-8" }
+        , { source: "player2-record", description: "Player 2 Record (W-L-T)", height: "h-8" }
+        , { source: "player1-average-score", description: "Player 1 Average Score", height: "h-8" }
+        , { source: "player2-average-score", description: "Player 2 Average Score", height: "h-8" }
+        , { source: "player1-high-score", description: "Player 1 High Score", height: "h-8" }
+        , { source: "player2-high-score", description: "Player 2 High Score", height: "h-8" }
+        , { source: "player1-spread", description: "Player 1 Spread", height: "h-8" }
+        , { source: "player2-spread", description: "Player 2 Spread", height: "h-8" }
         ]
     }
   , { title: "Rankings"
     , sources:
-        [ { source: "player1-rank", description: "Player 1 Rank (number)" }
-        , { source: "player2-rank", description: "Player 2 Rank (number)" }
-        , { source: "player1-rank-ordinal", description: "Player 1 Rank (1st, 2nd, etc.)" }
-        , { source: "player2-rank-ordinal", description: "Player 2 Rank (1st, 2nd, etc.)" }
+        [ { source: "player1-rank", description: "Player 1 Rank (number)", height: "h-8" }
+        , { source: "player2-rank", description: "Player 2 Rank (number)", height: "h-8" }
+        , { source: "player1-rank-ordinal", description: "Player 1 Rank (1st, 2nd, etc.)", height: "h-8" }
+        , { source: "player2-rank-ordinal", description: "Player 2 Rank (1st, 2nd, etc.)", height: "h-8" }
         ]
     }
   , { title: "Ratings"
     , sources:
-        [ { source: "player1-rating", description: "Player 1 Rating" }
-        , { source: "player2-rating", description: "Player 2 Rating" }
+        [ { source: "player1-rating", description: "Player 1 Rating", height: "h-8" }
+        , { source: "player2-rating", description: "Player 2 Rating", height: "h-8" }
         ]
     }
   , { title: "Under Camera Displays"
     , sources:
-        [ { source: "player1-under-cam", description: "Player 1 Under Cam (full with seed)" }
-        , { source: "player2-under-cam", description: "Player 2 Under Cam (full with seed)" }
-        , { source: "player1-under-cam-no-seed", description: "Player 1 Under Cam (no seed)" }
-        , { source: "player2-under-cam-no-seed", description: "Player 2 Under Cam (no seed)" }
-        , { source: "player1-under-cam-small", description: "Player 1 Under Cam (small)" }
-        , { source: "player2-under-cam-small", description: "Player 2 Under Cam (small)" }
-        , { source: "player1-under-cam-with-rating", description: "Player 1 Under Cam (with rating)" }
-        , { source: "player2-under-cam-with-rating", description: "Player 2 Under Cam (with rating)" }
+        [ { source: "player1-under-cam", description: "Player 1 Under Cam (full with seed)", height: "h-8" }
+        , { source: "player2-under-cam", description: "Player 2 Under Cam (full with seed)", height: "h-8" }
+        , { source: "player1-under-cam-no-seed", description: "Player 1 Under Cam (no seed)", height: "h-8" }
+        , { source: "player2-under-cam-no-seed", description: "Player 2 Under Cam (no seed)", height: "h-8" }
+        , { source: "player1-under-cam-small", description: "Player 1 Under Cam (small)", height: "h-8" }
+        , { source: "player2-under-cam-small", description: "Player 2 Under Cam (small)", height: "h-8" }
+        , { source: "player1-under-cam-with-rating", description: "Player 1 Under Cam (with rating)", height: "h-8" }
+        , { source: "player2-under-cam-with-rating", description: "Player 2 Under Cam (with rating)", height: "h-8" }
+        ]
+    }
+  , { title: "Game Data"
+    , sources:
+        [ { source: "player1-game-history", description: "Player 1 Game History", height: "h-48" }
+        , { source: "player2-game-history", description: "Player 2 Game History", height: "h-48" }
+        , { source: "player1-game-history-small", description: "Player 1 Game History Small", height: "h-32" }
+        , { source: "player2-game-history-small", description: "Player 2 Game History Small", height: "h-32" }
         ]
     }
   , { title: "Best of 7 & Tournament"
     , sources:
-        [ { source: "player1-bo7", description: "Player 1 Best of 7 Record" }
-        , { source: "player2-bo7", description: "Player 2 Best of 7 Record" }
-        , { source: "tournament-data", description: "Tournament Name, Lexicon, Round" }
+        [ { source: "player1-bo7", description: "Player 1 Best of 7 Record", height: "h-8" }
+        , { source: "player2-bo7", description: "Player 2 Best of 7 Record", height: "h-8" }
+        , { source: "tournament-data", description: "Tournament Name, Lexicon, Round", height: "h-8" }
         ]
     }
   ]
@@ -156,15 +165,22 @@ renderSource theme userId source =
       , HH.div
           [ HP.class_ (HH.ClassName "mt-3") ]
           [ HH.div
-              [ HP.class_ (HH.ClassName "p-2 bg-gray-50 border rounded min-h-[30px] flex items-center") ]
+              [ HP.class_ (HH.ClassName $ "p-2 bg-gray-50 border rounded flex items-center " <> getMinHeight source.height) ]
               [ HH.iframe
                   [ HP.src iframeSrc
-                  , HP.class_ (HH.ClassName "w-full h-8 border-0")
+                  , HP.class_ (HH.ClassName $ "w-full border-0 " <> source.height)
                   , HP.title $ "Stats overlay: " <> source.source
                   ]
               ]
           ]
       ]
+  where
+    getMinHeight :: String -> String
+    getMinHeight h = case h of
+      "h-8" -> "min-h-[30px]"
+      "h-32" -> "min-h-[130px]"
+      "h-48" -> "min-h-[200px]"
+      _ -> "min-h-[30px]"
 
 renderNotes :: forall w. Theme -> Int -> HH.HTML w Action
 renderNotes theme userId =

@@ -4,10 +4,11 @@ module Component.MiscOverlay where
 import Prelude
 
 import Component.BaseOverlay as BaseOverlay
-import Data.Array (find)
+import Data.Array (filter, find, length, null, sortBy, take)
 import Data.Int (round)
-import Data.Maybe (Maybe(..))
-import Domain.Types (TournamentId(..), PairingId(..))
+import Data.Maybe (Maybe(..), fromMaybe, isJust)
+import Data.String (joinWith) as String
+import Domain.Types (TournamentId(..), PairingId(..), Game, PlayerId)
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Halogen.HTML as HH
@@ -42,6 +43,10 @@ data SourceType
   | Player2UnderCamWithRating
   | Player1Bo7
   | Player2Bo7
+  | Player1GameHistory
+  | Player2GameHistory
+  | Player1GameHistorySmall
+  | Player2GameHistorySmall
   | TournamentData
   | UnknownSource
 
@@ -76,6 +81,10 @@ parseSource = case _ of
   "player2-under-cam-with-rating" -> Player2UnderCamWithRating
   "player1-bo7" -> Player1Bo7
   "player2-bo7" -> Player2Bo7
+  "player1-game-history" -> Player1GameHistory
+  "player2-game-history" -> Player2GameHistory
+  "player1-game-history-small" -> Player1GameHistorySmall
+  "player2-game-history-small" -> Player2GameHistorySmall
   "tournament-data" -> TournamentData
   _ -> UnknownSource
 
@@ -141,6 +150,81 @@ formatUnderCamWithRating player =
 formatBestOf7 :: RankedPlayerStats -> String
 formatBestOf7 player =
   "Best of 7 Record: " <> formatUnderCamRecord player
+
+-- | Get recent games for a player (most recent first)
+getRecentGamesForPlayer :: PlayerId -> Array Game -> Int -> Array Game
+getRecentGamesForPlayer playerId games limit =
+  let
+    -- Get all games for this player
+    playerGames = filter (\g -> g.player1Id == playerId || g.player2Id == playerId) games
+    -- Filter to only played games (both scores present)
+    playedGames = filter (\g -> isJust g.player1Score && isJust g.player2Score) playerGames
+    -- Sort by round number descending (most recent first)
+    sortedGames = sortBy (\a b -> compare b.roundNumber a.roundNumber) playedGames
+  in
+    take limit sortedGames
+
+-- | Format game history as W-L-W string
+formatGameHistorySimple :: PlayerId -> Array Game -> String
+formatGameHistorySimple playerId games =
+  let
+    recentGames = getRecentGamesForPlayer playerId games 5
+    results = map (gameResult playerId) recentGames
+  in
+    if null results
+      then "No games"
+      else "Last " <> show (length results) <> ": " <> String.joinWith "-" results
+  where
+    gameResult :: PlayerId -> Game -> String
+    gameResult pid game =
+      let
+        isPlayer1 = game.player1Id == pid
+        playerScore = if isPlayer1 then game.player1Score else game.player2Score
+        opponentScore = if isPlayer1 then game.player2Score else game.player1Score
+      in
+        case playerScore, opponentScore of
+          Just ps, Just os ->
+            if ps > os then "W"
+            else if ps == os then "T"
+            else "L"
+          _, _ -> "?"
+
+-- | Get opponent name for a game
+getOpponentName :: PlayerId -> Game -> Array RankedPlayerStats -> String
+getOpponentName playerId game players =
+  let
+    opponentId = if game.player1Id == playerId then game.player2Id else game.player1Id
+    maybeOpponent = find (\p -> p.playerId == opponentId) players
+  in
+    case maybeOpponent of
+      Just opponent -> opponent.name
+      Nothing -> "Unknown"
+
+-- | Calculate rank for average score
+calculateAverageScoreRank :: Array RankedPlayerStats -> RankedPlayerStats -> Int
+calculateAverageScoreRank allPlayers player =
+  let
+    sorted = sortBy (\a b -> compare b.averageScore a.averageScore) allPlayers
+    maybeIndex = find (\p -> p.playerId == player.playerId) sorted
+  in
+    case maybeIndex of
+      Just _ ->
+        let idx = length (filter (\p -> p.averageScore > player.averageScore) sorted)
+        in idx + 1
+      Nothing -> 1
+
+-- | Calculate rank for average opponent score (lower is better, so reverse sort)
+calculateAverageOpponentScoreRank :: Array RankedPlayerStats -> RankedPlayerStats -> Int
+calculateAverageOpponentScoreRank allPlayers player =
+  let
+    sorted = sortBy (\a b -> compare a.averageOpponentScore b.averageOpponentScore) allPlayers
+    maybeIndex = find (\p -> p.playerId == player.playerId) sorted
+  in
+    case maybeIndex of
+      Just _ ->
+        let idx = length (filter (\p -> p.averageOpponentScore < player.averageOpponentScore) sorted)
+        in idx + 1
+      Nothing -> 1
 
 type Input =
   { userId :: Int
@@ -267,6 +351,14 @@ renderPlayerData state source =
                       HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ formatBestOf7 p1 ]
                     Player2Bo7 ->
                       HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ formatBestOf7 p2 ]
+                    Player1GameHistorySmall ->
+                      renderGameHistoryTable game.player1Id division.games state.players
+                    Player2GameHistorySmall ->
+                      renderGameHistoryTable game.player2Id division.games state.players
+                    Player1GameHistory ->
+                      renderPointsAndGameHistory p1 game.player1Id division.games state.players
+                    Player2GameHistory ->
+                      renderPointsAndGameHistory p2 game.player2Id division.games state.players
                     TournamentData ->
                       -- This shouldn't be reached since TournamentData is handled separately
                       BaseOverlay.renderError "Tournament data should not be rendered here"
@@ -286,3 +378,82 @@ renderTournamentData state =
       BaseOverlay.renderError "No current match for tournament data"
     Nothing, _ ->
       BaseOverlay.renderError "No tournament data"
+
+-- | Render game history table
+renderGameHistoryTable :: forall m. PlayerId -> Array Game -> Array RankedPlayerStats -> H.ComponentHTML Action () m
+renderGameHistoryTable playerId games players =
+  let
+    recentGames = getRecentGamesForPlayer playerId games 5
+    headerText = if length recentGames == 1
+                   then "Last Game:"
+                   else "Last " <> show (length recentGames) <> " Games:"
+  in
+    if null recentGames then
+      HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text "No games" ]
+    else
+      HH.div [ HP.class_ (HH.ClassName "mt-4 flex flex-col items-start text-sm text-black") ]
+        [ HH.div [ HP.class_ (HH.ClassName "w-full text-left mb-1") ] [ HH.text headerText ]
+        , HH.table [ HP.class_ (HH.ClassName "w-full border-separate") ]
+            [ HH.tbody_
+                (map (renderGameRow playerId players) recentGames)
+            ]
+        ]
+  where
+    renderGameRow :: PlayerId -> Array RankedPlayerStats -> Game -> HH.HTML _ Action
+    renderGameRow pid pls game =
+      let
+        isPlayer1 = game.player1Id == pid
+        playerScore = if isPlayer1 then game.player1Score else game.player2Score
+        opponentScore = if isPlayer1 then game.player2Score else game.player1Score
+        opponentName = getOpponentName pid game pls
+        result = case playerScore, opponentScore of
+          Just ps, Just os ->
+            if ps > os then { text: "Win", color: "text-red-600" }
+            else if ps == os then { text: "Tie", color: "text-gray-600" }
+            else { text: "Loss", color: "text-blue-600" }
+          _, _ -> { text: "?", color: "text-gray-600" }
+      in
+        HH.tr_
+          [ HH.td [ HP.class_ (HH.ClassName "whitespace-nowrap pr-4") ]
+              [ HH.text $ "Round " <> show game.roundNumber <> ":" ]
+          , HH.td [ HP.class_ (HH.ClassName "whitespace-nowrap pr-4") ]
+              [ HH.text $ show (fromMaybe 0 playerScore) <> "-" <> show (fromMaybe 0 opponentScore) ]
+          , HH.td [ HP.class_ (HH.ClassName $ "whitespace-nowrap font-extrabold pr-4 " <> result.color) ]
+              [ HH.text result.text ]
+          , HH.td_
+              [ HH.text $ "vs " <> opponentName ]
+          ]
+
+-- | Render points display (avg points for/against with rankings)
+renderPointsDisplay :: forall m. RankedPlayerStats -> Array RankedPlayerStats -> H.ComponentHTML Action () m
+renderPointsDisplay player allPlayers =
+  let
+    avgScoreRank = calculateAverageScoreRank allPlayers player
+    avgOppScoreRank = calculateAverageOpponentScoreRank allPlayers player
+    avgScoreRankOrd = formatRankOrdinal avgScoreRank
+    avgOppScoreRankOrd = formatRankOrdinal avgOppScoreRank
+  in
+    HH.div [ HP.class_ (HH.ClassName "mt-4 flex flex-col items-start text-black") ]
+      [ HH.div [ HP.class_ (HH.ClassName "flex w-full") ]
+          [ HH.div [ HP.class_ (HH.ClassName "mr-6") ]
+              [ HH.div [ HP.class_ (HH.ClassName "text-base w-full text-left") ]
+                  [ HH.text $ "Avg Points For: " <> show (round player.averageScore) ]
+              , HH.div [ HP.class_ (HH.ClassName "text-base w-full text-left") ]
+                  [ HH.text $ "Ranked: " <> avgScoreRankOrd ]
+              ]
+          , HH.div_
+              [ HH.div [ HP.class_ (HH.ClassName "text-base w-full text-left") ]
+                  [ HH.text $ "Avg Points Against: " <> show (round player.averageOpponentScore) ]
+              , HH.div [ HP.class_ (HH.ClassName "text-base w-full text-left") ]
+                  [ HH.text $ "Ranked: " <> avgOppScoreRankOrd ]
+              ]
+          ]
+      ]
+
+-- | Render combined points and game history (used by player1-points, player2-points, player1-game-history, player2-game-history)
+renderPointsAndGameHistory :: forall m. RankedPlayerStats -> PlayerId -> Array Game -> Array RankedPlayerStats -> H.ComponentHTML Action () m
+renderPointsAndGameHistory player playerId games allPlayers =
+  HH.div [ HP.class_ (HH.ClassName "text-black") ]
+    [ renderPointsDisplay player allPlayers
+    , renderGameHistoryTable playerId games allPlayers
+    ]
