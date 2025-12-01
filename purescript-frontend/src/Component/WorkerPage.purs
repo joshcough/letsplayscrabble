@@ -11,7 +11,8 @@ import Control.Monad.Rec.Class (forever)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Domain.Types (TournamentId(..), DivisionId(..))
+import Domain.Types (TournamentId(..), DivisionId(..), Tournament)
+import Data.Map as Map
 import Effect.Aff as Aff
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
@@ -23,12 +24,20 @@ import Halogen.HTML.Properties as HP
 import Halogen.Subscription as HS
 import Worker.WorkerSocketManager as WSM
 
+-- | Cache key is "userId:tournamentId"
+type CacheKey = String
+
+-- | Create cache key from userId and tournamentId
+makeCacheKey :: Int -> TournamentId -> CacheKey
+makeCacheKey userId (TournamentId tid) = show userId <> ":" <> show tid
+
 type State =
   { workerState :: Maybe (Ref.Ref WSM.WorkerState)
   , broadcastManager :: Maybe BroadcastManager.BroadcastManager
   , status :: String
   , error :: Maybe String
   , lastUpdate :: Number
+  , cache :: Map.Map CacheKey Tournament
   }
 
 data Action
@@ -56,6 +65,7 @@ initialState _ =
   , status: "Initializing..."
   , error: Nothing
   , lastUpdate: 0.0
+  , cache: Map.empty
   }
 
 render :: forall m. State -> H.ComponentHTML Action () m
@@ -180,25 +190,42 @@ handleAction = case _ of
 
           Right (Just currentMatch) -> do
             let cm = unwrap currentMatch
+            let cacheKey = makeCacheKey msg.userId (TournamentId cm.tournamentId)
+
             liftEffect $ Effect.Console.log $ "[WorkerPage] Current match found: tournament=" <>
               show cm.tournamentId <> ", division=" <> cm.divisionName
 
-            -- Now fetch tournament data using current match info
-            result <- H.liftAff $ TournamentApi.fetchTournamentData msg.userId
-              (TournamentId cm.tournamentId)
-              (Just cm.divisionName)
+            -- Check cache first
+            state <- H.get
+            let cachedTournament = Map.lookup cacheKey state.cache
 
-            case result of
+            tournamentData <- case cachedTournament of
+              Just tournament -> do
+                liftEffect $ Effect.Console.log $ "[WorkerPage] Cache HIT for " <> cacheKey
+                pure $ Right tournament
+              Nothing -> do
+                liftEffect $ Effect.Console.log $ "[WorkerPage] Cache MISS for " <> cacheKey
+                -- Fetch from API (ignores divisionName, always fetches full tournament)
+                H.liftAff $ TournamentApi.fetchTournamentData msg.userId
+                  (TournamentId cm.tournamentId)
+                  Nothing
+
+            case tournamentData of
               Left err -> do
                 liftEffect $ Effect.Console.log $ "[WorkerPage] Error fetching tournament data: " <> err
                 pure unit
 
-              Right tournamentData -> do
-                liftEffect $ Effect.Console.log "[WorkerPage] Successfully fetched tournament data for current match"
+              Right tournament -> do
+                -- Update cache
+                when (cachedTournament == Nothing) do
+                  liftEffect $ Effect.Console.log $ "[WorkerPage] Caching tournament for " <> cacheKey
+                  H.modify_ _ { cache = Map.insert cacheKey tournament state.cache }
+
+                liftEffect $ Effect.Console.log "[WorkerPage] Successfully got tournament data for current match"
 
                 -- Broadcast the data
-                state <- H.get
-                case state.broadcastManager of
+                freshState <- H.get
+                case freshState.broadcastManager of
                   Just mgr -> do
                     -- First, broadcast AdminPanelUpdate so components know which game to display
                     case cm.pairingId of
@@ -216,57 +243,64 @@ handleAction = case _ of
                       Nothing ->
                         liftEffect $ Effect.Console.log "[WorkerPage] No pairing ID in current match"
 
-                    -- Then broadcast the tournament data
+                    -- Then broadcast the full tournament
                     let response =
                           { userId: msg.userId
                           , tournamentId: TournamentId cm.tournamentId
-                          , divisionId: DivisionId cm.divisionId
                           , isCurrentMatch: true
-                          , data: tournamentData
+                          , data: tournament
                           }
                     liftEffect $ BroadcastManager.postTournamentDataResponse mgr response
-                    liftEffect $ Effect.Console.log $ "[WorkerPage] Broadcast tournament data for current match (round=" <> show cm.round <> ", pairingId=" <> show cm.pairingId <> ")"
+                    liftEffect $ Effect.Console.log $ "[WorkerPage] Broadcast full tournament for current match (round=" <> show cm.round <> ", pairingId=" <> show cm.pairingId <> ")"
                   Nothing -> liftEffect $ Effect.Console.log "[WorkerPage] No broadcast manager"
 
       Just tournament -> do
         let tournamentId = tournament.tournamentId
-        let divisionName = case tournament.division of
-              Just div -> Just div.divisionName
-              Nothing -> Nothing
+        let cacheKey = makeCacheKey msg.userId tournamentId
 
-        liftEffect $ Effect.Console.log $ "[WorkerPage] Tournament: " <> show tournamentId <> ", Division: " <> show divisionName
+        liftEffect $ Effect.Console.log $ "[WorkerPage] Tournament: " <> show tournamentId
 
-        -- Fetch tournament data from API with divisionName query param
-        liftEffect $ Effect.Console.log "[WorkerPage] Fetching tournament data from API..."
-        result <- H.liftAff $ TournamentApi.fetchTournamentData msg.userId tournamentId divisionName
+        -- Check cache first
+        state <- H.get
+        let cachedTournament = Map.lookup cacheKey state.cache
 
-        case result of
+        tournamentData <- case cachedTournament of
+          Just t -> do
+            liftEffect $ Effect.Console.log $ "[WorkerPage] Cache HIT for " <> cacheKey
+            pure $ Right t
+          Nothing -> do
+            liftEffect $ Effect.Console.log $ "[WorkerPage] Cache MISS for " <> cacheKey
+            -- Fetch from API (always full tournament, divisionName ignored)
+            H.liftAff $ TournamentApi.fetchTournamentData msg.userId tournamentId Nothing
+
+        case tournamentData of
           Left err -> do
             liftEffect $ Effect.Console.log $ "[WorkerPage] API fetch failed: " <> err
             -- TODO: Broadcast error message
             pure unit
 
-          Right data_ -> do
-            liftEffect $ Effect.Console.log "[WorkerPage] API fetch succeeded, broadcasting response..."
+          Right t -> do
+            -- Update cache
+            when (cachedTournament == Nothing) do
+              liftEffect $ Effect.Console.log $ "[WorkerPage] Caching tournament for " <> cacheKey
+              H.modify_ _ { cache = Map.insert cacheKey t state.cache }
 
-            -- Get the divisionId from the response data
-            let divisionId = data_.division.id
+            liftEffect $ Effect.Console.log "[WorkerPage] Successfully got tournament data"
 
-            -- Create response message
+            -- Create response message (no divisionId needed)
             let response :: TournamentDataResponse
                 response =
                   { userId: msg.userId
                   , tournamentId: tournamentId
-                  , divisionId: divisionId
                   , isCurrentMatch: false  -- This is a specific tournament request
-                  , data: data_
+                  , data: t
                   }
 
             -- Broadcast response to all listeners
-            state <- H.get
-            case state.broadcastManager of
+            freshState <- H.get
+            case freshState.broadcastManager of
               Just manager -> do
                 BroadcastManager.postTournamentDataResponse manager response
-                liftEffect $ Effect.Console.log "[WorkerPage] Response broadcasted successfully"
+                liftEffect $ Effect.Console.log "[WorkerPage] Broadcast full tournament"
               Nothing -> do
                 liftEffect $ Effect.Console.log "[WorkerPage] ERROR: No broadcast manager available"

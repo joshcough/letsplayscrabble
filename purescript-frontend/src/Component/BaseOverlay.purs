@@ -10,7 +10,8 @@ import BroadcastChannel.Messages (TournamentDataResponse, SubscribeMessage, Admi
 import Config.Themes (getTheme)
 import Data.Array (length)
 import Data.Maybe (Maybe(..))
-import Domain.Types (DivisionScopedData, TournamentId(..), DivisionId, PairingId)
+import Domain.Types (DivisionScopedData, TournamentId(..), DivisionId, PairingId, Tournament, Division, TournamentSummary)
+import Data.Array (find)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Console as Console
@@ -32,6 +33,7 @@ type Input =
 type CurrentMatchInfo =
   { round :: Int
   , pairingId :: Int
+  , divisionName :: String
   }
 
 -- | Component state
@@ -153,47 +155,94 @@ handleAction = case _ of
     if not shouldAccept then do
       liftEffect $ Console.log $ "[BaseOverlay] Ignoring tournament data response (isCurrentMatch=" <> show response.isCurrentMatch <> ", subscribedToCurrentMatch=" <> show state.subscribedToCurrentMatch <> ")"
     else do
-      liftEffect $ Console.log "[BaseOverlay] Received tournament data response"
-      liftEffect $ Console.log $ "[BaseOverlay] Division: " <> response.data.division.name
-      liftEffect $ Console.log $ "[BaseOverlay] Players count: " <> show (length response.data.division.players)
-      liftEffect $ Console.log $ "[BaseOverlay] Games count: " <> show (length response.data.division.games)
+      liftEffect $ Console.log "[BaseOverlay] Received tournament data response (full tournament)"
+      liftEffect $ Console.log $ "[BaseOverlay] Tournament has " <> show (length response.data.divisions) <> " divisions"
 
-      -- Get theme from tournament data
-      let themeName = response.data.tournament.theme
-      let theme = getTheme themeName
-      liftEffect $ Console.log $ "[BaseOverlay] Using theme: " <> themeName
+      -- Extract the division we care about
+      -- For current match mode, use divisionName from AdminPanelUpdate (stored in currentMatch)
+      -- For specific tournament mode, use divisionName from URL input
+      let divisionName = if state.subscribedToCurrentMatch
+            then case state.currentMatch of
+              Just cm -> Just cm.divisionName
+              Nothing -> Nothing  -- Haven't received AdminPanelUpdate yet
+            else case state.input of
+              Just input -> input.divisionName
+              Nothing -> Nothing
 
-      -- Calculate player stats with the component's sort type
-      let
-        players = calculateRankedStats
-          state.sortType
-          response.data.division.players
-          response.data.division.games
+      liftEffect $ Console.log $ "[BaseOverlay] Looking for division: " <> show divisionName <> " (subscribedToCurrentMatch=" <> show state.subscribedToCurrentMatch <> ")"
 
-      liftEffect $ Console.log $ "[BaseOverlay] Calculated " <> show (length players) <> " ranked players"
+      let division = case divisionName of
+            Just name -> find (\d -> d.name == name) response.data.divisions
+            Nothing -> Nothing  -- No division specified, can't proceed
 
-      -- Update state
-      -- Note: currentMatch is set separately via HandleAdminPanelUpdate
-      H.modify_ _
-        { tournament = Just response.data
-        , players = players
-        , divisionName = response.data.division.name
-        , theme = theme
-        , loading = false
-        , error = Nothing
-        }
+      case division of
+        Nothing -> do
+          liftEffect $ Console.log $ "[BaseOverlay] ERROR: Could not find division " <> show divisionName
+          H.modify_ _ { error = Just $ "Division not found: " <> show divisionName, loading = false }
 
-      liftEffect $ Console.log "[BaseOverlay] State updated with tournament data"
+        Just div -> do
+          liftEffect $ Console.log $ "[BaseOverlay] Found division: " <> div.name
+          liftEffect $ Console.log $ "[BaseOverlay] Players count: " <> show (length div.players)
+          liftEffect $ Console.log $ "[BaseOverlay] Games count: " <> show (length div.games)
+
+          -- Get theme from tournament data
+          let themeName = response.data.theme
+          let theme = getTheme themeName
+          liftEffect $ Console.log $ "[BaseOverlay] Using theme: " <> themeName
+
+          -- Create TournamentSummary from full Tournament
+          let tournamentSummary :: TournamentSummary
+              tournamentSummary =
+                { id: response.data.id
+                , name: response.data.name
+                , city: response.data.city
+                , year: response.data.year
+                , lexicon: response.data.lexicon
+                , longFormName: response.data.longFormName
+                , dataUrl: response.data.dataUrl
+                , pollUntil: Nothing  -- Not present in Tournament
+                , theme: response.data.theme
+                , transparentBackground: response.data.transparentBackground
+                }
+
+          -- Create DivisionScopedData
+          let divisionScopedData :: DivisionScopedData
+              divisionScopedData =
+                { tournament: tournamentSummary
+                , division: div
+                }
+
+          -- Calculate player stats with the component's sort type
+          let
+            players = calculateRankedStats
+              state.sortType
+              div.players
+              div.games
+
+          liftEffect $ Console.log $ "[BaseOverlay] Calculated " <> show (length players) <> " ranked players"
+
+          -- Update state
+          -- Note: currentMatch is set separately via HandleAdminPanelUpdate
+          H.modify_ _
+            { tournament = Just divisionScopedData
+            , players = players
+            , divisionName = div.name
+            , theme = theme
+            , loading = false
+            , error = Nothing
+            }
+
+          liftEffect $ Console.log "[BaseOverlay] State updated with tournament data"
 
   HandleAdminPanelUpdate update -> do
     state <- H.get
     liftEffect $ Console.log $ "[BaseOverlay] HandleAdminPanelUpdate called! subscribedToCurrentMatch=" <> show state.subscribedToCurrentMatch
-    liftEffect $ Console.log $ "[BaseOverlay] Update details: userId=" <> show update.userId <> ", tournamentId=" <> show update.tournamentId <> ", round=" <> show update.round <> ", pairingId=" <> show update.pairingId
+    liftEffect $ Console.log $ "[BaseOverlay] Update details: userId=" <> show update.userId <> ", tournamentId=" <> show update.tournamentId <> ", divisionName=" <> update.divisionName <> ", round=" <> show update.round <> ", pairingId=" <> show update.pairingId
     -- Only process if we're subscribed to current match
     if state.subscribedToCurrentMatch then do
-      liftEffect $ Console.log $ "[BaseOverlay] Processing admin panel update: round=" <> show update.round <> ", pairingId=" <> show update.pairingId
-      H.modify_ _ { currentMatch = Just { round: update.round, pairingId: update.pairingId } }
-      liftEffect $ Console.log "[BaseOverlay] currentMatch updated in state"
+      liftEffect $ Console.log $ "[BaseOverlay] Processing admin panel update: divisionName=" <> update.divisionName <> ", round=" <> show update.round <> ", pairingId=" <> show update.pairingId
+      H.modify_ _ { currentMatch = Just { round: update.round, pairingId: update.pairingId, divisionName: update.divisionName } }
+      liftEffect $ Console.log "[BaseOverlay] currentMatch updated in state with divisionName"
     else
       liftEffect $ Console.log "[BaseOverlay] Ignoring admin panel update (not subscribed to current match)"
 

@@ -3,7 +3,7 @@ module BroadcastChannel.Messages where
 
 import Prelude
 
-import Domain.Types (TournamentId, DivisionId, DivisionScopedData, GameChanges)
+import Domain.Types (TournamentId, DivisionId, DivisionScopedData, GameChanges, Tournament)
 import Data.Argonaut.Core (Json, jsonEmptyObject)
 import Data.Argonaut.Decode (class DecodeJson, decodeJson, (.:), (.:?), JsonDecodeError)
 import Data.Argonaut.Encode (class EncodeJson, encodeJson, (:=), (~>))
@@ -47,28 +47,26 @@ type SubscribeMessage =
   }
 
 -- | Tournament data response (worker → component, initial data)
+-- | Now contains full tournament with all divisions
 type TournamentDataResponse =
   { userId :: Int
   , tournamentId :: TournamentId
-  , divisionId :: DivisionId
   , isCurrentMatch :: Boolean
-  , data :: DivisionScopedData
+  , data :: Tournament
   }
 
 -- | Tournament data refresh (worker → component, admin panel update)
 type TournamentDataRefresh =
   { userId :: Int
   , tournamentId :: TournamentId
-  , divisionId :: DivisionId
-  , data :: DivisionScopedData
+  , data :: Tournament
   }
 
 -- | Tournament data incremental (worker → component, game updates)
 type TournamentDataIncremental =
   { userId :: Int
   , tournamentId :: TournamentId
-  , divisionId :: DivisionId
-  , data :: DivisionScopedData
+  , data :: Tournament
   , metadata ::
       { addedCount :: Int
       , updatedCount :: Int

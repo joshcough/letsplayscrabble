@@ -11,14 +11,15 @@ import Data.Argonaut.Decode (decodeJson, (.:), printJsonDecodeError, JsonDecodeE
 import Data.Either (Either(..))
 import Data.HTTP.Method (Method(..))
 import Data.Maybe (Maybe(..))
-import Domain.Types (TournamentId(..), DivisionScopedData)
+import Domain.Types (TournamentId(..), DivisionScopedData, Tournament)
+import API.CurrentMatch (decodeTournament)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Effect.Console as Console
 
--- | Fetch tournament data
--- | Now accepts optional divisionName parameter
-fetchTournamentData :: Int -> TournamentId -> Maybe String -> Aff (Either String DivisionScopedData)
+-- | Fetch tournament data (full tournament with all divisions)
+-- | divisionName parameter is ignored - we always fetch the full tournament
+fetchTournamentData :: Int -> TournamentId -> Maybe String -> Aff (Either String Tournament)
 fetchTournamentData userId (TournamentId tournamentId) maybeDivisionName = do
   let url = buildUrl userId tournamentId maybeDivisionName
   liftEffect $ Console.log $ "[TournamentApi] Fetching from: " <> url
@@ -52,18 +53,19 @@ fetchTournamentData userId (TournamentId tournamentId) maybeDivisionName = do
 
   where
     buildUrl :: Int -> Int -> Maybe String -> String
-    buildUrl uid tid Nothing =
+    buildUrl uid tid _ =
+      -- Always fetch full tournament (no division parameter)
       "http://localhost:3001/api/public/users/" <> show uid <>
       "/tournaments/" <> show tid
-    buildUrl uid tid (Just divName) =
-      "http://localhost:3001/api/public/users/" <> show uid <>
-      "/tournaments/" <> show tid <>
-      "?divisionName=" <> divName
 
-    decodeApiResponse :: Json -> Either JsonDecodeError DivisionScopedData
+    decodeApiResponse :: Json -> Either JsonDecodeError Tournament
     decodeApiResponse json = do
       obj <- decodeJson json
       success <- obj .: "success"
       if success
-        then obj .: "data"
+        then do
+          dataJson <- obj .: "data"
+          case decodeTournament dataJson of
+            Left err -> Left $ TypeMismatch $ "Failed to decode Tournament: " <> err
+            Right tournament -> Right tournament
         else Left $ TypeMismatch "API returned success: false"
