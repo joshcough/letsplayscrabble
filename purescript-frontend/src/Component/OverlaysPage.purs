@@ -253,12 +253,45 @@ renderInstructions theme =
             theme.colors.cardBackground <> " " <> theme.colors.primaryBorder) ]
         [ HH.h3
             [ HP.class_ (HH.ClassName $ "font-semibold mb-3 text-lg " <> theme.colors.textAccent) ]
+            [ HH.text "Overlay Features:" ]
+        , HH.ul
+            [ HP.class_ (HH.ClassName $ "text-sm space-y-2 " <> theme.colors.textPrimary) ]
+            [ HH.li_ [ HH.text "• Theme support with tournament-specific theming" ]
+            , HH.li_ [ HH.text "• Real-time updates via WebSocket broadcasting" ]
+            , HH.li_ [ HH.text "• Enhanced visual elements with improved color coding" ]
+            , HH.li_ [ HH.text "• Rank badges and icons for top performers and statistics" ]
+            , HH.li_ [ HH.text "• Responsive design optimized for streaming overlays" ]
+            ]
+        ]
+    , HH.div
+        [ HP.class_ (HH.ClassName $ "mt-6 p-6 border rounded-2xl backdrop-blur-xl " <>
+            theme.colors.cardBackground <> " " <> theme.colors.primaryBorder) ]
+        [ HH.h3
+            [ HP.class_ (HH.ClassName $ "font-semibold mb-3 text-lg " <> theme.colors.textAccent) ]
             [ HH.text "How it works:" ]
         , HH.ul
             [ HP.class_ (HH.ClassName $ "text-sm space-y-2 " <> theme.colors.textPrimary) ]
             [ HH.li_ [ HH.text "• Default: Uses currently selected match in admin interface" ]
-            , HH.li_ [ HH.text "• Overlays automatically update when you change the current match" ]
+            , HH.li_ [ HH.text "• With URL params: Most overlays support /tournamentId/divisionName for specific tournament data" ]
+            , HH.li_ [ HH.text "• Example: /users/2/overlay/standings/123/A shows standings for tournament 123, division A" ]
+            , HH.li_ [ HH.text "• Misc overlay: Add ?source=player1-name (or other sources) for specific data elements" ]
+            , HH.li_ [ HH.text "• Cross-Tables Profile: Two modes - Current match: ?player=1 or ?player=2. Specific player: /tournamentId/divisionName/playerId" ]
+            , HH.li_ [ HH.text "• Head-to-Head Comparison: Two modes - Current match players (no params needed). Specific players: /tournamentId/divisionName/playerId1/playerId2" ]
+            ]
+        ]
+    , HH.div
+        [ HP.class_ (HH.ClassName $ "mt-6 p-6 border rounded-2xl backdrop-blur-xl " <>
+            theme.colors.cardBackground <> " " <> theme.colors.primaryBorder) ]
+        [ HH.h3
+            [ HP.class_ (HH.ClassName $ "font-semibold mb-3 text-lg " <> theme.colors.textAccent) ]
+            [ HH.text "For OBS Setup:" ]
+        , HH.ul
+            [ HP.class_ (HH.ClassName $ "text-sm space-y-2 " <> theme.colors.textPrimary) ]
+            [ HH.li_ [ HH.text "• Step 1: Add Worker Page as a Browser Source (can be in any scene, even if not visible)" ]
+            , HH.li_ [ HH.text "• Step 2: Add your overlay Browser Sources using the URLs below" ]
+            , HH.li_ [ HH.text "• All Browser Sources are scoped to your user account (ID: 2)" ]
             , HH.li_ [ HH.text "• Worker must stay enabled for live data updates across all overlays" ]
+            , HH.li_ [ HH.text "• Overlays work best with transparent backgrounds in OBS for the theme effects" ]
             ]
         ]
     ]

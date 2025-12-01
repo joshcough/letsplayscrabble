@@ -18,7 +18,6 @@ import Effect.Console as Console
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
-import Stats.PlayerStats (RankedPlayerStats, SortType, calculateRankedStats)
 import Types.Theme (Theme)
 
 -- | Component input
@@ -40,13 +39,11 @@ type CurrentMatchInfo =
 type State =
   { manager :: Maybe BroadcastManager.BroadcastManager
   , tournament :: Maybe DivisionScopedData
-  , players :: Array RankedPlayerStats
   , divisionName :: String
   , loading :: Boolean
   , error :: Maybe String
   , theme :: Theme
   , input :: Maybe Input
-  , sortType :: SortType
   , subscribedToCurrentMatch :: Boolean
   , currentMatch :: Maybe CurrentMatchInfo
   , extraData :: Maybe String  -- Extra data from input
@@ -60,17 +57,15 @@ data Action
   | Finalize
 
 -- | Initialize the base overlay state
-initialState :: SortType -> Input -> State
-initialState sortType input =
+initialState :: Input -> State
+initialState input =
   { manager: Nothing
   , tournament: Nothing
-  , players: []
   , divisionName: ""
   , loading: true
   , error: Nothing
   , theme: getTheme "scrabble"
   , input: Just input
-  , sortType
   , subscribedToCurrentMatch: case input.tournamentId of
       Nothing -> true  -- No tournament in URL means subscribe to current match
       Just _ -> false  -- Tournament in URL means subscribe to specific tournament
@@ -212,20 +207,10 @@ handleAction = case _ of
                 , division: div
                 }
 
-          -- Calculate player stats with the component's sort type
-          let
-            players = calculateRankedStats
-              state.sortType
-              div.players
-              div.games
-
-          liftEffect $ Console.log $ "[BaseOverlay] Calculated " <> show (length players) <> " ranked players"
-
-          -- Update state
-          -- Note: currentMatch is set separately via HandleAdminPanelUpdate
+          -- Update state with division data
+          -- Overlays will calculate their own stats from div.players and div.games
           H.modify_ _
             { tournament = Just divisionScopedData
-            , players = players
             , divisionName = div.name
             , theme = theme
             , loading = false
@@ -265,3 +250,15 @@ renderError err =
   HH.div
     [ HP.class_ (HH.ClassName "flex items-center justify-center h-screen text-red-600") ]
     [ HH.text $ "Error: " <> err ]
+
+-- | Helper function to handle loading/error/success rendering pattern
+-- | Usage: renderWithData state \tournamentData -> ... your component rendering ...
+renderWithData :: forall w i. State -> (DivisionScopedData -> HH.HTML w i) -> HH.HTML w i
+renderWithData state renderContent =
+  if state.loading then
+    renderLoading
+  else case state.tournament of
+    Nothing -> renderError $ case state.error of
+      Just err -> err
+      Nothing -> "No tournament data"
+    Just tournamentData -> renderContent tournamentData

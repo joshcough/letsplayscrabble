@@ -13,7 +13,7 @@ import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
-import Stats.PlayerStats (RankedPlayerStats, SortType(..))
+import Stats.PlayerStats (RankedPlayerStats, SortType(..), calculateRankedStats)
 
 -- | Supported source types
 data SourceType
@@ -240,7 +240,7 @@ type Action = BaseOverlay.Action
 component :: forall query output m. MonadAff m => H.Component query Input output m
 component = H.mkComponent
   { initialState: \input ->
-      BaseOverlay.initialState Standings
+      BaseOverlay.initialState
         { userId: input.userId
         , tournamentId: map TournamentId input.tournamentId
         , divisionName: input.divisionName
@@ -293,8 +293,10 @@ renderPlayerData state source =
           Nothing -> BaseOverlay.renderError $ "Current match game not found (round " <> show currentMatch.round <> ", pairing " <> show currentMatch.pairingId <> ")"
           Just game ->
             let
-              player1Stats = find (\p -> p.playerId == game.player1Id) state.players
-              player2Stats = find (\p -> p.playerId == game.player2Id) state.players
+              -- Calculate player stats from raw division data
+              allPlayerStats = calculateRankedStats Standings division.players division.games
+              player1Stats = find (\p -> p.playerId == game.player1Id) allPlayerStats
+              player2Stats = find (\p -> p.playerId == game.player2Id) allPlayerStats
             in
               case player1Stats, player2Stats of
                 Just p1, Just p2 ->
@@ -352,13 +354,13 @@ renderPlayerData state source =
                     Player2Bo7 ->
                       HH.div [ HP.class_ (HH.ClassName "text-black") ] [ HH.text $ formatBestOf7 p2 ]
                     Player1GameHistorySmall ->
-                      renderGameHistoryTable game.player1Id division.games state.players
+                      renderGameHistoryTable game.player1Id division.games allPlayerStats
                     Player2GameHistorySmall ->
-                      renderGameHistoryTable game.player2Id division.games state.players
+                      renderGameHistoryTable game.player2Id division.games allPlayerStats
                     Player1GameHistory ->
-                      renderPointsAndGameHistory p1 game.player1Id division.games state.players
+                      renderPointsAndGameHistory p1 game.player1Id division.games allPlayerStats
                     Player2GameHistory ->
-                      renderPointsAndGameHistory p2 game.player2Id division.games state.players
+                      renderPointsAndGameHistory p2 game.player2Id division.games allPlayerStats
                     TournamentData ->
                       -- This shouldn't be reached since TournamentData is handled separately
                       BaseOverlay.renderError "Tournament data should not be rendered here"
