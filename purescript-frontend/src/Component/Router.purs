@@ -137,6 +137,17 @@ routeWithAuth isAuth route =
      then Login
      else targetRoute
 
+-- | Wrap content with navigation if user is authenticated
+withNavigation :: forall m. MonadAff m => State -> H.ComponentHTML Action Slots m -> H.ComponentHTML Action Slots m
+withNavigation state content =
+  case state.username, state.userId of
+    Just username, Just userId ->
+      HH.div_
+        [ HH.slot _navigation unit Navigation.component { username, userId } HandleNavigationOutput
+        , content
+        ]
+    _, _ -> content
+
 -- | Router component
 component :: forall input output m. MonadAff m => H.Component Query input output m
 component = H.mkComponent
@@ -166,54 +177,24 @@ render state =
       HH.slot _login unit LoginPage.component unit HandleLoginSuccess
 
     Just Overlays ->
-      case state.username, state.userId of
-        Just username, Just userId ->
-          HH.div_
-            [ HH.slot _navigation unit Navigation.component { username, userId } HandleNavigationOutput
-            , HH.slot _overlays unit OverlaysPage.component unit HandleOverlaysOutput
-            ]
-        _, _ ->
-          HH.slot _overlays unit OverlaysPage.component unit HandleOverlaysOutput
+      withNavigation state $
+        HH.slot _overlays unit OverlaysPage.component unit HandleOverlaysOutput
 
     Just TournamentManager ->
-      case state.username, state.userId of
-        Just username, Just userId ->
-          HH.div_
-            [ HH.slot _navigation unit Navigation.component { username, userId } HandleNavigationOutput
-            , HH.slot _tournamentManager unit TournamentManagerPage.component unit HandleTournamentManagerOutput
-            ]
-        _, _ ->
-          HH.slot _tournamentManager unit TournamentManagerPage.component unit HandleTournamentManagerOutput
+      withNavigation state $
+        HH.slot _tournamentManager unit TournamentManagerPage.component unit HandleTournamentManagerOutput
 
     Just AddTournament ->
-      case state.username, state.userId of
-        Just username, Just userId ->
-          HH.div_
-            [ HH.slot _navigation unit Navigation.component { username, userId } HandleNavigationOutput
-            , HH.slot_ _addTournament unit AddTournament.component unit
-            ]
-        _, _ ->
-          HH.slot_ _addTournament unit AddTournament.component unit
+      withNavigation state $
+        HH.slot_ _addTournament unit AddTournament.component unit
 
     Just (TournamentDetail tournamentId) ->
-      case state.username, state.userId of
-        Just username, Just userId ->
-          HH.div_
-            [ HH.slot _navigation unit Navigation.component { username, userId } HandleNavigationOutput
-            , HH.slot _tournamentDetails unit TournamentDetailsPage.component { tournamentId } HandleTournamentDetailsOutput
-            ]
-        _, _ ->
-          HH.slot _tournamentDetails unit TournamentDetailsPage.component { tournamentId } HandleTournamentDetailsOutput
+      withNavigation state $
+        HH.slot _tournamentDetails unit TournamentDetailsPage.component { tournamentId } HandleTournamentDetailsOutput
 
     Just CurrentMatch ->
-      case state.username, state.userId of
-        Just username, Just userId ->
-          HH.div_
-            [ HH.slot _navigation unit Navigation.component { username, userId } HandleNavigationOutput
-            , HH.slot _currentMatch unit CurrentMatchPage.component unit HandleCurrentMatchOutput
-            ]
-        _, _ ->
-          HH.slot _currentMatch unit CurrentMatchPage.component unit HandleCurrentMatchOutput
+      withNavigation state $
+        HH.slot _currentMatch unit CurrentMatchPage.component unit HandleCurrentMatchOutput
 
     Just (Standings params) ->
       case params.pics of
