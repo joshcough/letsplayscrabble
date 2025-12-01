@@ -43,14 +43,35 @@ render :: forall m. State -> H.ComponentHTML Action () m
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
-      { playerId1, playerId2 } = state.extra
-      maybePlayer1 = find (\p -> unwrap p.id == playerId1) tournamentData.division.players
-      maybePlayer2 = find (\p -> unwrap p.id == playerId2) tournamentData.division.players
+      { playerId1: playerId1Param, playerId2: playerId2Param } = state.extra
+
+      -- Determine actual player IDs based on mode:
+      -- If currentMatch exists and playerIds are 0, extract from current game
+      -- Otherwise use playerIds directly as the actual player IDs
+      playerIds = case state.currentMatch of
+        Just currentMatch | playerId1Param == 0 && playerId2Param == 0 -> do
+          -- Find current game from the match
+          game <- find (\g -> maybe false (\pid -> unwrap pid == currentMatch.pairingId) g.pairingId && g.roundNumber == currentMatch.round) tournamentData.division.games
+          -- Get both player IDs from the game
+          pure { playerId1: unwrap game.player1Id, playerId2: unwrap game.player2Id }
+        _ ->
+          -- Specific players mode - use params directly as actual player IDs
+          Just { playerId1: playerId1Param, playerId2: playerId2Param }
+
+      maybePlayers = case playerIds of
+        Nothing -> Nothing
+        Just ids ->
+          let
+            maybePlayer1 = find (\p -> unwrap p.id == ids.playerId1) tournamentData.division.players
+            maybePlayer2 = find (\p -> unwrap p.id == ids.playerId2) tournamentData.division.players
+          in
+            case maybePlayer1, maybePlayer2 of
+              Just p1, Just p2 -> Just { player1: p1, player2: p2 }
+              _, _ -> Nothing
     in
-      case maybePlayer1, maybePlayer2 of
-        Just p1, Just p2 -> renderHeadToHead state.theme p1 p2 tournamentData.tournament tournamentData.division
-        Nothing, _ -> BaseOverlay.renderError $ "Player " <> show playerId1 <> " not found in division"
-        _, Nothing -> BaseOverlay.renderError $ "Player " <> show playerId2 <> " not found in division"
+      case maybePlayers of
+        Nothing -> BaseOverlay.renderError "Players not found in division"
+        Just { player1, player2 } -> renderHeadToHead state.theme player1 player2 tournamentData.tournament tournamentData.division
 
 renderHeadToHead :: forall w i. Theme -> Player -> Player -> TournamentSummary -> Division -> HH.HTML w i
 renderHeadToHead theme p1 p2 tournament division =
