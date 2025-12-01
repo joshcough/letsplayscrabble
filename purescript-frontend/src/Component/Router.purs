@@ -11,19 +11,19 @@ import Component.AddTournament as AddTournament
 import Component.TournamentDetailsPage as TournamentDetailsPage
 import Component.CurrentMatchPage as CurrentMatchPage
 import Utils.Auth as Auth
-import Component.Standings as Standings
-import Component.StandingsWithPics as StandingsWithPics
-import Component.HighScores as HighScores
-import Component.HighScoresWithPics as HighScoresWithPics
-import Component.RatingGain as RatingGain
-import Component.RatingGainWithPics as RatingGainWithPics
-import Component.ScoringLeaders as ScoringLeaders
-import Component.ScoringLeadersWithPics as ScoringLeadersWithPics
-import Component.CrossTablesPlayerProfile as CrossTablesPlayerProfile
-import Component.HeadToHead as HeadToHead
-import Component.MiscOverlay as MiscOverlay
+import Component.Overlay.Standings as Standings
+import Component.Overlay.StandingsWithPics as StandingsWithPics
+import Component.Overlay.HighScores as HighScores
+import Component.Overlay.HighScoresWithPics as HighScoresWithPics
+import Component.Overlay.RatingGain as RatingGain
+import Component.Overlay.RatingGainWithPics as RatingGainWithPics
+import Component.Overlay.ScoringLeaders as ScoringLeaders
+import Component.Overlay.ScoringLeadersWithPics as ScoringLeadersWithPics
+import Component.Overlay.CrossTablesPlayerProfile as CrossTablesPlayerProfile
+import Component.Overlay.HeadToHead as HeadToHead
+import Component.Overlay.MiscOverlay as MiscOverlay
 import Component.MiscOverlayTestingPage as MiscOverlayTestingPage
-import Component.TournamentStats as TournamentStats
+import Component.Overlay.TournamentStats as TournamentStats
 import Component.WorkerPage as WorkerPage
 import Data.Either (Either(..))
 import Effect.Unsafe (unsafePerformEffect)

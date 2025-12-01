@@ -1,9 +1,9 @@
 -- | Misc Overlay - provides various small overlays for OBS
-module Component.MiscOverlay where
+module Component.Overlay.MiscOverlay where
 
 import Prelude
 
-import Component.BaseOverlay as BaseOverlay
+import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array (filter, find, length, null, sortBy, take)
 import Data.Int (round)
 import Data.Maybe (Maybe(..), fromMaybe, isJust)

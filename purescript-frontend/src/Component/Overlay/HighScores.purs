@@ -1,10 +1,10 @@
 -- | High Scores Overlay Component
 -- | Displays top individual game scores
-module Component.HighScores where
+module Component.Overlay.HighScores where
 
 import Prelude
 
-import Component.BaseOverlay as BaseOverlay
+import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array as Array
 import Data.Maybe (Maybe(..), maybe)
 import Effect.Aff.Class (class MonadAff)

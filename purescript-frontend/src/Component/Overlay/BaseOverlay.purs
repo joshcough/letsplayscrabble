@@ -1,7 +1,7 @@
 -- | Base overlay component
 -- | Handles broadcast channel subscription and tournament data fetching
 -- | All overlay components should use this as their base
-module Component.BaseOverlay where
+module Component.Overlay.BaseOverlay where
 
 import Prelude
 

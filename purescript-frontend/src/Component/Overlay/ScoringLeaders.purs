@@ -1,10 +1,10 @@
 -- | ScoringLeaders Overlay Component
 -- | Displays players sorted by average score
-module Component.ScoringLeaders where
+module Component.Overlay.ScoringLeaders where
 
 import Prelude
 
-import Component.BaseOverlay as BaseOverlay
+import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array as Array
 import Data.Maybe (Maybe(..), maybe)
 import Data.Number.Format (fixed, toStringWith)

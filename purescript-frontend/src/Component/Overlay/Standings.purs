@@ -1,10 +1,10 @@
 -- | Standings Overlay Component
 -- | Displays tournament standings sorted by wins/losses/spread
-module Component.Standings where
+module Component.Overlay.Standings where
 
 import Prelude
 
-import Component.BaseOverlay as BaseOverlay
+import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array as Array
 import Data.Maybe (Maybe(..), maybe)
 import Data.String (take) as String

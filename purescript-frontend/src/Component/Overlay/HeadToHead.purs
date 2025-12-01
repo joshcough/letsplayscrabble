@@ -1,6 +1,6 @@
 -- | Head-to-Head Overlay
 -- | Shows career head-to-head statistics between two players
-module Component.HeadToHead where
+module Component.Overlay.HeadToHead where
 
 import Prelude
 

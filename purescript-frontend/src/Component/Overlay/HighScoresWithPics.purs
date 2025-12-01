@@ -1,10 +1,10 @@
 -- | High Scores With Pictures Overlay Component
 -- | Displays top 5 high scores with player photos
-module Component.HighScoresWithPics where
+module Component.Overlay.HighScoresWithPics where
 
 import Prelude
 
-import Component.BaseOverlay as BaseOverlay
+import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array (take)
 import Data.Maybe (Maybe(..), maybe)
 import Effect.Aff.Class (class MonadAff)

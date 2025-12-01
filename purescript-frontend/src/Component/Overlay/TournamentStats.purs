@@ -1,6 +1,6 @@
 -- | Tournament Statistics Overlay Component
 -- | Displays tournament-wide statistics across all divisions or for a specific division
-module Component.TournamentStats where
+module Component.Overlay.TournamentStats where
 
 import Prelude
 

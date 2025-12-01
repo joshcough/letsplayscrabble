@@ -1,10 +1,10 @@
 -- | Rating Gain Overlay Component
 -- | Displays players sorted by rating gain during tournament
-module Component.RatingGain where
+module Component.Overlay.RatingGain where
 
 import Prelude
 
-import Component.BaseOverlay as BaseOverlay
+import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array as Array
 import Data.Maybe (Maybe(..), maybe)
 import Data.String (take) as String

@@ -1,6 +1,6 @@
 -- | CrossTables Player Profile Overlay
 -- | Displays detailed player stats from CrossTables data
-module Component.CrossTablesPlayerProfile where
+module Component.Overlay.CrossTablesPlayerProfile where
 
 import Prelude
 

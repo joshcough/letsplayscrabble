@@ -1,10 +1,10 @@
 -- | Scoring Leaders With Pictures Overlay Component
 -- | Displays top 5 scoring leaders with player photos
-module Component.ScoringLeadersWithPics where
+module Component.Overlay.ScoringLeadersWithPics where
 
 import Prelude
 
-import Component.BaseOverlay as BaseOverlay
+import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array (take)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Number.Format (fixed, toStringWith)
