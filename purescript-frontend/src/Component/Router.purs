@@ -3,6 +3,7 @@ module Component.Router where
 
 import Prelude
 
+import Component.HomePage as HomePage
 import Component.LoginPage as LoginPage
 import Component.Navigation as Navigation
 import Component.OverlaysPage as OverlaysPage
@@ -56,6 +57,7 @@ data Query a
 data Action
   = Initialize
   | NavigateAction Route
+  | HandleHomeOutput HomePage.Output
   | HandleOverlaysOutput Route
   | HandleLoginSuccess LoginOutput
   | HandleNavigationOutput Navigation.Output
@@ -72,7 +74,8 @@ type LoginOutput =
 
 -- | Child slots
 type Slots =
-  ( login :: forall query. H.Slot query LoginOutput Unit
+  ( home :: forall query. H.Slot query HomePage.Output Unit
+  , login :: forall query. H.Slot query LoginOutput Unit
   , navigation :: forall query. H.Slot query Navigation.Output Unit
   , overlays :: forall query. H.Slot query Route Unit
   , tournamentManager :: forall query. H.Slot query TournamentManagerPage.Output Unit
@@ -95,6 +98,7 @@ type Slots =
   , worker :: forall query. H.Slot query Void Unit
   )
 
+_home = Proxy :: Proxy "home"
 _login = Proxy :: Proxy "login"
 _navigation = Proxy :: Proxy "navigation"
 _overlays = Proxy :: Proxy "overlays"
@@ -120,6 +124,7 @@ _worker = Proxy :: Proxy "worker"
 -- | Check if a route requires authentication
 requiresAuth :: Route -> Boolean
 requiresAuth = case _ of
+  Home -> false
   Login -> false
   Worker -> false
   CrossTablesPlayerProfile _ -> false
@@ -132,10 +137,9 @@ requiresAuth = case _ of
 -- | Helper to determine route based on authentication and whether route requires auth
 routeWithAuth :: Boolean -> Route -> Route
 routeWithAuth isAuth route =
-  let targetRoute = if route == Home then Overlays else route
-  in if requiresAuth targetRoute && not isAuth
-     then Login
-     else targetRoute
+  if requiresAuth route && not isAuth
+    then Login
+    else route
 
 -- | Wrap content with navigation if user is authenticated
 withNavigation :: forall m. MonadAff m => State -> H.ComponentHTML Action Slots m -> H.ComponentHTML Action Slots m
@@ -143,7 +147,7 @@ withNavigation state content =
   case state.username, state.userId of
     Just username, Just userId ->
       HH.div_
-        [ HH.slot _navigation unit Navigation.component { username, userId } HandleNavigationOutput
+        [ HH.slot _navigation unit Navigation.component { username, userId, currentRoute: state.route } HandleNavigationOutput
         , content
         ]
     _, _ -> content
@@ -170,8 +174,8 @@ render state =
         [ HH.text "Loading..." ]
 
     Just Home ->
-      -- Redirect Home to Login for now
-      HH.slot _login unit LoginPage.component unit HandleLoginSuccess
+      withNavigation state $
+        HH.slot _home unit HomePage.component unit HandleHomeOutput
 
     Just Login ->
       HH.slot _login unit LoginPage.component unit HandleLoginSuccess
@@ -324,8 +328,8 @@ handleAction = case _ of
     case parse routeCodec initialHash of
       Left err -> do
         liftEffect $ log $ "[Router] Failed to parse initial route: " <> show err
-        -- Default based on auth status
-        H.modify_ _ { route = Just (routeWithAuth isAuth Overlays) }
+        -- Default to Home page
+        H.modify_ _ { route = Just Home }
       Right route -> do
         liftEffect $ log $ "[Router] Parsed initial route: " <> show route
         -- Apply auth check to route
@@ -365,6 +369,10 @@ handleAction = case _ of
           , userId = Nothing
           , route = Just Login
           }
+      Navigation.NavigateToHome -> do
+        liftEffect $ log "[Router] Navigating to Home..."
+        liftEffect $ setHash (print routeCodec Home)
+        H.modify_ _ { route = Just Home }
       Navigation.NavigateToOverlays -> do
         liftEffect $ log "[Router] Navigating to Overlays..."
         liftEffect $ setHash (print routeCodec Overlays)
@@ -402,6 +410,13 @@ handleAction = case _ of
         liftEffect $ log "[Router] Navigating back from Current Match..."
         liftEffect $ setHash (print routeCodec Overlays)
         H.modify_ _ { route = Just Overlays }
+
+  HandleHomeOutput output -> do
+    case output of
+      HomePage.Navigate route -> do
+        liftEffect $ log $ "[Router] Home navigation to: " <> show route
+        liftEffect $ setHash (print routeCodec route)
+        H.modify_ _ { route = Just route }
 
 handleQuery :: forall output m a. MonadAff m => Query a -> H.HalogenM State Action Slots output m (Maybe a)
 handleQuery = case _ of

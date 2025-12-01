@@ -11,16 +11,19 @@ import Halogen.HTML as HH
 import Halogen.HTML.Core (Namespace(..))
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
+import Route (Route(..))
 import Types.Theme (Theme)
 import Web.UIEvent.MouseEvent (MouseEvent)
 
 type Input =
   { username :: String
   , userId :: Int
+  , currentRoute :: Maybe Route
   }
 
 data Output
   = Logout
+  | NavigateToHome
   | NavigateToOverlays
   | NavigateToTournamentManager
   | NavigateToCurrentMatch
@@ -31,11 +34,14 @@ type State =
   , theme :: Theme
   , isDropdownOpen :: Boolean
   , isAdminDropdownOpen :: Boolean
+  , currentRoute :: Maybe Route
   }
 
 data Action
   = Initialize
+  | Receive Input
   | HandleLogout
+  | HandleHomeClick
   | HandleOverlaysClick
   | HandleTournamentManagerClick
   | HandleCurrentMatchClick
@@ -50,6 +56,7 @@ component = H.mkComponent
   , eval: H.mkEval $ H.defaultEval
       { handleAction = handleAction
       , initialize = Just Initialize
+      , receive = Just <<< Receive
       }
   }
 
@@ -60,7 +67,22 @@ initialState input =
   , theme: getTheme "scrabble"
   , isDropdownOpen: false
   , isAdminDropdownOpen: false
+  , currentRoute: input.currentRoute
   }
+
+-- | Get active class for a navigation link
+getActiveClass :: Maybe Route -> Route -> String
+getActiveClass currentRoute route =
+  case currentRoute of
+    Just r | r == route -> " " <> "bg-yellow-800/20"
+    _ -> ""
+
+-- | Check if admin section is active
+isAdminActive :: Maybe Route -> Boolean
+isAdminActive currentRoute =
+  case currentRoute of
+    Just CurrentMatch -> true
+    _ -> false
 
 render :: forall m. State -> H.ComponentHTML Action () m
 render state =
@@ -79,18 +101,21 @@ render state =
               [ -- Left side - All nav links
                 HH.div
                   [ HP.class_ (HH.ClassName "flex space-x-2") ]
-                  [ -- Home link (TODO: implement routing)
+                  [ -- Home link
                     HH.button
                       [ HP.class_ (HH.ClassName $ "inline-flex items-center px-4 py-2 mt-3 mb-3 " <>
                           pageTextPrimary <> " font-medium rounded " <>
-                          hoverBg <> " transition-colors duration-200")
+                          hoverBg <> " transition-colors duration-200" <>
+                          getActiveClass state.currentRoute Home)
+                      , HE.onClick \_ -> HandleHomeClick
                       ]
                       [ HH.text "Home" ]
                   , -- Tournament Manager link
                     HH.button
                       [ HP.class_ (HH.ClassName $ "inline-flex items-center px-4 py-2 mt-3 mb-3 " <>
                           pageTextPrimary <> " font-medium rounded " <>
-                          hoverBg <> " transition-colors duration-200")
+                          hoverBg <> " transition-colors duration-200" <>
+                          getActiveClass state.currentRoute TournamentManager)
                       , HE.onClick \_ -> HandleTournamentManagerClick
                       ]
                       [ HH.text "Tournament Manager" ]
@@ -98,7 +123,8 @@ render state =
                     HH.button
                       [ HP.class_ (HH.ClassName $ "inline-flex items-center px-4 py-2 mt-3 mb-3 " <>
                           pageTextPrimary <> " font-medium rounded " <>
-                          hoverBg <> " transition-colors duration-200")
+                          hoverBg <> " transition-colors duration-200" <>
+                          getActiveClass state.currentRoute Overlays)
                       , HE.onClick \_ -> HandleOverlaysClick
                       ]
                       [ HH.text "Overlays" ]
@@ -110,7 +136,8 @@ render state =
                       [ HH.button
                           [ HP.class_ (HH.ClassName $ "inline-flex items-center px-4 py-2 mt-3 mb-3 " <>
                               pageTextPrimary <> " font-medium rounded " <>
-                              hoverBg <> " transition-colors duration-200")
+                              hoverBg <> " transition-colors duration-200" <>
+                              if isAdminActive state.currentRoute then " bg-yellow-800/20" else "")
                           , HE.onClick ToggleAdminDropdown
                           ]
                           [ HH.text "Admin"
@@ -214,16 +241,27 @@ handleAction :: forall m. MonadEffect m => Action -> H.HalogenM State Action () 
 handleAction = case _ of
   Initialize -> pure unit
 
+  Receive input -> do
+    H.modify_ _ { currentRoute = input.currentRoute }
+
   HandleLogout -> do
     H.modify_ _ { isDropdownOpen = false }
     H.raise Logout
 
-  HandleOverlaysClick -> H.raise NavigateToOverlays
+  HandleHomeClick -> do
+    H.modify_ _ { isDropdownOpen = false, isAdminDropdownOpen = false }
+    H.raise NavigateToHome
 
-  HandleTournamentManagerClick -> H.raise NavigateToTournamentManager
+  HandleOverlaysClick -> do
+    H.modify_ _ { isDropdownOpen = false, isAdminDropdownOpen = false }
+    H.raise NavigateToOverlays
+
+  HandleTournamentManagerClick -> do
+    H.modify_ _ { isDropdownOpen = false, isAdminDropdownOpen = false }
+    H.raise NavigateToTournamentManager
 
   HandleCurrentMatchClick -> do
-    H.modify_ _ { isAdminDropdownOpen = false }
+    H.modify_ _ { isDropdownOpen = false, isAdminDropdownOpen = false }
     H.raise NavigateToCurrentMatch
 
   ToggleDropdown _ -> do
