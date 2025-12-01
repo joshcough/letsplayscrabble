@@ -8,10 +8,9 @@ import Prelude
 import BroadcastChannel.Manager as BroadcastManager
 import BroadcastChannel.Messages (TournamentDataResponse, SubscribeMessage, AdminPanelUpdate)
 import Config.Themes (getTheme)
-import Data.Array (length)
-import Data.Maybe (Maybe(..))
-import Domain.Types (DivisionScopedData, TournamentId(..), DivisionId, PairingId, Tournament, Division, TournamentSummary)
 import Data.Array (find)
+import Data.Maybe (Maybe(..), isNothing, maybe)
+import Domain.Types (DivisionScopedData, TournamentId(..), DivisionId, PairingId, Tournament, Division, TournamentSummary)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Console as Console
@@ -66,9 +65,7 @@ initialState input =
   , error: Nothing
   , theme: getTheme "scrabble"
   , input: Just input
-  , subscribedToCurrentMatch: case input.tournamentId of
-      Nothing -> true  -- No tournament in URL means subscribe to current match
-      Just _ -> false  -- Tournament in URL means subscribe to specific tournament
+  , subscribedToCurrentMatch: isNothing input.tournamentId  -- No tournament in URL means subscribe to current match
   , currentMatch: Nothing
   , extraData: input.extraData
   }
@@ -101,14 +98,10 @@ handleAction = case _ of
 
         -- Build tournament selection
         let
-          tournament = case input.tournamentId of
-            Nothing -> Nothing
-            Just tid -> Just
-              { tournamentId: tid
-              , division: case input.divisionName of
-                  Nothing -> Nothing
-                  Just name -> Just { divisionName: name }
-              }
+          tournament = input.tournamentId <#> \tid ->
+            { tournamentId: tid
+            , division: input.divisionName <#> \name -> { divisionName: name }
+            }
 
           subscribeMsg :: SubscribeMessage
           subscribeMsg =
@@ -124,13 +117,12 @@ handleAction = case _ of
     -- Check if this response is for us
     let shouldAccept = if state.subscribedToCurrentMatch
           then response.isCurrentMatch  -- Accept if marked as current match
-          else case state.input of
-            Nothing -> false
-            Just input -> case input.tournamentId of
-              Nothing -> false
-              Just (TournamentId tid) ->
-                let (TournamentId responseTid) = response.tournamentId
-                in tid == responseTid  -- Accept if tournament IDs match
+          else maybe false (\input ->
+            maybe false (\(TournamentId tid) ->
+              let (TournamentId responseTid) = response.tournamentId
+              in tid == responseTid
+            ) input.tournamentId
+          ) state.input
 
     if not shouldAccept then
       pure unit  -- Silently ignore responses not meant for us
@@ -139,16 +131,10 @@ handleAction = case _ of
       -- For current match mode, use divisionName from AdminPanelUpdate (stored in currentMatch)
       -- For specific tournament mode, use divisionName from URL input
       let divisionName = if state.subscribedToCurrentMatch
-            then case state.currentMatch of
-              Just cm -> Just cm.divisionName
-              Nothing -> Nothing  -- Haven't received AdminPanelUpdate yet
-            else case state.input of
-              Just input -> input.divisionName
-              Nothing -> Nothing
+            then _.divisionName <$> state.currentMatch  -- Haven't received AdminPanelUpdate yet
+            else state.input >>= _.divisionName
 
-      let division = case divisionName of
-            Just name -> find (\d -> d.name == name) response.data.divisions
-            Nothing -> Nothing  -- No division specified, can't proceed
+      let division = divisionName >>= \name -> find (\d -> d.name == name) response.data.divisions
 
       case division of
         Nothing -> do
