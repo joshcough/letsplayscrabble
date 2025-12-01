@@ -23,6 +23,7 @@ import Component.CrossTablesPlayerProfile as CrossTablesPlayerProfile
 import Component.HeadToHead as HeadToHead
 import Component.MiscOverlay as MiscOverlay
 import Component.MiscOverlayTestingPage as MiscOverlayTestingPage
+import Component.TournamentStats as TournamentStats
 import Component.WorkerPage as WorkerPage
 import Data.Either (Either(..))
 import Effect.Unsafe (unsafePerformEffect)
@@ -90,6 +91,7 @@ type Slots =
   , headToHead :: forall query. H.Slot query Void Unit
   , miscOverlay :: forall query. H.Slot query Void Unit
   , miscOverlayTesting :: forall query. H.Slot query Void Unit
+  , tournamentStats :: forall query. H.Slot query Void Unit
   , worker :: forall query. H.Slot query Void Unit
   )
 
@@ -112,6 +114,7 @@ _crossTablesPlayerProfile = Proxy :: Proxy "crossTablesPlayerProfile"
 _headToHead = Proxy :: Proxy "headToHead"
 _miscOverlay = Proxy :: Proxy "miscOverlay"
 _miscOverlayTesting = Proxy :: Proxy "miscOverlayTesting"
+_tournamentStats = Proxy :: Proxy "tournamentStats"
 _worker = Proxy :: Proxy "worker"
 
 -- | Router component
@@ -285,6 +288,13 @@ render state =
         , source: params.source
         }
 
+    Just (TournamentStats params) ->
+      HH.slot_ _tournamentStats unit TournamentStats.component
+        { userId: params.userId
+        , tournamentId: map TournamentId params.tournamentId
+        , divisionName: params.divisionName
+        }
+
     Just MiscOverlayTesting ->
       HH.slot_ _miscOverlayTesting unit MiscOverlayTestingPage.component unit
 
@@ -333,6 +343,7 @@ handleAction = case _ of
           CrossTablesPlayerProfile _ -> H.modify_ _ { route = Just route }
           HeadToHead _ -> H.modify_ _ { route = Just route }
           MiscOverlay _ -> H.modify_ _ { route = Just route }
+          TournamentStats _ -> H.modify_ _ { route = Just route }
           MiscOverlayTesting -> H.modify_ _ { route = Just route }
           -- All other overlay routes require auth
           _ -> H.modify_ _ { route = Just (if isAuth then route else Login) }
@@ -428,6 +439,7 @@ handleQuery = case _ of
           CrossTablesPlayerProfile _ -> route
           HeadToHead _ -> route
           MiscOverlay _ -> route
+          TournamentStats _ -> route
           MiscOverlayTesting -> route
           -- All other overlay routes require auth
           _ -> if state.isAuthenticated then route else Login

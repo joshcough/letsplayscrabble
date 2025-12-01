@@ -61,6 +61,11 @@ data Route
       , divisionName :: Maybe String
       , source :: String
       }
+  | TournamentStats
+      { userId :: Int
+      , tournamentId :: Maybe Int
+      , divisionName :: Maybe String
+      }
   | MiscOverlayTesting
   | Worker
 
@@ -84,6 +89,7 @@ instance Show Route where
     CrossTablesPlayerProfile _ -> "CrossTablesPlayerProfile"
     HeadToHead _ -> "HeadToHead"
     MiscOverlay _ -> "MiscOverlay"
+    TournamentStats _ -> "TournamentStats"
     MiscOverlayTesting -> "MiscOverlayTesting"
     Worker -> "Worker"
 
@@ -105,6 +111,7 @@ routeCodec = root $ sum
   , "CrossTablesPlayerProfile": "overlay" / "player-profile" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, playerId: int }
   , "HeadToHead": "overlay" / "head-to-head" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, playerId1: optional <<< int, playerId2: optional <<< int }
   , "MiscOverlay": "overlay" / "misc" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string, source: string }
+  , "TournamentStats": "overlay" / "tournament-stats" ? { userId: int, tournamentId: optional <<< int, divisionName: optional <<< string }
   , "MiscOverlayTesting": "overlay" / "misc" / "testing" / noArgs
   , "Worker": "worker" / noArgs
   }

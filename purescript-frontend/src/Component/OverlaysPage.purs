@@ -158,6 +158,12 @@ renderPlayerStatsCategory theme =
             , requiresParams: false
             }
         , renderSimpleOverlay theme
+            { title: "Tournament Stats"
+            , route: TournamentStats { userId: 2, tournamentId: Nothing, divisionName: Nothing }
+            , description: Just "Tournament-wide statistics"
+            , requiresParams: false
+            }
+        , renderSimpleOverlay theme
             { title: "Misc Overlays"
             , route: MiscOverlayTesting
             , description: Just "Small text overlays for OBS"
