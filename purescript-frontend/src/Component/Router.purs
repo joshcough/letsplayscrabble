@@ -202,14 +202,14 @@ render state =
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
-            , extraData: Nothing
+            , extra: unit
             }
         _ ->
           HH.slot_ _standings unit Standings.component
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
-            , extraData: Nothing
+            , extra: unit
             }
 
     Just (HighScores params) ->
@@ -219,14 +219,14 @@ render state =
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
-            , extraData: Nothing
+            , extra: unit
             }
         _ ->
           HH.slot_ _highScores unit HighScores.component
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
-            , extraData: Nothing
+            , extra: unit
             }
 
     Just (RatingGain params) ->
@@ -236,14 +236,14 @@ render state =
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
-            , extraData: Nothing
+            , extra: unit
             }
         _ ->
           HH.slot_ _ratingGain unit RatingGain.component
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
-            , extraData: Nothing
+            , extra: unit
             }
 
     Just (ScoringLeaders params) ->
@@ -253,14 +253,14 @@ render state =
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
-            , extraData: Nothing
+            , extra: unit
             }
         _ ->
           HH.slot_ _scoringLeaders unit ScoringLeaders.component
             { userId: params.userId
             , tournamentId: map TournamentId params.tournamentId
             , divisionName: params.divisionName
-            , extraData: Nothing
+            , extra: unit
             }
 
     Just (CrossTablesPlayerProfile params) ->
@@ -283,9 +283,9 @@ render state =
     Just (MiscOverlay params) ->
       HH.slot_ _miscOverlay unit MiscOverlay.component
         { userId: params.userId
-        , tournamentId: params.tournamentId
+        , tournamentId: map TournamentId params.tournamentId
         , divisionName: params.divisionName
-        , source: params.source
+        , extra: MiscOverlay.parseSource params.source
         }
 
     Just (TournamentStats params) ->

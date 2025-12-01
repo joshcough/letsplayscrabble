@@ -19,12 +19,12 @@ import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
 
--- | Component input
-type Input =
+-- | Component input with polymorphic extra data
+type Input extra =
   { userId :: Int
   , tournamentId :: Maybe TournamentId
   , divisionName :: Maybe String
-  , extraData :: Maybe String  -- Extra data field for component-specific needs (e.g., MiscOverlay source)
+  , extra :: extra
   }
 
 -- | Export current match info type for use by other components
@@ -34,18 +34,18 @@ type CurrentMatchInfo =
   , divisionName :: String
   }
 
--- | Component state
-type State =
+-- | Component state with polymorphic extra data
+type State extra =
   { manager :: Maybe BroadcastManager.BroadcastManager
   , tournament :: Maybe DivisionScopedData
   , divisionName :: String
   , loading :: Boolean
   , error :: Maybe String
   , theme :: Theme
-  , input :: Maybe Input
+  , input :: Maybe (Input extra)
   , subscribedToCurrentMatch :: Boolean
   , currentMatch :: Maybe CurrentMatchInfo
-  , extraData :: Maybe String  -- Extra data from input
+  , extra :: extra
   }
 
 -- | Component actions
@@ -56,7 +56,7 @@ data Action
   | Finalize
 
 -- | Initialize the base overlay state
-initialState :: Input -> State
+initialState :: forall extra. Input extra -> State extra
 initialState input =
   { manager: Nothing
   , tournament: Nothing
@@ -67,11 +67,11 @@ initialState input =
   , input: Just input
   , subscribedToCurrentMatch: isNothing input.tournamentId  -- No tournament in URL means subscribe to current match
   , currentMatch: Nothing
-  , extraData: input.extraData
+  , extra: input.extra
   }
 
 -- | Handle base overlay actions
-handleAction :: forall slots o m. MonadAff m => Action -> H.HalogenM State Action slots o m Unit
+handleAction :: forall extra slots o m. MonadAff m => Action -> H.HalogenM (State extra) Action slots o m Unit
 handleAction = case _ of
   Initialize -> do
     state <- H.get
@@ -206,7 +206,7 @@ renderError err =
 
 -- | Helper function to handle loading/error/success rendering pattern
 -- | Usage: renderWithData state \tournamentData -> ... your component rendering ...
-renderWithData :: forall w i. State -> (DivisionScopedData -> HH.HTML w i) -> HH.HTML w i
+renderWithData :: forall extra w i. State extra -> (DivisionScopedData -> HH.HTML w i) -> HH.HTML w i
 renderWithData state renderContent =
   if state.loading then
     renderLoading

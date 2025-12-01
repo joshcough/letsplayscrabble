@@ -226,31 +226,14 @@ calculateAverageOpponentScoreRank allPlayers player =
         in idx + 1
       Nothing -> 1
 
-type Input =
-  { userId :: Int
-  , tournamentId :: Maybe Int
-  , divisionName :: Maybe String
-  , source :: String
-  }
-
-type State = BaseOverlay.State
+type State = BaseOverlay.State SourceType
 
 type Action = BaseOverlay.Action
 
-component :: forall query output m. MonadAff m => H.Component query Input output m
+component :: forall query output m. MonadAff m => H.Component query (BaseOverlay.Input SourceType) output m
 component = H.mkComponent
-  { initialState: \input ->
-      BaseOverlay.initialState
-        { userId: input.userId
-        , tournamentId: map TournamentId input.tournamentId
-        , divisionName: input.divisionName
-        , extraData: Just input.source
-        }
-  , render: \state ->
-      let source = case state.extraData of
-            Just s -> parseSource s
-            Nothing -> UnknownSource
-      in renderMiscOverlay state source
+  { initialState: BaseOverlay.initialState
+  , render: \state -> renderMiscOverlay state state.extra
   , eval: H.mkEval $ H.defaultEval
       { handleAction = BaseOverlay.handleAction
       , initialize = Just BaseOverlay.Initialize
@@ -258,7 +241,7 @@ component = H.mkComponent
       }
   }
 
-renderMiscOverlay :: forall m. BaseOverlay.State -> SourceType -> H.ComponentHTML Action () m
+renderMiscOverlay :: forall m. BaseOverlay.State SourceType -> SourceType -> H.ComponentHTML Action () m
 renderMiscOverlay state source =
   if state.loading then
     BaseOverlay.renderLoading
@@ -272,7 +255,7 @@ renderMiscOverlay state source =
           else renderPlayerData state source
       Nothing -> BaseOverlay.renderError "No tournament data"
 
-renderPlayerData :: forall m. BaseOverlay.State -> SourceType -> H.ComponentHTML Action () m
+renderPlayerData :: forall m. BaseOverlay.State SourceType -> SourceType -> H.ComponentHTML Action () m
 renderPlayerData state source =
   -- Find player1 and player2 from the current match
   case state.tournament, state.currentMatch of
@@ -369,7 +352,7 @@ renderPlayerData state source =
                 _, _ ->
                   BaseOverlay.renderError "Players not found"
 
-renderTournamentData :: forall m. BaseOverlay.State -> H.ComponentHTML Action () m
+renderTournamentData :: forall m. BaseOverlay.State SourceType -> H.ComponentHTML Action () m
 renderTournamentData state =
   case state.tournament, state.currentMatch of
     Just tournamentData, Just currentMatch ->

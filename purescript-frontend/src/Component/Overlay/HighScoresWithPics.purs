@@ -15,7 +15,7 @@ import Stats.PlayerStats (SortType(..), calculateRankedStats)
 import Utils.PlayerImage (getPlayerImageUrl)
 
 -- | HighScoresWithPics component
-component :: forall query output m. MonadAff m => H.Component query BaseOverlay.Input output m
+component :: forall query output m. MonadAff m => H.Component query (BaseOverlay.Input Unit) output m
 component = H.mkComponent
   { initialState: BaseOverlay.initialState
   , render
@@ -26,7 +26,7 @@ component = H.mkComponent
       }
   }
 
-render :: forall m. BaseOverlay.State -> H.ComponentHTML BaseOverlay.Action () m
+render :: forall m. BaseOverlay.State Unit -> H.ComponentHTML BaseOverlay.Action () m
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
