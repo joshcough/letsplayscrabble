@@ -117,6 +117,26 @@ _miscOverlayTesting = Proxy :: Proxy "miscOverlayTesting"
 _tournamentStats = Proxy :: Proxy "tournamentStats"
 _worker = Proxy :: Proxy "worker"
 
+-- | Helper to determine route based on authentication and whether route requires auth
+routeWithAuth :: Boolean -> Route -> Route
+routeWithAuth isAuth route = case route of
+  Home -> if isAuth then Overlays else Login
+  Overlays -> if isAuth then Overlays else Login
+  TournamentManager -> if isAuth then TournamentManager else Login
+  AddTournament -> if isAuth then AddTournament else Login
+  TournamentDetail id -> if isAuth then TournamentDetail id else Login
+  CurrentMatch -> if isAuth then CurrentMatch else Login
+  Login -> Login
+  Worker -> Worker
+  -- Public overlay routes (no auth required)
+  CrossTablesPlayerProfile _ -> route
+  HeadToHead _ -> route
+  MiscOverlay _ -> route
+  TournamentStats _ -> route
+  MiscOverlayTesting -> route
+  -- All other overlay routes require auth
+  _ -> if isAuth then route else Login
+
 -- | Router component
 component :: forall input output m. MonadAff m => H.Component Query input output m
 component = H.mkComponent
@@ -324,28 +344,11 @@ handleAction = case _ of
       Left err -> do
         liftEffect $ log $ "[Router] Failed to parse initial route: " <> show err
         -- Default based on auth status
-        H.modify_ _ { route = Just (if isAuth then Overlays else Login) }
+        H.modify_ _ { route = Just (routeWithAuth isAuth Overlays) }
       Right route -> do
         liftEffect $ log $ "[Router] Parsed initial route: " <> show route
-        -- Handle Home route based on auth
-        case route of
-          Home -> H.modify_ _ { route = Just (if isAuth then Overlays else Login) }
-          -- If not authenticated and trying to access protected route, redirect to login
-          Overlays -> H.modify_ _ { route = Just (if isAuth then Overlays else Login) }
-          TournamentManager -> H.modify_ _ { route = Just (if isAuth then TournamentManager else Login) }
-          TournamentDetail id -> H.modify_ _ { route = Just (if isAuth then TournamentDetail id else Login) }
-          CurrentMatch -> H.modify_ _ { route = Just (if isAuth then CurrentMatch else Login) }
-          -- Allow access to public routes
-          Login -> H.modify_ _ { route = Just Login }
-          Worker -> H.modify_ _ { route = Just Worker }
-          -- Public overlay routes (no auth required)
-          CrossTablesPlayerProfile _ -> H.modify_ _ { route = Just route }
-          HeadToHead _ -> H.modify_ _ { route = Just route }
-          MiscOverlay _ -> H.modify_ _ { route = Just route }
-          TournamentStats _ -> H.modify_ _ { route = Just route }
-          MiscOverlayTesting -> H.modify_ _ { route = Just route }
-          -- All other overlay routes require auth
-          _ -> H.modify_ _ { route = Just (if isAuth then route else Login) }
+        -- Apply auth check to route
+        H.modify_ _ { route = Just (routeWithAuth isAuth route) }
 
   NavigateAction route -> do
     liftEffect $ log $ "[Router] Navigating to: " <> show route
@@ -424,24 +427,5 @@ handleQuery = case _ of
   Navigate route next -> do
     liftEffect $ log $ "[Router] Query Navigate to: " <> show route
     state <- H.get
-
-    -- Check if route requires auth
-    let finalRoute = case route of
-          Home -> if state.isAuthenticated then Overlays else Login
-          Overlays -> if state.isAuthenticated then Overlays else Login
-          TournamentManager -> if state.isAuthenticated then TournamentManager else Login
-          TournamentDetail id -> if state.isAuthenticated then TournamentDetail id else Login
-          CurrentMatch -> if state.isAuthenticated then CurrentMatch else Login
-          Login -> Login
-          Worker -> Worker
-          -- Public overlay routes (no auth required)
-          CrossTablesPlayerProfile _ -> route
-          HeadToHead _ -> route
-          MiscOverlay _ -> route
-          TournamentStats _ -> route
-          MiscOverlayTesting -> route
-          -- All other overlay routes require auth
-          _ -> if state.isAuthenticated then route else Login
-
-    H.modify_ _ { route = Just finalRoute }
+    H.modify_ _ { route = Just (routeWithAuth state.isAuthenticated route) }
     pure $ Just next
