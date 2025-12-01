@@ -9,7 +9,8 @@ import Config.Themes (getTheme)
 import Data.Either (Either(..))
 import Data.Int (fromString) as Int
 import Data.JSDate (parse, toDateString)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
+import Data.Foldable (for_)
 import Domain.Types (TournamentSummary)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
@@ -123,9 +124,10 @@ render state =
                   [ HP.class_ (HH.ClassName "flex items-center justify-between mb-4") ]
                   [ HH.h2
                       [ HP.class_ (HH.ClassName $ "text-2xl font-bold " <> theme.colors.textPrimary) ]
-                      [ HH.text $ case state.tournament of
-                          Just t -> t.name
-                          Nothing -> "Tournament #" <> show state.tournamentId
+                      [ HH.text $ maybe
+                          ("Tournament #" <> show state.tournamentId)
+                          _.name
+                          state.tournament
                       ]
                   , HH.div
                       [ HP.class_ (HH.ClassName "flex gap-2") ]
@@ -421,9 +423,8 @@ handleAction = case _ of
     H.modify_ \s -> s { editForm = updateField field value s.editForm }
 
   HandlePollingDaysChange value -> do
-    case Int.fromString value of
-      Nothing -> pure unit
-      Just days -> H.modify_ _ { pollingDays = days }
+    for_ (Int.fromString value) \days ->
+      H.modify_ _ { pollingDays = days }
 
   HandleStartPolling -> do
     liftEffect $ log "[TournamentDetailsPage] Start polling clicked"

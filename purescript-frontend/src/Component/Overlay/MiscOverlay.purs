@@ -6,7 +6,7 @@ import Prelude
 import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array (filter, find, length, null, sortBy, take)
 import Data.Int (round)
-import Data.Maybe (Maybe(..), fromMaybe, isJust)
+import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.String (joinWith) as String
 import Domain.Types (TournamentId(..), PairingId(..), Game, PlayerId)
 import Effect.Aff.Class (class MonadAff)
@@ -196,9 +196,7 @@ getOpponentName playerId game players =
     opponentId = if game.player1Id == playerId then game.player2Id else game.player1Id
     maybeOpponent = find (\p -> p.playerId == opponentId) players
   in
-    case maybeOpponent of
-      Just opponent -> opponent.name
-      Nothing -> "Unknown"
+    maybe "Unknown" _.name maybeOpponent
 
 -- | Calculate rank for average score
 calculateAverageScoreRank :: Array RankedPlayerStats -> RankedPlayerStats -> Int
@@ -207,11 +205,10 @@ calculateAverageScoreRank allPlayers player =
     sorted = sortBy (\a b -> compare b.averageScore a.averageScore) allPlayers
     maybeIndex = find (\p -> p.playerId == player.playerId) sorted
   in
-    case maybeIndex of
-      Just _ ->
-        let idx = length (filter (\p -> p.averageScore > player.averageScore) sorted)
-        in idx + 1
-      Nothing -> 1
+    maybe 1 (\_ ->
+      let idx = length (filter (\p -> p.averageScore > player.averageScore) sorted)
+      in idx + 1
+    ) maybeIndex
 
 -- | Calculate rank for average opponent score (lower is better, so reverse sort)
 calculateAverageOpponentScoreRank :: Array RankedPlayerStats -> RankedPlayerStats -> Int
@@ -220,11 +217,10 @@ calculateAverageOpponentScoreRank allPlayers player =
     sorted = sortBy (\a b -> compare a.averageOpponentScore b.averageOpponentScore) allPlayers
     maybeIndex = find (\p -> p.playerId == player.playerId) sorted
   in
-    case maybeIndex of
-      Just _ ->
-        let idx = length (filter (\p -> p.averageOpponentScore < player.averageOpponentScore) sorted)
-        in idx + 1
-      Nothing -> 1
+    maybe 1 (\_ ->
+      let idx = length (filter (\p -> p.averageOpponentScore < player.averageOpponentScore) sorted)
+      in idx + 1
+    ) maybeIndex
 
 type State = BaseOverlay.State SourceType
 

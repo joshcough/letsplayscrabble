@@ -4,6 +4,7 @@ module Utils.PlayerImage where
 import Prelude
 
 import Data.Maybe (Maybe(..), fromMaybe)
+import Control.Alt ((<|>))
 import Data.String (Pattern(..), Replacement(..))
 import Data.String as String
 
@@ -11,12 +12,11 @@ import Data.String as String
 -- | Priority: file photo → CrossTables photo → placeholder
 getPlayerImageUrl :: String -> Maybe String -> Maybe String -> String
 getPlayerImageUrl tournamentDataUrl filePhoto xtPhoto =
-  case filePhoto of
-    Just photo ->
-      -- Remove /tourney.js from the end of the URL if present
+  fromMaybe placeholderImageUrl $
+    (filePhoto <#> \photo ->
       let baseUrl = String.replace (Pattern "/tourney.js") (Replacement "") tournamentDataUrl
       in baseUrl <> "/" <> photo
-    Nothing -> fromMaybe placeholderImageUrl xtPhoto
+    ) <|> xtPhoto
 
 -- | Placeholder SVG for when no image is available
 placeholderImageUrl :: String

@@ -9,7 +9,7 @@ import BroadcastChannel.Manager as BroadcastManager
 import BroadcastChannel.Messages (SubscribeMessage, TournamentDataResponse)
 import Control.Monad.Rec.Class (forever)
 import Data.Either (Either(..))
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Domain.Types (TournamentId(..), DivisionId(..), Tournament)
 import Data.Map as Map
@@ -84,12 +84,11 @@ render state =
                 []
             , HH.span_ [ HH.text state.status ]
             ]
-        , case state.error of
-            Just err ->
-              HH.div
-                [ HP.style "color: #ff4444; margin-bottom: 5px" ]
-                [ HH.text $ "❌ " <> err ]
-            Nothing -> HH.text ""
+        , fromMaybe (HH.text "") (state.error <#> \err ->
+            HH.div
+              [ HP.style "color: #ff4444; margin-bottom: 5px" ]
+              [ HH.text $ "❌ " <> err ]
+          )
         , HH.div
             [ HP.style "font-size: 10px; color: #aaa; margin-top: 5px" ]
             [ HH.text "Broadcasting on 'tournament-updates' & 'worker-status' channels" ]

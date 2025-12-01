@@ -9,7 +9,7 @@ import BroadcastChannel.Manager as BroadcastManager
 import BroadcastChannel.Messages (TournamentDataResponse, SubscribeMessage, AdminPanelUpdate)
 import Config.Themes (getTheme)
 import Data.Array (find)
-import Data.Maybe (Maybe(..), isNothing, maybe)
+import Data.Maybe (Maybe(..), isNothing, maybe, fromMaybe)
 import Domain.Types (DivisionScopedData, TournamentId(..), DivisionId, PairingId, Tournament, Division, TournamentSummary)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
@@ -182,13 +182,12 @@ handleAction = case _ of
     state <- H.get
     -- Only process if we're subscribed to current match
     when state.subscribedToCurrentMatch do
-      H.modify_ _ { currentMatch = Just { round: update.round, pairingId: update.pairingId, divisionName: update.divisionName } }
+      let matchInfo = { round: update.round, pairingId: update.pairingId, divisionName: update.divisionName }
+      H.modify_ _ { currentMatch = Just matchInfo }
 
   Finalize -> do
     state <- H.get
-    case state.manager of
-      Just manager -> BroadcastManager.close manager
-      Nothing -> pure unit
+    maybe (pure unit) BroadcastManager.close state.manager
 
 -- | Render loading state
 renderLoading :: forall w i. HH.HTML w i
@@ -210,8 +209,5 @@ renderWithData :: forall extra w i. State extra -> (DivisionScopedData -> HH.HTM
 renderWithData state renderContent =
   if state.loading then
     renderLoading
-  else case state.tournament of
-    Nothing -> renderError $ case state.error of
-      Just err -> err
-      Nothing -> "No tournament data"
-    Just tournamentData -> renderContent tournamentData
+  else
+    maybe (renderError $ fromMaybe "No tournament data" state.error) renderContent state.tournament

@@ -10,6 +10,7 @@ import Config.Themes (getTheme)
 import Data.Array (length)
 import Data.Array as Array
 import Data.Maybe (Maybe(..), isNothing, maybe)
+import Control.Alt ((<|>))
 import Data.String.CodePoints as String
 import Domain.Types (TournamentId(..))
 import Effect.Aff.Class (class MonadAff)
@@ -237,18 +238,15 @@ handleAction = case _ of
           Just input -> input.divisionName  -- Use division from URL
           Nothing -> Nothing
 
-      stats = case divisionName of
-        Just divName ->
-          -- Calculate stats for specific division
+      stats = (divisionName >>= \divName ->
           Array.find (\d -> d.name == divName) response.data.divisions
             <#> \div -> calculateTournamentStats div.games div.players
-        Nothing ->
-          -- No division specified, calculate stats across all divisions
-          Just $ calculateAllTournamentStats response.data
+        ) <|> Just (calculateAllTournamentStats response.data)
 
-      title = case divisionName of
-        Just divName -> response.data.name <> " Div " <> divName <> " - Total Tournament Stats"
-        Nothing -> response.data.name <> " - Total Tournament Stats"
+      title = maybe
+        (response.data.name <> " - Total Tournament Stats")
+        (\divName -> response.data.name <> " Div " <> divName <> " - Total Tournament Stats")
+        divisionName
 
       theme = getTheme response.data.theme
 

@@ -5,9 +5,10 @@ module Component.Overlay.CrossTablesPlayerProfile where
 import Prelude
 
 import Component.Overlay.BaseOverlay as BaseOverlay
+import Control.Alt ((<|>))
 import Data.Array (find, head, last)
 import Data.Int (toNumber, round) as Int
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe, isNothing)
 import Data.Newtype (unwrap)
 import Data.Number (pow)
 import Data.String (Pattern(..), split, joinWith, take, drop) as String
@@ -153,9 +154,7 @@ renderStatsGrid theme rating ranking tournamentCount xtData averageScore opponen
               Just oppAvg -> show (Int.round (Int.toNumber avg)) <> "-" <> show (Int.round (Int.toNumber oppAvg))
               Nothing -> show (Int.round (Int.toNumber avg))
             -- col-span-2 if no ranking
-            shouldSpan = case ranking of
-              Nothing -> true
-              Just _ -> false
+            shouldSpan = isNothing ranking
         in [renderStatBox theme "Average Score" scoreText true shouldSpan]
       Nothing -> []
   in
@@ -210,54 +209,44 @@ renderRecentTournament theme result =
 -- Helper Functions
 
 formatLocation :: Maybe CrossTablesPlayer -> Maybe String
-formatLocation Nothing = Nothing
-formatLocation (Just xtData) =
-  case xtData.city of
-    Nothing -> Nothing
-    Just city -> Just $ case xtData.state, xtData.country of
-      Just state, _ -> city <> ", " <> state
-      Nothing, Just country | country /= "USA" -> city <> ", " <> country
-      _, _ -> city
+formatLocation xtData = do
+  data' <- xtData
+  city <- data'.city
+  pure $ case data'.state, data'.country of
+    Just state, _ -> city <> ", " <> state
+    Nothing, Just country | country /= "USA" -> city <> ", " <> country
+    _, _ -> city
 
 getCurrentRating :: Player -> Maybe Int
 getCurrentRating player =
   case player.ratingsHistory of
     [] -> Just player.initialRating
-    ratings -> case last ratings of
-      Just lastRating -> Just lastRating
-      Nothing -> Just player.initialRating
+    ratings -> last ratings <|> Just player.initialRating
 
 getRanking :: Maybe CrossTablesPlayer -> Maybe Int
-getRanking Nothing = Nothing
-getRanking (Just xtData) =
-  case xtData.twlranking of
-    Just r -> Just r
-    Nothing -> xtData.cswranking
+getRanking xtData = do
+  data' <- xtData
+  data'.twlranking <|> data'.cswranking
 
 calculateWinPercentage :: Maybe CrossTablesPlayer -> Maybe Number
-calculateWinPercentage Nothing = Nothing
-calculateWinPercentage (Just xtData) =
-  case xtData.w, xtData.l, xtData.t of
-    Just wins, Just losses, Just ties ->
-      let totalGames = wins + losses + ties
-      in if totalGames == 0
-         then Just 0.0
-         else
-           let effectiveWins = Int.toNumber wins + (Int.toNumber ties * 0.5)
-               percentage = (effectiveWins / Int.toNumber totalGames) * 100.0
-           in Just (Int.toNumber (Int.round (percentage * 10.0)) / 10.0)
-    _, _, _ -> Nothing
+calculateWinPercentage xtData = do
+  data' <- xtData
+  wins <- data'.w
+  losses <- data'.l
+  ties <- data'.t
+  let totalGames = wins + losses + ties
+  if totalGames == 0
+    then pure 0.0
+    else do
+      let effectiveWins = Int.toNumber wins + (Int.toNumber ties * 0.5)
+          percentage = (effectiveWins / Int.toNumber totalGames) * 100.0
+      pure $ Int.toNumber (Int.round (percentage * 10.0)) / 10.0
 
 getRecentTournament :: Maybe CrossTablesPlayer -> Maybe TournamentResult
-getRecentTournament Nothing = Nothing
-getRecentTournament (Just xtData) =
-  case xtData.results of
-    Nothing -> Nothing
-    Just results ->
-      -- Find recent win first, otherwise take first result
-      case find (\r -> r.place == 1) results of
-        Just win -> Just win
-        Nothing -> head results
+getRecentTournament xtData = do
+  results <- xtData >>= _.results
+  -- Find recent win first, otherwise take first result
+  find (\r -> r.place == 1) results <|> head results
 
 formatPlayerName :: String -> String
 formatPlayerName name =

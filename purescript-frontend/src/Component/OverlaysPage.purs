@@ -4,7 +4,7 @@ module Component.OverlaysPage where
 import Prelude
 
 import Config.Themes (getTheme)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
@@ -186,12 +186,11 @@ renderSimpleOverlay theme overlay =
                   [ HH.text "Params" ]
             else HH.text ""
         ]
-    , case overlay.description of
-        Just desc ->
-          HH.p
-            [ HP.class_ (HH.ClassName $ "text-sm mb-3 " <> theme.colors.textPrimary) ]
-            [ HH.text desc ]
-        Nothing -> HH.text ""
+    , fromMaybe (HH.text "") (overlay.description <#> \desc ->
+        HH.p
+          [ HP.class_ (HH.ClassName $ "text-sm mb-3 " <> theme.colors.textPrimary) ]
+          [ HH.text desc ]
+      )
     , HH.button
         [ HE.onClick \_ -> NavigateToRoute overlay.route
         , HP.class_ (HH.ClassName $ "block text-center py-2 px-3 rounded-lg text-sm font-medium transition-all cursor-pointer w-full " <>

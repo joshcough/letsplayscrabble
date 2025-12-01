@@ -10,6 +10,7 @@ import Data.Argonaut.Decode (decodeJson, (.:))
 import Data.Argonaut.Encode ((:=), (~>))
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
+import Data.Foldable (for_)
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Console (log)
@@ -135,9 +136,7 @@ broadcastStatus stateRef = do
 cleanup :: Ref.Ref WorkerState -> Effect Unit
 cleanup stateRef = do
   state <- Ref.read stateRef
-  case state.socket of
-    Just socket -> SIO.disconnect socket
-    Nothing -> pure unit
+  for_ state.socket SIO.disconnect
   BC.close state.broadcastChannel
   BC.close state.statusChannel
   pure unit

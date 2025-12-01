@@ -236,7 +236,7 @@ renderGamesTable theme p1 p2 games =
 renderGameRow :: forall w i. Theme -> Player -> Player -> H2HGameExt -> HH.HTML w i
 renderGameRow theme p1 _ game =
   let
-    p1XtId = fromMaybe 0 (map (\(XTId id) -> id) p1.xtid)
+    p1XtId = fromMaybe 0 (unwrap <$> p1.xtid)
     p1Score = if game.game.player1.playerid == p1XtId
               then game.game.player1.score
               else game.game.player2.score
@@ -366,8 +366,8 @@ formatGameDate = toLocaleDateString
 getHeadToHeadGames :: Player -> Player -> Division -> TournamentSummary -> Array H2HGameExt
 getHeadToHeadGames p1 p2 division tournament =
   let
-    p1XtId = fromMaybe 0 (map (\(XTId id) -> id) p1.xtid)
-    p2XtId = fromMaybe 0 (map (\(XTId id) -> id) p2.xtid)
+    p1XtId = fromMaybe 0 (unwrap <$> p1.xtid)
+    p2XtId = fromMaybe 0 (unwrap <$> p2.xtid)
 
     -- Historical games from cross-tables
     historicalGames = filter (\game ->
@@ -395,8 +395,8 @@ getHeadToHeadGames p1 p2 division tournament =
 convertGameToH2H :: Player -> Player -> TournamentSummary -> Game -> HeadToHeadGame
 convertGameToH2H p1 p2 tournament game =
   let
-    p1XtId = fromMaybe 0 (map (\(XTId id) -> id) p1.xtid)
-    p2XtId = fromMaybe 0 (map (\(XTId id) -> id) p2.xtid)
+    p1XtId = fromMaybe 0 (unwrap <$> p1.xtid)
+    p2XtId = fromMaybe 0 (unwrap <$> p2.xtid)
     p1IsGamePlayer1 = game.player1Id == p1.id
     GameId gameId = game.id
   in

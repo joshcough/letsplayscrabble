@@ -85,9 +85,7 @@ calculatePlayerStats player games =
     ratingDiff = currentRating - player.initialRating
 
     -- Extract XT photo URL from xtData if available
-    xtPhotoUrl = case player.xtData of
-      Just xt -> xt.photourl
-      Nothing -> Nothing
+    xtPhotoUrl = player.xtData >>= _.photourl
   in
     { playerId: player.id
     , name: player.name
