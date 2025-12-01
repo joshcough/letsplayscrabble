@@ -266,9 +266,9 @@ render state =
     Just (CrossTablesPlayerProfile params) ->
       HH.slot_ _crossTablesPlayerProfile unit CrossTablesPlayerProfile.component
         { userId: params.userId
-        , tournamentId: params.tournamentId
+        , tournamentId: map TournamentId params.tournamentId
         , divisionName: params.divisionName
-        , playerId: params.playerId
+        , extra: params.playerId
         }
 
     Just (HeadToHead params) ->

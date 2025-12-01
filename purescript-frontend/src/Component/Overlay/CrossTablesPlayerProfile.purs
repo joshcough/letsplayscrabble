@@ -4,104 +4,49 @@ module Component.Overlay.CrossTablesPlayerProfile where
 
 import Prelude
 
-import API.CurrentMatch as CurrentMatchAPI
-import Config.Themes (getTheme)
+import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array (find, head, last)
-import Data.Either (Either(..))
-import Utils.PlayerImage (getPlayerImageUrl)
 import Data.Int (toNumber, round) as Int
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Newtype (unwrap)
 import Data.Number (pow)
 import Data.String (Pattern(..), split, joinWith, take, drop) as String
 import Data.String (Pattern(..))
-import Domain.Types (TournamentId(..), PlayerId(..), Division, Player, Tournament, CrossTablesPlayer, TournamentResult, CurrentMatch)
+import Domain.Types (PlayerId(..), Player, CrossTablesPlayer, TournamentResult, TournamentSummary)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
+import Utils.PlayerImage (getPlayerImageUrl)
 
-type Input =
-  { userId :: Int
-  , tournamentId :: Maybe Int
-  , divisionName :: Maybe String
-  , playerId :: Int
-  }
+type State = BaseOverlay.State Int
 
-type State =
-  { userId :: Int
-  , tournamentId :: Maybe TournamentId
-  , divisionName :: Maybe String
-  , playerId :: Int
-  , theme :: Theme
-  , tournament :: Maybe Tournament
-  , division :: Maybe Division
-  , player :: Maybe Player
-  , currentMatch :: Maybe CurrentMatch
-  , loading :: Boolean
-  , error :: Maybe String
-  }
+type Action = BaseOverlay.Action
 
-data Action
-  = Initialize
-  | LoadCurrentMatch
-  | LoadTournamentData
-
-component :: forall query output m. MonadAff m => H.Component query Input output m
+component :: forall query output m. MonadAff m => H.Component query (BaseOverlay.Input Int) output m
 component = H.mkComponent
-  { initialState
+  { initialState: BaseOverlay.initialState
   , render
-  , eval: H.mkEval H.defaultEval
-      { handleAction = handleAction
-      , initialize = Just Initialize
+  , eval: H.mkEval $ H.defaultEval
+      { handleAction = BaseOverlay.handleAction
+      , initialize = Just BaseOverlay.Initialize
+      , finalize = Just BaseOverlay.Finalize
       }
   }
 
-initialState :: Input -> State
-initialState input =
-  { userId: input.userId
-  , tournamentId: map TournamentId input.tournamentId
-  , divisionName: input.divisionName
-  , playerId: input.playerId
-  , theme: getTheme "scrabble"
-  , tournament: Nothing
-  , division: Nothing
-  , player: Nothing
-  , currentMatch: Nothing
-  , loading: true
-  , error: Nothing
-  }
-
 render :: forall m. State -> H.ComponentHTML Action () m
-render state
-  | state.loading = renderLoading state.theme
-  | otherwise = case state.error of
-      Just err -> renderError state.theme err
-      Nothing -> case state.player, state.tournament of
-        Just player, Just tournament -> renderPlayerProfile state.theme player tournament
-        _, _ -> renderError state.theme "Player or tournament data not found"
+render state =
+  BaseOverlay.renderWithData state \tournamentData ->
+    let
+      playerId = state.extra
+      maybePlayer = find (\p -> unwrap p.id == playerId) tournamentData.division.players
+    in
+      case maybePlayer of
+        Nothing -> BaseOverlay.renderError $ "Player " <> show playerId <> " not found in division"
+        Just player -> renderPlayerProfile state.theme player tournamentData.tournament
 
-renderLoading :: forall w i. Theme -> HH.HTML w i
-renderLoading theme =
-  HH.div
-    [ HP.class_ (HH.ClassName $ theme.colors.pageBackground <> " min-h-screen flex items-center justify-center p-6") ]
-    [ HH.div
-        [ HP.class_ (HH.ClassName $ theme.colors.textPrimary <> " text-2xl") ]
-        [ HH.text "Loading player profile..." ]
-    ]
-
-renderError :: forall w i. Theme -> String -> HH.HTML w i
-renderError theme errorMsg =
-  HH.div
-    [ HP.class_ (HH.ClassName $ theme.colors.pageBackground <> " min-h-screen flex items-center justify-center p-6") ]
-    [ HH.div
-        [ HP.class_ (HH.ClassName $ theme.colors.textPrimary <> " text-2xl") ]
-        [ HH.text errorMsg ]
-    ]
-
-renderPlayerProfile :: forall w i. Theme -> Player -> Tournament -> HH.HTML w i
+renderPlayerProfile :: forall w i. Theme -> Player -> TournamentSummary -> HH.HTML w i
 renderPlayerProfile theme player tournament =
   let
     location = formatLocation player.xtData
@@ -148,7 +93,7 @@ renderPlayerProfile theme player tournament =
           ]
       ]
 
-renderPlayerImage :: forall w i. Player -> Tournament -> HH.HTML w i
+renderPlayerImage :: forall w i. Player -> TournamentSummary -> HH.HTML w i
 renderPlayerImage player tournament =
   let
     xtPhotoUrl = player.xtData >>= _.photourl
@@ -344,94 +289,3 @@ formatDate dateString =
       in monthName <> " " <> dayNum <> ", " <> year
     _ -> dateString
 
-handleAction :: forall output m. MonadAff m => Action -> H.HalogenM State Action () output m Unit
-handleAction = case _ of
-  Initialize -> do
-    liftEffect $ log "[CrossTablesPlayerProfile] Initialize"
-    state <- H.get
-    case state.tournamentId of
-      Nothing -> handleAction LoadCurrentMatch
-      Just _ -> handleAction LoadTournamentData
-
-  LoadCurrentMatch -> do
-    state <- H.get
-    liftEffect $ log "[CrossTablesPlayerProfile] Loading current match"
-
-    result <- H.liftAff $ CurrentMatchAPI.getCurrentMatch state.userId
-    case result of
-      Left err -> do
-        liftEffect $ log $ "[CrossTablesPlayerProfile] Error loading current match: " <> err
-        H.modify_ _ { loading = false, error = Just "No current match set. Please use the Current Match admin page to select a match." }
-
-      Right Nothing -> do
-        liftEffect $ log "[CrossTablesPlayerProfile] No current match"
-        H.modify_ _ { loading = false, error = Just "No current match set. Please use the Current Match admin page to select a match." }
-
-      Right (Just currentMatch) -> do
-        liftEffect $ log $ "[CrossTablesPlayerProfile] Current match loaded: " <> currentMatch.divisionName
-        H.modify_ _
-          { currentMatch = Just currentMatch
-          , tournamentId = Just currentMatch.tournamentId
-          , divisionName = Just currentMatch.divisionName
-          }
-        handleAction LoadTournamentData
-
-  LoadTournamentData -> do
-    state <- H.get
-    liftEffect $ log $ "[CrossTablesPlayerProfile] Loading tournament data for player " <> show state.playerId
-
-    case state.tournamentId of
-      Nothing -> do
-        liftEffect $ log "[CrossTablesPlayerProfile] No tournament ID provided"
-        H.modify_ _ { loading = false, error = Just "No tournament ID provided" }
-
-      Just (TournamentId tid) -> do
-        result <- H.liftAff $ CurrentMatchAPI.getTournament state.userId tid
-        case result of
-          Left err -> do
-            liftEffect $ log $ "[CrossTablesPlayerProfile] Error loading tournament: " <> err
-            H.modify_ _ { loading = false, error = Just err }
-
-          Right tournament -> do
-            liftEffect $ log $ "[CrossTablesPlayerProfile] Tournament loaded, finding division and player"
-
-            -- Find the division
-            let maybeDivision = case state.divisionName of
-                  Just divName -> find (\d -> d.name == divName) tournament.divisions
-                  Nothing -> head tournament.divisions
-
-            case maybeDivision of
-              Nothing -> do
-                liftEffect $ log "[CrossTablesPlayerProfile] Division not found"
-                H.modify_ _ { loading = false, error = Just "Division not found" }
-
-              Just division -> do
-                -- Find the player - either by explicit ID or from current match
-                let maybePlayer = case state.currentMatch of
-                      Just currentMatch -> do
-                        -- Find current game
-                        game <- find (\g -> g.pairingId == Just currentMatch.pairingId && g.roundNumber == currentMatch.round) division.games
-                        -- Get player ID based on playerId parameter (1 or 2)
-                        let targetPlayerId = if state.playerId == 1
-                              then let PlayerId pid = game.player1Id in pid
-                              else let PlayerId pid = game.player2Id in pid
-                        -- Find player by ID
-                        find (\p -> let PlayerId pid = p.id in pid == targetPlayerId) division.players
-                      Nothing ->
-                        -- Specific player mode - find by explicit ID
-                        find (\p -> let PlayerId pid = p.id in pid == state.playerId) division.players
-
-                case maybePlayer of
-                  Nothing -> do
-                    liftEffect $ log $ "[CrossTablesPlayerProfile] Player " <> show state.playerId <> " not found"
-                    H.modify_ _ { loading = false, error = Just ("Player " <> show state.playerId <> " not found") }
-
-                  Just player -> do
-                    liftEffect $ log "[CrossTablesPlayerProfile] Player found, rendering profile"
-                    H.modify_ _
-                      { tournament = Just tournament
-                      , division = Just division
-                      , player = Just player
-                      , theme = getTheme tournament.theme
-                      , loading = false
-                      }
