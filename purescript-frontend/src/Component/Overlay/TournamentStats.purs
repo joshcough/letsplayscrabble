@@ -187,30 +187,21 @@ formatPercent n =
 handleAction :: forall output m. MonadAff m => Action -> H.HalogenM State Action () output m Unit
 handleAction = case _ of
   Initialize -> do
-    liftEffect $ Console.log "[TournamentStats] Initialize called"
-
     state <- H.get
     case state.input of
       Nothing -> do
         liftEffect $ Console.log "[TournamentStats] ERROR: No input found in state"
         H.modify_ _ { error = Just "No tournament parameters provided", loading = false }
       Just input -> do
-        liftEffect $ Console.log $ "[TournamentStats] Input: userId=" <> show input.userId <>
-          ", tournamentId=" <> show input.tournamentId <>
-          ", divisionName=" <> show input.divisionName
-
         -- Create broadcast manager
-        liftEffect $ Console.log "[TournamentStats] Creating broadcast manager"
         manager <- liftEffect BroadcastManager.create
 
         -- Subscribe to tournament data responses
-        liftEffect $ Console.log "[TournamentStats] Subscribing to tournament data responses"
         void $ H.subscribe $
           manager.tournamentDataResponseEmitter
             <#> HandleTournamentData
 
         -- Subscribe to admin panel updates (for current match division name)
-        liftEffect $ Console.log "[TournamentStats] Subscribing to admin panel updates"
         void $ H.subscribe $
           manager.adminPanelUpdateEmitter
             <#> HandleAdminPanelUpdate
@@ -230,19 +221,9 @@ handleAction = case _ of
             , tournament
             }
 
-          logMsg = maybe
-            "[TournamentStats] Sending subscribe message for current match"
-            (\t -> "[TournamentStats] Sending subscribe message for tournament " <> show t.tournamentId)
-            tournament
-
-        liftEffect $ Console.log logMsg
         liftEffect $ BroadcastManager.postSubscribe manager subscribeMsg
-        liftEffect $ Console.log "[TournamentStats] Subscribe message sent"
 
   HandleTournamentData response -> do
-    liftEffect $ Console.log "[TournamentStats] Received tournament data response"
-    liftEffect $ Console.log $ "[TournamentStats] Tournament has " <> show (length response.data.divisions) <> " divisions"
-
     state <- H.get
 
     -- Determine which division(s) to use:
@@ -277,7 +258,6 @@ handleAction = case _ of
         H.modify_ _ { error = Just "Could not calculate tournament stats", loading = false }
       )
       (\s -> do
-        liftEffect $ Console.log "[TournamentStats] Successfully calculated stats"
         H.modify_ _
           { stats = Just s
           , tournamentName = response.data.name
@@ -291,11 +271,8 @@ handleAction = case _ of
 
   HandleAdminPanelUpdate update -> do
     state <- H.get
-    if state.subscribedToCurrentMatch then do
-      liftEffect $ Console.log $ "[TournamentStats] Received admin panel update, divisionName=" <> update.divisionName
+    when state.subscribedToCurrentMatch do
       H.modify_ _ { currentMatchDivisionName = Just update.divisionName }
-    else
-      liftEffect $ Console.log "[TournamentStats] Ignoring admin panel update (not in current match mode)"
 
   Finalize -> do
     state <- H.get

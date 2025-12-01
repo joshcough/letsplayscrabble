@@ -21,8 +21,6 @@ fetchCurrentMatch :: Int -> Aff (Either String (Maybe CurrentMatch))
 fetchCurrentMatch userId = do
   let url = "http://localhost:3001/api/overlay/users/" <> show userId <> "/match/current"
 
-  liftEffect $ Console.log $ "[CurrentMatchApi] Fetching from: " <> url
-
   -- Use Affjax to fetch
   affjaxResult <- AW.get ResponseFormat.json url
 
@@ -33,22 +31,17 @@ fetchCurrentMatch userId = do
       pure $ Left $ "Network error: " <> errMsg
 
     Right response -> do
-      liftEffect $ Console.log $ "[CurrentMatchApi] Response status: " <> show response.status
-
       case response.status of
         StatusCode 404 -> do
-          liftEffect $ Console.log "[CurrentMatchApi] No current match (404)"
           pure $ Right Nothing
 
         StatusCode 200 -> do
-          liftEffect $ Console.log "[CurrentMatchApi] Success (200), decoding..."
           case decodeApiResponse response.body of
             Left err -> do
               let errMsg = printJsonDecodeError err
               liftEffect $ Console.log $ "[CurrentMatchApi] Decode error: " <> errMsg
               pure $ Left errMsg
             Right decoded -> do
-              liftEffect $ Console.log "[CurrentMatchApi] Successfully decoded"
               pure $ Right decoded
 
         _ -> do

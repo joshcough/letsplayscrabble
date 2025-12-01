@@ -77,30 +77,21 @@ initialState input =
 handleAction :: forall slots o m. MonadAff m => Action -> H.HalogenM State Action slots o m Unit
 handleAction = case _ of
   Initialize -> do
-    liftEffect $ Console.log "[BaseOverlay] Initialize called"
-
     state <- H.get
     case state.input of
       Nothing -> do
         liftEffect $ Console.log "[BaseOverlay] ERROR: No input found in state"
         H.modify_ _ { error = Just "No tournament parameters provided", loading = false }
       Just input -> do
-        liftEffect $ Console.log $ "[BaseOverlay] Input: userId=" <> show input.userId <>
-          ", tournamentId=" <> show input.tournamentId <>
-          ", divisionName=" <> show input.divisionName
-
         -- Create broadcast manager
-        liftEffect $ Console.log "[BaseOverlay] Creating broadcast manager"
         manager <- liftEffect BroadcastManager.create
 
         -- Subscribe to tournament data responses
-        liftEffect $ Console.log "[BaseOverlay] Subscribing to tournament data responses"
         void $ H.subscribe $
           manager.tournamentDataResponseEmitter
             <#> HandleTournamentData
 
         -- Subscribe to admin panel updates
-        liftEffect $ Console.log "[BaseOverlay] Subscribing to admin panel updates"
         void $ H.subscribe $
           manager.adminPanelUpdateEmitter
             <#> HandleAdminPanelUpdate
@@ -125,13 +116,7 @@ handleAction = case _ of
             , tournament
             }
 
-          logMsg = case tournament of
-            Nothing -> "[BaseOverlay] Sending subscribe message for current match"
-            Just t -> "[BaseOverlay] Sending subscribe message for tournament " <> show t.tournamentId
-
-        liftEffect $ Console.log logMsg
         liftEffect $ BroadcastManager.postSubscribe manager subscribeMsg
-        liftEffect $ Console.log "[BaseOverlay] Subscribe message sent"
 
   HandleTournamentData response -> do
     state <- H.get
@@ -147,12 +132,9 @@ handleAction = case _ of
                 let (TournamentId responseTid) = response.tournamentId
                 in tid == responseTid  -- Accept if tournament IDs match
 
-    if not shouldAccept then do
-      liftEffect $ Console.log $ "[BaseOverlay] Ignoring tournament data response (isCurrentMatch=" <> show response.isCurrentMatch <> ", subscribedToCurrentMatch=" <> show state.subscribedToCurrentMatch <> ")"
+    if not shouldAccept then
+      pure unit  -- Silently ignore responses not meant for us
     else do
-      liftEffect $ Console.log "[BaseOverlay] Received tournament data response (full tournament)"
-      liftEffect $ Console.log $ "[BaseOverlay] Tournament has " <> show (length response.data.divisions) <> " divisions"
-
       -- Extract the division we care about
       -- For current match mode, use divisionName from AdminPanelUpdate (stored in currentMatch)
       -- For specific tournament mode, use divisionName from URL input
@@ -164,8 +146,6 @@ handleAction = case _ of
               Just input -> input.divisionName
               Nothing -> Nothing
 
-      liftEffect $ Console.log $ "[BaseOverlay] Looking for division: " <> show divisionName <> " (subscribedToCurrentMatch=" <> show state.subscribedToCurrentMatch <> ")"
-
       let division = case divisionName of
             Just name -> find (\d -> d.name == name) response.data.divisions
             Nothing -> Nothing  -- No division specified, can't proceed
@@ -176,14 +156,9 @@ handleAction = case _ of
           H.modify_ _ { error = Just $ "Division not found: " <> show divisionName, loading = false }
 
         Just div -> do
-          liftEffect $ Console.log $ "[BaseOverlay] Found division: " <> div.name
-          liftEffect $ Console.log $ "[BaseOverlay] Players count: " <> show (length div.players)
-          liftEffect $ Console.log $ "[BaseOverlay] Games count: " <> show (length div.games)
-
           -- Get theme from tournament data
           let themeName = response.data.theme
           let theme = getTheme themeName
-          liftEffect $ Console.log $ "[BaseOverlay] Using theme: " <> themeName
 
           -- Create TournamentSummary from full Tournament
           let tournamentSummary :: TournamentSummary
@@ -217,19 +192,11 @@ handleAction = case _ of
             , error = Nothing
             }
 
-          liftEffect $ Console.log "[BaseOverlay] State updated with tournament data"
-
   HandleAdminPanelUpdate update -> do
     state <- H.get
-    liftEffect $ Console.log $ "[BaseOverlay] HandleAdminPanelUpdate called! subscribedToCurrentMatch=" <> show state.subscribedToCurrentMatch
-    liftEffect $ Console.log $ "[BaseOverlay] Update details: userId=" <> show update.userId <> ", tournamentId=" <> show update.tournamentId <> ", divisionName=" <> update.divisionName <> ", round=" <> show update.round <> ", pairingId=" <> show update.pairingId
     -- Only process if we're subscribed to current match
-    if state.subscribedToCurrentMatch then do
-      liftEffect $ Console.log $ "[BaseOverlay] Processing admin panel update: divisionName=" <> update.divisionName <> ", round=" <> show update.round <> ", pairingId=" <> show update.pairingId
+    when state.subscribedToCurrentMatch do
       H.modify_ _ { currentMatch = Just { round: update.round, pairingId: update.pairingId, divisionName: update.divisionName } }
-      liftEffect $ Console.log "[BaseOverlay] currentMatch updated in state with divisionName"
-    else
-      liftEffect $ Console.log "[BaseOverlay] Ignoring admin panel update (not subscribed to current match)"
 
   Finalize -> do
     state <- H.get

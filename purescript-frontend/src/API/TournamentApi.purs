@@ -22,7 +22,6 @@ import Effect.Console as Console
 fetchTournamentData :: Int -> TournamentId -> Maybe String -> Aff (Either String Tournament)
 fetchTournamentData userId (TournamentId tournamentId) maybeDivisionName = do
   let url = buildUrl userId tournamentId maybeDivisionName
-  liftEffect $ Console.log $ "[TournamentApi] Fetching from: " <> url
 
   -- Fetch JSON from API using Affjax
   result <- AX.request (AX.defaultRequest
@@ -40,15 +39,12 @@ fetchTournamentData userId (TournamentId tournamentId) maybeDivisionName = do
       liftEffect $ Console.log $ "[TournamentApi] HTTP error: " <> AX.printError err
       pure $ Left $ "HTTP error: " <> AX.printError err
     Right response -> do
-      liftEffect $ Console.log "[TournamentApi] Received response, decoding..."
-
       -- Decode the API response envelope { success: true, data: ... }
       case decodeApiResponse response.body of
         Left err -> do
           liftEffect $ Console.log $ "[TournamentApi] Decode error: " <> printJsonDecodeError err
           pure $ Left $ "Failed to decode response: " <> printJsonDecodeError err
         Right data_ -> do
-          liftEffect $ Console.log "[TournamentApi] Successfully decoded response"
           pure $ Right data_
 
   where
