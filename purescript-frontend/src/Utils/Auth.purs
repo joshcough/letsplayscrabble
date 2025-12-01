@@ -4,7 +4,7 @@ module Utils.Auth where
 import Prelude
 
 import Data.Int as Int
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), isJust)
 import Effect (Effect)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
@@ -51,9 +51,7 @@ clearAuth = do
 isAuthenticated :: Effect Boolean
 isAuthenticated = do
   token <- getAuthToken
-  pure $ case token of
-    Just _ -> true
-    Nothing -> false
+  pure $ isJust token
 
 -- | Get user ID from localStorage
 getUserId :: Effect (Maybe Int)
