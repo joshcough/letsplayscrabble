@@ -3,6 +3,9 @@ module Component.TournamentManagerPage where
 
 import Prelude
 
+import CSS.Class (CSSClass(..))
+import CSS.ThemeColor (ThemeColor(..))
+
 import API.Tournament as TournamentAPI
 import Config.Themes (getTheme)
 import Data.Either (Either(..))
@@ -14,6 +17,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
+import Utils.CSS (classNames, raw, thm)
 
 type State =
   { tournaments :: Array TournamentSummary
@@ -55,38 +59,32 @@ render state =
   let theme = state.theme
   in
     HH.div
-      [ HP.class_ (HH.ClassName $ "min-h-screen " <> theme.colors.pageBackground) ]
+      [ HP.class_ $ classNames [raw "min-h-screen ", thm theme PageBackground] ]
       [ HH.div
-          [ HP.class_ (HH.ClassName "container mx-auto p-4") ]
+          [ HP.class_ (HH.ClassName $ show PageContainer) ]
           [ -- Buttons
             HH.div
               [ HP.class_ (HH.ClassName "mb-6 flex gap-4") ]
               [ HH.button
-                  [ HP.class_ (HH.ClassName $ "px-6 py-2 " <> theme.colors.cardBackground <> " " <>
-                      theme.colors.textPrimary <> " rounded-md " <> theme.colors.hoverBackground <>
-                      " transition-colors " <> theme.colors.shadowColor <> " shadow-md border-2 " <>
-                      theme.colors.primaryBorder)
+                  [ HP.class_ $ classNames [raw "px-6 py-2", thm theme CardBackground, thm theme TextPrimary, raw "rounded-md", thm theme HoverBackground, raw "transition-colors", thm theme ShadowColor, raw "shadow-md border-2", thm theme PrimaryBorder]
                   ]
                   [ HH.text "View All Tournaments" ]
               , HH.button
-                  [ HP.class_ (HH.ClassName $ "px-6 py-2 " <> theme.colors.cardBackground <> " " <>
-                      theme.colors.textPrimary <> " rounded-md " <> theme.colors.hoverBackground <>
-                      " transition-colors " <> theme.colors.shadowColor <> " shadow-md border-2 " <>
-                      theme.colors.primaryBorder)
+                  [ HP.class_ $ classNames [raw "px-6 py-2", thm theme CardBackground, thm theme TextPrimary, raw "rounded-md", thm theme HoverBackground, raw "transition-colors", thm theme ShadowColor, raw "shadow-md border-2", thm theme PrimaryBorder]
                   , HE.onClick \_ -> AddTournamentClick
                   ]
                   [ HH.text "Add New Tournament" ]
               ]
           , -- Tournament List
             HH.div
-              [ HP.class_ (HH.ClassName $ theme.colors.cardBackground <> " rounded-lg shadow-md p-6") ]
+              [ HP.class_ $ classNames [thm theme CardBackground, raw "rounded-lg shadow-md p-6"] ]
               [ HH.h2
-                  [ HP.class_ (HH.ClassName $ "text-2xl font-bold mb-6 " <> theme.colors.textPrimary) ]
+                  [ HP.class_ $ classNames [raw "page-title mb-6 ", thm theme TextPrimary] ]
                   [ HH.text "Tournaments" ]
               , if state.loading
                   then
                     HH.div
-                      [ HP.class_ (HH.ClassName $ theme.colors.textSecondary) ]
+                      [ HP.class_ $ classNames [thm theme TextSecondary] ]
                       [ HH.text "Loading tournaments..." ]
                   else case state.error of
                     Just err ->
@@ -97,7 +95,7 @@ render state =
                       if state.tournaments == []
                         then
                           HH.div
-                            [ HP.class_ (HH.ClassName $ theme.colors.textSecondary) ]
+                            [ HP.class_ $ classNames [thm theme TextSecondary] ]
                             [ HH.text "No tournaments found." ]
                         else
                           HH.div_
@@ -109,16 +107,14 @@ render state =
 renderTournament :: forall w. Theme -> TournamentSummary -> HH.HTML w Action
 renderTournament theme tournament =
   HH.div
-    [ HP.class_ (HH.ClassName $ "p-4 mb-4 " <> theme.colors.cardBackground <> " border " <>
-        theme.colors.secondaryBorder <> " rounded " <> theme.colors.hoverBackground <>
-        " cursor-pointer transition-colors shadow-md " <> theme.colors.shadowColor)
+    [ HP.class_ $ classNames [raw "p-4 mb-4", thm theme CardBackground, raw "border", thm theme SecondaryBorder, raw "rounded", thm theme HoverBackground, raw "cursor-pointer transition-colors shadow-md", thm theme ShadowColor]
     , HE.onClick \_ -> TournamentClick (unwrapTournamentId tournament.id)
     ]
     [ HH.h3
-        [ HP.class_ (HH.ClassName $ "font-semibold text-lg " <> theme.colors.textPrimary) ]
+        [ HP.class_ $ classNames [raw "font-semibold text-lg ", thm theme TextPrimary] ]
         [ HH.text tournament.name ]
     , HH.p
-        [ HP.class_ (HH.ClassName $ theme.colors.textSecondary) ]
+        [ HP.class_ $ classNames [thm theme TextSecondary] ]
         [ HH.text $ tournament.city <> ", " <> show tournament.year <> " - " <> tournament.lexicon ]
     ]
   where

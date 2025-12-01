@@ -3,6 +3,9 @@ module Component.MiscOverlayTestingPage where
 
 import Prelude
 
+import CSS.Class (CSSClass(..))
+import CSS.ThemeColor (ThemeColor(..))
+
 import Config.Themes (getTheme)
 import Data.Array (length)
 import Data.Foldable (sum)
@@ -14,6 +17,7 @@ import Halogen.HTML.Properties as HP
 import Route (Route(..), routeCodec)
 import Routing.Duplex (print)
 import Types.Theme (Theme)
+import Utils.CSS (classNames, hover, groupHover, cls, thm, raw)
 
 type State =
   { theme :: Theme
@@ -114,12 +118,12 @@ render state =
       userId = 2  -- TODO: get from auth context
   in
     HH.div
-      [ HP.class_ (HH.ClassName $ theme.colors.pageBackground <> " min-h-screen") ]
+      [ HP.class_ $ classNames [thm theme PageBackground, cls MinHScreen] ]
       [ HH.div
-          [ HP.class_ (HH.ClassName "container mx-auto p-8") ]
+          [ HP.class_ (HH.ClassName $ show PageContainer) ]
           [ -- Title
             HH.h1
-              [ HP.class_ (HH.ClassName $ "text-3xl font-bold mb-8 text-center " <> theme.colors.textPrimary) ]
+              [ HP.class_ $ classNames [raw "page-title mb-8 text-center ", thm theme TextPrimary] ]
               [ HH.text $ "Misc Overlay Testing Page (User ID: " <> show userId <> ")" ]
 
           -- Render groups
@@ -133,12 +137,12 @@ render state =
 renderGroup :: forall w. Theme -> Int -> OverlayGroup -> HH.HTML w Action
 renderGroup theme userId group =
   HH.div
-    [ HP.class_ (HH.ClassName "mb-8") ]
+    [ HP.class_ (HH.ClassName $ show Mb_8) ]
     [ HH.h2
-        [ HP.class_ (HH.ClassName $ "text-2xl font-semibold mb-4 border-b pb-2 " <> theme.colors.textAccent) ]
+        [ HP.class_ $ classNames [raw "page-title mb-4 border-b pb-2 ", thm theme TextAccent] ]
         [ HH.text group.title ]
     , HH.div
-        [ HP.class_ (HH.ClassName "space-y-6") ]
+        [ HP.class_ (HH.ClassName $ show SpaceY_6) ]
         (map (renderSource theme userId) group.sources)
     ]
 
@@ -150,9 +154,9 @@ renderSource theme userId source =
     iframeSrc = "#/overlay/misc?userId=" <> show userId <> "&source=" <> source.source
   in
     HH.div
-      [ HP.class_ (HH.ClassName $ "p-4 rounded-lg shadow border " <> theme.colors.cardBackground <> " " <> theme.colors.primaryBorder) ]
+      [ HP.class_ $ classNames [raw "p-4 rounded-lg shadow border ", thm theme CardBackground, thm theme PrimaryBorder] ]
       [ HH.h4
-          [ HP.class_ (HH.ClassName $ "font-semibold mb-2 " <> theme.colors.textPrimary) ]
+          [ HP.class_ $ classNames [raw "font-semibold mb-2 ", thm theme TextPrimary] ]
           [ HH.text source.description ]
       , HH.a
           [ HP.href url
@@ -187,12 +191,12 @@ renderNotes theme userId =
   let totalSources = sum (map (\g -> length g.sources) overlayGroups)
   in
     HH.div
-      [ HP.class_ (HH.ClassName $ "mt-12 p-4 rounded-lg " <> theme.colors.cardBackground) ]
+      [ HP.class_ $ classNames [raw "mt-12 p-4 rounded-lg ", thm theme CardBackground] ]
       [ HH.h3
-          [ HP.class_ (HH.ClassName $ "font-semibold mb-2 " <> theme.colors.textPrimary) ]
+          [ HP.class_ $ classNames [raw "font-semibold mb-2 ", thm theme TextPrimary] ]
           [ HH.text "Testing Notes:" ]
       , HH.ul
-          [ HP.class_ (HH.ClassName $ "text-sm space-y-1 " <> theme.colors.textSecondary) ]
+          [ HP.class_ $ classNames [raw "text-sm space-y-1 ", thm theme TextSecondary] ]
           [ HH.li_ [ HH.text "• All links open in new tabs for easy testing" ]
           , HH.li_ [ HH.text "• Rendered content shows below each URL" ]
           , HH.li_ [ HH.text "• Make sure to set a current match in the admin interface first" ]

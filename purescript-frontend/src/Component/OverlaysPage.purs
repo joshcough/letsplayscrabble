@@ -3,9 +3,11 @@ module Component.OverlaysPage where
 
 import Prelude
 
+import CSS.Class (CSSClass(..))
+import CSS.ThemeColor (ThemeColor(..))
+
 import Config.Themes (getTheme)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
@@ -17,6 +19,7 @@ import Route (Route(..), routeCodec)
 import Routing.Duplex (print)
 import Routing.Hash (setHash)
 import Types.Theme (Theme)
+import Utils.CSS (classNames, cls, thm, raw)
 
 type State =
   { theme :: Theme
@@ -46,19 +49,19 @@ render state =
   let theme = state.theme
   in
     HH.div
-      [ HP.class_ (HH.ClassName $ theme.colors.pageBackground <> " min-h-screen") ]
+      [ HP.class_ $ classNames [thm theme PageBackground, cls MinHScreen] ]
       [ HH.div
-          [ HP.class_ (HH.ClassName "container mx-auto p-8") ]
+          [ HP.class_ (HH.ClassName $ show PageContainer) ]
           [ -- Title
             HH.h1
-              [ HP.class_ (HH.ClassName $ "text-4xl font-bold mb-8 text-center " <>
+              [ HP.class_ $ classNames $
                   if theme.name == "original"
-                    then theme.colors.titleGradient
-                    else "text-transparent bg-clip-text " <> theme.colors.titleGradient)
+                    then [raw "text-4xl font-bold mb-8 text-center", thm theme TitleGradient]
+                    else [raw "text-4xl font-bold mb-8 text-center text-transparent bg-clip-text", thm theme TitleGradient]
               ]
               [ HH.text "Tournament Overlays & Worker" ]
           , HH.p
-              [ HP.class_ (HH.ClassName $ "text-xl mb-8 text-center " <> theme.colors.textSecondary) ]
+              [ HP.class_ $ classNames [raw "text-xl mb-8 text-center ", thm theme TextSecondary] ]
               [ HH.text "Tournament overlays with theming support" ]
 
           , -- Leaderboards category
@@ -105,22 +108,21 @@ type SimpleOverlay =
 renderCategory :: forall w. Theme -> String -> Array Overlay -> HH.HTML w Action
 renderCategory theme categoryName overlays =
   HH.div
-    [ HP.class_ (HH.ClassName "mb-8") ]
+    [ HP.class_ (HH.ClassName $ show Mb_8) ]
     [ HH.h2
-        [ HP.class_ (HH.ClassName $ "text-2xl font-bold mb-4 " <> theme.colors.textAccent) ]
+        [ HP.class_ $ classNames [raw "page-title mb-4 ", thm theme TextAccent] ]
         [ HH.text categoryName ]
     , HH.div
-        [ HP.class_ (HH.ClassName "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4") ]
+        [ HP.class_ (HH.ClassName "overlay-grid gap-4") ]
         (map (renderOverlay theme) overlays)
     ]
 
 renderOverlay :: forall w. Theme -> Overlay -> HH.HTML w Action
 renderOverlay theme overlay =
   HH.div
-    [ HP.class_ (HH.ClassName $ "p-4 rounded-xl shadow-lg border backdrop-blur-xl " <>
-        theme.colors.cardBackground <> " " <> theme.colors.primaryBorder) ]
+    [ HP.class_ $ classNames [raw "p-4 rounded-xl shadow-lg border backdrop-blur-xl", thm theme CardBackground, thm theme PrimaryBorder] ]
     [ HH.h3
-        [ HP.class_ (HH.ClassName $ "text-lg font-semibold mb-2 " <> theme.colors.textAccent) ]
+        [ HP.class_ $ classNames [raw "text-lg font-semibold mb-2 ", thm theme TextAccent] ]
         [ HH.text overlay.title ]
     , HH.div
         [ HP.class_ (HH.ClassName "flex gap-2") ]
@@ -131,20 +133,19 @@ renderVariantButton :: forall w. Theme -> OverlayVariant -> HH.HTML w Action
 renderVariantButton theme variant =
   HH.button
     [ HE.onClick \_ -> NavigateToRoute variant.route
-    , HP.class_ (HH.ClassName $ "flex-1 text-center py-2 px-3 rounded-lg text-sm font-medium transition-all cursor-pointer " <>
-        theme.colors.cardBackground <> " " <> theme.colors.primaryBorder <> " border " <> theme.colors.hoverBackground)
+    , HP.class_ $ classNames [raw "flex-1 text-center py-2 px-3 rounded-lg text-sm font-medium transition-all cursor-pointer", thm theme CardBackground, thm theme PrimaryBorder, raw "border", thm theme HoverBackground]
     ]
     [ HH.text variant.label ]
 
 renderPlayerStatsCategory :: forall w. Theme -> HH.HTML w Action
 renderPlayerStatsCategory theme =
   HH.div
-    [ HP.class_ (HH.ClassName "mb-8") ]
+    [ HP.class_ (HH.ClassName $ show Mb_8) ]
     [ HH.h2
-        [ HP.class_ (HH.ClassName $ "text-2xl font-bold mb-4 " <> theme.colors.textAccent) ]
+        [ HP.class_ $ classNames [raw "page-title mb-4 ", thm theme TextAccent] ]
         [ HH.text "Player Stats & Comparisons" ]
     , HH.div
-        [ HP.class_ (HH.ClassName "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4") ]
+        [ HP.class_ (HH.ClassName "overlay-grid gap-4") ]
         [ renderSimpleOverlay theme
             { title: "Cross-Tables Profile"
             , route: CrossTablesPlayerProfile { userId: 2, tournamentId: Nothing, divisionName: Nothing, playerId: 1 }
@@ -175,26 +176,24 @@ renderPlayerStatsCategory theme =
 renderSimpleOverlay :: forall w. Theme -> SimpleOverlay -> HH.HTML w Action
 renderSimpleOverlay theme overlay =
   HH.div
-    [ HP.class_ (HH.ClassName $ "p-4 rounded-xl shadow-lg border backdrop-blur-xl " <>
-        theme.colors.cardBackground <> " " <> theme.colors.primaryBorder) ]
+    [ HP.class_ $ classNames [raw "p-4 rounded-xl shadow-lg border backdrop-blur-xl", thm theme CardBackground, thm theme PrimaryBorder] ]
     [ HH.h3
-        [ HP.class_ (HH.ClassName $ "text-lg font-semibold mb-2 " <> theme.colors.textAccent) ]
+        [ HP.class_ $ classNames [raw "text-lg font-semibold mb-2 ", thm theme TextAccent] ]
         [ HH.text overlay.title
         , if overlay.requiresParams
             then HH.span
-                  [ HP.class_ (HH.ClassName $ "ml-2 text-xs bg-blue-500/30 px-2 py-1 rounded-full border border-blue-400/30 " <> theme.colors.textPrimary) ]
+                  [ HP.class_ $ classNames [raw "ml-2 text-xs bg-blue-500/30 px-2 py-1 rounded-full border border-blue-400/30 ", thm theme TextPrimary] ]
                   [ HH.text "Params" ]
             else HH.text ""
         ]
     , fromMaybe (HH.text "") (overlay.description <#> \desc ->
         HH.p
-          [ HP.class_ (HH.ClassName $ "text-sm mb-3 " <> theme.colors.textPrimary) ]
+          [ HP.class_ $ classNames [raw "text-sm mb-3 ", thm theme TextPrimary] ]
           [ HH.text desc ]
       )
     , HH.button
         [ HE.onClick \_ -> NavigateToRoute overlay.route
-        , HP.class_ (HH.ClassName $ "block text-center py-2 px-3 rounded-lg text-sm font-medium transition-all cursor-pointer w-full " <>
-            theme.colors.cardBackground <> " " <> theme.colors.primaryBorder <> " border " <> theme.colors.hoverBackground)
+        , HP.class_ $ classNames [raw "block text-center py-2 px-3 rounded-lg text-sm font-medium transition-all cursor-pointer w-full", thm theme CardBackground, thm theme PrimaryBorder, raw "border", thm theme HoverBackground]
         ]
         [ HH.text "Open" ]
     ]
@@ -202,12 +201,12 @@ renderSimpleOverlay theme overlay =
 renderWorkerSection :: forall w. Theme -> HH.HTML w Action
 renderWorkerSection theme =
   HH.div
-    [ HP.class_ (HH.ClassName "mb-8") ]
+    [ HP.class_ (HH.ClassName $ show Mb_8) ]
     [ HH.h2
-        [ HP.class_ (HH.ClassName $ "text-2xl font-bold mb-4 " <> theme.colors.textAccent) ]
+        [ HP.class_ $ classNames [raw "page-title mb-4 ", thm theme TextAccent] ]
         [ HH.text "Other" ]
     , HH.div
-        [ HP.class_ (HH.ClassName "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4") ]
+        [ HP.class_ (HH.ClassName "overlay-grid gap-4") ]
         [ HH.div
             [ HP.class_ (HH.ClassName "p-4 rounded-xl shadow-lg border backdrop-blur-xl bg-gradient-to-br from-orange-900/50 to-red-900/50 border-orange-400/50") ]
             [ HH.h3
@@ -233,13 +232,12 @@ renderInstructions :: forall w. Theme -> HH.HTML w Action
 renderInstructions theme =
   HH.div_
     [ HH.div
-        [ HP.class_ (HH.ClassName $ "mt-8 p-6 border rounded-2xl backdrop-blur-xl " <>
-            theme.colors.cardBackground <> " " <> theme.colors.primaryBorder) ]
+        [ HP.class_ $ classNames [raw "mt-8 p-6 border rounded-2xl backdrop-blur-xl", thm theme CardBackground, thm theme PrimaryBorder] ]
         [ HH.h3
-            [ HP.class_ (HH.ClassName $ "font-semibold mb-3 text-lg " <> theme.colors.textAccent) ]
+            [ HP.class_ $ classNames [raw "font-semibold mb-3 text-lg ", thm theme TextAccent] ]
             [ HH.text "⚠️ Important - Worker Browser Source Required:" ]
         , HH.ul
-            [ HP.class_ (HH.ClassName $ "text-sm space-y-2 " <> theme.colors.textPrimary) ]
+            [ HP.class_ $ classNames [raw "text-sm space-y-2 ", thm theme TextPrimary] ]
             [ HH.li_ [ HH.text "• Must add the Worker Page as a Browser Source in OBS for real-time updates to work" ]
             , HH.li_ [ HH.text "• The worker handles: WebSocket connections, tournament polling, and data broadcasting" ]
             , HH.li_ [ HH.text "• All overlay Browser Sources depend on the worker - without it, data won't update automatically" ]
@@ -248,13 +246,12 @@ renderInstructions theme =
             ]
         ]
     , HH.div
-        [ HP.class_ (HH.ClassName $ "mt-6 p-6 border rounded-2xl backdrop-blur-xl " <>
-            theme.colors.cardBackground <> " " <> theme.colors.primaryBorder) ]
+        [ HP.class_ $ classNames [raw "mt-6 p-6 border rounded-2xl backdrop-blur-xl", thm theme CardBackground, thm theme PrimaryBorder] ]
         [ HH.h3
-            [ HP.class_ (HH.ClassName $ "font-semibold mb-3 text-lg " <> theme.colors.textAccent) ]
+            [ HP.class_ $ classNames [raw "font-semibold mb-3 text-lg ", thm theme TextAccent] ]
             [ HH.text "Overlay Features:" ]
         , HH.ul
-            [ HP.class_ (HH.ClassName $ "text-sm space-y-2 " <> theme.colors.textPrimary) ]
+            [ HP.class_ $ classNames [raw "text-sm space-y-2 ", thm theme TextPrimary] ]
             [ HH.li_ [ HH.text "• Theme support with tournament-specific theming" ]
             , HH.li_ [ HH.text "• Real-time updates via WebSocket broadcasting" ]
             , HH.li_ [ HH.text "• Enhanced visual elements with improved color coding" ]
@@ -263,13 +260,12 @@ renderInstructions theme =
             ]
         ]
     , HH.div
-        [ HP.class_ (HH.ClassName $ "mt-6 p-6 border rounded-2xl backdrop-blur-xl " <>
-            theme.colors.cardBackground <> " " <> theme.colors.primaryBorder) ]
+        [ HP.class_ $ classNames [raw "mt-6 p-6 border rounded-2xl backdrop-blur-xl", thm theme CardBackground, thm theme PrimaryBorder] ]
         [ HH.h3
-            [ HP.class_ (HH.ClassName $ "font-semibold mb-3 text-lg " <> theme.colors.textAccent) ]
+            [ HP.class_ $ classNames [raw "font-semibold mb-3 text-lg ", thm theme TextAccent] ]
             [ HH.text "How it works:" ]
         , HH.ul
-            [ HP.class_ (HH.ClassName $ "text-sm space-y-2 " <> theme.colors.textPrimary) ]
+            [ HP.class_ $ classNames [raw "text-sm space-y-2 ", thm theme TextPrimary] ]
             [ HH.li_ [ HH.text "• Default: Uses currently selected match in admin interface" ]
             , HH.li_ [ HH.text "• With URL params: Most overlays support /tournamentId/divisionName for specific tournament data" ]
             , HH.li_ [ HH.text "• Example: /users/2/overlay/standings/123/A shows standings for tournament 123, division A" ]
@@ -279,13 +275,12 @@ renderInstructions theme =
             ]
         ]
     , HH.div
-        [ HP.class_ (HH.ClassName $ "mt-6 p-6 border rounded-2xl backdrop-blur-xl " <>
-            theme.colors.cardBackground <> " " <> theme.colors.primaryBorder) ]
+        [ HP.class_ $ classNames [raw "mt-6 p-6 border rounded-2xl backdrop-blur-xl", thm theme CardBackground, thm theme PrimaryBorder] ]
         [ HH.h3
-            [ HP.class_ (HH.ClassName $ "font-semibold mb-3 text-lg " <> theme.colors.textAccent) ]
+            [ HP.class_ $ classNames [raw "font-semibold mb-3 text-lg ", thm theme TextAccent] ]
             [ HH.text "For OBS Setup:" ]
         , HH.ul
-            [ HP.class_ (HH.ClassName $ "text-sm space-y-2 " <> theme.colors.textPrimary) ]
+            [ HP.class_ $ classNames [raw "text-sm space-y-2 ", thm theme TextPrimary] ]
             [ HH.li_ [ HH.text "• Step 1: Add Worker Page as a Browser Source (can be in any scene, even if not visible)" ]
             , HH.li_ [ HH.text "• Step 2: Add your overlay Browser Sources using the URLs below" ]
             , HH.li_ [ HH.text "• All Browser Sources are scoped to your user account (ID: 2)" ]

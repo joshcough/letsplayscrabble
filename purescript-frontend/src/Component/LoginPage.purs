@@ -3,6 +3,9 @@ module Component.LoginPage where
 
 import Prelude
 
+import CSS.Class (CSSClass(..))
+import CSS.ThemeColor (ThemeColor(..))
+
 import API.Auth as AuthAPI
 import Config.Themes (getTheme)
 import Data.Either (Either(..))
@@ -13,6 +16,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
+import Utils.CSS (classNames, raw, thm)
 import Web.Event.Event (Event, preventDefault)
 
 type State =
@@ -61,26 +65,26 @@ render state =
   let theme = state.theme
   in
     HH.div
-      [ HP.class_ (HH.ClassName $ theme.colors.pageBackground <> " min-h-screen flex items-center justify-center p-6") ]
+      [ HP.class_ $ classNames [thm theme PageBackground, raw "center-container p-6"] ]
       [ HH.div
           [ HP.class_ (HH.ClassName "max-w-md w-full") ]
           [ -- Title
             HH.div
               [ HP.class_ (HH.ClassName "text-center mb-8") ]
               [ HH.h1
-                  [ HP.class_ (HH.ClassName $ "text-5xl font-black mb-2 " <>
+                  [ HP.class_ $ classNames $
                       if theme.name == "original"
-                        then theme.colors.titleGradient
-                        else "text-transparent bg-clip-text " <> theme.colors.titleGradient)
+                        then [raw "text-5xl font-black mb-2", thm theme TitleGradient]
+                        else [raw "text-5xl font-black mb-2 text-transparent bg-clip-text", thm theme TitleGradient]
                   ]
                   [ HH.text "Let's Play Scrabble" ]
               , HH.p
-                  [ HP.class_ (HH.ClassName $ "text-lg " <> theme.colors.textSecondary) ]
+                  [ HP.class_ $ classNames [raw "text-lg ", thm theme TextSecondary] ]
                   [ HH.text "Sign in to manage your tournaments" ]
               ]
           , -- Login form
             HH.form
-              [ HP.class_ (HH.ClassName $ theme.colors.cardBackground <> " rounded-2xl p-8 border-2 " <> theme.colors.primaryBorder <> " shadow-2xl " <> theme.colors.shadowColor)
+              [ HP.class_ $ classNames [thm theme CardBackground, raw "rounded-2xl p-8 border-2", thm theme PrimaryBorder, raw "shadow-2xl", thm theme ShadowColor]
               , HE.onSubmit HandleSubmit
               ]
               [ -- Error message
@@ -92,9 +96,9 @@ render state =
                   Nothing -> HH.text ""
               , -- Username field
                 HH.div
-                  [ HP.class_ (HH.ClassName "mb-6") ]
+                  [ HP.class_ (HH.ClassName $ show Mb_6) ]
                   [ HH.label
-                      [ HP.class_ (HH.ClassName $ "block text-sm font-bold mb-2 " <> theme.colors.textPrimary)
+                      [ HP.class_ $ classNames [raw "form-label ", thm theme TextPrimary]
                       , HP.for "username"
                       ]
                       [ HH.text "Username" ]
@@ -103,7 +107,7 @@ render state =
                       , HP.id "username"
                       , HP.value state.username
                       , HE.onValueInput UpdateUsername
-                      , HP.class_ (HH.ClassName $ "w-full px-4 py-3 rounded-lg border-2 " <> theme.colors.primaryBorder <> " bg-black/20 " <> theme.colors.textPrimary <> " focus:outline-none focus:border-amber-400 transition-colors")
+                      , HP.class_ $ classNames [raw "w-full px-4 py-3 rounded-lg border-2", thm theme PrimaryBorder, raw "bg-black/20", thm theme TextPrimary, raw "focus:outline-none focus:border-amber-400 transition-colors"]
                       , HP.placeholder "Enter your username"
                       , HP.required true
                       , HP.disabled state.loading
@@ -111,9 +115,9 @@ render state =
                   ]
               , -- Password field
                 HH.div
-                  [ HP.class_ (HH.ClassName "mb-6") ]
+                  [ HP.class_ (HH.ClassName $ show Mb_6) ]
                   [ HH.label
-                      [ HP.class_ (HH.ClassName $ "block text-sm font-bold mb-2 " <> theme.colors.textPrimary)
+                      [ HP.class_ $ classNames [raw "form-label ", thm theme TextPrimary]
                       , HP.for "password"
                       ]
                       [ HH.text "Password" ]
@@ -122,7 +126,7 @@ render state =
                       , HP.id "password"
                       , HP.value state.password
                       , HE.onValueInput UpdatePassword
-                      , HP.class_ (HH.ClassName $ "w-full px-4 py-3 rounded-lg border-2 " <> theme.colors.primaryBorder <> " bg-black/20 " <> theme.colors.textPrimary <> " focus:outline-none focus:border-amber-400 transition-colors")
+                      , HP.class_ $ classNames [raw "w-full px-4 py-3 rounded-lg border-2", thm theme PrimaryBorder, raw "bg-black/20", thm theme TextPrimary, raw "focus:outline-none focus:border-amber-400 transition-colors"]
                       , HP.placeholder "Enter your password"
                       , HP.required true
                       , HP.disabled state.loading

@@ -3,6 +3,7 @@ module Component.Router where
 
 import Prelude
 
+import CSS.Class (CSSClass(..))
 import Component.HomePage as HomePage
 import Component.LoginPage as LoginPage
 import Component.Navigation as Navigation
@@ -29,7 +30,7 @@ import Component.WorkerPage as WorkerPage
 import Data.Either (Either(..))
 import Effect.Unsafe (unsafePerformEffect)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Domain.Types (TournamentId(..), DivisionId(..))
+import Domain.Types (TournamentId(..))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
@@ -170,7 +171,7 @@ render state =
   in case state.route of
     Nothing ->
       HH.div
-        [ HP.class_ (HH.ClassName "min-h-screen flex items-center justify-center") ]
+        [ HP.class_ (HH.ClassName $ show CenterContainer) ]
         [ HH.text "Loading..." ]
 
     Just Home ->

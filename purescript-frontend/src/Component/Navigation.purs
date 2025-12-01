@@ -3,6 +3,8 @@ module Component.Navigation where
 
 import Prelude
 
+import CSS.Class (CSSClass(..))
+import CSS.ThemeColor (ThemeColor(..))
 import Config.Themes (getTheme)
 import Data.Maybe (Maybe(..))
 import Effect.Class (class MonadEffect)
@@ -13,6 +15,7 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Route (Route(..))
 import Types.Theme (Theme)
+import Utils.CSS (classNames, cls, thm, raw)
 import Web.UIEvent.MouseEvent (MouseEvent)
 
 type Input =
@@ -91,7 +94,7 @@ render state =
       hoverBg = theme.colors.hoverBackground
   in
     HH.nav
-      [ HP.class_ (HH.ClassName $ theme.colors.cardBackground <> " border-b-4 " <> theme.colors.primaryBorder)
+      [ HP.class_ $ classNames [thm theme CardBackground, raw "border-b-4", thm theme PrimaryBorder]
       , HP.attr (HH.AttrName "style") "position: relative; z-index: 1000;"
       ]
       [ HH.div
@@ -103,28 +106,19 @@ render state =
                   [ HP.class_ (HH.ClassName "flex space-x-2") ]
                   [ -- Home link
                     HH.button
-                      [ HP.class_ (HH.ClassName $ "inline-flex items-center px-4 py-2 mt-3 mb-3 " <>
-                          pageTextPrimary <> " font-medium rounded " <>
-                          hoverBg <> " transition-colors duration-200" <>
-                          getActiveClass state.currentRoute Home)
+                      [ HP.class_ $ classNames [cls NavLink, thm theme TextPrimary, thm theme HoverBackground, raw $ getActiveClass state.currentRoute Home]
                       , HE.onClick \_ -> HandleHomeClick
                       ]
                       [ HH.text "Home" ]
                   , -- Tournament Manager link
                     HH.button
-                      [ HP.class_ (HH.ClassName $ "inline-flex items-center px-4 py-2 mt-3 mb-3 " <>
-                          pageTextPrimary <> " font-medium rounded " <>
-                          hoverBg <> " transition-colors duration-200" <>
-                          getActiveClass state.currentRoute TournamentManager)
+                      [ HP.class_ $ classNames [cls NavLink, thm theme TextPrimary, thm theme HoverBackground, raw $ getActiveClass state.currentRoute TournamentManager]
                       , HE.onClick \_ -> HandleTournamentManagerClick
                       ]
                       [ HH.text "Tournament Manager" ]
                   , -- Overlays link
                     HH.button
-                      [ HP.class_ (HH.ClassName $ "inline-flex items-center px-4 py-2 mt-3 mb-3 " <>
-                          pageTextPrimary <> " font-medium rounded " <>
-                          hoverBg <> " transition-colors duration-200" <>
-                          getActiveClass state.currentRoute Overlays)
+                      [ HP.class_ $ classNames [cls NavLink, thm theme TextPrimary, thm theme HoverBackground, raw $ getActiveClass state.currentRoute Overlays]
                       , HE.onClick \_ -> HandleOverlaysClick
                       ]
                       [ HH.text "Overlays" ]
@@ -134,17 +128,19 @@ render state =
                       , HP.attr (HH.AttrName "style") "z-index: 1001;"
                       ]
                       [ HH.button
-                          [ HP.class_ (HH.ClassName $ "inline-flex items-center px-4 py-2 mt-3 mb-3 " <>
-                              pageTextPrimary <> " font-medium rounded " <>
-                              hoverBg <> " transition-colors duration-200" <>
-                              if isAdminActive state.currentRoute then " bg-yellow-800/20" else "")
+                          [ HP.class_ $ classNames
+                              [ cls NavLink
+                              , thm theme TextPrimary
+                              , thm theme HoverBackground
+                              , if isAdminActive state.currentRoute then cls NavLinkActive else raw ""
+                              ]
                           , HE.onClick ToggleAdminDropdown
                           ]
                           [ HH.text "Admin"
                           , -- Dropdown arrow SVG
                             HH.elementNS (Namespace "http://www.w3.org/2000/svg") (HH.ElemName "svg")
-                              [ HP.attr (HH.AttrName "class") $ "ml-2 h-4 w-4 transition-transform " <>
-                                  if state.isAdminDropdownOpen then "rotate-180" else ""
+                              [ HP.attr (HH.AttrName "class") $ "dropdown-arrow" <>
+                                  if state.isAdminDropdownOpen then " dropdown-arrow-open" else ""
                               , HP.attr (HH.AttrName "fill") "none"
                               , HP.attr (HH.AttrName "stroke") "currentColor"
                               , HP.attr (HH.AttrName "viewBox") "0 0 24 24"
@@ -162,13 +158,13 @@ render state =
                         if state.isAdminDropdownOpen
                           then
                             HH.div
-                              [ HP.class_ (HH.ClassName "absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5")
+                              [ HP.class_ (HH.ClassName "nav-dropdown")
                               , HP.attr (HH.AttrName "style") "z-index: 9999;"
                               ]
                               [ HH.div
                                   [ HP.class_ (HH.ClassName "py-1") ]
                                   [ HH.button
-                                      [ HP.class_ (HH.ClassName "block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200")
+                                      [ HP.class_ (HH.ClassName "nav-dropdown-item")
                                       , HE.onClick \_ -> HandleCurrentMatchClick
                                       ]
                                       [ HH.text "Current Match" ]
@@ -183,16 +179,14 @@ render state =
                   [ HH.div
                       [ HP.class_ (HH.ClassName "relative") ]
                       [ HH.button
-                          [ HP.class_ (HH.ClassName $ "inline-flex items-center px-4 py-2 " <>
-                              pageTextPrimary <> " font-medium rounded " <>
-                              hoverBg <> " transition-colors duration-200")
+                          [ HP.class_ $ classNames [cls NavUserButton, thm theme TextPrimary, thm theme HoverBackground]
                           , HE.onClick ToggleDropdown
                           ]
                           [ HH.text state.username
                           , -- Dropdown arrow SVG
                             HH.elementNS (Namespace "http://www.w3.org/2000/svg") (HH.ElemName "svg")
-                              [ HP.attr (HH.AttrName "class") $ "ml-2 h-4 w-4 transition-transform " <>
-                                  if state.isDropdownOpen then "rotate-180" else ""
+                              [ HP.attr (HH.AttrName "class") $ "dropdown-arrow" <>
+                                  if state.isDropdownOpen then " dropdown-arrow-open" else ""
                               , HP.attr (HH.AttrName "fill") "none"
                               , HP.attr (HH.AttrName "stroke") "currentColor"
                               , HP.attr (HH.AttrName "viewBox") "0 0 24 24"
@@ -210,7 +204,7 @@ render state =
                         if state.isDropdownOpen
                           then
                             HH.div
-                              [ HP.class_ (HH.ClassName "absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50") ]
+                              [ HP.class_ (HH.ClassName "nav-dropdown right-0 z-50") ]
                               [ HH.div
                                   [ HP.class_ (HH.ClassName "py-1") ]
                                   [ -- User ID
@@ -219,12 +213,12 @@ render state =
                                       [ HH.text $ "ID: " <> show state.userId ]
                                   , -- Settings link (TODO: implement)
                                     HH.button
-                                      [ HP.class_ (HH.ClassName "block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200")
+                                      [ HP.class_ (HH.ClassName "nav-dropdown-item")
                                       ]
                                       [ HH.text "Settings" ]
                                   , -- Logout button
                                     HH.button
-                                      [ HP.class_ (HH.ClassName "block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200")
+                                      [ HP.class_ (HH.ClassName "nav-dropdown-item")
                                       , HE.onClick \_ -> HandleLogout
                                       ]
                                       [ HH.text "Logout" ]

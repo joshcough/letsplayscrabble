@@ -3,6 +3,9 @@ module Component.CurrentMatchPage where
 
 import Prelude
 
+import CSS.Class (CSSClass(..))
+import CSS.ThemeColor (ThemeColor(..))
+
 import API.CurrentMatch as CurrentMatchAPI
 import API.Tournament as TournamentAPI
 import Config.Themes (getTheme)
@@ -22,6 +25,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
+import Utils.CSS (classNames, classes, hover, groupHover, cls, thm, raw)
 import Utils.Auth as Auth
 
 type Input = Unit
@@ -81,11 +85,11 @@ initialState _ =
 render :: forall m. State -> H.ComponentHTML Action () m
 render state =
   HH.div
-    [ HP.class_ (HH.ClassName $ "min-h-screen p-8 " <> state.theme.colors.pageBackground) ]
+    [ HP.class_ $ classNames [raw "min-h-screen p-8", thm state.theme PageBackground] ]
     [ HH.div
-        [ HP.class_ (HH.ClassName $ "max-w-4xl mx-auto " <> state.theme.colors.cardBackground <> " shadow-md rounded-lg p-6") ]
+        [ HP.class_ $ classNames [raw "max-w-4xl mx-auto", thm state.theme CardBackground, raw "shadow-md rounded-lg p-6"] ]
         [ HH.h1
-            [ HP.class_ (HH.ClassName $ "text-2xl font-bold mb-6 " <> state.theme.colors.textPrimary) ]
+            [ HP.class_ $ classNames [raw "page-title mb-6", thm state.theme TextPrimary] ]
             [ HH.text "Current Match Management" ]
         , case state.error of
             Just err ->
@@ -105,7 +109,7 @@ render state =
               [ HH.text "Loading..." ]
           else
             HH.div
-              [ HP.class_ (HH.ClassName "space-y-6") ]
+              [ HP.class_ (HH.ClassName $ show SpaceY_6) ]
               [ renderTournamentSelect state
               , renderDivisionSelect state
               , renderRoundSelect state
@@ -117,7 +121,7 @@ render state =
                   ]
                   [ HH.text if state.loading then "Updating..." else "Update Match" ]
               , HH.button
-                  [ HP.class_ (HH.ClassName "w-full py-2 px-4 border rounded-md hover:bg-gray-50")
+                  [ HP.class_ (HH.ClassName "form-input hover:bg-gray-50")
                   , HE.onClick \_ -> HandleBackClick
                   ]
                   [ HH.text "Back to List" ]
@@ -128,16 +132,16 @@ render state =
     buttonClass s =
       if s.loading || s.selectedPairingId == Nothing
         then "opacity-50 cursor-not-allowed bg-gray-300"
-        else state.theme.colors.cardBackground <> " " <> state.theme.colors.hoverBackground <> " border-2 " <> state.theme.colors.primaryBorder
+        else classes [thm state.theme CardBackground, thm state.theme HoverBackground, raw "border-2", thm state.theme PrimaryBorder]
 
 renderTournamentSelect :: forall w. State -> HH.HTML w Action
 renderTournamentSelect state =
   HH.div []
     [ HH.label
-        [ HP.class_ (HH.ClassName $ "block font-medium mb-2 " <> state.theme.colors.textPrimary) ]
+        [ HP.class_ $ classNames [raw "form-label ", thm state.theme TextPrimary] ]
         [ HH.text $ "Tournament (" <> show (Array.length state.tournaments) <> " available)" ]
     , HH.select
-        [ HP.class_ (HH.ClassName $ "w-full p-2 border-2 rounded " <> state.theme.colors.secondaryBorder)
+        [ HP.class_ $ classNames [raw "form-input ", thm state.theme SecondaryBorder]
         , HP.value state.selectedTournamentId
         , HE.onValueChange SelectTournament
         , HP.disabled state.loading
@@ -161,10 +165,10 @@ renderDivisionSelect state =
       _ = unsafePerformEffect $ log $ "[renderDivisionSelect] divisions count=" <> show (Array.length divisions) <> " selectedDivisionId=" <> state.selectedDivisionId
   in HH.div []
     [ HH.label
-        [ HP.class_ (HH.ClassName $ "block font-medium mb-2 " <> state.theme.colors.textPrimary) ]
+        [ HP.class_ $ classNames [raw "form-label ", thm state.theme TextPrimary] ]
         [ HH.text $ "Division (" <> show (Array.length divisions) <> " available)" ]
     , HH.select
-        [ HP.class_ (HH.ClassName $ "w-full p-2 border-2 rounded " <> state.theme.colors.secondaryBorder)
+        [ HP.class_ $ classNames [raw "form-input ", thm state.theme SecondaryBorder]
         , HP.value state.selectedDivisionId
         , HE.onValueChange SelectDivision
         , HP.disabled (state.selectedTournamentId == "" || state.loading)
@@ -188,10 +192,10 @@ renderRoundSelect state =
       _ = unsafePerformEffect $ log $ "[renderRoundSelect] rounds count=" <> show (Array.length rounds) <> " selectedRound=" <> state.selectedRound
   in HH.div []
     [ HH.label
-        [ HP.class_ (HH.ClassName $ "block font-medium mb-2 " <> state.theme.colors.textPrimary) ]
+        [ HP.class_ $ classNames [raw "form-label ", thm state.theme TextPrimary] ]
         [ HH.text $ "Round (" <> show (Array.length rounds) <> " available)" ]
     , HH.select
-        [ HP.class_ (HH.ClassName $ "w-full p-2 border-2 rounded " <> state.theme.colors.secondaryBorder)
+        [ HP.class_ $ classNames [raw "form-input ", thm state.theme SecondaryBorder]
         , HP.value state.selectedRound
         , HE.onValueChange SelectRound
         , HP.disabled (state.selectedDivisionId == "" || state.loading)
@@ -214,10 +218,10 @@ renderPairingSelect state =
       _ = unsafePerformEffect $ log $ "[renderPairingSelect] pairings count=" <> show (Array.length pairings) <> " selectedPairingId=" <> show state.selectedPairingId
   in HH.div []
     [ HH.label
-        [ HP.class_ (HH.ClassName $ "block font-medium mb-2 " <> state.theme.colors.textPrimary) ]
+        [ HP.class_ $ classNames [raw "form-label ", thm state.theme TextPrimary] ]
         [ HH.text $ "Pairing (" <> show (Array.length pairings) <> " available)" ]
     , HH.select
-        [ HP.class_ (HH.ClassName $ "w-full p-2 border-2 rounded " <> state.theme.colors.secondaryBorder)
+        [ HP.class_ $ classNames [raw "form-input ", thm state.theme SecondaryBorder]
         , HP.value (fromMaybe "" (map show state.selectedPairingId))
         , HE.onValueChange SelectPairing
         , HP.disabled (state.selectedRound == "" || state.loading)
