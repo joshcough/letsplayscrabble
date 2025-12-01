@@ -27,7 +27,7 @@ import Component.Overlay.TournamentStats as TournamentStats
 import Component.WorkerPage as WorkerPage
 import Data.Either (Either(..))
 import Effect.Unsafe (unsafePerformEffect)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Domain.Types (TournamentId(..), DivisionId(..))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
@@ -274,10 +274,9 @@ render state =
     Just (HeadToHead params) ->
       HH.slot_ _headToHead unit HeadToHead.component
         { userId: params.userId
-        , tournamentId: params.tournamentId
+        , tournamentId: map TournamentId params.tournamentId
         , divisionName: params.divisionName
-        , playerId1: params.playerId1
-        , playerId2: params.playerId2
+        , extra: { playerId1: fromMaybe 0 params.playerId1, playerId2: fromMaybe 0 params.playerId2 }
         }
 
     Just (MiscOverlay params) ->

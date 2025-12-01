@@ -4,20 +4,17 @@ module Component.Overlay.HeadToHead where
 
 import Prelude
 
-import API.CurrentMatch as CurrentMatchAPI
-import Config.Themes (getTheme)
+import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array (filter, find, foldl, sortBy, length, take, (..))
 import Data.Array as Array
-import Data.Either (Either(..))
 import Data.Int as Int
 import Data.Int (toNumber)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Newtype (unwrap)
 import Data.String (Pattern(..), split, replace, Replacement(..)) as String
 import Data.String (Pattern(..), Replacement(..))
-import Domain.Types (TournamentId(..), PlayerId(..), Division, Player, Tournament, HeadToHeadGame, CurrentMatch, Game, GameId(..), XTId(..))
+import Domain.Types (PlayerId(..), Player, HeadToHeadGame, Game, GameId(..), XTId(..), TournamentSummary, Division)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
@@ -25,91 +22,37 @@ import Types.Theme (Theme)
 import Utils.PlayerImage (getPlayerImageUrl)
 import Utils.Date (todayISO, toLocaleDateString)
 
-type Input =
-  { userId :: Int
-  , tournamentId :: Maybe Int
-  , divisionName :: Maybe String
-  , playerId1 :: Maybe Int
-  , playerId2 :: Maybe Int
-  }
+type HeadToHeadExtra = { playerId1 :: Int, playerId2 :: Int }
 
-type State =
-  { userId :: Int
-  , tournamentId :: Maybe TournamentId
-  , divisionName :: Maybe String
-  , playerId1 :: Maybe Int
-  , playerId2 :: Maybe Int
-  , theme :: Theme
-  , tournament :: Maybe Tournament
-  , division :: Maybe Division
-  , player1 :: Maybe Player
-  , player2 :: Maybe Player
-  , currentMatch :: Maybe CurrentMatch
-  , loading :: Boolean
-  , error :: Maybe String
-  }
+type State = BaseOverlay.State HeadToHeadExtra
 
-data Action
-  = Initialize
-  | LoadCurrentMatch
-  | LoadTournamentData
+type Action = BaseOverlay.Action
 
-component :: forall query output m. MonadAff m => H.Component query Input output m
+component :: forall query output m. MonadAff m => H.Component query (BaseOverlay.Input HeadToHeadExtra) output m
 component = H.mkComponent
-  { initialState
+  { initialState: BaseOverlay.initialState
   , render
-  , eval: H.mkEval H.defaultEval
-      { handleAction = handleAction
-      , initialize = Just Initialize
+  , eval: H.mkEval $ H.defaultEval
+      { handleAction = BaseOverlay.handleAction
+      , initialize = Just BaseOverlay.Initialize
+      , finalize = Just BaseOverlay.Finalize
       }
   }
 
-initialState :: Input -> State
-initialState input =
-  { userId: input.userId
-  , tournamentId: map TournamentId input.tournamentId
-  , divisionName: input.divisionName
-  , playerId1: input.playerId1
-  , playerId2: input.playerId2
-  , theme: getTheme "scrabble"
-  , tournament: Nothing
-  , division: Nothing
-  , player1: Nothing
-  , player2: Nothing
-  , currentMatch: Nothing
-  , loading: true
-  , error: Nothing
-  }
-
 render :: forall m. State -> H.ComponentHTML Action () m
-render state
-  | state.loading = renderLoading state.theme
-  | otherwise = case state.error of
-      Just err -> renderError state.theme err
-      Nothing -> case state.player1, state.player2, state.tournament, state.division of
-        Just p1, Just p2, Just tournament, Just division ->
-          renderHeadToHead state.theme p1 p2 tournament division
-        _, _, _, _ -> renderError state.theme "Players or tournament data not found"
+render state =
+  BaseOverlay.renderWithData state \tournamentData ->
+    let
+      { playerId1, playerId2 } = state.extra
+      maybePlayer1 = find (\p -> unwrap p.id == playerId1) tournamentData.division.players
+      maybePlayer2 = find (\p -> unwrap p.id == playerId2) tournamentData.division.players
+    in
+      case maybePlayer1, maybePlayer2 of
+        Just p1, Just p2 -> renderHeadToHead state.theme p1 p2 tournamentData.tournament tournamentData.division
+        Nothing, _ -> BaseOverlay.renderError $ "Player " <> show playerId1 <> " not found in division"
+        _, Nothing -> BaseOverlay.renderError $ "Player " <> show playerId2 <> " not found in division"
 
-renderLoading :: forall w i. Theme -> HH.HTML w i
-renderLoading theme =
-  HH.div
-    [ HP.class_ (HH.ClassName $ theme.colors.pageBackground <> " min-h-screen flex items-center justify-center p-6") ]
-    [ HH.div
-        [ HP.class_ (HH.ClassName $ theme.colors.textPrimary <> " text-2xl") ]
-        [ HH.text "Loading head-to-head..." ]
-    ]
-
-renderError :: forall w i. Theme -> String -> HH.HTML w i
-renderError theme errorMsg =
-  HH.div
-    [ HP.class_ (HH.ClassName $ theme.colors.pageBackground <> " min-h-screen flex items-center justify-center p-6") ]
-    [ HH.div
-        [ HP.class_ (HH.ClassName $ theme.colors.textPrimary <> " text-2xl") ]
-        [ HH.text errorMsg ]
-    ]
-
-renderHeadToHead :: forall w i. Theme -> Player -> Player -> Tournament -> Division -> HH.HTML w i
+renderHeadToHead :: forall w i. Theme -> Player -> Player -> TournamentSummary -> Division -> HH.HTML w i
 renderHeadToHead theme p1 p2 tournament division =
   let
     -- Get head-to-head games
@@ -141,7 +84,7 @@ renderHeadToHead theme p1 p2 tournament division =
       ]
 
 -- Render player card
-renderPlayerCard :: forall w i. Theme -> Player -> Tournament -> PlayerRecord -> Int -> Boolean -> HH.HTML w i
+renderPlayerCard :: forall w i. Theme -> Player -> TournamentSummary -> PlayerRecord -> Int -> Boolean -> HH.HTML w i
 renderPlayerCard theme player tournament record position isLeft =
   let
     xtPhotoUrl = player.xtData >>= _.photourl
@@ -399,7 +342,7 @@ formatGameDate :: String -> String
 formatGameDate = toLocaleDateString
 
 -- Get head-to-head games
-getHeadToHeadGames :: Player -> Player -> Division -> Tournament -> Array H2HGameExt
+getHeadToHeadGames :: Player -> Player -> Division -> TournamentSummary -> Array H2HGameExt
 getHeadToHeadGames p1 p2 division tournament =
   let
     p1XtId = fromMaybe 0 (map (\(XTId id) -> id) p1.xtid)
@@ -428,7 +371,7 @@ getHeadToHeadGames p1 p2 division tournament =
     historicalH2H <> currentH2H
 
 -- Convert current tournament game to HeadToHeadGame
-convertGameToH2H :: Player -> Player -> Tournament -> Game -> HeadToHeadGame
+convertGameToH2H :: Player -> Player -> TournamentSummary -> Game -> HeadToHeadGame
 convertGameToH2H p1 p2 tournament game =
   let
     p1XtId = fromMaybe 0 (map (\(XTId id) -> id) p1.xtid)
@@ -545,100 +488,3 @@ sortGames = sortBy \a b ->
     false, true -> GT
     _, _ -> compare b.game.date a.game.date
 
-handleAction :: forall output m. MonadAff m => Action -> H.HalogenM State Action () output m Unit
-handleAction = case _ of
-  Initialize -> do
-    liftEffect $ log "[HeadToHead] Initialize"
-    state <- H.get
-    case state.tournamentId of
-      Nothing -> handleAction LoadCurrentMatch
-      Just _ -> handleAction LoadTournamentData
-
-  LoadCurrentMatch -> do
-    state <- H.get
-    liftEffect $ log "[HeadToHead] Loading current match"
-
-    result <- H.liftAff $ CurrentMatchAPI.getCurrentMatch state.userId
-    case result of
-      Left err -> do
-        liftEffect $ log $ "[HeadToHead] Error loading current match: " <> err
-        H.modify_ _ { loading = false, error = Just "No current match set" }
-
-      Right Nothing -> do
-        liftEffect $ log "[HeadToHead] No current match"
-        H.modify_ _ { loading = false, error = Just "No current match set" }
-
-      Right (Just currentMatch) -> do
-        liftEffect $ log $ "[HeadToHead] Current match loaded"
-        H.modify_ _
-          { currentMatch = Just currentMatch
-          , tournamentId = Just currentMatch.tournamentId
-          , divisionName = Just currentMatch.divisionName
-          }
-        handleAction LoadTournamentData
-
-  LoadTournamentData -> do
-    state <- H.get
-    liftEffect $ log $ "[HeadToHead] Loading tournament data"
-
-    case state.tournamentId of
-      Nothing -> do
-        liftEffect $ log "[HeadToHead] No tournament ID"
-        H.modify_ _ { loading = false, error = Just "No tournament ID" }
-
-      Just (TournamentId tid) -> do
-        result <- H.liftAff $ CurrentMatchAPI.getTournament state.userId tid
-        case result of
-          Left err -> do
-            liftEffect $ log $ "[HeadToHead] Error loading tournament: " <> err
-            H.modify_ _ { loading = false, error = Just err }
-
-          Right tournament -> do
-            liftEffect $ log $ "[HeadToHead] Tournament loaded, finding division and players"
-
-            -- Find the division
-            let maybeDivision = case state.divisionName of
-                  Just divName -> find (\d -> d.name == divName) tournament.divisions
-                  Nothing -> Array.head tournament.divisions
-
-            case maybeDivision of
-              Nothing -> do
-                liftEffect $ log "[HeadToHead] Division not found"
-                H.modify_ _ { loading = false, error = Just "Division not found" }
-
-              Just division -> do
-                -- Find the players
-                let
-                  findPlayers = case state.playerId1, state.playerId2 of
-                    Just id1, Just id2 ->
-                      -- Explicit player IDs mode
-                      { p1: find (\p -> let PlayerId pid = p.id in pid == id1) division.players
-                      , p2: find (\p -> let PlayerId pid = p.id in pid == id2) division.players
-                      }
-                    _, _ ->
-                      -- Current match mode
-                      case state.currentMatch of
-                        Just currentMatch ->
-                          case find (\g -> g.pairingId == Just currentMatch.pairingId && g.roundNumber == currentMatch.round) division.games of
-                            Just game ->
-                              { p1: find (\p -> p.id == game.player1Id) division.players
-                              , p2: find (\p -> p.id == game.player2Id) division.players
-                              }
-                            Nothing -> { p1: Nothing, p2: Nothing }
-                        Nothing -> { p1: Nothing, p2: Nothing }
-
-                case findPlayers.p1, findPlayers.p2 of
-                  Just player1, Just player2 -> do
-                    liftEffect $ log "[HeadToHead] Both players found, rendering"
-                    H.modify_ _
-                      { tournament = Just tournament
-                      , division = Just division
-                      , player1 = Just player1
-                      , player2 = Just player2
-                      , theme = getTheme tournament.theme
-                      , loading = false
-                      }
-
-                  _, _ -> do
-                    liftEffect $ log "[HeadToHead] One or both players not found"
-                    H.modify_ _ { loading = false, error = Just "Players not found" }
