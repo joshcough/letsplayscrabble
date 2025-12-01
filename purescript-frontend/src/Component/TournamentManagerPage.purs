@@ -17,7 +17,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
-import Utils.CSS (classNames, raw, thm)
+import Utils.CSS (cls, css, thm)
 
 type State =
   { tournaments :: Array TournamentSummary
@@ -59,32 +59,32 @@ render state =
   let theme = state.theme
   in
     HH.div
-      [ HP.class_ $ classNames [raw "min-h-screen ", thm theme PageBackground] ]
+      [ css [cls MinHScreen, thm theme PageBackground] ]
       [ HH.div
           [ HP.class_ (HH.ClassName $ show PageContainer) ]
           [ -- Buttons
             HH.div
               [ HP.class_ (HH.ClassName "mb-6 flex gap-4") ]
               [ HH.button
-                  [ HP.class_ $ classNames [raw "px-6 py-2", thm theme CardBackground, thm theme TextPrimary, raw "rounded-md", thm theme HoverBackground, raw "transition-colors", thm theme ShadowColor, raw "shadow-md border-2", thm theme PrimaryBorder]
+                  [ css [cls Px_6, cls Py_2, thm theme CardBackground, thm theme TextPrimary, cls RoundedMd, thm theme HoverBackground, cls TransitionColors, thm theme ShadowColor, cls ShadowMd, cls Border_2, thm theme PrimaryBorder]
                   ]
                   [ HH.text "View All Tournaments" ]
               , HH.button
-                  [ HP.class_ $ classNames [raw "px-6 py-2", thm theme CardBackground, thm theme TextPrimary, raw "rounded-md", thm theme HoverBackground, raw "transition-colors", thm theme ShadowColor, raw "shadow-md border-2", thm theme PrimaryBorder]
+                  [ css [cls Px_6, cls Py_2, thm theme CardBackground, thm theme TextPrimary, cls RoundedMd, thm theme HoverBackground, cls TransitionColors, thm theme ShadowColor, cls ShadowMd, cls Border_2, thm theme PrimaryBorder]
                   , HE.onClick \_ -> AddTournamentClick
                   ]
                   [ HH.text "Add New Tournament" ]
               ]
           , -- Tournament List
             HH.div
-              [ HP.class_ $ classNames [thm theme CardBackground, raw "rounded-lg shadow-md p-6"] ]
+              [ css [thm theme CardBackground, cls RoundedLg, cls ShadowMd, cls P_6] ]
               [ HH.h2
-                  [ HP.class_ $ classNames [raw "page-title mb-6 ", thm theme TextPrimary] ]
+                  [ css [cls PageTitle, cls Mb_6, thm theme TextPrimary] ]
                   [ HH.text "Tournaments" ]
               , if state.loading
                   then
                     HH.div
-                      [ HP.class_ $ classNames [thm theme TextSecondary] ]
+                      [ css [thm theme TextSecondary] ]
                       [ HH.text "Loading tournaments..." ]
                   else case state.error of
                     Just err ->
@@ -95,7 +95,7 @@ render state =
                       if state.tournaments == []
                         then
                           HH.div
-                            [ HP.class_ $ classNames [thm theme TextSecondary] ]
+                            [ css [thm theme TextSecondary] ]
                             [ HH.text "No tournaments found." ]
                         else
                           HH.div_
@@ -107,14 +107,14 @@ render state =
 renderTournament :: forall w. Theme -> TournamentSummary -> HH.HTML w Action
 renderTournament theme tournament =
   HH.div
-    [ HP.class_ $ classNames [raw "p-4 mb-4", thm theme CardBackground, raw "border", thm theme SecondaryBorder, raw "rounded", thm theme HoverBackground, raw "cursor-pointer transition-colors shadow-md", thm theme ShadowColor]
+    [ css [cls P_4, cls Mb_4, thm theme CardBackground, cls Border, thm theme SecondaryBorder, cls Rounded, thm theme HoverBackground, cls CursorPointer, cls TransitionColors, cls ShadowMd, thm theme ShadowColor]
     , HE.onClick \_ -> TournamentClick (unwrapTournamentId tournament.id)
     ]
     [ HH.h3
-        [ HP.class_ $ classNames [raw "font-semibold text-lg ", thm theme TextPrimary] ]
+        [ css [cls FontSemibold, cls Text_Lg, thm theme TextPrimary] ]
         [ HH.text tournament.name ]
     , HH.p
-        [ HP.class_ $ classNames [thm theme TextSecondary] ]
+        [ css [thm theme TextSecondary] ]
         [ HH.text $ tournament.city <> ", " <> show tournament.year <> " - " <> tournament.lexicon ]
     ]
   where

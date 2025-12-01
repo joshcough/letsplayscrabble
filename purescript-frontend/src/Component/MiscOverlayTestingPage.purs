@@ -17,7 +17,7 @@ import Halogen.HTML.Properties as HP
 import Route (Route(..), routeCodec)
 import Routing.Duplex (print)
 import Types.Theme (Theme)
-import Utils.CSS (classNames, hover, groupHover, cls, thm, raw)
+import Utils.CSS (cls, css, thm)
 
 type State =
   { theme :: Theme
@@ -118,12 +118,12 @@ render state =
       userId = 2  -- TODO: get from auth context
   in
     HH.div
-      [ HP.class_ $ classNames [thm theme PageBackground, cls MinHScreen] ]
+      [ css [thm theme PageBackground, cls MinHScreen] ]
       [ HH.div
           [ HP.class_ (HH.ClassName $ show PageContainer) ]
           [ -- Title
             HH.h1
-              [ HP.class_ $ classNames [raw "page-title mb-8 text-center ", thm theme TextPrimary] ]
+              [ css [cls PageTitle, cls Mb_8, cls TextCenter, thm theme TextPrimary] ]
               [ HH.text $ "Misc Overlay Testing Page (User ID: " <> show userId <> ")" ]
 
           -- Render groups
@@ -139,7 +139,7 @@ renderGroup theme userId group =
   HH.div
     [ HP.class_ (HH.ClassName $ show Mb_8) ]
     [ HH.h2
-        [ HP.class_ $ classNames [raw "page-title mb-4 border-b pb-2 ", thm theme TextAccent] ]
+        [ css [cls PageTitle, cls Mb_4, cls BorderB, cls Pb_2, thm theme TextAccent] ]
         [ HH.text group.title ]
     , HH.div
         [ HP.class_ (HH.ClassName $ show SpaceY_6) ]
@@ -154,9 +154,9 @@ renderSource theme userId source =
     iframeSrc = "#/overlay/misc?userId=" <> show userId <> "&source=" <> source.source
   in
     HH.div
-      [ HP.class_ $ classNames [raw "p-4 rounded-lg shadow border ", thm theme CardBackground, thm theme PrimaryBorder] ]
+      [ css [cls P_4, cls RoundedLg, cls Shadow, cls Border, thm theme CardBackground, thm theme PrimaryBorder] ]
       [ HH.h4
-          [ HP.class_ $ classNames [raw "font-semibold mb-2 ", thm theme TextPrimary] ]
+          [ css [cls FontSemibold, cls Mb_2, thm theme TextPrimary] ]
           [ HH.text source.description ]
       , HH.a
           [ HP.href url
@@ -191,12 +191,12 @@ renderNotes theme userId =
   let totalSources = sum (map (\g -> length g.sources) overlayGroups)
   in
     HH.div
-      [ HP.class_ $ classNames [raw "mt-12 p-4 rounded-lg ", thm theme CardBackground] ]
+      [ css [cls Mt_12, cls P_4, cls RoundedLg, thm theme CardBackground] ]
       [ HH.h3
-          [ HP.class_ $ classNames [raw "font-semibold mb-2 ", thm theme TextPrimary] ]
+          [ css [cls FontSemibold, cls Mb_2, thm theme TextPrimary] ]
           [ HH.text "Testing Notes:" ]
       , HH.ul
-          [ HP.class_ $ classNames [raw "text-sm space-y-1 ", thm theme TextSecondary] ]
+          [ css [cls Text_Sm, cls SpaceY_1, thm theme TextSecondary] ]
           [ HH.li_ [ HH.text "• All links open in new tabs for easy testing" ]
           , HH.li_ [ HH.text "• Rendered content shows below each URL" ]
           , HH.li_ [ HH.text "• Make sure to set a current match in the admin interface first" ]

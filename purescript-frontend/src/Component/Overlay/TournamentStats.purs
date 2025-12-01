@@ -104,9 +104,7 @@ renderStats :: forall m. State -> TournamentStats -> H.ComponentHTML Action () m
 renderStats state stats =
   let
     theme = state.theme
-    titleGradient = if theme.name == "original"
-      then theme.colors.titleGradient
-      else "text-transparent bg-clip-text bg-gradient-to-r " <> theme.colors.titleGradient
+    titleGradient = theme.titleExtraClasses <> " bg-gradient-to-r " <> theme.colors.titleGradient
   in
     HH.div
       [ HP.class_ (HH.ClassName $ theme.colors.pageBackground <> " min-h-screen flex items-center justify-center p-6") ]

@@ -25,7 +25,7 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
 import Utils.Auth as Auth
-import Utils.CSS (classNames, cls, thm, raw)
+import Utils.CSS (cls, css, raw, thm)
 
 type Input =
   { tournamentId :: Int
@@ -119,15 +119,15 @@ render state =
   let theme = state.theme
   in
     HH.div
-      [ HP.class_ $ classNames [cls MinHScreen, thm theme PageBackground] ]
+      [ css [cls MinHScreen, thm theme PageBackground] ]
       [ HH.div
           [ HP.class_ (HH.ClassName $ show PageContainer) ]
           [ HH.div
-              [ HP.class_ $ classNames [thm theme CardBackground, raw "p-6 rounded-lg shadow-md"] ]
+              [ css [thm theme CardBackground, cls P_6, cls RoundedLg, cls ShadowMd] ]
               [ HH.div
                   [ HP.class_ (HH.ClassName "flex items-center justify-between mb-4") ]
                   [ HH.h2
-                      [ HP.class_ $ classNames [cls PageTitle, thm theme TextPrimary] ]
+                      [ css [cls PageTitle, thm theme TextPrimary] ]
                       [ HH.text $ maybe
                           ("Tournament #" <> show state.tournamentId)
                           _.name
@@ -139,7 +139,7 @@ render state =
                           HH.div
                             [ HP.class_ (HH.ClassName "flex gap-2") ]
                             [ HH.button
-                                [ HP.class_ $ classNames [cls BtnSecondary, cls Text_Sm, thm theme CardBackground, thm theme PrimaryBorder, thm theme HoverBackground]
+                                [ css [cls BtnSecondary, cls Text_Sm, thm theme CardBackground, thm theme PrimaryBorder, thm theme HoverBackground]
                                 , HE.onClick \_ -> HandleSaveClick
                                 ]
                                 [ HH.text "Save" ]
@@ -151,7 +151,7 @@ render state =
                             ]
                         else
                           HH.button
-                            [ HP.class_ $ classNames [cls BtnSecondary, cls Text_Sm, thm theme CardBackground, thm theme PrimaryBorder, thm theme HoverBackground]
+                            [ css [cls BtnSecondary, cls Text_Sm, thm theme CardBackground, thm theme PrimaryBorder, thm theme HoverBackground]
                             , HE.onClick \_ -> HandleEditClick
                             ]
                             [ HH.text "Edit" ]
@@ -164,7 +164,7 @@ render state =
                   ]
               , if state.loading then
                   HH.div
-                    [ HP.class_ $ classNames [thm theme TextSecondary] ]
+                    [ css [thm theme TextSecondary] ]
                     [ HH.text "Loading tournament details..." ]
                 else case state.error of
                   Just err ->
@@ -175,7 +175,7 @@ render state =
                     Just tournament -> renderTournamentDetails state.editing state.editForm theme tournament state.pollingDays
                     Nothing ->
                       HH.div
-                        [ HP.class_ $ classNames [thm theme TextSecondary] ]
+                        [ css [thm theme TextSecondary] ]
                         [ HH.text "Tournament not found" ]
               ]
           ]
@@ -201,7 +201,7 @@ renderTournamentDetails editing editForm theme tournament pollingDays =
       , renderControlSection theme "Cache"
           "Clear tournament cache across all browser tabs"
           [ HH.button
-              [ HP.class_ $ classNames [cls BtnSecondary, cls Text_Sm, thm theme CardBackground, thm theme PrimaryBorder, thm theme HoverBackground]
+              [ css [cls BtnSecondary, cls Text_Sm, thm theme CardBackground, thm theme PrimaryBorder, thm theme HoverBackground]
               , HE.onClick \_ -> HandleClearCache
               ]
               [ HH.text "Clear Cache" ]
@@ -210,12 +210,12 @@ renderTournamentDetails editing editForm theme tournament pollingDays =
       , renderControlSection theme "CrossTables"
           "Update player photos and data from CrossTables"
           [ HH.button
-              [ HP.class_ $ classNames [cls BtnSecondary, cls Text_Sm, raw "mr-2", thm theme CardBackground, thm theme PrimaryBorder, thm theme HoverBackground]
+              [ css [cls BtnSecondary, cls Text_Sm, cls Mr_2, thm theme CardBackground, thm theme PrimaryBorder, thm theme HoverBackground]
               , HE.onClick \_ -> HandleRefetch
               ]
               [ HH.text "Refetch" ]
           , HH.button
-              [ HP.class_ $ classNames [cls BtnSecondary, cls Text_Sm, thm theme CardBackground, thm theme PrimaryBorder, thm theme HoverBackground]
+              [ css [cls BtnSecondary, cls Text_Sm, thm theme CardBackground, thm theme PrimaryBorder, thm theme HoverBackground]
               , HE.onClick \_ -> HandleFullRefetch
               ]
               [ HH.text "Full Refetch" ]
@@ -226,10 +226,10 @@ renderTournamentDetails editing editForm theme tournament pollingDays =
 renderPollingSection :: forall w. Theme -> TournamentSummary -> Int -> Array (HH.HTML w Action)
 renderPollingSection theme tournament pollingDays =
   [ HH.div
-      [ HP.class_ $ classNames [cls FontMedium, cls Py_2, cls BorderT, thm theme TextSecondary, thm theme SecondaryBorder] ]
+      [ css [cls FontMedium, cls Py_2, cls BorderT, thm theme TextSecondary, thm theme SecondaryBorder] ]
       [ HH.text "Auto-Update:" ]
   , HH.div
-      [ HP.class_ $ classNames [cls Flex, cls ItemsCenter, cls JustifyBetween, cls Py_2, cls BorderT, thm theme SecondaryBorder] ]
+      [ css [cls Flex, cls ItemsCenter, cls JustifyBetween, cls Py_2, cls BorderT, thm theme SecondaryBorder] ]
       [ case tournament.pollUntil of
           Just dateStr ->
             -- Polling is active - show green text and Stop button
@@ -272,12 +272,12 @@ renderPollingSection theme tournament pollingDays =
 renderControlSection :: forall w. Theme -> String -> String -> Array (HH.HTML w Action) -> Array (HH.HTML w Action)
 renderControlSection theme label description buttons =
   [ HH.div
-      [ HP.class_ $ classNames [cls FontMedium, cls Py_2, cls BorderT, thm theme TextSecondary, thm theme SecondaryBorder] ]
+      [ css [cls FontMedium, cls Py_2, cls BorderT, thm theme TextSecondary, thm theme SecondaryBorder] ]
       [ HH.text $ label <> ":" ]
   , HH.div
-      [ HP.class_ $ classNames [cls Flex, cls ItemsCenter, cls JustifyBetween, cls Py_2, cls BorderT, thm theme SecondaryBorder] ]
+      [ css [cls Flex, cls ItemsCenter, cls JustifyBetween, cls Py_2, cls BorderT, thm theme SecondaryBorder] ]
       [ HH.div
-          [ HP.class_ $ classNames [thm theme TextPrimary] ]
+          [ css [thm theme TextPrimary] ]
           [ HH.text description ]
       , HH.div
           [ HP.class_ (HH.ClassName "flex gap-2") ]
@@ -306,10 +306,10 @@ updateField field value form = case field of
 renderThemeSection :: forall w. Boolean -> Theme -> String -> String -> Array (HH.HTML w Action)
 renderThemeSection editing currentTheme themeName selectedThemeId =
   [ HH.div
-      [ HP.class_ $ classNames [cls FontMedium, cls Py_2, cls BorderT, raw currentTheme.colors.textSecondary, raw currentTheme.colors.secondaryBorder] ]
+      [ css [cls FontMedium, cls Py_2, cls BorderT, raw currentTheme.colors.textSecondary, raw currentTheme.colors.secondaryBorder] ]
       [ HH.text "Overlay Theme:" ]
   , HH.div
-      [ HP.class_ $ classNames [cls Py_2, cls BorderT, raw "col-span-1", raw currentTheme.colors.secondaryBorder] ]
+      [ css [cls Py_2, cls BorderT, cls ColSpan_1, raw currentTheme.colors.secondaryBorder] ]
       [ if editing then
           ThemeSelector.renderThemeSelector selectedThemeId currentTheme (HandleFieldChange ThemeField)
         else
@@ -322,20 +322,20 @@ renderThemeSection editing currentTheme themeName selectedThemeId =
 renderFieldOrInput :: forall w. Boolean -> Theme -> String -> String -> String -> Field -> Array (HH.HTML w Action)
 renderFieldOrInput editing theme label value editValue field =
   [ HH.div
-      [ HP.class_ $ classNames [cls FontMedium, cls Py_2, cls BorderT, thm theme TextSecondary, thm theme SecondaryBorder] ]
+      [ css [cls FontMedium, cls Py_2, cls BorderT, thm theme TextSecondary, thm theme SecondaryBorder] ]
       [ HH.text $ label <> ":" ]
   , HH.div
-      [ HP.class_ $ classNames [cls Py_2, cls BorderT, thm theme SecondaryBorder] ]
+      [ css [cls Py_2, cls BorderT, thm theme SecondaryBorder] ]
       [ if editing then
           HH.input
-            [ HP.class_ $ classNames [cls W_Full, cls Px_2, raw "py-1", cls Border, cls Rounded, thm theme TextPrimary]
+            [ css [cls W_Full, cls Px_2, cls Py_1, cls Border, cls Rounded, thm theme TextPrimary]
             , HP.type_ HP.InputText
             , HP.value editValue
             , HE.onValueInput (HandleFieldChange field)
             ]
         else
           HH.div
-            [ HP.class_ $ classNames [thm theme TextPrimary] ]
+            [ css [thm theme TextPrimary] ]
             [ HH.text value ]
       ]
   ]

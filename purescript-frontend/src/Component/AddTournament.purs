@@ -21,7 +21,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
-import Utils.CSS (classNames, hover, groupHover, cls, thm, raw)
+import Utils.CSS (cls, css, thm)
 import Utils.Auth (isAuthenticated)
 import Web.Event.Event (Event, preventDefault)
 
@@ -150,12 +150,12 @@ render state =
   let theme = state.theme
   in
     HH.div
-      [ HP.class_ $ classNames [thm theme CardBackground, raw "p-6 rounded-lg shadow-md"] ]
+      [ css [thm theme CardBackground, cls P_6, cls RoundedLg, cls ShadowMd] ]
               [ -- Header
                 HH.div
                   [ HP.class_ (HH.ClassName "flex justify-between items-center mb-6") ]
                   [ HH.h2
-                      [ HP.class_ $ classNames [raw "page-title ", thm theme TextPrimary] ]
+                      [ css [cls PageTitle, thm theme TextPrimary] ]
                       [ HH.text "Add New Tournament" ]
                   ]
 
@@ -182,7 +182,7 @@ render state =
                   , HH.button
                       [ HP.type_ HP.ButtonSubmit
                       , HP.disabled state.loading
-                      , HP.class_ $ classNames [cls W_Full, thm theme CardBackground, thm theme TextPrimary, cls Py_2, cls Px_4, cls Rounded, thm theme HoverBackground, cls TransitionColors, thm theme ShadowColor, cls ShadowMd, cls Border_2, thm theme PrimaryBorder, raw "mt-6", raw "disabled:opacity-50", raw "disabled:cursor-not-allowed"]
+                      , css [cls W_Full, thm theme CardBackground, thm theme TextPrimary, cls Py_2, cls Px_4, cls Rounded, thm theme HoverBackground, cls TransitionColors, thm theme ShadowColor, cls ShadowMd, cls Border_2, thm theme PrimaryBorder, cls Mt_6, cls DisabledOpacity_50, cls DisabledCursorNotAllowed]
                       ]
                       [ HH.text $ if state.loading then "Adding Tournament..." else "Add Tournament" ]
                   ]
@@ -191,7 +191,7 @@ render state =
 renderFeedback :: forall w. State -> Theme -> HH.HTML w Action
 renderFeedback state _theme =
   HH.div
-    [ HP.class_ $ classNames [cls Mb_4] ]
+    [ css [cls Mb_4] ]
     [ case state.error of
         Just err ->
           HH.div
@@ -211,7 +211,7 @@ renderInputField label fieldId value updateAction theme disabled =
   HH.div_
     [ HH.label
         [ HP.for fieldId
-        , HP.class_ $ classNames [cls Block, thm theme TextPrimary, cls FontMedium, raw "mb-1"]
+        , css [cls Block, thm theme TextPrimary, cls FontMedium, cls Mb_1]
         ]
         [ HH.text label ]
     , HH.input
@@ -221,7 +221,7 @@ renderInputField label fieldId value updateAction theme disabled =
         , HE.onValueInput updateAction
         , HP.required true
         , HP.disabled disabled
-        , HP.class_ $ classNames [cls W_Full, raw "p-2", cls Border_2, thm theme SecondaryBorder, cls Rounded, thm theme CardBackground, thm theme TextPrimary, raw "focus:ring-2", raw "focus:ring-blue-500", raw "outline-none", cls TransitionColors]
+        , css [cls W_Full, cls P_2, cls Border_2, thm theme SecondaryBorder, cls Rounded, thm theme CardBackground, thm theme TextPrimary, cls FocusRing_2, cls FocusRingBlue_500, cls OutlineNone, cls TransitionColors]
         ]
     ]
 
@@ -230,7 +230,7 @@ renderNumberField label fieldId value updateAction theme disabled =
   HH.div_
     [ HH.label
         [ HP.for fieldId
-        , HP.class_ $ classNames [cls Block, thm theme TextPrimary, cls FontMedium, raw "mb-1"]
+        , css [cls Block, thm theme TextPrimary, cls FontMedium, cls Mb_1]
         ]
         [ HH.text label ]
     , HH.input
@@ -240,7 +240,7 @@ renderNumberField label fieldId value updateAction theme disabled =
         , HE.onValueInput updateAction
         , HP.required true
         , HP.disabled disabled
-        , HP.class_ $ classNames [cls W_Full, raw "p-2", cls Border_2, thm theme SecondaryBorder, cls Rounded, thm theme CardBackground, thm theme TextPrimary, raw "focus:ring-2", raw "focus:ring-blue-500", raw "outline-none", cls TransitionColors]
+        , css [cls W_Full, cls P_2, cls Border_2, thm theme SecondaryBorder, cls Rounded, thm theme CardBackground, thm theme TextPrimary, cls FocusRing_2, cls FocusRingBlue_500, cls OutlineNone, cls TransitionColors]
         ]
     ]
 

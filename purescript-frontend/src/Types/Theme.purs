@@ -25,4 +25,5 @@ type Theme =
   { id :: String
   , name :: String
   , colors :: ThemeColors
+  , titleExtraClasses :: String  -- Extra classes needed for title gradient (e.g., "text-transparent bg-clip-text")
   }

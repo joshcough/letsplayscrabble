@@ -13,6 +13,7 @@ modernTheme :: Theme
 modernTheme =
   { id: "modern"
   , name: "Modern"
+  , titleExtraClasses: "text-transparent bg-clip-text"
   , colors:
       { pageBackground: "bg-gradient-to-br from-gray-950 via-gray-900 to-black"
       , cardBackground: "bg-gradient-to-br from-blue-900/50 to-gray-900/60 backdrop-blur-xl"
@@ -35,6 +36,7 @@ scrabbleTheme :: Theme
 scrabbleTheme =
   { id: "scrabble"
   , name: "Scrabble"
+  , titleExtraClasses: "text-transparent bg-clip-text"
   , colors:
       { pageBackground: "bg-gradient-to-br from-amber-100 via-orange-100 to-yellow-100"
       , cardBackground: "bg-gradient-to-br from-amber-50/90 to-orange-50/80 backdrop-blur-xl"
@@ -57,6 +59,7 @@ july4Theme :: Theme
 july4Theme =
   { id: "july4"
   , name: "July 4th"
+  , titleExtraClasses: "text-transparent bg-clip-text"
   , colors:
       { pageBackground: "bg-gradient-to-br from-slate-900 via-blue-950 to-slate-800"
       , cardBackground: "bg-gradient-to-br from-white/95 to-blue-50/90 backdrop-blur-xl"
@@ -79,6 +82,7 @@ originalTheme :: Theme
 originalTheme =
   { id: "original"
   , name: "Original"
+  , titleExtraClasses: ""
   , colors:
       { pageBackground: "bg-white"
       , cardBackground: "bg-white"

@@ -45,9 +45,7 @@ renderPictureOverlay theme pictureData =
             [ HP.class_ (HH.ClassName "text-center mb-8") ]
             [ HH.h1
                 [ HP.class_ (HH.ClassName $ "text-6xl font-black leading-tight mb-4 " <>
-                    if theme.name == "original"
-                      then theme.colors.titleGradient
-                      else "text-transparent bg-clip-text " <> theme.colors.titleGradient)
+                    theme.titleExtraClasses <> " " <> theme.colors.titleGradient)
                 ]
                 [ HH.text pictureData.title ]
             , HH.div

@@ -16,7 +16,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
-import Utils.CSS (classNames, raw, thm)
+import Utils.CSS (cls, css, raw, thm)
 import Web.Event.Event (Event, preventDefault)
 
 type State =
@@ -65,26 +65,23 @@ render state =
   let theme = state.theme
   in
     HH.div
-      [ HP.class_ $ classNames [thm theme PageBackground, raw "center-container p-6"] ]
+      [ css [thm theme PageBackground, cls CenterContainer, cls P_6] ]
       [ HH.div
           [ HP.class_ (HH.ClassName "max-w-md w-full") ]
           [ -- Title
             HH.div
               [ HP.class_ (HH.ClassName "text-center mb-8") ]
               [ HH.h1
-                  [ HP.class_ $ classNames $
-                      if theme.name == "original"
-                        then [raw "text-5xl font-black mb-2", thm theme TitleGradient]
-                        else [raw "text-5xl font-black mb-2 text-transparent bg-clip-text", thm theme TitleGradient]
+                  [ css [cls Text_5xl, cls FontBlack, cls Mb_2, raw theme.titleExtraClasses, thm theme TitleGradient]
                   ]
                   [ HH.text "Let's Play Scrabble" ]
               , HH.p
-                  [ HP.class_ $ classNames [raw "text-lg ", thm theme TextSecondary] ]
+                  [ css [cls Text_Lg, thm theme TextSecondary] ]
                   [ HH.text "Sign in to manage your tournaments" ]
               ]
           , -- Login form
             HH.form
-              [ HP.class_ $ classNames [thm theme CardBackground, raw "rounded-2xl p-8 border-2", thm theme PrimaryBorder, raw "shadow-2xl", thm theme ShadowColor]
+              [ css [thm theme CardBackground, cls Rounded_2xl, cls P_8, cls Border_2, thm theme PrimaryBorder, cls Shadow_2xl, thm theme ShadowColor]
               , HE.onSubmit HandleSubmit
               ]
               [ -- Error message
@@ -98,7 +95,7 @@ render state =
                 HH.div
                   [ HP.class_ (HH.ClassName $ show Mb_6) ]
                   [ HH.label
-                      [ HP.class_ $ classNames [raw "form-label ", thm theme TextPrimary]
+                      [ css [cls FormLabel, thm theme TextPrimary]
                       , HP.for "username"
                       ]
                       [ HH.text "Username" ]
@@ -107,7 +104,7 @@ render state =
                       , HP.id "username"
                       , HP.value state.username
                       , HE.onValueInput UpdateUsername
-                      , HP.class_ $ classNames [raw "w-full px-4 py-3 rounded-lg border-2", thm theme PrimaryBorder, raw "bg-black/20", thm theme TextPrimary, raw "focus:outline-none focus:border-amber-400 transition-colors"]
+                      , css [cls W_Full, cls Px_4, cls Py_3, cls RoundedLg, cls Border_2, thm theme PrimaryBorder, raw "bg-black/20", thm theme TextPrimary, cls FocusOutlineNone, cls FocusBorderAmber_400, cls TransitionColors]
                       , HP.placeholder "Enter your username"
                       , HP.required true
                       , HP.disabled state.loading
@@ -117,7 +114,7 @@ render state =
                 HH.div
                   [ HP.class_ (HH.ClassName $ show Mb_6) ]
                   [ HH.label
-                      [ HP.class_ $ classNames [raw "form-label ", thm theme TextPrimary]
+                      [ css [cls FormLabel, thm theme TextPrimary]
                       , HP.for "password"
                       ]
                       [ HH.text "Password" ]
@@ -126,7 +123,7 @@ render state =
                       , HP.id "password"
                       , HP.value state.password
                       , HE.onValueInput UpdatePassword
-                      , HP.class_ $ classNames [raw "w-full px-4 py-3 rounded-lg border-2", thm theme PrimaryBorder, raw "bg-black/20", thm theme TextPrimary, raw "focus:outline-none focus:border-amber-400 transition-colors"]
+                      , css [cls W_Full, cls Px_4, cls Py_3, cls RoundedLg, cls Border_2, thm theme PrimaryBorder, raw "bg-black/20", thm theme TextPrimary, cls FocusOutlineNone, cls FocusBorderAmber_400, cls TransitionColors]
                       , HP.placeholder "Enter your password"
                       , HP.required true
                       , HP.disabled state.loading

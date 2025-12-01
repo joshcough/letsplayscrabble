@@ -15,7 +15,7 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Route (Route(..))
 import Types.Theme (Theme)
-import Utils.CSS (classNames, cls, thm, raw)
+import Utils.CSS (CSSValue, cls, css, raw, thm)
 import Web.UIEvent.MouseEvent (MouseEvent)
 
 type Input =
@@ -74,11 +74,11 @@ initialState input =
   }
 
 -- | Get active class for a navigation link
-getActiveClass :: Maybe Route -> Route -> String
+getActiveClass :: Maybe Route -> Route -> CSSValue
 getActiveClass currentRoute route =
   case currentRoute of
-    Just r | r == route -> " " <> "bg-yellow-800/20"
-    _ -> ""
+    Just r | r == route -> cls NavLinkActive
+    _ -> raw ""
 
 -- | Check if admin section is active
 isAdminActive :: Maybe Route -> Boolean
@@ -90,11 +90,9 @@ isAdminActive currentRoute =
 render :: forall m. State -> H.ComponentHTML Action () m
 render state =
   let theme = state.theme
-      pageTextPrimary = theme.colors.textPrimary
-      hoverBg = theme.colors.hoverBackground
   in
     HH.nav
-      [ HP.class_ $ classNames [thm theme CardBackground, raw "border-b-4", thm theme PrimaryBorder]
+      [ css [thm theme CardBackground, cls BorderB_4, thm theme PrimaryBorder]
       , HP.attr (HH.AttrName "style") "position: relative; z-index: 1000;"
       ]
       [ HH.div
@@ -106,19 +104,19 @@ render state =
                   [ HP.class_ (HH.ClassName "flex space-x-2") ]
                   [ -- Home link
                     HH.button
-                      [ HP.class_ $ classNames [cls NavLink, thm theme TextPrimary, thm theme HoverBackground, raw $ getActiveClass state.currentRoute Home]
+                      [ css [cls NavLink, thm theme TextPrimary, thm theme HoverBackground, getActiveClass state.currentRoute Home]
                       , HE.onClick \_ -> HandleHomeClick
                       ]
                       [ HH.text "Home" ]
                   , -- Tournament Manager link
                     HH.button
-                      [ HP.class_ $ classNames [cls NavLink, thm theme TextPrimary, thm theme HoverBackground, raw $ getActiveClass state.currentRoute TournamentManager]
+                      [ css [cls NavLink, thm theme TextPrimary, thm theme HoverBackground, getActiveClass state.currentRoute TournamentManager]
                       , HE.onClick \_ -> HandleTournamentManagerClick
                       ]
                       [ HH.text "Tournament Manager" ]
                   , -- Overlays link
                     HH.button
-                      [ HP.class_ $ classNames [cls NavLink, thm theme TextPrimary, thm theme HoverBackground, raw $ getActiveClass state.currentRoute Overlays]
+                      [ css [cls NavLink, thm theme TextPrimary, thm theme HoverBackground, getActiveClass state.currentRoute Overlays]
                       , HE.onClick \_ -> HandleOverlaysClick
                       ]
                       [ HH.text "Overlays" ]
@@ -128,7 +126,7 @@ render state =
                       , HP.attr (HH.AttrName "style") "z-index: 1001;"
                       ]
                       [ HH.button
-                          [ HP.class_ $ classNames
+                          [ css
                               [ cls NavLink
                               , thm theme TextPrimary
                               , thm theme HoverBackground
@@ -179,7 +177,7 @@ render state =
                   [ HH.div
                       [ HP.class_ (HH.ClassName "relative") ]
                       [ HH.button
-                          [ HP.class_ $ classNames [cls NavUserButton, thm theme TextPrimary, thm theme HoverBackground]
+                          [ css [cls NavUserButton, thm theme TextPrimary, thm theme HoverBackground]
                           , HE.onClick ToggleDropdown
                           ]
                           [ HH.text state.username
