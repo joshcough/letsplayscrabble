@@ -117,25 +117,25 @@ _miscOverlayTesting = Proxy :: Proxy "miscOverlayTesting"
 _tournamentStats = Proxy :: Proxy "tournamentStats"
 _worker = Proxy :: Proxy "worker"
 
+-- | Check if a route requires authentication
+requiresAuth :: Route -> Boolean
+requiresAuth = case _ of
+  Login -> false
+  Worker -> false
+  CrossTablesPlayerProfile _ -> false
+  HeadToHead _ -> false
+  MiscOverlay _ -> false
+  TournamentStats _ -> false
+  MiscOverlayTesting -> false
+  _ -> true
+
 -- | Helper to determine route based on authentication and whether route requires auth
 routeWithAuth :: Boolean -> Route -> Route
-routeWithAuth isAuth route = case route of
-  Home -> if isAuth then Overlays else Login
-  Overlays -> if isAuth then Overlays else Login
-  TournamentManager -> if isAuth then TournamentManager else Login
-  AddTournament -> if isAuth then AddTournament else Login
-  TournamentDetail id -> if isAuth then TournamentDetail id else Login
-  CurrentMatch -> if isAuth then CurrentMatch else Login
-  Login -> Login
-  Worker -> Worker
-  -- Public overlay routes (no auth required)
-  CrossTablesPlayerProfile _ -> route
-  HeadToHead _ -> route
-  MiscOverlay _ -> route
-  TournamentStats _ -> route
-  MiscOverlayTesting -> route
-  -- All other overlay routes require auth
-  _ -> if isAuth then route else Login
+routeWithAuth isAuth route =
+  let targetRoute = if route == Home then Overlays else route
+  in if requiresAuth targetRoute && not isAuth
+     then Login
+     else targetRoute
 
 -- | Router component
 component :: forall input output m. MonadAff m => H.Component Query input output m
