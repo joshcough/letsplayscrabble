@@ -1,4 +1,4 @@
-.PHONY: bundle build build-css watch watch-css dev clean help
+.PHONY: bundle build build-css watch watch-css dev test clean help
 
 # Default target
 .DEFAULT_GOAL := help
@@ -33,6 +33,11 @@ dev:
 	@echo "Starting development server on http://localhost:4000"
 	@npm run dev
 
+# Run tests
+test:
+	@echo "Running tests..."
+	@npm test
+
 # Clean build artifacts
 clean:
 	@echo "Cleaning build artifacts..."
@@ -47,5 +52,6 @@ help:
 	@echo "  make watch       - Watch PureScript files for changes"
 	@echo "  make watch-css   - Watch CSS files for changes"
 	@echo "  make dev         - Start development server on port 4000"
+	@echo "  make test        - Run unit tests"
 	@echo "  make clean       - Remove build artifacts"
 	@echo "  make help        - Show this help message"

@@ -3,10 +3,12 @@ module Types.CurrentMatch where
 
 import Prelude
 
-import Data.Argonaut.Decode (class DecodeJson, decodeJson, (.:))
-import Data.Either (Either(..))
+import Data.Argonaut.Decode (class DecodeJson)
+import Data.Argonaut.Encode (class EncodeJson)
+import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
+import Data.Show.Generic (genericShow)
 
 newtype CurrentMatch = CurrentMatch
   { tournamentId :: Int
@@ -18,14 +20,10 @@ newtype CurrentMatch = CurrentMatch
   }
 
 derive instance Newtype CurrentMatch _
+derive instance Generic CurrentMatch _
+derive instance Eq CurrentMatch
+derive newtype instance DecodeJson CurrentMatch
+derive newtype instance EncodeJson CurrentMatch
 
-instance DecodeJson CurrentMatch where
-  decodeJson json = do
-    obj <- decodeJson json
-    tournamentId <- obj .: "tournamentId"
-    divisionId <- obj .: "divisionId"
-    divisionName <- obj .: "divisionName"
-    round <- obj .: "round"
-    pairingId <- obj .: "pairingId"
-    updatedAt <- obj .: "updatedAt"
-    pure $ CurrentMatch { tournamentId, divisionId, divisionName, round, pairingId, updatedAt }
+instance Show CurrentMatch where
+  show = genericShow

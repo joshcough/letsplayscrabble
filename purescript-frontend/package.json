@@ -8,7 +8,8 @@
     "watch": "spago build --watch",
     "watch:css": "tailwindcss -i ./src/index.css -o ./public/styles.css --watch",
     "dev": "http-server public -p 4000 -c-1",
-    "bundle": "spago build && npx esbuild main-entry.js --outfile=public/bundle.js --bundle --format=esm --minify"
+    "bundle": "spago build && npx esbuild main-entry.js --outfile=public/bundle.js --bundle --format=esm --minify",
+    "test": "spago test"
   },
   "dependencies": {
     "socket.io-client": "^4.8.0"

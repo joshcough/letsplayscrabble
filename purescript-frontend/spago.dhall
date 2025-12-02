@@ -5,6 +5,7 @@
   , "affjax-web"
   , "argonaut-codecs"
   , "argonaut-core"
+  , "argonaut-generic"
   , "arrays"
   , "bifunctors"
   , "console"
@@ -25,9 +26,11 @@
   , "numbers"
   , "ordered-collections"
   , "prelude"
+  , "quickcheck"
   , "refs"
   , "routing"
   , "routing-duplex"
+  , "spec"
   , "strings"
   , "tailrec"
   , "tuples"
@@ -37,5 +40,5 @@
   , "web-uievents"
   ]
 , packages = ./packages.dhall
-, sources = [ "src/**/*.purs" ]
+, sources = [ "src/**/*.purs", "test/**/*.purs" ]
 }
