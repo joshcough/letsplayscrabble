@@ -2,7 +2,7 @@ module Test.Component.Overlay.ScoringLeadersSpec where
 
 import Prelude
 
-import Component.Overlay.ScoringLeaders (calculateScoringLeadersTableData)
+import Component.Overlay.TableOverlay (calculateScoringLeadersTableData)
 import Data.Array (length)
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual)

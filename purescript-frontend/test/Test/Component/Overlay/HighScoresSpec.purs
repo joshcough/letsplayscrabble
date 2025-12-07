@@ -2,7 +2,7 @@ module Test.Component.Overlay.HighScoresSpec where
 
 import Prelude
 
-import Component.Overlay.HighScores (calculateHighScoresTableData)
+import Component.Overlay.TableOverlay (calculateHighScoresTableData)
 import Data.Array (length)
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual)

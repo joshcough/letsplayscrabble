@@ -13,14 +13,8 @@ import Component.AddTournament as AddTournament
 import Component.TournamentDetailsPage as TournamentDetailsPage
 import Component.CurrentMatchPage as CurrentMatchPage
 import Utils.Auth as Auth
-import Component.Overlay.Standings as Standings
-import Component.Overlay.StandingsWithPics as StandingsWithPics
-import Component.Overlay.HighScores as HighScores
-import Component.Overlay.HighScoresWithPics as HighScoresWithPics
-import Component.Overlay.RatingGain as RatingGain
-import Component.Overlay.RatingGainWithPics as RatingGainWithPics
-import Component.Overlay.ScoringLeaders as ScoringLeaders
-import Component.Overlay.ScoringLeadersWithPics as ScoringLeadersWithPics
+import Component.Overlay.TableOverlay as TableOverlay
+import Component.Overlay.PictureOverlay as PictureOverlay
 import Component.Overlay.CrossTablesPlayerProfile as CrossTablesPlayerProfile
 import Component.Overlay.HeadToHead as HeadToHead
 import Component.Overlay.MiscOverlay as MiscOverlay
@@ -214,13 +208,13 @@ render state =
             Just subscription ->
               case params.pics of
                 Just true ->
-                  HH.slot_ _standingsWithPics unit StandingsWithPics.component
+                  HH.slot_ _standingsWithPics unit PictureOverlay.standingsComponent
                     { userId: params.userId
                     , subscription: subscription
                     , extra: unit
                     }
                 _ ->
-                  HH.slot_ _standings unit Standings.component
+                  HH.slot_ _standings unit TableOverlay.standingsComponent
                     { userId: params.userId
                     , subscription: subscription
                     , extra: unit
@@ -235,13 +229,13 @@ render state =
             Just subscription ->
               case params.pics of
                 Just true ->
-                  HH.slot_ _highScoresWithPics unit HighScoresWithPics.component
+                  HH.slot_ _highScoresWithPics unit PictureOverlay.highScoresComponent
                     { userId: params.userId
                     , subscription: subscription
                     , extra: unit
                     }
                 _ ->
-                  HH.slot_ _highScores unit HighScores.component
+                  HH.slot_ _highScores unit TableOverlay.highScoresComponent
                     { userId: params.userId
                     , subscription: subscription
                     , extra: unit
@@ -256,13 +250,13 @@ render state =
             Just subscription ->
               case params.pics of
                 Just true ->
-                  HH.slot_ _ratingGainWithPics unit RatingGainWithPics.component
+                  HH.slot_ _ratingGainWithPics unit PictureOverlay.ratingGainComponent
                     { userId: params.userId
                     , subscription: subscription
                     , extra: unit
                     }
                 _ ->
-                  HH.slot_ _ratingGain unit RatingGain.component
+                  HH.slot_ _ratingGain unit TableOverlay.ratingGainComponent
                     { userId: params.userId
                     , subscription: subscription
                     , extra: unit
@@ -277,13 +271,13 @@ render state =
             Just subscription ->
               case params.pics of
                 Just true ->
-                  HH.slot_ _scoringLeadersWithPics unit ScoringLeadersWithPics.component
+                  HH.slot_ _scoringLeadersWithPics unit PictureOverlay.scoringLeadersComponent
                     { userId: params.userId
                     , subscription: subscription
                     , extra: unit
                     }
                 _ ->
-                  HH.slot_ _scoringLeaders unit ScoringLeaders.component
+                  HH.slot_ _scoringLeaders unit TableOverlay.scoringLeadersComponent
                     { userId: params.userId
                     , subscription: subscription
                     , extra: unit

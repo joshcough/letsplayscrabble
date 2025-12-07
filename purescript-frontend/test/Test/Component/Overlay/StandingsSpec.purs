@@ -2,7 +2,7 @@ module Test.Component.Overlay.StandingsSpec where
 
 import Prelude
 
-import Component.Overlay.Standings (calculateStandingsTableData, getSpreadColor)
+import Component.Overlay.TableOverlay (calculateStandingsTableData, getSpreadColor)
 import Data.Array (length)
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual)
