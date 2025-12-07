@@ -6,6 +6,7 @@ import Prelude
 
 import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array (take)
+import Data.Newtype (unwrap)
 import Stats.TournamentStats (calculateRatingGainPlayers)
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
@@ -31,6 +32,7 @@ render :: forall m. BaseOverlay.State Unit -> H.ComponentHTML BaseOverlay.Action
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
+      s = unwrap state
       -- Calculate rating gain from raw division data (shared with RatingGain)
       players = calculateRatingGainPlayers tournamentData.division.players tournamentData.division.games
       top5 = take 5 players
@@ -38,25 +40,25 @@ render state =
       -- Build picture data
       pictureData =
         { title: "Rating Gain"
-        , subtitle: tournamentData.tournament.name <> " " <> tournamentData.tournament.lexicon <> " • Division " <> state.divisionName
+        , subtitle: tournamentData.tournament.name <> " " <> tournamentData.tournament.lexicon <> " • " <> tournamentData.division.name
         , players: top5 <#> \player ->
             { rank: player.rank
             , name: player.name
             , imageUrl: getPlayerImageUrl tournamentData.tournament.dataUrl player.photo player.xtPhotoUrl
             , stats:
                 [ { value: formatNumberWithSign player.ratingDiff
-                  , color: getRatingGainColor state.theme player.ratingDiff
+                  , color: getRatingGainColor s.theme player.ratingDiff
                   , label: Nothing
                   }
                 , { value: show player.currentRating
-                  , color: state.theme.colors.textPrimary
+                  , color: s.theme.colors.textPrimary
                   , label: Just "New Rating"
                   }
                 ]
             }
         }
     in
-      PictureRenderer.renderPictureOverlay state.theme pictureData
+      PictureRenderer.renderPictureOverlay s.theme pictureData
 
 getRatingGainColor :: Theme -> Int -> String
 getRatingGainColor theme ratingChange

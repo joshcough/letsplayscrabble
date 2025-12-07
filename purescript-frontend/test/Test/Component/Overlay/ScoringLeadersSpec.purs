@@ -15,7 +15,7 @@ spec =
       it "creates table with correct title and subtitle" do
         let
           mockData = createMockDivisionData
-          result = calculateScoringLeadersTableData mockData "A"
+          result = calculateScoringLeadersTableData mockData
 
         result.title `shouldEqual` "Scoring Leaders"
         result.subtitle `shouldEqual` "Test Tournament TWL • Division A"
@@ -23,13 +23,13 @@ spec =
       it "creates table with 4 columns" do
         let
           mockData = createMockDivisionData
-          result = calculateScoringLeadersTableData mockData "A"
+          result = calculateScoringLeadersTableData mockData
 
         length result.columns `shouldEqual` 4
 
       it "limits to top 10 players" do
         let
           mockData = createMockDivisionDataWithManyPlayers 15
-          result = calculateScoringLeadersTableData mockData "A"
+          result = calculateScoringLeadersTableData mockData
 
         length result.rows `shouldEqual` 10

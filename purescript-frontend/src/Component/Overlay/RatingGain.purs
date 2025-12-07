@@ -7,6 +7,7 @@ import Prelude
 import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
 import Data.String (take) as String
 import Domain.Types (DivisionScopedData, Game, Player)
 import Effect.Aff.Class (class MonadAff)
@@ -31,8 +32,10 @@ component = H.mkComponent
 render :: forall m. BaseOverlay.State Unit -> H.ComponentHTML BaseOverlay.Action () m
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
-    let tableData = calculateRatingGainTableData tournamentData state.divisionName
-    in TableRenderer.renderTableOverlay state.theme tableData
+    let
+      s = unwrap state
+      tableData = calculateRatingGainTableData tournamentData
+    in TableRenderer.renderTableOverlay s.theme tableData
 
 --------------------------------------------------------------------------------
 -- Pure Functions (extracted for testing)
@@ -40,8 +43,8 @@ render state =
 
 -- | Pure function to calculate rating gain table data
 -- | This is extracted for testing
-calculateRatingGainTableData :: DivisionScopedData -> String -> TableData
-calculateRatingGainTableData tournamentData divisionName =
+calculateRatingGainTableData :: DivisionScopedData -> TableData
+calculateRatingGainTableData tournamentData =
   let
     -- Calculate rating gain from raw division data
     players = calculateRatingGainPlayers tournamentData.division.players tournamentData.division.games
@@ -50,7 +53,7 @@ calculateRatingGainTableData tournamentData divisionName =
     -- Build table data
     tableData =
       { title: "Rating Gain"
-      , subtitle: tournamentData.tournament.name <> " " <> tournamentData.tournament.lexicon <> " • Division " <> divisionName
+      , subtitle: tournamentData.tournament.name <> " " <> tournamentData.tournament.lexicon <> " • " <> tournamentData.division.name
       , columns:
           [ { header: "Rank", align: TableRenderer.Center, renderer: TableRenderer.RankCell }
           , { header: "Name", align: TableRenderer.Left, renderer: TableRenderer.NameCell }

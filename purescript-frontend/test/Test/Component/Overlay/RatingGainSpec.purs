@@ -27,7 +27,7 @@ spec =
       it "creates table with correct title and subtitle" do
         let
           mockData = createMockDivisionData
-          result = calculateRatingGainTableData mockData "A"
+          result = calculateRatingGainTableData mockData
 
         result.title `shouldEqual` "Rating Gain"
         result.subtitle `shouldEqual` "Test Tournament TWL • Division A"
@@ -35,21 +35,21 @@ spec =
       it "creates table with 5 columns" do
         let
           mockData = createMockDivisionData
-          result = calculateRatingGainTableData mockData "A"
+          result = calculateRatingGainTableData mockData
 
         length result.columns `shouldEqual` 5
 
       it "limits to top 10 players" do
         let
           mockData = createMockDivisionDataWithManyPlayers 15
-          result = calculateRatingGainTableData mockData "A"
+          result = calculateRatingGainTableData mockData
 
         length result.rows `shouldEqual` 10
 
       it "includes rating diff column" do
         let
           mockData = createMockDivisionData
-          result = calculateRatingGainTableData mockData "A"
+          result = calculateRatingGainTableData mockData
 
         -- Check that rows include rating diff column (column index 2)
         case result.rows !! 0 of

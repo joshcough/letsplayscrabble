@@ -40,12 +40,13 @@ render :: forall m. State -> H.ComponentHTML Action () m
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
-      { playerId1: playerId1Param, playerId2: playerId2Param } = state.extra
-      maybePlayers = resolveAndFindPlayers playerId1Param playerId2Param state.currentMatch tournamentData.division
+      s = unwrap state
+      { playerId1: playerId1Param, playerId2: playerId2Param } = s.extra
+      maybePlayers = resolveAndFindPlayers playerId1Param playerId2Param s.currentMatch tournamentData.division
     in
       case maybePlayers of
         Nothing -> BaseOverlay.renderError "Players not found in division"
-        Just { player1, player2 } -> renderHeadToHead state.theme player1 player2 tournamentData.tournament tournamentData.division
+        Just { player1, player2 } -> renderHeadToHead s.theme player1 player2 tournamentData.tournament tournamentData.division
 
 renderHeadToHead :: forall w i. Theme -> Player -> Player -> TournamentSummary -> Division -> HH.HTML w i
 renderHeadToHead theme p1 p2 tournament division =

@@ -5,48 +5,51 @@ module Component.Overlay.BaseOverlay where
 
 import Prelude
 
+import BroadcastChannel.Class (postSubscribe, subscribeTournamentData, subscribeAdminPanel, closeBroadcast)
 import BroadcastChannel.Manager as BroadcastManager
-import BroadcastChannel.Messages (TournamentDataResponse, SubscribeMessage, AdminPanelUpdate)
+import BroadcastChannel.Messages (TournamentDataResponse, AdminPanelUpdate)
 import Config.Themes (getTheme)
-import Data.Array (find)
-import Data.Maybe (Maybe(..), isNothing, maybe, fromMaybe)
-import Domain.Types (DivisionScopedData, TournamentId(..), DivisionId, PairingId, Tournament, Division, TournamentSummary)
+import Data.Either (Either(..))
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Newtype (class Newtype, over, unwrap)
+import Domain.Types (DivisionScopedData, TournamentId)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class (liftEffect)
-import Effect.Console as Console
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
+import Stats.OverlayLogic (TournamentSubscription)
+import Stats.OverlayLogic as OverlayLogic
 import Types.Theme (Theme)
 
 -- | Component input with polymorphic extra data
+-- | Manager is injected as a dependency for testability
 type Input extra =
   { userId :: Int
   , tournamentId :: Maybe TournamentId
   , divisionName :: Maybe String
+  , manager :: BroadcastManager.BroadcastManager
   , extra :: extra
   }
 
 -- | Export current match info type for use by other components
-type CurrentMatchInfo =
-  { round :: Int
-  , pairingId :: Int
-  , divisionName :: String
-  }
+-- | (Re-export from OverlayLogic)
+type CurrentMatchInfo = OverlayLogic.CurrentMatchInfo
 
 -- | Component state with polymorphic extra data
-type State extra =
-  { manager :: Maybe BroadcastManager.BroadcastManager
-  , tournament :: Maybe DivisionScopedData
-  , divisionName :: String
+-- | Note: manager is accessed via input.manager (dependency injection)
+newtype State extra = State
+  { currentData :: Maybe DivisionScopedData
   , loading :: Boolean
   , error :: Maybe String
   , theme :: Theme
-  , input :: Maybe (Input extra)
-  , subscribedToCurrentMatch :: Boolean
+  , input :: Input extra
+  , subscription :: Maybe TournamentSubscription
   , currentMatch :: Maybe CurrentMatchInfo
   , extra :: extra
   }
+
+-- Derive Newtype instance for easier field access
+derive instance newtypeState :: Newtype (State extra) _
 
 -- | Component actions
 data Action
@@ -56,138 +59,93 @@ data Action
   | Finalize
 
 -- | Initialize the base overlay state
+-- | Manager is injected via input (dependency injection)
 initialState :: forall extra. Input extra -> State extra
-initialState input =
-  { manager: Nothing
-  , tournament: Nothing
-  , divisionName: ""
+initialState input = State
+  { currentData: Nothing
   , loading: true
   , error: Nothing
   , theme: getTheme "scrabble"
-  , input: Just input
-  , subscribedToCurrentMatch: isNothing input.tournamentId  -- No tournament in URL means subscribe to current match
+  , input: input
+  , subscription: OverlayLogic.createTournamentSubscription input.tournamentId input.divisionName
   , currentMatch: Nothing
   , extra: input.extra
   }
+
+--------------------------------------------------------------------------------
+-- Pure State Update Functions (extracted for testing)
+--------------------------------------------------------------------------------
+
+-- | Pure function to handle tournament data response
+-- | Returns updated state based on subscription mode and response validation
+handleTournamentDataUpdate
+  :: forall extra
+   . State extra
+  -> TournamentDataResponse
+  -> State extra
+handleTournamentDataUpdate state response =
+  let s = unwrap state
+  in case s.subscription of
+    Nothing ->
+      over State (_ { error = Just "Invalid subscription parameters", loading = false }) state
+
+    Just subscription ->
+      if not (OverlayLogic.shouldAcceptResponse subscription response) then
+        state  -- Silently ignore responses not meant for us
+      else
+        case OverlayLogic.processTournamentDataResponse subscription s.currentMatch response of
+          Left error ->
+            over State (_ { error = Just error, loading = false }) state
+          Right success ->
+            over State (_
+              { currentData = Just success.divisionScopedData
+              , theme = success.theme
+              , loading = false
+              , error = Nothing
+              }) state
+
+-- | Pure function to handle admin panel update
+-- | Returns updated state with current match info if in CurrentMatch mode
+handleAdminPanelUpdateState
+  :: forall extra
+   . State extra
+  -> AdminPanelUpdate
+  -> State extra
+handleAdminPanelUpdateState state update =
+  let s = unwrap state
+  in case s.subscription of
+    Just subscription ->
+      if OverlayLogic.shouldProcessAdminUpdate subscription then
+        over State (_ { currentMatch = Just (OverlayLogic.createCurrentMatchInfo update) }) state
+      else
+        state
+    Nothing ->
+      state
 
 -- | Handle base overlay actions
 handleAction :: forall extra slots o m. MonadAff m => Action -> H.HalogenM (State extra) Action slots o m Unit
 handleAction = case _ of
   Initialize -> do
-    state <- H.get
-    case state.input of
-      Nothing -> do
-        liftEffect $ Console.log "[BaseOverlay] ERROR: No input found in state"
-        H.modify_ _ { error = Just "No tournament parameters provided", loading = false }
-      Just input -> do
-        -- Create broadcast manager
-        manager <- liftEffect BroadcastManager.create
+    -- Subscribe to tournament data responses
+    tournamentDataEmitter <- subscribeTournamentData
+    void $ H.subscribe $ tournamentDataEmitter <#> HandleTournamentData
 
-        -- Subscribe to tournament data responses
-        void $ H.subscribe $
-          manager.tournamentDataResponseEmitter
-            <#> HandleTournamentData
+    -- Subscribe to admin panel updates
+    adminPanelEmitter <- subscribeAdminPanel
+    void $ H.subscribe $ adminPanelEmitter <#> HandleAdminPanelUpdate
 
-        -- Subscribe to admin panel updates
-        void $ H.subscribe $
-          manager.adminPanelUpdateEmitter
-            <#> HandleAdminPanelUpdate
+    -- Build and post subscribe message
+    input <- H.gets \s -> (unwrap s).input
+    postSubscribe $ OverlayLogic.buildSubscribeMessage input.userId input.tournamentId input.divisionName
 
-        -- Store manager in state
-        H.modify_ _ { manager = Just manager }
+  HandleTournamentData response ->
+    H.modify_ \state -> handleTournamentDataUpdate state response
 
-        -- Build tournament selection
-        let
-          tournament = input.tournamentId <#> \tid ->
-            { tournamentId: tid
-            , division: input.divisionName <#> \name -> { divisionName: name }
-            }
+  HandleAdminPanelUpdate update ->
+    H.modify_ \state -> handleAdminPanelUpdateState state update
 
-          subscribeMsg :: SubscribeMessage
-          subscribeMsg =
-            { userId: input.userId
-            , tournament
-            }
-
-        liftEffect $ BroadcastManager.postSubscribe manager subscribeMsg
-
-  HandleTournamentData response -> do
-    state <- H.get
-
-    -- Check if this response is for us
-    let shouldAccept = if state.subscribedToCurrentMatch
-          then response.isCurrentMatch  -- Accept if marked as current match
-          else maybe false (\input ->
-            maybe false (\(TournamentId tid) ->
-              let (TournamentId responseTid) = response.tournamentId
-              in tid == responseTid
-            ) input.tournamentId
-          ) state.input
-
-    if not shouldAccept then
-      pure unit  -- Silently ignore responses not meant for us
-    else do
-      -- Extract the division we care about
-      -- For current match mode, use divisionName from AdminPanelUpdate (stored in currentMatch)
-      -- For specific tournament mode, use divisionName from URL input
-      let divisionName = if state.subscribedToCurrentMatch
-            then _.divisionName <$> state.currentMatch  -- Haven't received AdminPanelUpdate yet
-            else state.input >>= _.divisionName
-
-      let division = divisionName >>= \name -> find (\d -> d.name == name) response.data.divisions
-
-      case division of
-        Nothing -> do
-          liftEffect $ Console.log $ "[BaseOverlay] ERROR: Could not find division " <> show divisionName
-          H.modify_ _ { error = Just $ "Division not found: " <> show divisionName, loading = false }
-
-        Just div -> do
-          -- Get theme from tournament data
-          let themeName = response.data.theme
-          let theme = getTheme themeName
-
-          -- Create TournamentSummary from full Tournament
-          let tournamentSummary :: TournamentSummary
-              tournamentSummary =
-                { id: response.data.id
-                , name: response.data.name
-                , city: response.data.city
-                , year: response.data.year
-                , lexicon: response.data.lexicon
-                , longFormName: response.data.longFormName
-                , dataUrl: response.data.dataUrl
-                , pollUntil: Nothing  -- Not present in Tournament
-                , theme: response.data.theme
-                , transparentBackground: response.data.transparentBackground
-                }
-
-          -- Create DivisionScopedData
-          let divisionScopedData :: DivisionScopedData
-              divisionScopedData =
-                { tournament: tournamentSummary
-                , division: div
-                }
-
-          -- Update state with division data
-          -- Overlays will calculate their own stats from div.players and div.games
-          H.modify_ _
-            { tournament = Just divisionScopedData
-            , divisionName = div.name
-            , theme = theme
-            , loading = false
-            , error = Nothing
-            }
-
-  HandleAdminPanelUpdate update -> do
-    state <- H.get
-    -- Only process if we're subscribed to current match
-    when state.subscribedToCurrentMatch do
-      let matchInfo = { round: update.round, pairingId: update.pairingId, divisionName: update.divisionName }
-      H.modify_ _ { currentMatch = Just matchInfo }
-
-  Finalize -> do
-    state <- H.get
-    maybe (pure unit) BroadcastManager.close state.manager
+  Finalize ->
+    closeBroadcast
 
 -- | Render loading state
 renderLoading :: forall w i. HH.HTML w i
@@ -207,7 +165,8 @@ renderError err =
 -- | Usage: renderWithData state \tournamentData -> ... your component rendering ...
 renderWithData :: forall extra w i. State extra -> (DivisionScopedData -> HH.HTML w i) -> HH.HTML w i
 renderWithData state renderContent =
-  if state.loading then
+  let s = unwrap state
+  in if s.loading then
     renderLoading
   else
-    maybe (renderError $ fromMaybe "No tournament data" state.error) renderContent state.tournament
+    maybe (renderError $ fromMaybe "No tournament data" s.error) renderContent s.currentData

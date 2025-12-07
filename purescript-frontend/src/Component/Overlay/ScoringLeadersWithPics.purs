@@ -6,6 +6,7 @@ import Prelude
 
 import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array (take)
+import Data.Newtype (unwrap)
 import Stats.TournamentStats (calculateScoringLeadersPlayers)
 import Data.Maybe (Maybe(..))
 import Data.Number.Format (fixed, toStringWith)
@@ -30,6 +31,7 @@ render :: forall m. BaseOverlay.State Unit -> H.ComponentHTML BaseOverlay.Action
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
+      s = unwrap state
       -- Calculate scoring leaders from raw division data (shared with ScoringLeaders)
       players = calculateScoringLeadersPlayers tournamentData.division.players tournamentData.division.games
       top5 = take 5 players
@@ -37,18 +39,18 @@ render state =
       -- Build picture data
       pictureData =
         { title: "Scoring Leaders"
-        , subtitle: tournamentData.tournament.name <> " " <> tournamentData.tournament.lexicon <> " • Division " <> state.divisionName
+        , subtitle: tournamentData.tournament.name <> " " <> tournamentData.tournament.lexicon <> " • " <> tournamentData.division.name
         , players: top5 <#> \player ->
             { rank: player.rank
             , name: player.name
             , imageUrl: getPlayerImageUrl tournamentData.tournament.dataUrl player.photo player.xtPhotoUrl
             , stats:
                 [ { value: toStringWith (fixed 1) player.averageScore
-                  , color: state.theme.colors.textPrimary
+                  , color: s.theme.colors.textPrimary
                   , label: Just "Avg Points For"
                   }
                 ]
             }
         }
     in
-      PictureRenderer.renderPictureOverlay state.theme pictureData
+      PictureRenderer.renderPictureOverlay s.theme pictureData

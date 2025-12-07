@@ -4,15 +4,17 @@ module Component.Overlay.TournamentStats where
 
 import Prelude
 
+import BroadcastChannel.Class (postSubscribe, subscribeTournamentData, subscribeAdminPanel, closeBroadcast)
 import BroadcastChannel.Manager as BroadcastManager
 import BroadcastChannel.Messages (TournamentDataResponse, AdminPanelUpdate)
 import Config.Themes (getTheme)
 import Data.Array (length)
 import Data.Array as Array
 import Data.Maybe (Maybe(..), isNothing, maybe)
+import Data.Newtype (class Newtype, over, unwrap)
 import Control.Alt ((<|>))
 import Data.String.CodePoints as String
-import Domain.Types (TournamentId(..))
+import Domain.Types (TournamentId)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Console as Console
@@ -29,21 +31,24 @@ type Input =
   { userId :: Int
   , tournamentId :: Maybe TournamentId
   , divisionName :: Maybe String
+  , manager :: BroadcastManager.BroadcastManager
   }
 
 -- | Component state
-type State =
-  { manager :: Maybe BroadcastManager.BroadcastManager
+newtype State = State
+  { input :: Input
   , stats :: Maybe TournamentStats
   , tournamentName :: String
   , title :: String
   , loading :: Boolean
   , error :: Maybe String
   , theme :: Theme
-  , input :: Maybe Input
   , subscribedToCurrentMatch :: Boolean
   , currentMatchDivisionName :: Maybe String
   }
+
+-- Derive Newtype instance for easier field access
+derive instance newtypeStateTournamentStats :: Newtype State _
 
 -- | Component actions
 data Action
@@ -65,26 +70,26 @@ component = H.mkComponent
   }
 
 initialState :: Input -> State
-initialState input =
-  { manager: Nothing
+initialState input = State
+  { input: input
   , stats: Nothing
   , tournamentName: ""
   , title: ""
   , loading: true
   , error: Nothing
   , theme: getTheme "scrabble"
-  , input: Just input
   , subscribedToCurrentMatch: isNothing input.tournamentId  -- No tournament in URL means current match mode
   , currentMatchDivisionName: Nothing
   }
 
 render :: forall m. State -> H.ComponentHTML Action () m
 render state =
-  if state.loading then
+  let s = unwrap state
+  in if s.loading then
     renderLoading
-  else case state.error of
+  else case s.error of
     Just err -> renderError err
-    Nothing -> case state.stats of
+    Nothing -> case s.stats of
       Just stats -> renderStats state stats
       Nothing -> renderError "No tournament data"
 
@@ -103,7 +108,8 @@ renderError err =
 renderStats :: forall m. State -> TournamentStats -> H.ComponentHTML Action () m
 renderStats state stats =
   let
-    theme = state.theme
+    s = unwrap state
+    theme = s.theme
     titleGradient = theme.titleExtraClasses <> " bg-gradient-to-r " <> theme.colors.titleGradient
   in
     HH.div
@@ -118,7 +124,7 @@ renderStats state stats =
                   [ HH.text "Tournament Statistics" ]
               , HH.div
                   [ HP.class_ (HH.ClassName $ "text-3xl " <> theme.colors.textSecondary) ]
-                  [ HH.text state.title ]
+                  [ HH.text s.title ]
               ]
           , -- Stats grid
             HH.div
@@ -187,54 +193,42 @@ handleAction :: forall output m. MonadAff m => Action -> H.HalogenM State Action
 handleAction = case _ of
   Initialize -> do
     state <- H.get
-    case state.input of
-      Nothing -> do
-        liftEffect $ Console.log "[TournamentStats] ERROR: No input found in state"
-        H.modify_ _ { error = Just "No tournament parameters provided", loading = false }
-      Just input -> do
-        -- Create broadcast manager
-        manager <- liftEffect BroadcastManager.create
+    let input = (unwrap state).input
 
-        -- Subscribe to tournament data responses
-        void $ H.subscribe $
-          manager.tournamentDataResponseEmitter
-            <#> HandleTournamentData
+    -- Subscribe to tournament data responses
+    tournamentDataEmitter <- subscribeTournamentData
+    void $ H.subscribe $ tournamentDataEmitter <#> HandleTournamentData
 
-        -- Subscribe to admin panel updates (for current match division name)
-        void $ H.subscribe $
-          manager.adminPanelUpdateEmitter
-            <#> HandleAdminPanelUpdate
+    -- Subscribe to admin panel updates (for current match division name)
+    adminPanelEmitter <- subscribeAdminPanel
+    void $ H.subscribe $ adminPanelEmitter <#> HandleAdminPanelUpdate
 
-        -- Store manager in state
-        H.modify_ _ { manager = Just manager }
+    -- Build and post subscribe message
+    let
+      tournament = input.tournamentId <#> \tid ->
+        { tournamentId: tid
+        , division: input.divisionName <#> \name -> { divisionName: name }
+        }
 
-        -- Build tournament selection
-        let
-          tournament = input.tournamentId <#> \tid ->
-            { tournamentId: tid
-            , division: input.divisionName <#> \name -> { divisionName: name }
-            }
+      subscribeMsg =
+        { userId: input.userId
+        , tournament
+        }
 
-          subscribeMsg =
-            { userId: input.userId
-            , tournament
-            }
-
-        liftEffect $ BroadcastManager.postSubscribe manager subscribeMsg
+    postSubscribe subscribeMsg
 
   HandleTournamentData response -> do
     state <- H.get
+    let s = unwrap state
 
     -- Determine which division(s) to use:
     -- 1. Current match mode: use division from AdminPanelUpdate
     -- 2. Specific tournament + divisionName: use that division
     -- 3. Specific tournament, no divisionName: use all divisions
     let
-      divisionName = if state.subscribedToCurrentMatch
-        then state.currentMatchDivisionName  -- Use division from AdminPanelUpdate
-        else case state.input of
-          Just input -> input.divisionName  -- Use division from URL
-          Nothing -> Nothing
+      divisionName = if s.subscribedToCurrentMatch
+        then s.currentMatchDivisionName  -- Use division from AdminPanelUpdate
+        else s.input.divisionName  -- Use division from URL
 
       stats = (divisionName >>= \divName ->
           Array.find (\d -> d.name == divName) response.data.divisions
@@ -251,11 +245,11 @@ handleAction = case _ of
     maybe
       (do
         liftEffect $ Console.log "[TournamentStats] ERROR: Could not calculate stats"
-        H.modify_ _ { error = Just "Could not calculate tournament stats", loading = false }
+        H.modify_ $ over State _ { error = Just "Could not calculate tournament stats", loading = false }
       )
-      (\s -> do
-        H.modify_ _
-          { stats = Just s
+      (\statsResult -> do
+        H.modify_ $ over State _
+          { stats = Just statsResult
           , tournamentName = response.data.name
           , title = title
           , theme = theme
@@ -267,11 +261,9 @@ handleAction = case _ of
 
   HandleAdminPanelUpdate update -> do
     state <- H.get
-    when state.subscribedToCurrentMatch do
-      H.modify_ _ { currentMatchDivisionName = Just update.divisionName }
+    let s = unwrap state
+    when s.subscribedToCurrentMatch do
+      H.modify_ $ over State _ { currentMatchDivisionName = Just update.divisionName }
 
-  Finalize -> do
-    state <- H.get
-    case state.manager of
-      Just manager -> BroadcastManager.close manager
-      Nothing -> pure unit
+  Finalize ->
+    closeBroadcast

@@ -7,6 +7,7 @@ import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array (filter, find, length, null, sortBy, take)
 import Data.Int (round)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
+import Data.Newtype (unwrap)
 import Data.String (joinWith) as String
 import Domain.Types (TournamentId(..), PairingId(..), Game, PlayerId)
 import Effect.Aff.Class (class MonadAff)
@@ -229,7 +230,7 @@ type Action = BaseOverlay.Action
 component :: forall query output m. MonadAff m => H.Component query (BaseOverlay.Input SourceType) output m
 component = H.mkComponent
   { initialState: BaseOverlay.initialState
-  , render: \state -> renderMiscOverlay state state.extra
+  , render: \state -> renderMiscOverlay state (unwrap state).extra
   , eval: H.mkEval $ H.defaultEval
       { handleAction = BaseOverlay.handleAction
       , initialize = Just BaseOverlay.Initialize
@@ -239,11 +240,12 @@ component = H.mkComponent
 
 renderMiscOverlay :: forall m. BaseOverlay.State SourceType -> SourceType -> H.ComponentHTML Action () m
 renderMiscOverlay state source =
-  if state.loading then
+  let s = unwrap state
+  in if s.loading then
     BaseOverlay.renderLoading
-  else case state.error of
+  else case s.error of
     Just err -> BaseOverlay.renderError err
-    Nothing -> case state.tournament of
+    Nothing -> case s.currentData of
       Just _ ->
         -- TournamentData doesn't need player data, just tournament + current match
         if source == TournamentData
@@ -253,10 +255,11 @@ renderMiscOverlay state source =
 
 renderPlayerData :: forall m. BaseOverlay.State SourceType -> SourceType -> H.ComponentHTML Action () m
 renderPlayerData state source =
-  -- Find player1 and player2 from the current match
-  case state.tournament, state.currentMatch of
-    Nothing, _ -> BaseOverlay.renderError $ "No tournament data (subscribedToCurrentMatch=" <> show state.subscribedToCurrentMatch <> ")"
-    _, Nothing -> BaseOverlay.renderError $ "No current match selected (subscribedToCurrentMatch=" <> show state.subscribedToCurrentMatch <> ", tournament=" <> show (state.tournament /= Nothing) <> ")"
+  let s = unwrap state
+  in -- Find player1 and player2 from the current match
+  case s.currentData, s.currentMatch of
+    Nothing, _ -> BaseOverlay.renderError $ "No tournament data (subscription=" <> show s.subscription <> ")"
+    _, Nothing -> BaseOverlay.renderError $ "No current match selected (subscription=" <> show s.subscription <> ", tournament=" <> show (s.currentData /= Nothing) <> ")"
     Just tournamentData, Just currentMatch ->
       let
         division = tournamentData.division
@@ -350,7 +353,8 @@ renderPlayerData state source =
 
 renderTournamentData :: forall m. BaseOverlay.State SourceType -> H.ComponentHTML Action () m
 renderTournamentData state =
-  case state.tournament, state.currentMatch of
+  let s = unwrap state
+  in case s.currentData, s.currentMatch of
     Just tournamentData, Just currentMatch ->
       let tournament = tournamentData.tournament
           text = tournament.name <> " | " <> tournament.lexicon <> " | Round " <> show currentMatch.round

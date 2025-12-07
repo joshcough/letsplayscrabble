@@ -6,6 +6,7 @@ import Prelude
 
 import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array (take)
+import Data.Newtype (unwrap)
 import Stats.TournamentStats (calculateStandingsPlayers)
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
@@ -31,6 +32,7 @@ render :: forall m. BaseOverlay.State Unit -> H.ComponentHTML BaseOverlay.Action
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
+      s = unwrap state
       -- Calculate standings from raw division data (shared with Standings)
       players = calculateStandingsPlayers tournamentData.division.players tournamentData.division.games
       top5 = take 5 players
@@ -38,25 +40,25 @@ render state =
       -- Build picture data
       pictureData =
         { title: "Standings"
-        , subtitle: tournamentData.tournament.name <> " " <> tournamentData.tournament.lexicon <> " • Division " <> state.divisionName
+        , subtitle: tournamentData.tournament.name <> " " <> tournamentData.tournament.lexicon <> " • " <> tournamentData.division.name
         , players: top5 <#> \player ->
             { rank: player.rank
             , name: player.name
             , imageUrl: getPlayerImageUrl tournamentData.tournament.dataUrl player.photo player.xtPhotoUrl
             , stats:
                 [ { value: show player.wins <> "-" <> show player.losses <> if player.ties > 0 then "-" <> show player.ties else ""
-                  , color: state.theme.colors.textPrimary
+                  , color: s.theme.colors.textPrimary
                   , label: Nothing
                   }
                 , { value: formatNumberWithSign player.spread
-                  , color: getSpreadColor state.theme player.spread
+                  , color: getSpreadColor s.theme player.spread
                   , label: Nothing
                   }
                 ]
             }
         }
     in
-      PictureRenderer.renderPictureOverlay state.theme pictureData
+      PictureRenderer.renderPictureOverlay s.theme pictureData
 
 getSpreadColor :: Theme -> Int -> String
 getSpreadColor theme spread

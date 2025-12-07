@@ -40,12 +40,13 @@ render :: forall m. State -> H.ComponentHTML Action () m
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
-      playerIdParam = state.extra
+      s = unwrap state
+      playerIdParam = s.extra
 
       -- Determine actual player ID based on mode:
       -- If currentMatch exists and playerIdParam is 1 or 2, extract from current game
       -- Otherwise use playerIdParam directly as the actual player ID
-      maybePlayer = case state.currentMatch of
+      maybePlayer = case s.currentMatch of
         Just currentMatch | playerIdParam == 1 || playerIdParam == 2 -> do
           -- Find current game from the match
           game <- find (\g -> maybe false (\pid -> unwrap pid == currentMatch.pairingId) g.pairingId && g.roundNumber == currentMatch.round) tournamentData.division.games
@@ -61,7 +62,7 @@ render state =
     in
       case maybePlayer of
         Nothing -> BaseOverlay.renderError $ "Player " <> show playerIdParam <> " not found in division"
-        Just player -> renderPlayerProfile state.theme player tournamentData.tournament
+        Just player -> renderPlayerProfile s.theme player tournamentData.tournament
 
 renderPlayerProfile :: forall w i. Theme -> Player -> TournamentSummary -> HH.HTML w i
 renderPlayerProfile theme player tournament =

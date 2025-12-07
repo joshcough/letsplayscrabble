@@ -33,6 +33,7 @@
   , "spec"
   , "strings"
   , "tailrec"
+  , "transformers"
   , "tuples"
   , "web-events"
   , "web-html"

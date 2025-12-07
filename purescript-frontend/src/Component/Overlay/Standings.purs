@@ -7,6 +7,7 @@ import Prelude
 import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
 import Data.String (take) as String
 import Domain.Types (DivisionScopedData, Game, Player)
 import Effect.Aff.Class (class MonadAff)
@@ -31,8 +32,10 @@ component = H.mkComponent
 render :: forall m. BaseOverlay.State Unit -> H.ComponentHTML BaseOverlay.Action () m
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
-    let tableData = calculateStandingsTableData tournamentData state.divisionName
-    in TableRenderer.renderTableOverlay state.theme tableData
+    let
+      s = unwrap state
+      tableData = calculateStandingsTableData tournamentData
+    in TableRenderer.renderTableOverlay s.theme tableData
 
 --------------------------------------------------------------------------------
 -- Pure Functions (extracted for testing)
@@ -40,8 +43,8 @@ render state =
 
 -- | Pure function to calculate standings table data
 -- | This is extracted for testing
-calculateStandingsTableData :: DivisionScopedData -> String -> TableData
-calculateStandingsTableData tournamentData divisionName =
+calculateStandingsTableData :: DivisionScopedData -> TableData
+calculateStandingsTableData tournamentData =
   let
     -- Calculate standings from raw division data
     players = calculateStandingsPlayers tournamentData.division.players tournamentData.division.games
@@ -50,7 +53,7 @@ calculateStandingsTableData tournamentData divisionName =
     -- Build table data
     tableData =
       { title: "Standings"
-      , subtitle: tournamentData.tournament.name <> " " <> tournamentData.tournament.lexicon <> " • Division " <> divisionName
+      , subtitle: tournamentData.tournament.name <> " " <> tournamentData.tournament.lexicon <> " • " <> tournamentData.division.name
       , columns:
           [ { header: "Rank", align: TableRenderer.Center, renderer: TableRenderer.RankCell }
           , { header: "Name", align: TableRenderer.Left, renderer: TableRenderer.NameCell }
