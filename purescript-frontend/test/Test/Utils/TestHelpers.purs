@@ -4,7 +4,7 @@ import Prelude
 
 import Data.Array (range)
 import Data.Maybe (Maybe(..))
-import Domain.Types (DivisionId(..), DivisionScopedData, GameId(..), PlayerId(..), TournamentId(..))
+import Domain.Types (DivisionId(..), DivisionScopedData, GameId(..), PairingId(..), PlayerId(..), TournamentId(..))
 
 -- | Helper to create mock division scoped data for testing
 createMockDivisionData :: DivisionScopedData
@@ -52,7 +52,7 @@ createMockDivisionData =
             , player1Score: Just 400
             , player2Score: Just 350
             , isBye: false
-            , pairingId: Nothing
+            , pairingId: Just (PairingId 1)
             }
           ]
       , headToHeadGames: []

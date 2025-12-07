@@ -58,6 +58,12 @@ derive newtype instance showGameId :: Show GameId
 derive newtype instance showPairingId :: Show PairingId
 derive newtype instance showXTId :: Show XTId
 
+-- | Location data row (city, state, country) - can be extended with additional fields
+type LocationDataRow r = ( city :: Maybe String, state :: Maybe String, country :: Maybe String | r )
+
+-- | Location data as a closed record
+type LocationData = { | LocationDataRow () }
+
 -- | Tournament Result from CrossTables
 type TournamentResult =
   { tourneyid :: Int

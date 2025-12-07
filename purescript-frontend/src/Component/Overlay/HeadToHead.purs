@@ -5,22 +5,19 @@ module Component.Overlay.HeadToHead where
 import Prelude
 
 import Component.Overlay.BaseOverlay as BaseOverlay
-import Data.Array (filter, find, foldl, sortBy, length, take, (..))
-import Data.Array as Array
-import Data.Int as Int
-import Data.Int (toNumber)
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Array (take)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
-import Data.String (Pattern(..), split, replace, Replacement(..)) as String
-import Data.String (Pattern(..), Replacement(..))
-import Domain.Types (PlayerId(..), Player, HeadToHeadGame, Game, GameId(..), XTId(..), TournamentSummary, Division)
+import Domain.Types (Player, TournamentSummary, Division, XTId(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
+import Stats.HeadToHeadStats (H2HGameExt, H2HStats, PlayerRecord, getHeadToHeadGames, calculateH2HStats, sortGames, getPlaceOrSeedLabel, resolveAndFindPlayers)
 import Types.Theme (Theme)
+import Utils.Date (toLocaleDateString)
+import Utils.Format (formatPlayerName, formatLocation, getOrdinalSuffix, abbreviateTournamentName)
 import Utils.PlayerImage (getPlayerImageUrl)
-import Utils.Date (todayISO, toLocaleDateString)
 
 type HeadToHeadExtra = { playerId1 :: Int, playerId2 :: Int }
 
@@ -44,30 +41,7 @@ render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
       { playerId1: playerId1Param, playerId2: playerId2Param } = state.extra
-
-      -- Determine actual player IDs based on mode:
-      -- If currentMatch exists and playerIds are 0, extract from current game
-      -- Otherwise use playerIds directly as the actual player IDs
-      playerIds = case state.currentMatch of
-        Just currentMatch | playerId1Param == 0 && playerId2Param == 0 -> do
-          -- Find current game from the match
-          game <- find (\g -> maybe false (\pid -> unwrap pid == currentMatch.pairingId) g.pairingId && g.roundNumber == currentMatch.round) tournamentData.division.games
-          -- Get both player IDs from the game
-          pure { playerId1: unwrap game.player1Id, playerId2: unwrap game.player2Id }
-        _ ->
-          -- Specific players mode - use params directly as actual player IDs
-          Just { playerId1: playerId1Param, playerId2: playerId2Param }
-
-      maybePlayers = case playerIds of
-        Nothing -> Nothing
-        Just ids ->
-          let
-            maybePlayer1 = find (\p -> unwrap p.id == ids.playerId1) tournamentData.division.players
-            maybePlayer2 = find (\p -> unwrap p.id == ids.playerId2) tournamentData.division.players
-          in
-            case maybePlayer1, maybePlayer2 of
-              Just p1, Just p2 -> Just { player1: p1, player2: p2 }
-              _, _ -> Nothing
+      maybePlayers = resolveAndFindPlayers playerId1Param playerId2Param state.currentMatch tournamentData.division
     in
       case maybePlayers of
         Nothing -> BaseOverlay.renderError "Players not found in division"
@@ -284,228 +258,7 @@ renderGameRow theme p1 _ game =
           ]
       ]
 
--- Types for calculations
-type PlayerRecord = { wins :: Int, losses :: Int, spread :: Int }
-type H2HStats =
-  { player1Wins :: Int
-  , player2Wins :: Int
-  , player1AvgScore :: Int
-  , player2AvgScore :: Int
-  , player1Record :: PlayerRecord
-  , player2Record :: PlayerRecord
-  , player1Position :: Int
-  , player2Position :: Int
-  }
-
-type H2HGameExt =
-  { game :: HeadToHeadGame
-  , tournamentName :: Maybe String
-  , isCurrentTournament :: Boolean
-  }
-
--- Helper functions
-
-formatPlayerName :: String -> String
-formatPlayerName name =
-  let parts = String.split (Pattern ", ") name
-  in case parts of
-      [last, first] -> first <> " " <> last
-      _ -> name
-
-formatLocation :: forall r. Maybe { city :: Maybe String, state :: Maybe String, country :: Maybe String | r } -> Maybe String
-formatLocation Nothing = Nothing
-formatLocation (Just xtData) =
-  case xtData.city of
-    Nothing -> Nothing
-    Just city -> Just $ case xtData.state of
-      Just state -> city <> ", " <> state
-      Nothing -> city
-
-getPlaceOrSeedLabel :: PlayerRecord -> String
-getPlaceOrSeedLabel record =
-  if record.wins == 0 && record.losses == 0 then "Seed" else "Place"
-
-getOrdinalSuffix :: Int -> String
-getOrdinalSuffix num =
-  let j = num `mod` 10
-      k = num `mod` 100
-  in if j == 1 && k /= 11 then "st"
-     else if j == 2 && k /= 12 then "nd"
-     else if j == 3 && k /= 13 then "rd"
-     else "th"
-
--- Format date from ISO string to locale date string (e.g., "9/13/2025")
-formatDate :: String -> String
-formatDate isoDate =
-  -- Parse ISO date string like "2025-09-13T04:00:00.000Z" or just "2025-09-13"
-  -- Extract just the date part and format as M/D/YYYY
-  let datePart = case String.split (Pattern "T") isoDate of
-                   [part, _] -> part  -- Has time component
-                   [part] -> part      -- Just date
-                   _ -> isoDate        -- Fallback
-  in case String.split (Pattern "-") datePart of
-       [year, month, day] ->
-         let monthInt = fromMaybe 1 (Int.fromString month)
-             dayInt = fromMaybe 1 (Int.fromString day)
-         in show monthInt <> "/" <> show dayInt <> "/" <> year
-       _ -> isoDate
-
--- Abbreviate tournament names to save space
-abbreviateTournamentName :: String -> String
-abbreviateTournamentName name =
-  name
-    # String.replace (Pattern "International") (Replacement "Int'l")
-    # String.replace (Pattern "Tournament") (Replacement "Tourney")
-    # String.replace (Pattern "National") (Replacement "Nat'l")
-    # String.replace (Pattern "Invitational") (Replacement "Invit'l")
-
+-- | Format game date wrapper
 formatGameDate :: String -> String
 formatGameDate = toLocaleDateString
-
--- Get head-to-head games
-getHeadToHeadGames :: Player -> Player -> Division -> TournamentSummary -> Array H2HGameExt
-getHeadToHeadGames p1 p2 division tournament =
-  let
-    p1XtId = fromMaybe 0 (unwrap <$> p1.xtid)
-    p2XtId = fromMaybe 0 (unwrap <$> p2.xtid)
-
-    -- Historical games from cross-tables
-    historicalGames = filter (\game ->
-      (game.player1.playerid == p1XtId && game.player2.playerid == p2XtId) ||
-      (game.player1.playerid == p2XtId && game.player2.playerid == p1XtId)
-    ) division.headToHeadGames
-
-    -- Current tournament games
-    currentTournamentGames = filter (\game ->
-      ((game.player1Id == p1.id && game.player2Id == p2.id) ||
-       (game.player1Id == p2.id && game.player2Id == p1.id)) &&
-      game.player1Score /= Nothing && game.player2Score /= Nothing
-    ) division.games
-
-    -- Convert current tournament games to HeadToHeadGame format
-    convertedCurrentGames = map (convertGameToH2H p1 p2 tournament) currentTournamentGames
-
-    -- Combine
-    historicalH2H = map (\g -> { game: g, tournamentName: g.tourneyname, isCurrentTournament: false }) historicalGames
-    currentH2H = map (\g -> { game: g, tournamentName: Just tournament.name, isCurrentTournament: true }) convertedCurrentGames
-  in
-    historicalH2H <> currentH2H
-
--- Convert current tournament game to HeadToHeadGame
-convertGameToH2H :: Player -> Player -> TournamentSummary -> Game -> HeadToHeadGame
-convertGameToH2H p1 p2 tournament game =
-  let
-    p1XtId = fromMaybe 0 (unwrap <$> p1.xtid)
-    p2XtId = fromMaybe 0 (unwrap <$> p2.xtid)
-    p1IsGamePlayer1 = game.player1Id == p1.id
-    GameId gameId = game.id
-  in
-    { gameid: gameId
-    , date: todayISO  -- Use today's date for current tournament games
-    , tourneyname: Just tournament.name
-    , player1:
-        { playerid: p1XtId
-        , name: p1.name
-        , score: fromMaybe 0 (if p1IsGamePlayer1 then game.player1Score else game.player2Score)
-        , oldrating: 0
-        , newrating: 0
-        , position: Nothing
-        }
-    , player2:
-        { playerid: p2XtId
-        , name: p2.name
-        , score: fromMaybe 0 (if p1IsGamePlayer1 then game.player2Score else game.player1Score)
-        , oldrating: 0
-        , newrating: 0
-        , position: Nothing
-        }
-    , annotated: Nothing
-    }
-
--- Calculate head-to-head statistics
-calculateH2HStats :: Player -> Player -> Array H2HGameExt -> Division -> H2HStats
-calculateH2HStats p1 p2 h2hGames division =
-  let
-    p1XtId = fromMaybe 0 (map (\(XTId id) -> id) p1.xtid)
-
-    -- Calculate wins
-    player1Wins = length $ filter (\gameExt ->
-      let game = gameExt.game
-          p1Score = if game.player1.playerid == p1XtId then game.player1.score else game.player2.score
-          p2Score = if game.player1.playerid == p1XtId then game.player2.score else game.player1.score
-      in p1Score > p2Score
-    ) h2hGames
-
-    player2Wins = length $ filter (\gameExt ->
-      let game = gameExt.game
-          p1Score = if game.player1.playerid == p1XtId then game.player1.score else game.player2.score
-          p2Score = if game.player1.playerid == p1XtId then game.player2.score else game.player1.score
-      in p2Score > p1Score
-    ) h2hGames
-
-    -- Calculate average scores
-    totals = foldl (\acc gameExt ->
-      let game = gameExt.game
-          p1Score = if game.player1.playerid == p1XtId then game.player1.score else game.player2.score
-          p2Score = if game.player1.playerid == p1XtId then game.player2.score else game.player1.score
-      in { p1Total: acc.p1Total + p1Score, p2Total: acc.p2Total + p2Score, count: acc.count + 1 }
-    ) { p1Total: 0, p2Total: 0, count: 0 } h2hGames
-
-    player1AvgScore = if totals.count > 0 then toNumber totals.p1Total / toNumber totals.count else 0.0
-    player2AvgScore = if totals.count > 0 then toNumber totals.p2Total / toNumber totals.count else 0.0
-
-    -- Calculate current tournament records
-    player1Record = calculateRecord p1.id division
-    player2Record = calculateRecord p2.id division
-
-    -- Calculate positions
-    sortedPlayers = sortBy comparePlayersByRecord division.players
-    player1Position = fromMaybe 1 (Array.findIndex (\p -> p.id == p1.id) sortedPlayers) + 1
-    player2Position = fromMaybe 1 (Array.findIndex (\p -> p.id == p2.id) sortedPlayers) + 1
-  in
-    { player1Wins
-    , player2Wins
-    , player1AvgScore: Int.round player1AvgScore
-    , player2AvgScore: Int.round player2AvgScore
-    , player1Record
-    , player2Record
-    , player1Position
-    , player2Position
-    }
-
--- Calculate player's record in division
-calculateRecord :: PlayerId -> Division -> PlayerRecord
-calculateRecord playerId division =
-  foldl (\acc game ->
-    case game.player1Score, game.player2Score of
-      Just p1Score, Just p2Score | not game.isBye ->
-        if game.player1Id == playerId then
-          if p1Score > p2Score
-            then acc { wins = acc.wins + 1, spread = acc.spread + (p1Score - p2Score) }
-            else acc { losses = acc.losses + 1, spread = acc.spread + (p1Score - p2Score) }
-        else if game.player2Id == playerId then
-          if p2Score > p1Score
-            then acc { wins = acc.wins + 1, spread = acc.spread + (p2Score - p1Score) }
-            else acc { losses = acc.losses + 1, spread = acc.spread + (p2Score - p1Score) }
-        else acc
-      _, _ -> acc
-  ) { wins: 0, losses: 0, spread: 0 } division.games
-
--- Compare players by record for sorting
-comparePlayersByRecord :: Player -> Player -> Ordering
-comparePlayersByRecord a b =
-  let
-    -- This is a simplified comparison - in reality we'd need access to division
-    -- For now, just compare by ID
-    PlayerId aId = a.id
-    PlayerId bId = b.id
-  in compare aId bId
-
--- Sort games (most recent first, current tournament games first)
-sortGames :: Array H2HGameExt -> Array H2HGameExt
-sortGames = sortBy \a b ->
-  case a.isCurrentTournament, b.isCurrentTournament of
-    true, false -> LT
-    false, true -> GT
-    _, _ -> compare b.game.date a.game.date
 
