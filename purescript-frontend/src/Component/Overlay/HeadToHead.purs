@@ -6,6 +6,7 @@ import Prelude
 
 import Component.Overlay.BaseOverlay as BaseOverlay
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
+import BroadcastChannel.MonadEmitters (class MonadEmitters)
 import Data.Array (take)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
@@ -26,7 +27,7 @@ type State = BaseOverlay.State HeadToHeadExtra
 
 type Action = BaseOverlay.Action
 
-component :: forall query output m. MonadAff m => MonadBroadcast m => H.Component query (BaseOverlay.Input HeadToHeadExtra) output m
+component :: forall query output m. MonadAff m => MonadBroadcast m => MonadEmitters m => H.Component query (BaseOverlay.Input HeadToHeadExtra) output m
 component = H.mkComponent
   { initialState: BaseOverlay.initialState
   , render

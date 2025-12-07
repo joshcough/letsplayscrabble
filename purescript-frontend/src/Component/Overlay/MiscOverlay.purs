@@ -5,6 +5,7 @@ import Prelude
 
 import Component.Overlay.BaseOverlay as BaseOverlay
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
+import BroadcastChannel.MonadEmitters (class MonadEmitters)
 import Data.Array (filter, find, length, null, sortBy, take)
 import Data.Int (round)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
@@ -228,7 +229,7 @@ type State = BaseOverlay.State SourceType
 
 type Action = BaseOverlay.Action
 
-component :: forall query output m. MonadAff m => MonadBroadcast m => H.Component query (BaseOverlay.Input SourceType) output m
+component :: forall query output m. MonadAff m => MonadBroadcast m => MonadEmitters m => H.Component query (BaseOverlay.Input SourceType) output m
 component = H.mkComponent
   { initialState: BaseOverlay.initialState
   , render: \state -> renderMiscOverlay state (unwrap state).extra

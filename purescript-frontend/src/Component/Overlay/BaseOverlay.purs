@@ -8,6 +8,7 @@ import Prelude
 import BroadcastChannel.Class (postSubscribe, subscribeTournamentData, subscribeAdminPanel, closeBroadcast)
 import BroadcastChannel.Messages (TournamentDataResponse, AdminPanelUpdate)
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
+import BroadcastChannel.MonadEmitters (class MonadEmitters)
 import Config.Themes (getTheme)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
@@ -120,7 +121,7 @@ handleAdminPanelUpdateState update state =
       state
 
 -- | Initialize overlay: subscribe to broadcast channels and post subscribe message
-initialize :: forall extra slots o m. MonadAff m => MonadBroadcast m => H.HalogenM (State extra) Action slots o m Unit
+initialize :: forall extra slots o m. MonadAff m => MonadBroadcast m => MonadEmitters m => H.HalogenM (State extra) Action slots o m Unit
 initialize = do
   -- Subscribe to tournament data responses
   tournamentDataEmitter <- subscribeTournamentData
@@ -135,7 +136,7 @@ initialize = do
   postSubscribe $ OverlayLogic.buildSubscribeMessage input.userId input.tournamentId input.divisionName
 
 -- | Handle base overlay actions
-handleAction :: forall extra slots o m. MonadAff m => MonadBroadcast m => Action -> H.HalogenM (State extra) Action slots o m Unit
+handleAction :: forall extra slots o m. MonadAff m => MonadBroadcast m => MonadEmitters m => Action -> H.HalogenM (State extra) Action slots o m Unit
 handleAction = case _ of
   Initialize -> initialize
   HandleTournamentData response -> H.modify_ (handleTournamentDataUpdate response)

@@ -6,6 +6,7 @@ import Prelude
 
 import Component.Overlay.BaseOverlay as BaseOverlay
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
+import BroadcastChannel.MonadEmitters (class MonadEmitters)
 import Control.Alt ((<|>))
 import Data.Array (find, head, last)
 import Data.Int (toNumber, round) as Int
@@ -26,7 +27,7 @@ type State = BaseOverlay.State Int
 
 type Action = BaseOverlay.Action
 
-component :: forall query output m. MonadAff m => MonadBroadcast m => H.Component query (BaseOverlay.Input Int) output m
+component :: forall query output m. MonadAff m => MonadBroadcast m => MonadEmitters m => H.Component query (BaseOverlay.Input Int) output m
 component = H.mkComponent
   { initialState: BaseOverlay.initialState
   , render
