@@ -8,7 +8,6 @@ import Component.Overlay.BaseOverlay as BaseOverlay
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import BroadcastChannel.MonadEmitters (class MonadEmitters)
 import Data.Array (take)
-import Data.Newtype (unwrap)
 import Stats.TournamentStats (calculateHighScorePlayers)
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
@@ -32,7 +31,7 @@ render :: forall m. BaseOverlay.State Unit -> H.ComponentHTML BaseOverlay.Action
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
-      s = unwrap state
+      s = state
       -- Calculate high scores from raw division data (shared with HighScores)
       players = calculateHighScorePlayers tournamentData.division.players tournamentData.division.games
       top5 = take 5 players

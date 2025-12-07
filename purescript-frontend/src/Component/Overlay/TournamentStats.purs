@@ -15,7 +15,6 @@ import Data.Maybe (Maybe(..), isNothing, maybe)
 import Data.Newtype (class Newtype, over, unwrap)
 import Control.Alt ((<|>))
 import Data.String.CodePoints as String
-import Domain.Types (TournamentId)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Console as Console
@@ -23,6 +22,7 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Stats.TournamentStats (TournamentStats, calculateAllTournamentStats, calculateTournamentStats)
+import Stats.OverlayLogic as OverlayLogic
 import Types.Theme (Theme)
 import Data.Int (round, toNumber)
 import Data.Number.Format (fixed, toStringWith)
@@ -30,9 +30,10 @@ import Data.Number.Format (fixed, toStringWith)
 -- | Component input
 type Input =
   { userId :: Int
-  , tournamentId :: Maybe TournamentId
-  , divisionName :: Maybe String
+  , subscription :: TournamentSubscription
   }
+
+type TournamentSubscription = OverlayLogic.TournamentSubscription
 
 -- | Component state
 newtype State = State
@@ -78,7 +79,9 @@ initialState input = State
   , loading: true
   , error: Nothing
   , theme: getTheme "scrabble"
-  , subscribedToCurrentMatch: isNothing input.tournamentId  -- No tournament in URL means current match mode
+  , subscribedToCurrentMatch: case input.subscription of
+      OverlayLogic.CurrentMatch -> true
+      _ -> false
   , currentMatchDivisionName: Nothing
   }
 
@@ -204,18 +207,7 @@ handleAction = case _ of
     void $ H.subscribe $ adminPanelEmitter <#> HandleAdminPanelUpdate
 
     -- Build and post subscribe message
-    let
-      tournament = input.tournamentId <#> \tid ->
-        { tournamentId: tid
-        , division: input.divisionName <#> \name -> { divisionName: name }
-        }
-
-      subscribeMsg =
-        { userId: input.userId
-        , tournament
-        }
-
-    postSubscribe subscribeMsg
+    postSubscribe $ OverlayLogic.buildSubscribeMessage input.userId input.subscription
 
   HandleTournamentData response -> do
     state <- H.get
@@ -228,7 +220,9 @@ handleAction = case _ of
     let
       divisionName = if s.subscribedToCurrentMatch
         then s.currentMatchDivisionName  -- Use division from AdminPanelUpdate
-        else s.input.divisionName  -- Use division from URL
+        else case s.input.subscription of
+          OverlayLogic.SpecificTournament { divisionName: name } -> Just name
+          _ -> Nothing
 
       stats = (divisionName >>= \divName ->
           Array.find (\d -> d.name == divName) response.data.divisions

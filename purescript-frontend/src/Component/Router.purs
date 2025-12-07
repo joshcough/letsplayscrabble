@@ -27,13 +27,13 @@ import Component.Overlay.MiscOverlay as MiscOverlay
 import Component.MiscOverlayTestingPage as MiscOverlayTestingPage
 import Component.Overlay.TournamentStats as TournamentStats
 import Component.WorkerPage as WorkerPage
+import Component.RouterHelpers as RouterHelpers
 import BroadcastChannel.Manager as BroadcastManager
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import BroadcastChannel.MonadEmitters (class MonadEmitters)
 import Data.Either (Either(..))
 import Effect.Unsafe (unsafePerformEffect)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Domain.Types (TournamentId(..))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
@@ -209,124 +209,136 @@ render state =
       case state.broadcastManager of
         Nothing -> HH.text "Initializing broadcast manager..."
         Just _ ->
-          case params.pics of
-            Just true ->
-              HH.slot_ _standingsWithPics unit StandingsWithPics.component
-                { userId: params.userId
-                , tournamentId: map TournamentId params.tournamentId
-                , divisionName: params.divisionName
-                , extra: unit
-                }
-            _ ->
-              HH.slot_ _standings unit Standings.component
-                { userId: params.userId
-                , tournamentId: map TournamentId params.tournamentId
-                , divisionName: params.divisionName
-                , extra: unit
-                }
+          case RouterHelpers.createSubscription params.tournamentId params.divisionName of
+            Nothing -> HH.text "Invalid subscription parameters"
+            Just subscription ->
+              case params.pics of
+                Just true ->
+                  HH.slot_ _standingsWithPics unit StandingsWithPics.component
+                    { userId: params.userId
+                    , subscription: subscription
+                    , extra: unit
+                    }
+                _ ->
+                  HH.slot_ _standings unit Standings.component
+                    { userId: params.userId
+                    , subscription: subscription
+                    , extra: unit
+                    }
 
     Just (HighScores params) ->
       case state.broadcastManager of
         Nothing -> HH.text "Initializing broadcast manager..."
         Just _ ->
-          case params.pics of
-            Just true ->
-              HH.slot_ _highScoresWithPics unit HighScoresWithPics.component
-                { userId: params.userId
-                , tournamentId: map TournamentId params.tournamentId
-                , divisionName: params.divisionName
-                , extra: unit
-                }
-            _ ->
-              HH.slot_ _highScores unit HighScores.component
-                { userId: params.userId
-                , tournamentId: map TournamentId params.tournamentId
-                , divisionName: params.divisionName
-                , extra: unit
-                }
+          case RouterHelpers.createSubscription params.tournamentId params.divisionName of
+            Nothing -> HH.text "Invalid subscription parameters"
+            Just subscription ->
+              case params.pics of
+                Just true ->
+                  HH.slot_ _highScoresWithPics unit HighScoresWithPics.component
+                    { userId: params.userId
+                    , subscription: subscription
+                    , extra: unit
+                    }
+                _ ->
+                  HH.slot_ _highScores unit HighScores.component
+                    { userId: params.userId
+                    , subscription: subscription
+                    , extra: unit
+                    }
 
     Just (RatingGain params) ->
       case state.broadcastManager of
         Nothing -> HH.text "Initializing broadcast manager..."
         Just _ ->
-          case params.pics of
-            Just true ->
-              HH.slot_ _ratingGainWithPics unit RatingGainWithPics.component
-                { userId: params.userId
-                , tournamentId: map TournamentId params.tournamentId
-                , divisionName: params.divisionName
-                , extra: unit
-                }
-            _ ->
-              HH.slot_ _ratingGain unit RatingGain.component
-                { userId: params.userId
-                , tournamentId: map TournamentId params.tournamentId
-                , divisionName: params.divisionName
-                , extra: unit
-                }
+          case RouterHelpers.createSubscription params.tournamentId params.divisionName of
+            Nothing -> HH.text "Invalid subscription parameters"
+            Just subscription ->
+              case params.pics of
+                Just true ->
+                  HH.slot_ _ratingGainWithPics unit RatingGainWithPics.component
+                    { userId: params.userId
+                    , subscription: subscription
+                    , extra: unit
+                    }
+                _ ->
+                  HH.slot_ _ratingGain unit RatingGain.component
+                    { userId: params.userId
+                    , subscription: subscription
+                    , extra: unit
+                    }
 
     Just (ScoringLeaders params) ->
       case state.broadcastManager of
         Nothing -> HH.text "Initializing broadcast manager..."
         Just _ ->
-          case params.pics of
-            Just true ->
-              HH.slot_ _scoringLeadersWithPics unit ScoringLeadersWithPics.component
-                { userId: params.userId
-                , tournamentId: map TournamentId params.tournamentId
-                , divisionName: params.divisionName
-                , extra: unit
-                }
-            _ ->
-              HH.slot_ _scoringLeaders unit ScoringLeaders.component
-                { userId: params.userId
-                , tournamentId: map TournamentId params.tournamentId
-                , divisionName: params.divisionName
-                , extra: unit
-                }
+          case RouterHelpers.createSubscription params.tournamentId params.divisionName of
+            Nothing -> HH.text "Invalid subscription parameters"
+            Just subscription ->
+              case params.pics of
+                Just true ->
+                  HH.slot_ _scoringLeadersWithPics unit ScoringLeadersWithPics.component
+                    { userId: params.userId
+                    , subscription: subscription
+                    , extra: unit
+                    }
+                _ ->
+                  HH.slot_ _scoringLeaders unit ScoringLeaders.component
+                    { userId: params.userId
+                    , subscription: subscription
+                    , extra: unit
+                    }
 
     Just (CrossTablesPlayerProfile params) ->
       case state.broadcastManager of
         Nothing -> HH.text "Initializing broadcast manager..."
         Just _ ->
-          HH.slot_ _crossTablesPlayerProfile unit CrossTablesPlayerProfile.component
-            { userId: params.userId
-            , tournamentId: map TournamentId params.tournamentId
-            , divisionName: params.divisionName
-            , extra: params.playerId
-            }
+          case RouterHelpers.createSubscription params.tournamentId params.divisionName of
+            Nothing -> HH.text "Invalid subscription parameters"
+            Just subscription ->
+              HH.slot_ _crossTablesPlayerProfile unit CrossTablesPlayerProfile.component
+                { userId: params.userId
+                , subscription: subscription
+                , extra: params.playerId
+                }
 
     Just (HeadToHead params) ->
       case state.broadcastManager of
         Nothing -> HH.text "Initializing broadcast manager..."
         Just _ ->
-          HH.slot_ _headToHead unit HeadToHead.component
-            { userId: params.userId
-            , tournamentId: map TournamentId params.tournamentId
-            , divisionName: params.divisionName
-            , extra: { playerId1: fromMaybe 0 params.playerId1, playerId2: fromMaybe 0 params.playerId2 }
-            }
+          case RouterHelpers.createSubscription params.tournamentId params.divisionName of
+            Nothing -> HH.text "Invalid subscription parameters"
+            Just subscription ->
+              HH.slot_ _headToHead unit HeadToHead.component
+                { userId: params.userId
+                , subscription: subscription
+                , extra: { playerId1: fromMaybe 0 params.playerId1, playerId2: fromMaybe 0 params.playerId2 }
+                }
 
     Just (MiscOverlay params) ->
       case state.broadcastManager of
         Nothing -> HH.text "Initializing broadcast manager..."
         Just _ ->
-          HH.slot_ _miscOverlay unit MiscOverlay.component
-            { userId: params.userId
-            , tournamentId: map TournamentId params.tournamentId
-            , divisionName: params.divisionName
-            , extra: MiscOverlay.parseSource params.source
-            }
+          case RouterHelpers.createSubscription params.tournamentId params.divisionName of
+            Nothing -> HH.text "Invalid subscription parameters"
+            Just subscription ->
+              HH.slot_ _miscOverlay unit MiscOverlay.component
+                { userId: params.userId
+                , subscription: subscription
+                , extra: MiscOverlay.parseSource params.source
+                }
 
     Just (TournamentStats params) ->
       case state.broadcastManager of
         Nothing -> HH.text "Initializing broadcast manager..."
         Just _ ->
-          HH.slot_ _tournamentStats unit TournamentStats.component
-            { userId: params.userId
-            , tournamentId: map TournamentId params.tournamentId
-            , divisionName: params.divisionName
-            }
+          case RouterHelpers.createSubscription params.tournamentId params.divisionName of
+            Nothing -> HH.text "Invalid subscription parameters"
+            Just subscription ->
+              HH.slot_ _tournamentStats unit TournamentStats.component
+                { userId: params.userId
+                , subscription: subscription
+                }
 
     Just MiscOverlayTesting ->
       HH.slot_ _miscOverlayTesting unit MiscOverlayTestingPage.component unit

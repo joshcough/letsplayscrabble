@@ -10,7 +10,7 @@ import BroadcastChannel.MonadEmitters (class MonadEmitters)
 import Data.Array (take)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
-import Domain.Types (Player, TournamentSummary, Division, XTId(..))
+import Domain.Types (Player, TournamentSummary, Division)
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Halogen.HTML as HH
@@ -42,7 +42,7 @@ render :: forall m. State -> H.ComponentHTML Action () m
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
-      s = unwrap state
+      s = state
       { playerId1: playerId1Param, playerId2: playerId2Param } = s.extra
       maybePlayers = resolveAndFindPlayers playerId1Param playerId2Param s.currentMatch tournamentData.division
     in

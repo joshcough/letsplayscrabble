@@ -9,9 +9,8 @@ import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import BroadcastChannel.MonadEmitters (class MonadEmitters)
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
-import Data.Newtype (unwrap)
 import Data.Number.Format (fixed, toStringWith)
-import Domain.Types (DivisionScopedData, Game, Player)
+import Domain.Types (DivisionScopedData)
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Renderer.TableRenderer (TableData)
@@ -34,7 +33,7 @@ render :: forall m. BaseOverlay.State Unit -> H.ComponentHTML BaseOverlay.Action
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
-      s = unwrap state
+      s = state
       tableData = calculateScoringLeadersTableData tournamentData
     in TableRenderer.renderTableOverlay s.theme tableData
 

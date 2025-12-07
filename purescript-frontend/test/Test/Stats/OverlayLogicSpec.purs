@@ -37,8 +37,10 @@ spec =
         result `shouldEqual` Nothing
 
     describe "buildSubscribeMessage" do
-      it "builds message with tournament and division" do
-        let msg = buildSubscribeMessage 1 (Just (TournamentId 123)) (Just "Division A")
+      it "builds message with SpecificTournament subscription" do
+        let
+          subscription = SpecificTournament { tournamentId: TournamentId 123, divisionName: "Division A" }
+          msg = buildSubscribeMessage 1 subscription
 
         msg.userId `shouldEqual` 1
         case msg.tournament of
@@ -49,18 +51,10 @@ spec =
               Nothing -> pure unit
           Nothing -> pure unit
 
-      it "builds message with tournament but no division" do
-        let msg = buildSubscribeMessage 1 (Just (TournamentId 123)) Nothing
-
-        msg.userId `shouldEqual` 1
-        case msg.tournament of
-          Just t -> do
-            t.tournamentId `shouldEqual` TournamentId 123
-            t.division `shouldEqual` Nothing
-          Nothing -> pure unit
-
-      it "builds message for current match mode (no tournament)" do
-        let msg = buildSubscribeMessage 1 Nothing Nothing
+      it "builds message for CurrentMatch subscription" do
+        let
+          subscription = CurrentMatch
+          msg = buildSubscribeMessage 1 subscription
 
         msg.userId `shouldEqual` 1
         msg.tournament `shouldEqual` Nothing

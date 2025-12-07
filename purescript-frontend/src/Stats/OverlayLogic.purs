@@ -36,18 +36,21 @@ createTournamentSubscription maybeTournamentId maybeDivisionName =
     Nothing, Nothing -> Just CurrentMatch
     _, _ -> Nothing  -- Invalid combination (tournament ID without division name, or vice versa)
 
--- | Build subscribe message from input parameters
-buildSubscribeMessage :: Int -> Maybe TournamentId -> Maybe String -> SubscribeMessage
-buildSubscribeMessage userId tournamentId divisionName =
-  let
-    tournament = tournamentId <#> \tid ->
-      { tournamentId: tid
-      , division: divisionName <#> \name -> { divisionName: name }
+-- | Build subscribe message from TournamentSubscription
+buildSubscribeMessage :: Int -> TournamentSubscription -> SubscribeMessage
+buildSubscribeMessage userId subscription =
+  case subscription of
+    CurrentMatch ->
+      { userId
+      , tournament: Nothing
       }
-  in
-    { userId
-    , tournament
-    }
+    SpecificTournament { tournamentId, divisionName } ->
+      { userId
+      , tournament: Just
+          { tournamentId
+          , division: Just { divisionName }
+          }
+      }
 
 --------------------------------------------------------------------------------
 -- Response Filtering

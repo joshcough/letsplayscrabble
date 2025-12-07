@@ -9,9 +9,8 @@ import BroadcastChannel.MonadEmitters (class MonadEmitters)
 import Data.Array (filter, find, length, null, sortBy, take)
 import Data.Int (round)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
-import Data.Newtype (unwrap)
 import Data.String (joinWith) as String
-import Domain.Types (TournamentId(..), PairingId(..), Game, PlayerId)
+import Domain.Types (PairingId(..), Game, PlayerId)
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Halogen.HTML as HH
@@ -232,7 +231,7 @@ type Action = BaseOverlay.Action
 component :: forall query output m. MonadAff m => MonadBroadcast m => MonadEmitters m => H.Component query (BaseOverlay.Input SourceType) output m
 component = H.mkComponent
   { initialState: BaseOverlay.initialState
-  , render: \state -> renderMiscOverlay state (unwrap state).extra
+  , render: \state -> renderMiscOverlay state state.extra
   , eval: H.mkEval $ H.defaultEval
       { handleAction = BaseOverlay.handleAction
       , initialize = Just BaseOverlay.Initialize
@@ -242,7 +241,7 @@ component = H.mkComponent
 
 renderMiscOverlay :: forall m. BaseOverlay.State SourceType -> SourceType -> H.ComponentHTML Action () m
 renderMiscOverlay state source =
-  let s = unwrap state
+  let s = state
   in if s.loading then
     BaseOverlay.renderLoading
   else case s.error of
@@ -257,7 +256,7 @@ renderMiscOverlay state source =
 
 renderPlayerData :: forall m. BaseOverlay.State SourceType -> SourceType -> H.ComponentHTML Action () m
 renderPlayerData state source =
-  let s = unwrap state
+  let s = state
   in -- Find player1 and player2 from the current match
   case s.currentData, s.currentMatch of
     Nothing, _ -> BaseOverlay.renderError $ "No tournament data (subscription=" <> show s.subscription <> ")"
@@ -355,7 +354,7 @@ renderPlayerData state source =
 
 renderTournamentData :: forall m. BaseOverlay.State SourceType -> H.ComponentHTML Action () m
 renderTournamentData state =
-  let s = unwrap state
+  let s = state
   in case s.currentData, s.currentMatch of
     Just tournamentData, Just currentMatch ->
       let tournament = tournamentData.tournament

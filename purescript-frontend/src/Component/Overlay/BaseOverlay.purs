@@ -12,8 +12,7 @@ import BroadcastChannel.MonadEmitters (class MonadEmitters)
 import Config.Themes (getTheme)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
-import Data.Newtype (class Newtype, over, unwrap)
-import Domain.Types (DivisionScopedData, TournamentId)
+import Domain.Types (DivisionScopedData)
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Halogen.HTML as HH
@@ -25,8 +24,7 @@ import Types.Theme (Theme)
 -- | Component input with polymorphic extra data
 type Input extra =
   { userId :: Int
-  , tournamentId :: Maybe TournamentId
-  , divisionName :: Maybe String
+  , subscription :: TournamentSubscription
   , extra :: extra
   }
 
@@ -35,19 +33,16 @@ type Input extra =
 type CurrentMatchInfo = OverlayLogic.CurrentMatchInfo
 
 -- | Component state with polymorphic extra data
-newtype State extra = State
+type State extra =
   { currentData :: Maybe DivisionScopedData
   , loading :: Boolean
   , error :: Maybe String
   , theme :: Theme
   , input :: Input extra
-  , subscription :: Maybe TournamentSubscription
+  , subscription :: TournamentSubscription
   , currentMatch :: Maybe CurrentMatchInfo
   , extra :: extra
   }
-
--- Derive Newtype instance for easier field access
-derive instance newtypeState :: Newtype (State extra) _
 
 -- | Component actions
 data Action
@@ -57,15 +52,14 @@ data Action
   | Finalize
 
 -- | Initialize the base overlay state
--- | Manager is injected via input (dependency injection)
 initialState :: forall extra. Input extra -> State extra
-initialState input = State
+initialState input =
   { currentData: Nothing
   , loading: true
   , error: Nothing
   , theme: getTheme "scrabble"
   , input: input
-  , subscription: OverlayLogic.createTournamentSubscription input.tournamentId input.divisionName
+  , subscription: input.subscription
   , currentMatch: Nothing
   , extra: input.extra
   }
@@ -81,26 +75,17 @@ handleTournamentDataUpdate
    . TournamentDataResponse
   -> State extra
   -> State extra
-handleTournamentDataUpdate response state =
-  let s = unwrap state
-  in case s.subscription of
-    Nothing ->
-      over State (_ { error = Just "Invalid subscription parameters", loading = false }) state
-
-    Just subscription ->
-      if not (OverlayLogic.shouldAcceptResponse subscription response) then
-        state  -- Silently ignore responses not meant for us
-      else
-        case OverlayLogic.processTournamentDataResponse subscription s.currentMatch response of
-          Left error ->
-            over State (_ { error = Just error, loading = false }) state
-          Right success ->
-            over State (_
-              { currentData = Just success.divisionScopedData
-              , theme = success.theme
-              , loading = false
-              , error = Nothing
-              }) state
+handleTournamentDataUpdate response state@{ subscription, currentMatch }
+  | not (OverlayLogic.shouldAcceptResponse subscription response) = state
+  | otherwise = case OverlayLogic.processTournamentDataResponse subscription currentMatch response of
+      Left error ->  state { error = Just error, loading = false }
+      Right success ->
+        state
+          { currentData = Just success.divisionScopedData
+          , theme = success.theme
+          , loading = false
+          , error = Nothing
+          }
 
 -- | Pure function to handle admin panel update
 -- | Returns updated state with current match info if in CurrentMatch mode
@@ -109,16 +94,10 @@ handleAdminPanelUpdateState
    . AdminPanelUpdate
   -> State extra
   -> State extra
-handleAdminPanelUpdateState update state =
-  let s = unwrap state
-  in case s.subscription of
-    Just subscription ->
-      if OverlayLogic.shouldProcessAdminUpdate subscription then
-        over State (_ { currentMatch = Just (OverlayLogic.createCurrentMatchInfo update) }) state
-      else
-        state
-    Nothing ->
-      state
+handleAdminPanelUpdateState update state@{ subscription }
+  | OverlayLogic.shouldProcessAdminUpdate subscription =
+      state { currentMatch = Just (OverlayLogic.createCurrentMatchInfo update) }
+  | otherwise = state
 
 -- | Initialize overlay: subscribe to broadcast channels and post subscribe message
 initialize :: forall extra slots o m. MonadAff m => MonadBroadcast m => MonadEmitters m => H.HalogenM (State extra) Action slots o m Unit
@@ -132,8 +111,8 @@ initialize = do
   void $ H.subscribe $ adminPanelEmitter <#> HandleAdminPanelUpdate
 
   -- Build and post subscribe message
-  input <- H.gets \s -> (unwrap s).input
-  postSubscribe $ OverlayLogic.buildSubscribeMessage input.userId input.tournamentId input.divisionName
+  input <- H.gets _.input
+  postSubscribe $ OverlayLogic.buildSubscribeMessage input.userId input.subscription
 
 -- | Handle base overlay actions
 handleAction :: forall extra slots o m. MonadAff m => MonadBroadcast m => MonadEmitters m => Action -> H.HalogenM (State extra) Action slots o m Unit
@@ -160,9 +139,6 @@ renderError err =
 -- | Helper function to handle loading/error/success rendering pattern
 -- | Usage: renderWithData state \tournamentData -> ... your component rendering ...
 renderWithData :: forall extra w i. State extra -> (DivisionScopedData -> HH.HTML w i) -> HH.HTML w i
-renderWithData state renderContent =
-  let s = unwrap state
-  in if s.loading then
-    renderLoading
-  else
-    maybe (renderError $ fromMaybe "No tournament data" s.error) renderContent s.currentData
+renderWithData state _ | state.loading = renderLoading
+renderWithData state renderContent | otherwise =
+  maybe (renderError $ fromMaybe "No tournament data" state.error) renderContent state.currentData

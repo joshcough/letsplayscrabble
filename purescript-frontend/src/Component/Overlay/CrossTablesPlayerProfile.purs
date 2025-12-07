@@ -13,9 +13,9 @@ import Data.Int (toNumber, round) as Int
 import Data.Maybe (Maybe(..), fromMaybe, maybe, isNothing)
 import Data.Newtype (unwrap)
 import Data.Number (pow)
-import Data.String (Pattern(..), split, joinWith, take, drop) as String
+import Data.String (split, joinWith, take, drop) as String
 import Data.String (Pattern(..))
-import Domain.Types (PlayerId(..), Player, CrossTablesPlayer, TournamentResult, TournamentSummary)
+import Domain.Types (Player, CrossTablesPlayer, TournamentResult, TournamentSummary)
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Halogen.HTML as HH
@@ -42,7 +42,7 @@ render :: forall m. State -> H.ComponentHTML Action () m
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
-      s = unwrap state
+      s = state
       playerIdParam = s.extra
 
       -- Determine actual player ID based on mode:
