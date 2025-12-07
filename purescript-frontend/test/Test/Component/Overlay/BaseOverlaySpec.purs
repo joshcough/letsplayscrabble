@@ -11,7 +11,7 @@ import Domain.Types (TournamentId(..), DivisionId(..), Division)
 import Stats.OverlayLogic (TournamentSubscription(..))
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual)
-import Test.Utils.TestHelpers (createDivisionWith, createMockBroadcastManager)
+import Test.Utils.TestHelpers (createDivisionWith)
 import Test.Utils.TestHelpers as TestHelpers
 
 spec :: Spec Unit
@@ -22,7 +22,7 @@ spec =
         let
           state = createMockState { subscription: Nothing, currentMatch: Nothing }
           response = createMockTournamentDataResponse (TournamentId 123)
-          newState = handleTournamentDataUpdate state response
+          newState = handleTournamentDataUpdate response state
           s = unwrap newState
 
         s.error `shouldEqual` Just "Invalid subscription parameters"
@@ -33,7 +33,7 @@ spec =
           subscription = SpecificTournament { tournamentId: TournamentId 456, divisionName: "Division A" }
           state = createMockState { subscription: Just subscription, currentMatch: Nothing }
           response = createMockTournamentDataResponse (TournamentId 123)
-          newState = handleTournamentDataUpdate state response
+          newState = handleTournamentDataUpdate response state
           s = unwrap newState
           origS = unwrap state
 
@@ -48,7 +48,7 @@ spec =
           tournament = createMockTournament [divA]
           state = createMockState { subscription: Just subscription, currentMatch: Nothing }
           response = (createMockTournamentDataResponse (TournamentId 123)) { data = tournament }
-          newState = handleTournamentDataUpdate state response
+          newState = handleTournamentDataUpdate response state
           s = unwrap newState
 
         -- Should successfully set data when division is found
@@ -66,7 +66,7 @@ spec =
           tournament = createMockTournament []
           state = createMockState { subscription: Just subscription, currentMatch: Nothing }
           response = (createMockTournamentDataResponse (TournamentId 123)) { data = tournament }
-          newState = handleTournamentDataUpdate state response
+          newState = handleTournamentDataUpdate response state
 
         (unwrap newState).error `shouldEqual` Just "Division not found: (Just \"Division Z\")"
         (unwrap newState).loading `shouldEqual` false
@@ -79,7 +79,7 @@ spec =
           tournament = createMockTournament [divA]
           state = createMockState { subscription: Just subscription, currentMatch: currentMatch }
           response = (createMockTournamentDataResponse (TournamentId 123)) { isCurrentMatch = true, data = tournament }
-          newState = handleTournamentDataUpdate state response
+          newState = handleTournamentDataUpdate response state
 
         -- Should successfully set data when division is found
         case (unwrap newState).currentData of
@@ -95,7 +95,7 @@ spec =
           subscription = CurrentMatch
           state = createMockState { subscription: Just subscription, currentMatch: Nothing }
           response = (createMockTournamentDataResponse (TournamentId 123)) { isCurrentMatch = false }
-          newState = handleTournamentDataUpdate state response
+          newState = handleTournamentDataUpdate response state
 
         -- State should be unchanged (ignored)
         (unwrap newState).currentData `shouldEqual` (unwrap state).currentData
@@ -107,7 +107,7 @@ spec =
           subscription = CurrentMatch
           state = createMockState { subscription: Just subscription, currentMatch: Nothing }
           update = createMockAdminPanelUpdate
-          newState = handleAdminPanelUpdateState state update
+          newState = handleAdminPanelUpdateState update state
 
         case (unwrap newState).currentMatch of
           Just matchInfo -> do
@@ -122,7 +122,7 @@ spec =
           subscription = SpecificTournament { tournamentId: TournamentId 456, divisionName: "Division B" }
           state = createMockState { subscription: Just subscription, currentMatch: Nothing }
           update = createMockAdminPanelUpdate
-          newState = handleAdminPanelUpdateState state update
+          newState = handleAdminPanelUpdateState update state
 
         (unwrap newState).currentMatch `shouldEqual` (unwrap state).currentMatch
 
@@ -130,7 +130,7 @@ spec =
         let
           state = createMockState { subscription: Nothing, currentMatch: Nothing }
           update = createMockAdminPanelUpdate
-          newState = handleAdminPanelUpdateState state update
+          newState = handleAdminPanelUpdateState update state
 
         (unwrap newState).currentMatch `shouldEqual` (unwrap state).currentMatch
 
@@ -153,7 +153,6 @@ createMockState fields = State
       { userId: 1
       , tournamentId: Nothing
       , divisionName: Nothing
-      , manager: createMockBroadcastManager
       , extra: unit
       }
   , subscription: fields.subscription

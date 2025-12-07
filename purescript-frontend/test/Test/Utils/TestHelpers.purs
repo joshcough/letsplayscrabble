@@ -2,9 +2,11 @@ module Test.Utils.TestHelpers where
 
 import Prelude
 
+import BroadcastChannel.Manager as BroadcastManager
 import Data.Array (range)
 import Data.Maybe (Maybe(..))
 import Domain.Types (Division, DivisionId(..), DivisionScopedData, Game, GameId(..), PairingId(..), Player, PlayerId(..), TournamentId(..), TournamentSummary)
+import Effect.Unsafe (unsafePerformEffect)
 
 --------------------------------------------------------------------------------
 -- Builder Functions for Test Data
@@ -138,3 +140,8 @@ createMockDivisionDataWithManyPlayers n =
       }) (range 0 (n - 3))
   in
     baseData { division = baseData.division { players = baseData.division.players <> additionalPlayers } }
+
+-- | Create a mock BroadcastManager for testing
+-- | NOTE: Uses unsafePerformEffect - only for testing!
+createMockBroadcastManager :: BroadcastManager.BroadcastManager
+createMockBroadcastManager = unsafePerformEffect BroadcastManager.create

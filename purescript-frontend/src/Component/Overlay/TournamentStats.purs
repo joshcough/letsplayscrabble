@@ -5,8 +5,8 @@ module Component.Overlay.TournamentStats where
 import Prelude
 
 import BroadcastChannel.Class (postSubscribe, subscribeTournamentData, subscribeAdminPanel, closeBroadcast)
-import BroadcastChannel.Manager as BroadcastManager
 import BroadcastChannel.Messages (TournamentDataResponse, AdminPanelUpdate)
+import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import Config.Themes (getTheme)
 import Data.Array (length)
 import Data.Array as Array
@@ -31,7 +31,6 @@ type Input =
   { userId :: Int
   , tournamentId :: Maybe TournamentId
   , divisionName :: Maybe String
-  , manager :: BroadcastManager.BroadcastManager
   }
 
 -- | Component state
@@ -58,7 +57,7 @@ data Action
   | Finalize
 
 -- | TournamentStats component
-component :: forall query output m. MonadAff m => H.Component query Input output m
+component :: forall query output m. MonadAff m => MonadBroadcast m => H.Component query Input output m
 component = H.mkComponent
   { initialState
   , render
@@ -189,7 +188,7 @@ formatPercent n =
     toStringWith (fixed 1) rounded <> "%"
 
 -- | Handle component actions
-handleAction :: forall output m. MonadAff m => Action -> H.HalogenM State Action () output m Unit
+handleAction :: forall output m. MonadAff m => MonadBroadcast m => Action -> H.HalogenM State Action () output m Unit
 handleAction = case _ of
   Initialize -> do
     state <- H.get

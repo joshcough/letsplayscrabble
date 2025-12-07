@@ -6,8 +6,8 @@ module Component.Overlay.BaseOverlay where
 import Prelude
 
 import BroadcastChannel.Class (postSubscribe, subscribeTournamentData, subscribeAdminPanel, closeBroadcast)
-import BroadcastChannel.Manager as BroadcastManager
 import BroadcastChannel.Messages (TournamentDataResponse, AdminPanelUpdate)
+import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import Config.Themes (getTheme)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
@@ -22,12 +22,10 @@ import Stats.OverlayLogic as OverlayLogic
 import Types.Theme (Theme)
 
 -- | Component input with polymorphic extra data
--- | Manager is injected as a dependency for testability
 type Input extra =
   { userId :: Int
   , tournamentId :: Maybe TournamentId
   , divisionName :: Maybe String
-  , manager :: BroadcastManager.BroadcastManager
   , extra :: extra
   }
 
@@ -36,7 +34,6 @@ type Input extra =
 type CurrentMatchInfo = OverlayLogic.CurrentMatchInfo
 
 -- | Component state with polymorphic extra data
--- | Note: manager is accessed via input.manager (dependency injection)
 newtype State extra = State
   { currentData :: Maybe DivisionScopedData
   , loading :: Boolean
@@ -80,10 +77,10 @@ initialState input = State
 -- | Returns updated state based on subscription mode and response validation
 handleTournamentDataUpdate
   :: forall extra
-   . State extra
-  -> TournamentDataResponse
+   . TournamentDataResponse
   -> State extra
-handleTournamentDataUpdate state response =
+  -> State extra
+handleTournamentDataUpdate response state =
   let s = unwrap state
   in case s.subscription of
     Nothing ->
@@ -108,10 +105,10 @@ handleTournamentDataUpdate state response =
 -- | Returns updated state with current match info if in CurrentMatch mode
 handleAdminPanelUpdateState
   :: forall extra
-   . State extra
-  -> AdminPanelUpdate
+   . AdminPanelUpdate
   -> State extra
-handleAdminPanelUpdateState state update =
+  -> State extra
+handleAdminPanelUpdateState update state =
   let s = unwrap state
   in case s.subscription of
     Just subscription ->
@@ -122,30 +119,28 @@ handleAdminPanelUpdateState state update =
     Nothing ->
       state
 
+-- | Initialize overlay: subscribe to broadcast channels and post subscribe message
+initialize :: forall extra slots o m. MonadAff m => MonadBroadcast m => H.HalogenM (State extra) Action slots o m Unit
+initialize = do
+  -- Subscribe to tournament data responses
+  tournamentDataEmitter <- subscribeTournamentData
+  void $ H.subscribe $ tournamentDataEmitter <#> HandleTournamentData
+
+  -- Subscribe to admin panel updates
+  adminPanelEmitter <- subscribeAdminPanel
+  void $ H.subscribe $ adminPanelEmitter <#> HandleAdminPanelUpdate
+
+  -- Build and post subscribe message
+  input <- H.gets \s -> (unwrap s).input
+  postSubscribe $ OverlayLogic.buildSubscribeMessage input.userId input.tournamentId input.divisionName
+
 -- | Handle base overlay actions
-handleAction :: forall extra slots o m. MonadAff m => Action -> H.HalogenM (State extra) Action slots o m Unit
+handleAction :: forall extra slots o m. MonadAff m => MonadBroadcast m => Action -> H.HalogenM (State extra) Action slots o m Unit
 handleAction = case _ of
-  Initialize -> do
-    -- Subscribe to tournament data responses
-    tournamentDataEmitter <- subscribeTournamentData
-    void $ H.subscribe $ tournamentDataEmitter <#> HandleTournamentData
-
-    -- Subscribe to admin panel updates
-    adminPanelEmitter <- subscribeAdminPanel
-    void $ H.subscribe $ adminPanelEmitter <#> HandleAdminPanelUpdate
-
-    -- Build and post subscribe message
-    input <- H.gets \s -> (unwrap s).input
-    postSubscribe $ OverlayLogic.buildSubscribeMessage input.userId input.tournamentId input.divisionName
-
-  HandleTournamentData response ->
-    H.modify_ \state -> handleTournamentDataUpdate state response
-
-  HandleAdminPanelUpdate update ->
-    H.modify_ \state -> handleAdminPanelUpdateState state update
-
-  Finalize ->
-    closeBroadcast
+  Initialize -> initialize
+  HandleTournamentData response -> H.modify_ (handleTournamentDataUpdate response)
+  HandleAdminPanelUpdate update -> H.modify_ (handleAdminPanelUpdateState update)
+  Finalize -> closeBroadcast
 
 -- | Render loading state
 renderLoading :: forall w i. HH.HTML w i

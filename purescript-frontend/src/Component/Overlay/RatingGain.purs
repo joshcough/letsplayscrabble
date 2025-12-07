@@ -5,6 +5,7 @@ module Component.Overlay.RatingGain where
 import Prelude
 
 import Component.Overlay.BaseOverlay as BaseOverlay
+import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
@@ -18,7 +19,7 @@ import Stats.TournamentStats (calculateRatingGainPlayers)
 import Utils.FormatUtils (formatNumberWithSign)
 
 -- | RatingGain component
-component :: forall query output m. MonadAff m => H.Component query (BaseOverlay.Input Unit) output m
+component :: forall query output m. MonadAff m => MonadBroadcast m => H.Component query (BaseOverlay.Input Unit) output m
 component = H.mkComponent
   { initialState: BaseOverlay.initialState
   , render

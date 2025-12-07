@@ -27,6 +27,8 @@ import Component.Overlay.MiscOverlay as MiscOverlay
 import Component.MiscOverlayTestingPage as MiscOverlayTestingPage
 import Component.Overlay.TournamentStats as TournamentStats
 import Component.WorkerPage as WorkerPage
+import BroadcastChannel.Manager as BroadcastManager
+import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import Data.Either (Either(..))
 import Effect.Unsafe (unsafePerformEffect)
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -48,6 +50,7 @@ type State =
   , isAuthenticated :: Boolean
   , username :: Maybe String
   , userId :: Maybe Int
+  , broadcastManager :: Maybe BroadcastManager.BroadcastManager
   }
 
 -- | Router queries
@@ -154,9 +157,9 @@ withNavigation state content =
     _, _ -> content
 
 -- | Router component
-component :: forall input output m. MonadAff m => H.Component Query input output m
+component :: forall input output m. MonadAff m => MonadBroadcast m => H.Component Query input output m
 component = H.mkComponent
-  { initialState: \_ -> { route: Nothing, isAuthenticated: false, username: Nothing, userId: Nothing }
+  { initialState: \_ -> { route: Nothing, isAuthenticated: false, username: Nothing, userId: Nothing, broadcastManager: Nothing }
   , render
   , eval: H.mkEval $ H.defaultEval
       { handleAction = handleAction
@@ -165,7 +168,7 @@ component = H.mkComponent
       }
   }
 
-render :: forall m. MonadAff m => State -> H.ComponentHTML Action Slots m
+render :: forall m. MonadAff m => MonadBroadcast m => State -> H.ComponentHTML Action Slots m
 render state =
   let _ = unsafePerformEffect $ log $ "[Router] Rendering route: " <> show state.route
   in case state.route of
@@ -202,103 +205,127 @@ render state =
         HH.slot _currentMatch unit CurrentMatchPage.component unit HandleCurrentMatchOutput
 
     Just (Standings params) ->
-      case params.pics of
-        Just true ->
-          HH.slot_ _standingsWithPics unit StandingsWithPics.component
-            { userId: params.userId
-            , tournamentId: map TournamentId params.tournamentId
-            , divisionName: params.divisionName
-            , extra: unit
-            }
-        _ ->
-          HH.slot_ _standings unit Standings.component
-            { userId: params.userId
-            , tournamentId: map TournamentId params.tournamentId
-            , divisionName: params.divisionName
-            , extra: unit
-            }
+      case state.broadcastManager of
+        Nothing -> HH.text "Initializing broadcast manager..."
+        Just manager ->
+          case params.pics of
+            Just true ->
+              HH.slot_ _standingsWithPics unit StandingsWithPics.component
+                { userId: params.userId
+                , tournamentId: map TournamentId params.tournamentId
+                , divisionName: params.divisionName
+                , extra: unit
+                }
+            _ ->
+              HH.slot_ _standings unit Standings.component
+                { userId: params.userId
+                , tournamentId: map TournamentId params.tournamentId
+                , divisionName: params.divisionName
+                , extra: unit
+                }
 
     Just (HighScores params) ->
-      case params.pics of
-        Just true ->
-          HH.slot_ _highScoresWithPics unit HighScoresWithPics.component
-            { userId: params.userId
-            , tournamentId: map TournamentId params.tournamentId
-            , divisionName: params.divisionName
-            , extra: unit
-            }
-        _ ->
-          HH.slot_ _highScores unit HighScores.component
-            { userId: params.userId
-            , tournamentId: map TournamentId params.tournamentId
-            , divisionName: params.divisionName
-            , extra: unit
-            }
+      case state.broadcastManager of
+        Nothing -> HH.text "Initializing broadcast manager..."
+        Just manager ->
+          case params.pics of
+            Just true ->
+              HH.slot_ _highScoresWithPics unit HighScoresWithPics.component
+                { userId: params.userId
+                , tournamentId: map TournamentId params.tournamentId
+                , divisionName: params.divisionName
+                , extra: unit
+                }
+            _ ->
+              HH.slot_ _highScores unit HighScores.component
+                { userId: params.userId
+                , tournamentId: map TournamentId params.tournamentId
+                , divisionName: params.divisionName
+                , extra: unit
+                }
 
     Just (RatingGain params) ->
-      case params.pics of
-        Just true ->
-          HH.slot_ _ratingGainWithPics unit RatingGainWithPics.component
-            { userId: params.userId
-            , tournamentId: map TournamentId params.tournamentId
-            , divisionName: params.divisionName
-            , extra: unit
-            }
-        _ ->
-          HH.slot_ _ratingGain unit RatingGain.component
-            { userId: params.userId
-            , tournamentId: map TournamentId params.tournamentId
-            , divisionName: params.divisionName
-            , extra: unit
-            }
+      case state.broadcastManager of
+        Nothing -> HH.text "Initializing broadcast manager..."
+        Just manager ->
+          case params.pics of
+            Just true ->
+              HH.slot_ _ratingGainWithPics unit RatingGainWithPics.component
+                { userId: params.userId
+                , tournamentId: map TournamentId params.tournamentId
+                , divisionName: params.divisionName
+                , extra: unit
+                }
+            _ ->
+              HH.slot_ _ratingGain unit RatingGain.component
+                { userId: params.userId
+                , tournamentId: map TournamentId params.tournamentId
+                , divisionName: params.divisionName
+                , extra: unit
+                }
 
     Just (ScoringLeaders params) ->
-      case params.pics of
-        Just true ->
-          HH.slot_ _scoringLeadersWithPics unit ScoringLeadersWithPics.component
-            { userId: params.userId
-            , tournamentId: map TournamentId params.tournamentId
-            , divisionName: params.divisionName
-            , extra: unit
-            }
-        _ ->
-          HH.slot_ _scoringLeaders unit ScoringLeaders.component
-            { userId: params.userId
-            , tournamentId: map TournamentId params.tournamentId
-            , divisionName: params.divisionName
-            , extra: unit
-            }
+      case state.broadcastManager of
+        Nothing -> HH.text "Initializing broadcast manager..."
+        Just manager ->
+          case params.pics of
+            Just true ->
+              HH.slot_ _scoringLeadersWithPics unit ScoringLeadersWithPics.component
+                { userId: params.userId
+                , tournamentId: map TournamentId params.tournamentId
+                , divisionName: params.divisionName
+                , extra: unit
+                }
+            _ ->
+              HH.slot_ _scoringLeaders unit ScoringLeaders.component
+                { userId: params.userId
+                , tournamentId: map TournamentId params.tournamentId
+                , divisionName: params.divisionName
+                , extra: unit
+                }
 
     Just (CrossTablesPlayerProfile params) ->
-      HH.slot_ _crossTablesPlayerProfile unit CrossTablesPlayerProfile.component
-        { userId: params.userId
-        , tournamentId: map TournamentId params.tournamentId
-        , divisionName: params.divisionName
-        , extra: params.playerId
-        }
+      case state.broadcastManager of
+        Nothing -> HH.text "Initializing broadcast manager..."
+        Just manager ->
+          HH.slot_ _crossTablesPlayerProfile unit CrossTablesPlayerProfile.component
+            { userId: params.userId
+            , tournamentId: map TournamentId params.tournamentId
+            , divisionName: params.divisionName
+            , extra: params.playerId
+            }
 
     Just (HeadToHead params) ->
-      HH.slot_ _headToHead unit HeadToHead.component
-        { userId: params.userId
-        , tournamentId: map TournamentId params.tournamentId
-        , divisionName: params.divisionName
-        , extra: { playerId1: fromMaybe 0 params.playerId1, playerId2: fromMaybe 0 params.playerId2 }
-        }
+      case state.broadcastManager of
+        Nothing -> HH.text "Initializing broadcast manager..."
+        Just manager ->
+          HH.slot_ _headToHead unit HeadToHead.component
+            { userId: params.userId
+            , tournamentId: map TournamentId params.tournamentId
+            , divisionName: params.divisionName
+            , extra: { playerId1: fromMaybe 0 params.playerId1, playerId2: fromMaybe 0 params.playerId2 }
+            }
 
     Just (MiscOverlay params) ->
-      HH.slot_ _miscOverlay unit MiscOverlay.component
-        { userId: params.userId
-        , tournamentId: map TournamentId params.tournamentId
-        , divisionName: params.divisionName
-        , extra: MiscOverlay.parseSource params.source
-        }
+      case state.broadcastManager of
+        Nothing -> HH.text "Initializing broadcast manager..."
+        Just manager ->
+          HH.slot_ _miscOverlay unit MiscOverlay.component
+            { userId: params.userId
+            , tournamentId: map TournamentId params.tournamentId
+            , divisionName: params.divisionName
+            , extra: MiscOverlay.parseSource params.source
+            }
 
     Just (TournamentStats params) ->
-      HH.slot_ _tournamentStats unit TournamentStats.component
-        { userId: params.userId
-        , tournamentId: map TournamentId params.tournamentId
-        , divisionName: params.divisionName
-        }
+      case state.broadcastManager of
+        Nothing -> HH.text "Initializing broadcast manager..."
+        Just manager ->
+          HH.slot_ _tournamentStats unit TournamentStats.component
+            { userId: params.userId
+            , tournamentId: map TournamentId params.tournamentId
+            , divisionName: params.divisionName
+            }
 
     Just MiscOverlayTesting ->
       HH.slot_ _miscOverlayTesting unit MiscOverlayTestingPage.component unit
@@ -311,6 +338,10 @@ handleAction = case _ of
   Initialize -> do
     liftEffect $ log "[Router] Initializing..."
 
+    -- Create broadcast manager for overlay components
+    manager <- liftEffect BroadcastManager.create
+    liftEffect $ log "[Router] Created broadcast manager"
+
     -- Check if user is authenticated
     isAuth <- liftEffect Auth.isAuthenticated
     liftEffect $ log $ "[Router] Is authenticated: " <> show isAuth
@@ -320,7 +351,7 @@ handleAction = case _ of
     userId <- liftEffect Auth.getUserId
     liftEffect $ log $ "[Router] Username: " <> show username <> ", UserId: " <> show userId
 
-    H.modify_ _ { isAuthenticated = isAuth, username = username, userId = userId }
+    H.modify_ _ { isAuthenticated = isAuth, username = username, userId = userId, broadcastManager = Just manager }
 
     -- Get initial route from hash
     initialHash <- liftEffect getHash

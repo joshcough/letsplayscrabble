@@ -5,6 +5,7 @@ module Component.Overlay.ScoringLeadersWithPics where
 import Prelude
 
 import Component.Overlay.BaseOverlay as BaseOverlay
+import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import Data.Array (take)
 import Data.Newtype (unwrap)
 import Stats.TournamentStats (calculateScoringLeadersPlayers)
@@ -16,7 +17,7 @@ import Renderer.PictureRenderer as PictureRenderer
 import Utils.PlayerImage (getPlayerImageUrl)
 
 -- | ScoringLeadersWithPics component
-component :: forall query output m. MonadAff m => H.Component query (BaseOverlay.Input Unit) output m
+component :: forall query output m. MonadAff m => MonadBroadcast m => H.Component query (BaseOverlay.Input Unit) output m
 component = H.mkComponent
   { initialState: BaseOverlay.initialState
   , render

@@ -5,6 +5,7 @@ module Component.Overlay.ScoringLeaders where
 import Prelude
 
 import Component.Overlay.BaseOverlay as BaseOverlay
+import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
@@ -17,7 +18,7 @@ import Renderer.TableRenderer as TableRenderer
 import Stats.TournamentStats (calculateScoringLeadersPlayers)
 
 -- | ScoringLeaders component
-component :: forall query output m. MonadAff m => H.Component query (BaseOverlay.Input Unit) output m
+component :: forall query output m. MonadAff m => MonadBroadcast m => H.Component query (BaseOverlay.Input Unit) output m
 component = H.mkComponent
   { initialState: BaseOverlay.initialState
   , render

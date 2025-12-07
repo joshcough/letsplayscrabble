@@ -5,6 +5,7 @@ module Component.Overlay.Standings where
 import Prelude
 
 import Component.Overlay.BaseOverlay as BaseOverlay
+import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
@@ -18,7 +19,7 @@ import Stats.TournamentStats (calculateStandingsPlayers)
 import Utils.FormatUtils (formatNumberWithSign)
 
 -- | Standings component
-component :: forall query output m. MonadAff m => H.Component query (BaseOverlay.Input Unit) output m
+component :: forall query output m. MonadAff m => MonadBroadcast m => H.Component query (BaseOverlay.Input Unit) output m
 component = H.mkComponent
   { initialState: BaseOverlay.initialState
   , render

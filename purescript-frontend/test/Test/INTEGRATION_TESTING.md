@@ -258,8 +258,72 @@ But for now, **manual verification with good logging is sufficient** because:
 
 ---
 
+## TODO: Stateful Component Integration Tests
+
+We have InMemory PubSub implementation and basic integration tests. Next step is to add **state machine tests** for overlay components:
+
+```purescript
+-- Test the overlay component's behavior over time
+testOverlayStateMachine :: Aff Unit
+testOverlayStateMachine = do
+  channel <- liftEffect $ testChannel "overlay-test"
+
+  -- Initialize overlay in CurrentMatch mode
+  overlay <- runOverlayComponent { userId: 1, tournamentId: Nothing, divisionName: Nothing }
+
+  -- Post AdminPanelUpdate for tournament 123, division A
+  postMessage channel (encodeJson $ AdminPanelUpdate { tournamentId: 123, divisionName: "A", ... })
+  delay (Milliseconds 10.0)
+
+  -- Post TournamentData for tournament 123 - SHOULD ACCEPT
+  postMessage channel (encodeJson $ TournamentDataResponse { tournamentId: 123, ... })
+  delay (Milliseconds 10.0)
+  overlayState <- getOverlayState overlay
+  overlayState.currentData `shouldNotEqual` Nothing
+
+  -- Post TournamentData for tournament 999 - SHOULD REJECT
+  postMessage channel (encodeJson $ TournamentDataResponse { tournamentId: 999, ... })
+  delay (Milliseconds 10.0)
+  overlayState' <- getOverlayState overlay
+  overlayState'.currentData `shouldEqual` overlayState.currentData  -- unchanged
+
+  -- Post AdminPanelUpdate - SWITCH to tournament 456
+  postMessage channel (encodeJson $ AdminPanelUpdate { tournamentId: 456, divisionName: "B", ... })
+  delay (Milliseconds 10.0)
+
+  -- Post old tournament 123 data - SHOULD REJECT
+  postMessage channel (encodeJson $ TournamentDataResponse { tournamentId: 123, ... })
+  delay (Milliseconds 10.0)
+  overlayState'' <- getOverlayState overlay
+  overlayState''.currentData.tournament.id `shouldEqual` 456  -- still on new tournament
+
+  -- Post new tournament 456 data - SHOULD ACCEPT
+  postMessage channel (encodeJson $ TournamentDataResponse { tournamentId: 456, ... })
+  delay (Milliseconds 10.0)
+  overlayState''' <- getOverlayState overlay
+  overlayState'''.currentData.tournament.id `shouldEqual` 456  -- updated with new data
+```
+
+This would test:
+- ✅ Message filtering based on subscription mode
+- ✅ State transitions when AdminPanelUpdate arrives
+- ✅ Rejecting messages for wrong tournament
+- ✅ Accepting messages for correct tournament
+- ✅ Switching between tournaments in CurrentMatch mode
+
+**Challenges to solve:**
+1. Running Halogen components in Aff context
+2. Injecting InMemory channel instead of real BroadcastChannel
+3. Inspecting component state from tests
+4. Triggering component actions and waiting for state updates
+
+**Priority**: Medium - Pure function tests cover most logic, but this would catch state machine bugs.
+
+---
+
 **Bottom line**: We can't easily unit test BroadcastChannel integration, but we can:
-1. Test all the parts we control
-2. Use strong types to prevent errors
-3. Add logging for visibility
-4. Manually verify the flow works
+1. Test all the parts we control ✅ (done)
+2. Use strong types to prevent errors ✅ (done)
+3. Add logging for visibility ✅ (done)
+4. Manually verify the flow works ✅ (done)
+5. Add stateful component tests 🚧 (TODO - planned but not critical)

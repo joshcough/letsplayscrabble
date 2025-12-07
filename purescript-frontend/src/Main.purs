@@ -3,6 +3,8 @@ module Main where
 
 import Prelude
 
+import AppM (AppEnv, runAppM)
+import BroadcastChannel.Manager as BroadcastManager
 import Component.Router as Router
 import Effect (Effect)
 import Effect.Aff (launchAff_)
@@ -19,7 +21,16 @@ import Routing.Hash (matchesWith)
 main :: Effect Unit
 main = HA.runHalogenAff do
   body <- HA.awaitBody
-  io <- runUI Router.component unit body
+
+  -- Create broadcast manager
+  broadcastManager <- liftEffect BroadcastManager.create
+
+  -- Create app environment
+  let env :: AppEnv
+      env = { broadcastManager }
+
+  -- Run the Router component with AppM, hoisting to Aff
+  io <- runUI (H.hoist (runAppM env) Router.component) unit body
 
   -- Set up hash change listener
   void $ liftEffect $ matchesWith (parse routeCodec) \_ new ->
