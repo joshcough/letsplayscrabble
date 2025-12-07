@@ -6,12 +6,11 @@ import Prelude
 
 import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array (take)
-import Data.Maybe (Maybe(..), maybe)
+import Stats.TournamentStats (calculateHighScorePlayers)
+import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
-import Halogen.HTML as HH
 import Renderer.PictureRenderer as PictureRenderer
-import Stats.PlayerStats (SortType(..), calculateRankedStats)
 import Utils.PlayerImage (getPlayerImageUrl)
 
 -- | HighScoresWithPics component
@@ -30,8 +29,8 @@ render :: forall m. BaseOverlay.State Unit -> H.ComponentHTML BaseOverlay.Action
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
-      -- Calculate high scores from raw division data
-      players = calculateRankedStats HighScore tournamentData.division.players tournamentData.division.games
+      -- Calculate high scores from raw division data (shared with HighScores)
+      players = calculateHighScorePlayers tournamentData.division.players tournamentData.division.games
       top5 = take 5 players
 
       -- Build picture data

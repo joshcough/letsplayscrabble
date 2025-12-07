@@ -6,12 +6,11 @@ import Prelude
 
 import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array (take)
-import Data.Maybe (Maybe(..), maybe)
+import Stats.TournamentStats (calculateRatingGainPlayers)
+import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
-import Halogen.HTML as HH
 import Renderer.PictureRenderer as PictureRenderer
-import Stats.PlayerStats (SortType(..), calculateRankedStats)
 import Types.Theme (Theme)
 import Utils.Format (formatNumberWithSign)
 import Utils.PlayerImage (getPlayerImageUrl)
@@ -32,8 +31,8 @@ render :: forall m. BaseOverlay.State Unit -> H.ComponentHTML BaseOverlay.Action
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
-      -- Calculate rating gain from raw division data
-      players = calculateRankedStats RatingGain tournamentData.division.players tournamentData.division.games
+      -- Calculate rating gain from raw division data (shared with RatingGain)
+      players = calculateRatingGainPlayers tournamentData.division.players tournamentData.division.games
       top5 = take 5 players
 
       -- Build picture data

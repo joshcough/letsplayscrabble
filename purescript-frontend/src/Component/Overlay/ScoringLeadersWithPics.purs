@@ -6,13 +6,12 @@ import Prelude
 
 import Component.Overlay.BaseOverlay as BaseOverlay
 import Data.Array (take)
-import Data.Maybe (Maybe(..), maybe)
+import Stats.TournamentStats (calculateScoringLeadersPlayers)
+import Data.Maybe (Maybe(..))
 import Data.Number.Format (fixed, toStringWith)
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
-import Halogen.HTML as HH
 import Renderer.PictureRenderer as PictureRenderer
-import Stats.PlayerStats (SortType(..), calculateRankedStats)
 import Utils.PlayerImage (getPlayerImageUrl)
 
 -- | ScoringLeadersWithPics component
@@ -31,8 +30,8 @@ render :: forall m. BaseOverlay.State Unit -> H.ComponentHTML BaseOverlay.Action
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
-      -- Calculate scoring leaders from raw division data
-      players = calculateRankedStats AverageScore tournamentData.division.players tournamentData.division.games
+      -- Calculate scoring leaders from raw division data (shared with ScoringLeaders)
+      players = calculateScoringLeadersPlayers tournamentData.division.players tournamentData.division.games
       top5 = take 5 players
 
       -- Build picture data

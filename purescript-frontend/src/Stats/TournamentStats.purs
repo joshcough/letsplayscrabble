@@ -9,6 +9,7 @@ import Data.Int (round, toNumber)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Domain.Types (Game, Player, Tournament, PlayerId)
+import Stats.PlayerStats (RankedPlayerStats, SortType(..), calculateRankedStats)
 
 -- | Tournament statistics record
 type TournamentStats =
@@ -155,3 +156,31 @@ calculateAllTournamentStats tournament =
     allPlayers = foldl (\acc div -> acc <> div.players) [] tournament.divisions
   in
     calculateTournamentStats allGames allPlayers
+
+--------------------------------------------------------------------------------
+-- Overlay Calculations (shared by table and picture components)
+--------------------------------------------------------------------------------
+
+-- | Calculate rating gain for all players (shared by RatingGain and RatingGainWithPics)
+-- | Returns players ranked by rating gain
+calculateRatingGainPlayers :: Array Player -> Array Game -> Array RankedPlayerStats
+calculateRatingGainPlayers players games =
+  calculateRankedStats RatingGain players games
+
+-- | Calculate high scores for all players (shared by HighScores and HighScoresWithPics)
+-- | Returns players ranked by high score
+calculateHighScorePlayers :: Array Player -> Array Game -> Array RankedPlayerStats
+calculateHighScorePlayers players games =
+  calculateRankedStats HighScore players games
+
+-- | Calculate scoring leaders for all players (shared by ScoringLeaders and ScoringLeadersWithPics)
+-- | Returns players ranked by average score
+calculateScoringLeadersPlayers :: Array Player -> Array Game -> Array RankedPlayerStats
+calculateScoringLeadersPlayers players games =
+  calculateRankedStats AverageScore players games
+
+-- | Calculate standings for all players (shared by Standings and StandingsWithPics)
+-- | Returns players ranked by wins/losses/spread
+calculateStandingsPlayers :: Array Player -> Array Game -> Array RankedPlayerStats
+calculateStandingsPlayers players games =
+  calculateRankedStats Standings players games
