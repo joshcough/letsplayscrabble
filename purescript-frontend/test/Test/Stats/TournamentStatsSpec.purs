@@ -36,9 +36,9 @@ spec =
       it "ranks players by rating gain (last rating - initial rating)" do
         let
           division = createDivisionWith
-            [ createPlayerWithRatings (PlayerId 1) "Alice" 1500 [1520, 1540, 1560]  -- +60 gain
-            , createPlayerWithRatings (PlayerId 2) "Bob" 1450 [1470, 1480]  -- +30 gain
-            , createPlayerWithRatings (PlayerId 3) "Carol" 1600 [1590, 1580]  -- -20 loss
+            [ createPlayerWithRatings { playerId: PlayerId 1, name: "Alice", initialRating: 1500, ratingsHistory: [1520, 1540, 1560] }  -- +60 gain
+            , createPlayerWithRatings { playerId: PlayerId 2, name: "Bob", initialRating: 1450, ratingsHistory: [1470, 1480] }  -- +30 gain
+            , createPlayerWithRatings { playerId: PlayerId 3, name: "Carol", initialRating: 1600, ratingsHistory: [1590, 1580] }  -- -20 loss
             ]
             []  -- Games don't matter for rating gain calculation
           ratingGain = calculateRatingGainPlayers division.players division.games
@@ -67,8 +67,8 @@ spec =
       it "handles players with empty ratings history (uses initial rating)" do
         let
           division = createDivisionWith
-            [ createPlayerWithRatings (PlayerId 1) "Alice" 1500 []  -- No history, gain = 0
-            , createPlayerWithRatings (PlayerId 2) "Bob" 1450 [1480]  -- +30 gain
+            [ createPlayerWithRatings { playerId: PlayerId 1, name: "Alice", initialRating: 1500, ratingsHistory: [] }  -- No history, gain = 0
+            , createPlayerWithRatings { playerId: PlayerId 2, name: "Bob", initialRating: 1450, ratingsHistory: [1480] }  -- +30 gain
             ]
             []
           ratingGain = calculateRatingGainPlayers division.players division.games
@@ -90,7 +90,7 @@ spec =
       it "handles single rating in history" do
         let
           division = createDivisionWith
-            [ createPlayerWithRatings (PlayerId 1) "Alice" 1500 [1550]  -- +50 gain
+            [ createPlayerWithRatings { playerId: PlayerId 1, name: "Alice", initialRating: 1500, ratingsHistory: [1550] }  -- +50 gain
             ]
             []
           ratingGain = calculateRatingGainPlayers division.players division.games
@@ -104,9 +104,9 @@ spec =
       it "handles negative rating changes" do
         let
           division = createDivisionWith
-            [ createPlayerWithRatings (PlayerId 1) "Alice" 1500 [1490, 1470]  -- -30
-            , createPlayerWithRatings (PlayerId 2) "Bob" 1450 [1440, 1420]  -- -30 (tie, sorted by input order)
-            , createPlayerWithRatings (PlayerId 3) "Carol" 1600 [1580, 1550]  -- -50
+            [ createPlayerWithRatings { playerId: PlayerId 1, name: "Alice", initialRating: 1500, ratingsHistory: [1490, 1470] }  -- -30
+            , createPlayerWithRatings { playerId: PlayerId 2, name: "Bob", initialRating: 1450, ratingsHistory: [1440, 1420] }  -- -30 (tie, sorted by input order)
+            , createPlayerWithRatings { playerId: PlayerId 3, name: "Carol", initialRating: 1600, ratingsHistory: [1580, 1550] }  -- -50
             ]
             []
           ratingGain = calculateRatingGainPlayers division.players division.games
@@ -151,9 +151,9 @@ spec =
             , createPlayer (PlayerId 2) "Bob" 1500
             , createPlayer (PlayerId 3) "Carol" 1500
             ]
-            [ createCompletedGame 1 1 (PlayerId 1) (PlayerId 2) 525 350  -- Alice high: 525
-            , createCompletedGame 2 1 (PlayerId 3) (PlayerId 1) 480 420  -- Carol high: 480
-            , createCompletedGame 3 2 (PlayerId 2) (PlayerId 3) 550 400  -- Bob high: 550
+            [ createCompletedGame { gameId: 1, round: 1, player1: PlayerId 1, player2: PlayerId 2, score1: 525, score2: 350 }  -- Alice high: 525
+            , createCompletedGame { gameId: 2, round: 1, player1: PlayerId 3, player2: PlayerId 1, score1: 480, score2: 420 }  -- Carol high: 480
+            , createCompletedGame { gameId: 3, round: 2, player1: PlayerId 2, player2: PlayerId 3, score1: 550, score2: 400 }  -- Bob high: 550
             ]
           highScores = calculateHighScorePlayers division.players division.games
 
@@ -176,9 +176,9 @@ spec =
             [ createPlayer (PlayerId 1) "Alice" 1500
             , createPlayer (PlayerId 2) "Bob" 1500
             ]
-            [ createCompletedGame 1 1 (PlayerId 1) (PlayerId 2) 400 350
-            , createCompletedGame 2 2 (PlayerId 1) (PlayerId 2) 525 420  -- Alice's high score in round 2
-            , createCompletedGame 3 3 (PlayerId 1) (PlayerId 2) 450 480  -- Bob's high score in round 3
+            [ createCompletedGame { gameId: 1, round: 1, player1: PlayerId 1, player2: PlayerId 2, score1: 400, score2: 350 }
+            , createCompletedGame { gameId: 2, round: 2, player1: PlayerId 1, player2: PlayerId 2, score1: 525, score2: 420 }  -- Alice's high score in round 2
+            , createCompletedGame { gameId: 3, round: 3, player1: PlayerId 1, player2: PlayerId 2, score1: 450, score2: 480 }  -- Bob's high score in round 3
             ]
           highScores = calculateHighScorePlayers division.players division.games
 
@@ -195,7 +195,7 @@ spec =
             [ createPlayer (PlayerId 1) "Alice" 1500
             , createPlayer (PlayerId 2) "Bob" 1500
             ]
-            [ createCompletedGame 1 1 (PlayerId 1) (PlayerId 2) 450 350  -- Alice: 450
+            [ createCompletedGame { gameId: 1, round: 1, player1: PlayerId 1, player2: PlayerId 2, score1: 450, score2: 350 }  -- Alice: 450
             , createByeGame 2 2 (PlayerId 1)  -- Alice gets bye (50 points, should be ignored)
             ]
           highScores = calculateHighScorePlayers division.players division.games
@@ -248,9 +248,9 @@ spec =
             , createPlayer (PlayerId 2) "Bob" 1500
             , createPlayer (PlayerId 3) "Carol" 1500
             ]
-            [ createCompletedGame 1 1 (PlayerId 1) (PlayerId 2) 450 350  -- Alice: 450, Bob: 350
-            , createCompletedGame 2 1 (PlayerId 3) (PlayerId 1) 400 420  -- Carol: 400, Alice: 420
-            , createCompletedGame 3 2 (PlayerId 2) (PlayerId 3) 480 460  -- Bob: 480, Carol: 460
+            [ createCompletedGame { gameId: 1, round: 1, player1: PlayerId 1, player2: PlayerId 2, score1: 450, score2: 350 }  -- Alice: 450, Bob: 350
+            , createCompletedGame { gameId: 2, round: 1, player1: PlayerId 3, player2: PlayerId 1, score1: 400, score2: 420 }  -- Carol: 400, Alice: 420
+            , createCompletedGame { gameId: 3, round: 2, player1: PlayerId 2, player2: PlayerId 3, score1: 480, score2: 460 }  -- Bob: 480, Carol: 460
             ]
           leaders = calculateScoringLeadersPlayers division.players division.games
 
@@ -276,9 +276,9 @@ spec =
             [ createPlayer (PlayerId 1) "Alice" 1500
             , createPlayer (PlayerId 2) "Bob" 1500
             ]
-            [ createCompletedGame 1 1 (PlayerId 1) (PlayerId 2) 450 350  -- Alice: 450
+            [ createCompletedGame { gameId: 1, round: 1, player1: PlayerId 1, player2: PlayerId 2, score1: 450, score2: 350 }  -- Alice: 450
             , createByeGame 2 2 (PlayerId 1)  -- Alice gets bye (50 points, should be excluded)
-            , createCompletedGame 3 3 (PlayerId 1) (PlayerId 2) 460 360  -- Alice: 460
+            , createCompletedGame { gameId: 3, round: 3, player1: PlayerId 1, player2: PlayerId 2, score1: 460, score2: 360 }  -- Alice: 460
             ]
           leaders = calculateScoringLeadersPlayers division.players division.games
 
@@ -295,9 +295,9 @@ spec =
             [ createPlayer (PlayerId 1) "Alice" 1500
             , createPlayer (PlayerId 2) "Bob" 1500
             ]
-            [ createCompletedGame 1 1 (PlayerId 1) (PlayerId 2) 450 350
-            , createCompletedGame 2 2 (PlayerId 1) (PlayerId 2) 440 360
-            , createCompletedGame 3 3 (PlayerId 1) (PlayerId 2) 430 370
+            [ createCompletedGame { gameId: 1, round: 1, player1: PlayerId 1, player2: PlayerId 2, score1: 450, score2: 350 }
+            , createCompletedGame { gameId: 2, round: 2, player1: PlayerId 1, player2: PlayerId 2, score1: 440, score2: 360 }
+            , createCompletedGame { gameId: 3, round: 3, player1: PlayerId 1, player2: PlayerId 2, score1: 430, score2: 370 }
             ]
           leaders = calculateScoringLeadersPlayers division.players division.games
 
@@ -350,10 +350,10 @@ spec =
             , createPlayer (PlayerId 2) "Bob" 1500
             , createPlayer (PlayerId 3) "Carol" 1500
             ]
-            [ createCompletedGame 1 1 (PlayerId 1) (PlayerId 2) 450 350  -- Alice wins
-            , createCompletedGame 2 1 (PlayerId 3) (PlayerId 1) 400 380  -- Carol wins (round 1)
-            , createCompletedGame 3 2 (PlayerId 1) (PlayerId 3) 420 400  -- Alice wins (round 2)
-            , createCompletedGame 4 2 (PlayerId 2) (PlayerId 1) 380 360  -- Bob wins (round 2)
+            [ createCompletedGame { gameId: 1, round: 1, player1: PlayerId 1, player2: PlayerId 2, score1: 450, score2: 350 }  -- Alice wins
+            , createCompletedGame { gameId: 2, round: 1, player1: PlayerId 3, player2: PlayerId 1, score1: 400, score2: 380 }  -- Carol wins (round 1)
+            , createCompletedGame { gameId: 3, round: 2, player1: PlayerId 1, player2: PlayerId 3, score1: 420, score2: 400 }  -- Alice wins (round 2)
+            , createCompletedGame { gameId: 4, round: 2, player1: PlayerId 2, player2: PlayerId 1, score1: 380, score2: 360 }  -- Bob wins (round 2)
             ]
           standings = calculateStandingsPlayers division.players division.games
 
@@ -373,9 +373,9 @@ spec =
             , createPlayer (PlayerId 2) "Bob" 1500
             , createPlayer (PlayerId 3) "Carol" 1500
             ]
-            [ createCompletedGame 1 1 (PlayerId 1) (PlayerId 2) 450 350  -- Alice wins +100
-            , createCompletedGame 2 1 (PlayerId 3) (PlayerId 2) 400 350  -- Carol wins +50
-            , createCompletedGame 3 2 (PlayerId 1) (PlayerId 3) 420 400  -- Alice wins +20
+            [ createCompletedGame { gameId: 1, round: 1, player1: PlayerId 1, player2: PlayerId 2, score1: 450, score2: 350 }  -- Alice wins +100
+            , createCompletedGame { gameId: 2, round: 1, player1: PlayerId 3, player2: PlayerId 2, score1: 400, score2: 350 }  -- Carol wins +50
+            , createCompletedGame { gameId: 3, round: 2, player1: PlayerId 1, player2: PlayerId 3, score1: 420, score2: 400 }  -- Alice wins +20
             ]
           standings = calculateStandingsPlayers division.players division.games
 
@@ -406,9 +406,9 @@ spec =
             , createPlayer (PlayerId 2) "Bob" 1500
             , createPlayer (PlayerId 3) "Carol" 1500
             ]
-            [ createCompletedGame 1 1 (PlayerId 1) (PlayerId 2) 450 350  -- Alice wins
+            [ createCompletedGame { gameId: 1, round: 1, player1: PlayerId 1, player2: PlayerId 2, score1: 450, score2: 350 }  -- Alice wins
             , createByeGame 2 1 (PlayerId 3)  -- Carol gets bye (counts as win if score > 0)
-            , createCompletedGame 3 2 (PlayerId 2) (PlayerId 3) 420 400  -- Bob wins
+            , createCompletedGame { gameId: 3, round: 2, player1: PlayerId 2, player2: PlayerId 3, score1: 420, score2: 400 }  -- Bob wins
             ]
           standings = calculateStandingsPlayers division.players division.games
 

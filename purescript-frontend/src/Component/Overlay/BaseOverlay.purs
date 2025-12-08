@@ -143,3 +143,19 @@ renderWithData :: forall extra w i. State extra -> (DivisionScopedData -> HH.HTM
 renderWithData state _ | state.loading = renderLoading
 renderWithData state renderContent | otherwise =
   maybe (renderError $ fromMaybe "No tournament data" state.error) renderContent state.currentData
+
+-- | Create a BaseOverlay component with custom render function
+-- | Eliminates boilerplate - just provide your render function
+-- | Usage: component = mkComponent render
+mkComponent :: forall extra query output m. MonadAff m => MonadBroadcast m => MonadEmitters m =>
+  (State extra -> H.ComponentHTML Action () m) ->
+  H.Component query (Input extra) output m
+mkComponent renderFn = H.mkComponent
+  { initialState: initialState
+  , render: renderFn
+  , eval: H.mkEval $ H.defaultEval
+      { handleAction = handleAction
+      , initialize = Just Initialize
+      , finalize = Just Finalize
+      }
+  }

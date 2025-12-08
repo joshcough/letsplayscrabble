@@ -32,15 +32,7 @@ type State = BaseOverlay.State HeadToHeadExtra
 type Action = BaseOverlay.Action
 
 component :: forall query output m. MonadAff m => MonadBroadcast m => MonadEmitters m => H.Component query (BaseOverlay.Input HeadToHeadExtra) output m
-component = H.mkComponent
-  { initialState: BaseOverlay.initialState
-  , render
-  , eval: H.mkEval $ H.defaultEval
-      { handleAction = BaseOverlay.handleAction
-      , initialize = Just BaseOverlay.Initialize
-      , finalize = Just BaseOverlay.Finalize
-      }
-  }
+component = BaseOverlay.mkComponent render
 
 -- | Data needed to render the head-to-head view
 type H2HViewData =

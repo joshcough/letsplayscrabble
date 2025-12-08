@@ -49,15 +49,8 @@ component
   -> (Array Player -> Array Game -> Array { rank :: Int, name :: String, photo :: Maybe String, xtPhotoUrl :: Maybe String | r })
   -> (Theme -> { rank :: Int, name :: String, photo :: Maybe String, xtPhotoUrl :: Maybe String | r } -> Array { value :: String, color :: String, label :: Maybe String })
   -> H.Component query (BaseOverlay.Input Unit) output m
-component title calculator statsRenderer = H.mkComponent
-  { initialState: BaseOverlay.initialState
-  , render: renderWithData title calculator statsRenderer
-  , eval: H.mkEval $ H.defaultEval
-      { handleAction = BaseOverlay.handleAction
-      , initialize = Just BaseOverlay.Initialize
-      , finalize = Just BaseOverlay.Finalize
-      }
-  }
+component title calculator statsRenderer =
+  BaseOverlay.mkComponent (renderWithData title calculator statsRenderer)
 
 --------------------------------------------------------------------------------
 -- High Scores Component

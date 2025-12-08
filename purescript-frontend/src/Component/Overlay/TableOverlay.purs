@@ -52,15 +52,8 @@ component
   => MonadEmitters m
   => (DivisionScopedData -> TableData)
   -> H.Component query (BaseOverlay.Input Unit) output m
-component calculator = H.mkComponent
-  { initialState: BaseOverlay.initialState
-  , render: renderWithData calculator
-  , eval: H.mkEval $ H.defaultEval
-      { handleAction = BaseOverlay.handleAction
-      , initialize = Just BaseOverlay.Initialize
-      , finalize = Just BaseOverlay.Finalize
-      }
-  }
+component calculator =
+  BaseOverlay.mkComponent (renderWithData calculator)
 
 --------------------------------------------------------------------------------
 -- High Scores Component

@@ -101,15 +101,7 @@ type State = BaseOverlay.State SourceType
 type Action = BaseOverlay.Action
 
 component :: forall query output m. MonadAff m => MonadBroadcast m => MonadEmitters m => H.Component query (BaseOverlay.Input SourceType) output m
-component = H.mkComponent
-  { initialState: BaseOverlay.initialState
-  , render: \state -> renderMiscOverlay state state.extra
-  , eval: H.mkEval $ H.defaultEval
-      { handleAction = BaseOverlay.handleAction
-      , initialize = Just BaseOverlay.Initialize
-      , finalize = Just BaseOverlay.Finalize
-      }
-  }
+component = BaseOverlay.mkComponent (\state -> renderMiscOverlay state state.extra)
 
 renderMiscOverlay :: forall m. BaseOverlay.State SourceType -> SourceType -> H.ComponentHTML Action () m
 renderMiscOverlay state source =
