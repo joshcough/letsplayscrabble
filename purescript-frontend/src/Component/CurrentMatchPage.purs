@@ -9,13 +9,13 @@ import CSS.ThemeColor (ThemeColor(..))
 
 import API.CurrentMatch as CurrentMatchAPI
 import API.Tournament as TournamentAPI
+import Component.CurrentMatchPageHelpers as Helpers
 import Config.Themes (getTheme)
-import Data.Array (find, head, sort, sortBy)
+import Data.Array (find, head, sortBy)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Int (fromString) as Int
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Set as Set
 import Domain.Types (TournamentId(..), DivisionId(..), PlayerId(..), PairingId(..), TournamentSummary, Tournament, Game)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
@@ -253,9 +253,7 @@ getRoundsForDivision state =
   fromMaybe [] do
     tournament <- state.selectedTournament
     divId <- Int.fromString state.selectedDivisionId
-    division <- find (\d -> let DivisionId did = d.id in did == divId) tournament.divisions
-    let roundNumbers = map _.roundNumber division.games
-    pure $ sort $ Array.fromFoldable $ Set.fromFoldable roundNumbers
+    Helpers.getRoundsForDivision tournament divId
 
 getPairingsForRound :: State -> Array Game
 getPairingsForRound state =
@@ -264,7 +262,7 @@ getPairingsForRound state =
     divId <- Int.fromString state.selectedDivisionId
     division <- find (\d -> let DivisionId did = d.id in did == divId) tournament.divisions
     roundNum <- Int.fromString state.selectedRound
-    pure $ Array.filter (\g -> g.roundNumber == roundNum) division.games
+    pure $ Helpers.getPairingsForRound division roundNum
 
 getPlayerName :: State -> Int -> String
 getPlayerName state playerId =
@@ -272,8 +270,7 @@ getPlayerName state playerId =
     tournament <- state.selectedTournament
     divId <- Int.fromString state.selectedDivisionId
     division <- find (\d -> let DivisionId did = d.id in did == divId) tournament.divisions
-    player <- find (\p -> let PlayerId pid = p.id in pid == playerId) division.players
-    pure player.name
+    Helpers.getPlayerName division.players playerId
 
 handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
 handleAction = case _ of

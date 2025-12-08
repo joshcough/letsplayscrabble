@@ -21,7 +21,10 @@ import Test.Component.Overlay.RatingGainSpec as RatingGainSpec
 import Test.Component.Overlay.HighScoresSpec as HighScoresSpec
 import Test.Component.Overlay.ScoringLeadersSpec as ScoringLeadersSpec
 import Test.Component.Overlay.StandingsSpec as StandingsSpec
+import Test.Component.Overlay.CrossTablesPlayerProfileSpec as CrossTablesPlayerProfileSpec
 import Test.Component.RouterHelpersSpec as RouterHelpersSpec
+import Test.Component.CurrentMatchPageHelpersSpec as CurrentMatchPageHelpersSpec
+import Test.Component.WorkerPageHelpersSpec as WorkerPageHelpersSpec
 
 main :: Effect Unit
 main = launchAff_ $ runSpec [consoleReporter] do
@@ -44,4 +47,8 @@ main = launchAff_ $ runSpec [consoleReporter] do
   HighScoresSpec.spec
   ScoringLeadersSpec.spec
   StandingsSpec.spec
+  CrossTablesPlayerProfileSpec.spec
   RouterHelpersSpec.spec
+
+  CurrentMatchPageHelpersSpec.spec
+  WorkerPageHelpersSpec.spec

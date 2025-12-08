@@ -7,11 +7,12 @@ import Prelude
 import Component.Overlay.BaseOverlay as BaseOverlay
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import BroadcastChannel.MonadEmitters (class MonadEmitters)
+import Control.Alternative (guard, (<|>))
 import Data.Array (find)
 import Data.Int (toNumber, round) as Int
 import Data.Maybe (Maybe(..), maybe, isNothing)
 import Data.Newtype (unwrap)
-import Domain.Types (Player, TournamentSummary, CrossTablesPlayer, TournamentResult)
+import Domain.Types (Player, TournamentSummary, TournamentResult, Game, PairingId(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Halogen.HTML as HH
@@ -22,7 +23,6 @@ import Types.Theme (Theme)
 import Utils.CSS (css, cls, thm, raw)
 import Utils.Format (formatPlayerName, formatLocation, getCurrentRating, getRanking, calculateWinPercentage, getRecentTournament, formatNumber, formatDate)
 import Utils.PlayerImage (getPlayerImageUrl)
-import Domain.Types (Game, PairingId(..))
 
 type State = BaseOverlay.State Int
 
@@ -37,15 +37,20 @@ type Action = BaseOverlay.Action
 -- | Otherwise use playerIdParam directly as the actual player ID
 resolvePlayerId :: forall r. Int -> Maybe { round :: Int, pairingId :: Int | r } -> Array Game -> Maybe Int
 resolvePlayerId playerIdParam maybeCurrentMatch games =
-  case maybeCurrentMatch of
-    Just currentMatch | playerIdParam == 1 || playerIdParam == 2 -> do
-      -- Find current game from the match
+  let
+    fromCurrentMatch = do
+      currentMatch <- maybeCurrentMatch
+      guard (playerIdParam == 1 || playerIdParam == 2)
       game <- find (\g -> maybe false (\(PairingId pid) -> pid == currentMatch.pairingId) g.pairingId && g.roundNumber == currentMatch.round) games
-      -- Get actual player ID based on playerIdParam (1 or 2)
       pure $ unwrap $ if playerIdParam == 1 then game.player1Id else game.player2Id
-    _ ->
-      -- Specific player mode - use playerIdParam directly as actual player ID
-      Just playerIdParam
+  in
+    fromCurrentMatch <|> pure playerIdParam
+
+-- | Find player by resolving the ID parameter and looking them up in the division
+findPlayerByParam :: forall r. Int -> Maybe { round :: Int, pairingId :: Int | r } -> Array Game -> Array Player -> Maybe Player
+findPlayerByParam playerIdParam currentMatch games players = do
+  actualId <- resolvePlayerId playerIdParam currentMatch games
+  find (\p -> unwrap p.id == actualId) players
 
 -- | Profile data extracted from player and xtData
 type ProfileData =
@@ -100,27 +105,16 @@ preparePlayerImageData player tournament =
 --------------------------------------------------------------------------------
 
 component :: forall query output m. MonadAff m => MonadBroadcast m => MonadEmitters m => H.Component query (BaseOverlay.Input Int) output m
-component = H.mkComponent
-  { initialState: BaseOverlay.initialState
-  , render
-  , eval: H.mkEval $ H.defaultEval
-      { handleAction = BaseOverlay.handleAction
-      , initialize = Just BaseOverlay.Initialize
-      , finalize = Just BaseOverlay.Finalize
-      }
-  }
+component = BaseOverlay.mkComponent render
 
 render :: forall m. State -> H.ComponentHTML Action () m
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
-      playerIdParam = state.extra
-      maybeActualPlayerId = resolvePlayerId playerIdParam state.currentMatch tournamentData.division.games
-      maybePlayer = maybeActualPlayerId >>= \actualId ->
-        find (\p -> unwrap p.id == actualId) tournamentData.division.players
+      maybePlayer = findPlayerByParam state.extra state.currentMatch tournamentData.division.games tournamentData.division.players
     in
       case maybePlayer of
-        Nothing -> BaseOverlay.renderError $ "Player " <> show playerIdParam <> " not found in division"
+        Nothing -> BaseOverlay.renderError $ "Player " <> show state.extra <> " not found in division"
         Just player -> renderPlayerProfile state.theme player tournamentData.tournament
 
 renderPlayerProfile :: forall w i. Theme -> Player -> TournamentSummary -> HH.HTML w i

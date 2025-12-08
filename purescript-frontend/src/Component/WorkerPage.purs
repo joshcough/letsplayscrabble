@@ -6,6 +6,7 @@ import Prelude
 import Api.CurrentMatchApi as CurrentMatchApi
 import Api.TournamentApi as TournamentApi
 import BroadcastChannel.Manager as BroadcastManager
+import Component.WorkerPageHelpers as Helpers
 import BroadcastChannel.Messages (SubscribeMessage, TournamentDataResponse)
 import Control.Monad.Rec.Class (forever)
 import Data.Either (Either(..))
@@ -98,13 +99,7 @@ render state =
     ]
 
 getStatusColor :: State -> String
-getStatusColor state =
-  case state.error of
-    Just _ -> "#ff4444"
-    Nothing ->
-      if state.status == "Connected" then "#44ff44"
-      else if state.status == "Connecting" || state.status == "Initializing..." then "#ffaa44"
-      else "#666666"
+getStatusColor state = Helpers.getStatusColor state.error state.status
 
 handleAction :: forall output m. MonadAff m => Action -> H.HalogenM State Action () output m Unit
 handleAction = case _ of
