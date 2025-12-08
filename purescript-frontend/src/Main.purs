@@ -22,12 +22,12 @@ main :: Effect Unit
 main = HA.runHalogenAff do
   body <- HA.awaitBody
 
-  -- Create broadcast manager
-  broadcastManager <- liftEffect BroadcastManager.create
+  -- Create broadcast and emitter managers
+  { broadcastManager, emitterManager } <- liftEffect BroadcastManager.create
 
   -- Create app environment
   let env :: AppEnv
-      env = { broadcastManager }
+      env = { broadcastManager, emitterManager }
 
   -- Run the Router component with AppM, hoisting to Aff
   io <- runUI (H.hoist (runAppM env) Router.component) unit body

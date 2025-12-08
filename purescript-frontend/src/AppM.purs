@@ -2,7 +2,7 @@ module AppM where
 
 import Prelude
 
-import BroadcastChannel.Manager (BroadcastManager)
+import BroadcastChannel.Manager (BroadcastManager, EmitterManager)
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import BroadcastChannel.MonadEmitters (class MonadEmitters)
 import Control.Monad.Reader.Trans (class MonadAsk, ReaderT, asks, runReaderT)
@@ -12,6 +12,7 @@ import Effect.Class (class MonadEffect)
 
 type AppEnv =
   { broadcastManager :: BroadcastManager
+  , emitterManager :: EmitterManager
   }
 
 newtype AppM a = AppM (ReaderT AppEnv Aff a)
@@ -28,7 +29,8 @@ derive newtype instance monadAskAppM :: MonadAsk AppEnv AppM
 instance monadBroadcastAppM :: MonadBroadcast AppM where
   getBroadcastManager = asks _.broadcastManager
 
-instance monadEmittersAppM :: MonadEmitters AppM
+instance monadEmittersAppM :: MonadEmitters AppM where
+  getEmitterManager = asks _.emitterManager
 
 runAppM :: forall a. AppEnv -> AppM a -> Aff a
 runAppM env (AppM m) = runReaderT m env

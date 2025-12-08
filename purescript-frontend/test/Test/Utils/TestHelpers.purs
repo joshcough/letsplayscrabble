@@ -144,4 +144,4 @@ createMockDivisionDataWithManyPlayers n =
 -- | Create a mock BroadcastManager for testing
 -- | NOTE: Uses unsafePerformEffect - only for testing!
 createMockBroadcastManager :: BroadcastManager.BroadcastManager
-createMockBroadcastManager = unsafePerformEffect BroadcastManager.create
+createMockBroadcastManager = (unsafePerformEffect BroadcastManager.create).broadcastManager

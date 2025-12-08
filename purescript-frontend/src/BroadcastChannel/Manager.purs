@@ -17,10 +17,14 @@ import Effect.Console as Console
 import Foreign (Foreign, unsafeToForeign, unsafeFromForeign)
 import Halogen.Subscription as HS
 
--- | Manager holds the broadcast channel and emitters for each message type
+-- | Manager holds only the broadcast channel (for sending messages)
 type BroadcastManager =
   { channel :: BC.BroadcastChannel
-  , subscribeEmitter :: HS.Emitter SubscribeMessage
+  }
+
+-- | Manager holds all emitters for each message type (for receiving messages)
+type EmitterManager =
+  { subscribeEmitter :: HS.Emitter SubscribeMessage
   , tournamentDataResponseEmitter :: HS.Emitter TournamentDataResponse
   , tournamentDataRefreshEmitter :: HS.Emitter TournamentDataRefresh
   , tournamentDataIncrementalEmitter :: HS.Emitter TournamentDataIncremental
@@ -30,8 +34,8 @@ type BroadcastManager =
   , notificationCancelEmitter :: HS.Emitter NotificationCancelMessage
   }
 
--- | Create a new broadcast manager
-create :: Effect BroadcastManager
+-- | Create both broadcast and emitter managers
+create :: Effect { broadcastManager :: BroadcastManager, emitterManager :: EmitterManager }
 create = do
   channel <- BC.create "tournament-updates"
 
@@ -63,15 +67,17 @@ create = do
       Left _ -> Console.log "[BroadcastManager] Failed to decode message type"
 
   pure
-    { channel
-    , subscribeEmitter
-    , tournamentDataResponseEmitter: responseEmitter
-    , tournamentDataRefreshEmitter: refreshEmitter
-    , tournamentDataIncrementalEmitter: incrementalEmitter
-    , tournamentDataErrorEmitter: errorEmitter
-    , gamesAddedEmitter: gamesEmitter
-    , adminPanelUpdateEmitter: adminEmitter
-    , notificationCancelEmitter: notifEmitter
+    { broadcastManager: { channel }
+    , emitterManager:
+        { subscribeEmitter
+        , tournamentDataResponseEmitter: responseEmitter
+        , tournamentDataRefreshEmitter: refreshEmitter
+        , tournamentDataIncrementalEmitter: incrementalEmitter
+        , tournamentDataErrorEmitter: errorEmitter
+        , gamesAddedEmitter: gamesEmitter
+        , adminPanelUpdateEmitter: adminEmitter
+        , notificationCancelEmitter: notifEmitter
+        }
     }
 
 -- | Route message to appropriate listener

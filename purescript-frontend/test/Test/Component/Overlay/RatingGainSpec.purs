@@ -2,7 +2,8 @@ module Test.Component.Overlay.RatingGainSpec where
 
 import Prelude
 
-import Component.Overlay.TableOverlay (calculateRatingGainTableData, getRatingChangeColor)
+import Component.Overlay.TableOverlay (calculateRatingGainTableData)
+import Utils.Color (getRatingChangeColor)
 import Data.Array (length, (!!))
 import Data.Maybe (Maybe(..))
 import Test.Spec (Spec, describe, it)

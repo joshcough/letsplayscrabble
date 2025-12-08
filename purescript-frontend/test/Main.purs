@@ -13,6 +13,8 @@ import Test.PubSub.IntegrationSpec as PubSubSpec
 import Test.Stats.TournamentStatsSpec as TournamentStatsSpec
 import Test.Stats.HeadToHeadStatsSpec as HeadToHeadStatsSpec
 import Test.Stats.OverlayLogicSpec as OverlayLogicSpec
+import Test.Stats.MiscOverlayStatsSpec as MiscOverlayStatsSpec
+import Test.Stats.HeadToHeadGameLogicSpec as HeadToHeadGameLogicSpec
 import Test.Utils.FormatSpec as FormatSpec
 import Test.Component.Overlay.BaseOverlaySpec as BaseOverlaySpec
 import Test.Component.Overlay.RatingGainSpec as RatingGainSpec
@@ -32,6 +34,8 @@ main = launchAff_ $ runSpec [consoleReporter] do
   TournamentStatsSpec.spec
   HeadToHeadStatsSpec.spec
   OverlayLogicSpec.spec
+  MiscOverlayStatsSpec.spec
+  HeadToHeadGameLogicSpec.spec
 
   FormatSpec.spec
 
