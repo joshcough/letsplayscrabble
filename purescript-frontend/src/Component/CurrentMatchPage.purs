@@ -3,6 +3,7 @@ module Component.CurrentMatchPage where
 
 import Prelude
 
+import CSS.Class as C
 import CSS.Class (CSSClass(..))
 import CSS.ThemeColor (ThemeColor(..))
 
@@ -25,7 +26,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
-import Utils.CSS (classes, cls, css, thm)
+import Utils.CSS (classes, cls, css, hover, thm, raw)
 import Utils.Auth as Auth
 
 type Input = Unit
@@ -87,41 +88,41 @@ render state =
   HH.div
     [ css [cls MinHScreen, cls P_8, thm state.theme PageBackground] ]
     [ HH.div
-        [ css [cls MaxW_4xl, cls Mx_Auto, thm state.theme CardBackground, cls ShadowMd, cls RoundedLg, cls P_6] ]
+        [ css [cls MaxW_4xl, cls Mx_Auto, thm state.theme CardBackground, cls ShadowMd, cls C.RoundedLg, cls P_6] ]
         [ HH.h1
             [ css [cls PageTitle, cls Mb_6, thm state.theme TextPrimary] ]
             [ HH.text "Current Match Management" ]
         , case state.error of
             Just err ->
               HH.div
-                [ HP.class_ (HH.ClassName "border-2 border-red-700/20 bg-red-700/10 text-red-700 px-4 py-3 rounded mb-4") ]
+                [ css [cls C.Border_2, raw "border-red-700/20 bg-red-700/10", cls C.TextRed700, cls C.Px_4, cls C.Py_3, cls C.Rounded, cls C.Mb_4] ]
                 [ HH.text err ]
             Nothing -> HH.text ""
         , case state.success of
             Just msg ->
               HH.div
-                [ HP.class_ (HH.ClassName "border-2 border-green-700/20 bg-green-700/10 text-green-700 px-4 py-3 rounded mb-4") ]
+                [ css [cls C.Border_2, raw "border-green-700/20 bg-green-700/10", cls C.TextGreen700, cls C.Px_4, cls C.Py_3, cls C.Rounded, cls C.Mb_4] ]
                 [ HH.text msg ]
             Nothing -> HH.text ""
         , if state.loading && Array.null state.tournaments then
             HH.div
-              [ HP.class_ (HH.ClassName "text-center py-8") ]
+              [ css [cls C.TextCenter, cls Py_8] ]
               [ HH.text "Loading..." ]
           else
             HH.div
-              [ HP.class_ (HH.ClassName $ show SpaceY_6) ]
+              [ css [cls SpaceY_6] ]
               [ renderTournamentSelect state
               , renderDivisionSelect state
               , renderRoundSelect state
               , renderPairingSelect state
               , HH.button
-                  [ HP.class_ (HH.ClassName $ "w-full py-2 px-4 rounded-md " <> buttonClass state)
+                  [ css [cls C.W_Full, cls C.Py_2, cls C.Px_4, cls C.RoundedMd, raw (buttonClass state)]
                   , HP.disabled (state.loading || state.selectedPairingId == Nothing)
                   , HE.onClick \_ -> UpdateMatch
                   ]
                   [ HH.text if state.loading then "Updating..." else "Update Match" ]
               , HH.button
-                  [ HP.class_ (HH.ClassName "form-input hover:bg-gray-50")
+                  [ css [cls C.W_Full, cls C.Px_4, cls C.Py_2, cls C.Border, cls C.Rounded, cls C.FocusOutlineNone, cls C.FocusRing_2, cls C.TransitionColors, hover "bg-gray-50"]
                   , HE.onClick \_ -> HandleBackClick
                   ]
                   [ HH.text "Back to List" ]
@@ -132,7 +133,7 @@ render state =
     buttonClass s =
       if s.loading || s.selectedPairingId == Nothing
         then "opacity-50 cursor-not-allowed bg-gray-300"
-        else classes [thm state.theme CardBackground, thm state.theme HoverBackground, cls Border_2, thm state.theme PrimaryBorder]
+        else classes [thm state.theme CardBackground, thm state.theme HoverBackground, cls C.Border_2, thm state.theme PrimaryBorder]
 
 renderTournamentSelect :: forall w. State -> HH.HTML w Action
 renderTournamentSelect state =

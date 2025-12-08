@@ -7,8 +7,9 @@ import Prelude
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Halogen.HTML as HH
-import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
+import Utils.CSS (css, cls, raw)
+import CSS.Class (CSSClass(..))
 
 -- | Cell renderer type
 data CellRenderer
@@ -39,17 +40,17 @@ type TableData =
 renderTableOverlay :: forall w i. Theme -> TableData -> HH.HTML w i
 renderTableOverlay theme tableData =
   HH.div
-    [ HP.class_ (HH.ClassName $ theme.colors.pageBackground <> " min-h-screen flex items-center justify-center p-6") ]
+    [ css [raw theme.colors.pageBackground, cls MinHScreen, cls Flex, cls ItemsCenter, cls JustifyCenter, cls P_6] ]
     [ HH.div
-        [ HP.class_ (HH.ClassName "max-w-7xl w-full") ]
+        [ css [cls MaxW_7xl, cls W_Full] ]
         [ -- Title section
           HH.div
-            [ HP.class_ (HH.ClassName "text-center mb-8") ]
+            [ css [cls TextCenter, cls Mb_8] ]
             [ HH.h1
-                [ HP.class_ (HH.ClassName $ "text-6xl font-black leading-tight mb-4 " <> theme.colors.textPrimary) ]
+                [ css [cls Text_6xl, cls FontBlack, cls LeadingTight, cls Mb_4, raw theme.colors.textPrimary] ]
                 [ HH.text tableData.title ]
             , HH.div
-                [ HP.class_ (HH.ClassName $ "text-3xl font-bold " <> theme.colors.textSecondary) ]
+                [ css [cls Text_3xl, cls FontBold, raw theme.colors.textSecondary] ]
                 [ HH.text tableData.subtitle ]
             ]
         , -- Table
@@ -61,14 +62,14 @@ renderTableOverlay theme tableData =
 renderTable :: forall w i. Theme -> Array Column -> Array (Array String) -> HH.HTML w i
 renderTable theme columns rows =
   HH.div
-    [ HP.class_ (HH.ClassName $ theme.colors.cardBackground <> " rounded-2xl px-6 py-3 border-2 " <> theme.colors.primaryBorder <> " shadow-2xl " <> theme.colors.shadowColor) ]
+    [ css [raw theme.colors.cardBackground, cls Rounded_2xl, cls Px_6, cls Py_3, cls Border_2, raw theme.colors.primaryBorder, cls Shadow_2xl, raw theme.colors.shadowColor] ]
     [ HH.div
-        [ HP.class_ (HH.ClassName "overflow-x-auto") ]
+        [ css [cls OverflowXAuto] ]
         [ HH.table
-            [ HP.class_ (HH.ClassName "w-full") ]
+            [ css [cls W_Full] ]
             [ HH.thead_
                 [ HH.tr
-                    [ HP.class_ (HH.ClassName $ "border-b-2 " <> theme.colors.primaryBorder) ]
+                    [ css [raw $ "border-b-2 " <> theme.colors.primaryBorder] ]
                     (Array.mapWithIndex (renderHeader theme) columns)
                 ]
             , HH.tbody_
@@ -81,14 +82,14 @@ renderTable theme columns rows =
 renderHeader :: forall w i. Theme -> Int -> Column -> HH.HTML w i
 renderHeader theme _ column =
   HH.th
-    [ HP.class_ (HH.ClassName $ "px-4 py-1 " <> alignmentClass column.align <> " " <> theme.colors.textPrimary <> " text-xl font-black uppercase tracking-wider") ]
+    [ css [cls Px_4, cls Py_1, raw (alignmentClass column.align), raw theme.colors.textPrimary, cls Text_Xl, cls FontBlack, cls Uppercase, cls TrackingWider] ]
     [ HH.text column.header ]
 
 -- | Render a table row
 renderRow :: forall w i. Theme -> Array Column -> Int -> Array String -> HH.HTML w i
 renderRow theme columns rowIndex cellValues =
   HH.tr
-    [ HP.class_ (HH.ClassName $ "border-b last:border-0 transition-colors " <> theme.colors.secondaryBorder <> " " <> theme.colors.hoverBackground) ]
+    [ css [cls BorderB, raw "last:border-0", cls TransitionColors, raw theme.colors.secondaryBorder, raw theme.colors.hoverBackground] ]
     (Array.zipWith (renderCell theme rowIndex) columns cellValues)
 
 -- | Render a table cell based on its renderer type
@@ -111,21 +112,21 @@ alignmentClass = case _ of
 renderTextCell :: forall w i. Alignment -> Theme -> Int -> String -> HH.HTML w i
 renderTextCell align theme _ value =
   HH.td
-    [ HP.class_ (HH.ClassName $ "px-4 py-1 " <> alignmentClass align <> " " <> theme.colors.textPrimary <> " text-2xl font-black") ]
+    [ css [cls Px_4, cls Py_1, raw (alignmentClass align), raw theme.colors.textPrimary, cls Text_2xl, cls FontBlack] ]
     [ HH.text value ]
 
 -- | Helper: Render a colored text cell
 renderColoredTextCell :: forall w i. Alignment -> (String -> String) -> Theme -> Int -> String -> HH.HTML w i
 renderColoredTextCell align getColor _ _ value =
   HH.td
-    [ HP.class_ (HH.ClassName $ "px-4 py-1 " <> alignmentClass align <> " " <> getColor value <> " text-2xl font-black") ]
+    [ css [cls Px_4, cls Py_1, raw (alignmentClass align), raw (getColor value), cls Text_2xl, cls FontBlack] ]
     [ HH.text value ]
 
 -- | Helper: Render a rank cell with # prefix
 renderRankCell :: forall w i. Theme -> Int -> String -> HH.HTML w i
 renderRankCell theme _ value =
   HH.td
-    [ HP.class_ (HH.ClassName $ "px-4 py-1 text-center " <> theme.colors.textPrimary <> " text-2xl font-black") ]
+    [ css [cls Px_4, cls Py_1, cls TextCenter, raw theme.colors.textPrimary, cls Text_2xl, cls FontBlack] ]
     [ HH.text $ "#" <> value ]
 
 -- | Helper: Render a name cell with optional medal
@@ -139,11 +140,11 @@ renderNameCell theme index name =
       _ -> Nothing
   in
     HH.td
-      [ HP.class_ (HH.ClassName $ "px-4 py-1 text-left " <> theme.colors.textPrimary <> " text-2xl font-black") ]
+      [ css [cls Px_4, cls Py_1, cls TextLeft, raw theme.colors.textPrimary, cls Text_2xl, cls FontBlack] ]
       [ HH.div
-          [ HP.class_ (HH.ClassName "flex items-center gap-2") ]
+          [ css [cls Flex, cls ItemsCenter, cls Gap_2] ]
           [ case medal of
-              Just m -> HH.span [ HP.class_ (HH.ClassName "text-2xl") ] [ HH.text m ]
+              Just m -> HH.span [ css [cls Text_2xl] ] [ HH.text m ]
               Nothing -> HH.text ""
           , HH.text name
           ]

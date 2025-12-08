@@ -34,6 +34,7 @@ makeCacheKey userId (TournamentId tid) = show userId <> ":" <> show tid
 type State =
   { workerState :: Maybe (Ref.Ref WSM.WorkerState)
   , broadcastManager :: Maybe BroadcastManager.BroadcastManager
+  , emitterManager :: Maybe BroadcastManager.EmitterManager
   , status :: String
   , error :: Maybe String
   , lastUpdate :: Number
@@ -62,6 +63,7 @@ initialState :: forall input. input -> State
 initialState _ =
   { workerState: Nothing
   , broadcastManager: Nothing
+  , emitterManager: Nothing
   , status: "Initializing..."
   , error: Nothing
   , lastUpdate: 0.0
@@ -107,15 +109,15 @@ getStatusColor state =
 handleAction :: forall output m. MonadAff m => Action -> H.HalogenM State Action () output m Unit
 handleAction = case _ of
   Initialize -> do
-    -- Create BroadcastManager to handle API requests
-    manager <- liftEffect BroadcastManager.create
+    -- Create BroadcastManager and EmitterManager to handle API requests
+    { broadcastManager, emitterManager } <- liftEffect BroadcastManager.create
 
     -- Subscribe to subscribe messages (overlay components requesting data)
     void $ H.subscribe $
-      manager.subscribeEmitter <#> HandleSubscribe
+      emitterManager.subscribeEmitter <#> HandleSubscribe
 
-    -- Store broadcast manager
-    H.modify_ _ { broadcastManager = Just manager }
+    -- Store both managers
+    H.modify_ _ { broadcastManager = Just broadcastManager, emitterManager = Just emitterManager }
 
     -- Create worker state for Socket.IO
     stateRef <- liftEffect do

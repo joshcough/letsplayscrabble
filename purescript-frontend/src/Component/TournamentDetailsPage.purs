@@ -25,7 +25,7 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
 import Utils.Auth as Auth
-import Utils.CSS (cls, css, raw, thm)
+import Utils.CSS (cls, css, hover, raw, thm)
 
 type Input =
   { tournamentId :: Int
@@ -121,11 +121,11 @@ render state =
     HH.div
       [ css [cls MinHScreen, thm theme PageBackground] ]
       [ HH.div
-          [ HP.class_ (HH.ClassName $ show PageContainer) ]
+          [ css [cls PageContainer] ]
           [ HH.div
               [ css [thm theme CardBackground, cls P_6, cls RoundedLg, cls ShadowMd] ]
               [ HH.div
-                  [ HP.class_ (HH.ClassName "flex items-center justify-between mb-4") ]
+                  [ css [cls Flex, cls ItemsCenter, cls JustifyBetween, cls Mb_4] ]
                   [ HH.h2
                       [ css [cls PageTitle, thm theme TextPrimary] ]
                       [ HH.text $ maybe
@@ -134,17 +134,17 @@ render state =
                           state.tournament
                       ]
                   , HH.div
-                      [ HP.class_ (HH.ClassName "flex gap-2") ]
+                      [ css [cls Flex, cls Gap_2] ]
                       [ if state.editing then
                           HH.div
-                            [ HP.class_ (HH.ClassName "flex gap-2") ]
+                            [ css [cls Flex, cls Gap_2] ]
                             [ HH.button
                                 [ css [cls BtnSecondary, cls Text_Sm, thm theme CardBackground, thm theme PrimaryBorder, thm theme HoverBackground]
                                 , HE.onClick \_ -> HandleSaveClick
                                 ]
                                 [ HH.text "Save" ]
                             , HH.button
-                                [ HP.class_ (HH.ClassName "btn-secondary text-sm hover:bg-gray-50")
+                                [ css [raw "btn-secondary", cls Text_Sm, hover "bg-gray-50"]
                                 , HE.onClick \_ -> HandleCancelClick
                                 ]
                                 [ HH.text "Cancel" ]
@@ -156,7 +156,7 @@ render state =
                             ]
                             [ HH.text "Edit" ]
                       , HH.button
-                          [ HP.class_ (HH.ClassName "btn-secondary text-sm hover:bg-gray-50")
+                          [ css [raw "btn-secondary", cls Text_Sm, hover "bg-gray-50"]
                           , HE.onClick \_ -> HandleBackClick
                           ]
                           [ HH.text "Back to List" ]
@@ -169,7 +169,7 @@ render state =
                 else case state.error of
                   Just err ->
                     HH.div
-                      [ HP.class_ (HH.ClassName "text-red-600") ]
+                      [ css [cls TextRed600] ]
                       [ HH.text err ]
                   Nothing -> case state.tournament of
                     Just tournament -> renderTournamentDetails state.editing state.editForm theme tournament state.pollingDays
@@ -185,7 +185,7 @@ renderTournamentDetails :: forall w. Boolean -> EditForm -> Theme -> TournamentS
 renderTournamentDetails editing editForm theme tournament pollingDays =
   let tournamentTheme = getTheme tournament.theme
   in HH.div
-    [ HP.class_ (HH.ClassName $ "grid grid-cols-[auto_1fr] gap-x-4") ]
+    [ css [cls Grid, raw "grid-cols-[auto_1fr]", cls Gap_X_4] ]
     (join
       [ -- Tournament metadata fields
         renderFieldOrInput editing theme "Name" tournament.name editForm.name Name
@@ -234,12 +234,12 @@ renderPollingSection theme tournament pollingDays =
           Just dateStr ->
             -- Polling is active - show green text and Stop button
             HH.div
-              [ HP.class_ (HH.ClassName "flex items-center gap-4") ]
+              [ css [cls Flex, cls ItemsCenter, cls Gap_4] ]
               [ HH.div
-                  [ HP.class_ (HH.ClassName "text-green-600") ]
+                  [ css [cls TextGreen600] ]
                   [ HH.text $ "Active until " <> formatDateString dateStr ]
               , HH.button
-                  [ HP.class_ (HH.ClassName "px-3 py-1 text-sm bg-red-50 text-red-600 rounded hover:bg-red-100")
+                  [ css [cls Px_3, cls Py_1, cls Text_Sm, cls BgRed_50, cls TextRed600, cls Rounded, hover "bg-red-100"]
                   , HE.onClick \_ -> HandleStopPolling
                   ]
                   [ HH.text "Stop" ]
@@ -247,20 +247,20 @@ renderPollingSection theme tournament pollingDays =
           Nothing ->
             -- Polling is disabled - show input and Start button
             HH.div
-              [ HP.class_ (HH.ClassName "flex items-center gap-4") ]
+              [ css [cls Flex, cls ItemsCenter, cls Gap_4] ]
               [ HH.input
                   [ HP.type_ HP.InputNumber
                   , HP.min 1.0
                   , HP.max 30.0
                   , HP.value $ show pollingDays
-                  , HP.class_ (HH.ClassName "w-16 px-2 py-1 border rounded")
+                  , css [cls W_16, cls Px_2, cls Py_1, cls Border, cls Rounded]
                   , HE.onValueInput (HandlePollingDaysChange)
                   ]
               , HH.span
-                  [ HP.class_ (HH.ClassName "text-gray-600") ]
+                  [ css [cls TextGray600] ]
                   [ HH.text "days" ]
               , HH.button
-                  [ HP.class_ (HH.ClassName "px-3 py-1 text-sm bg-green-50 text-green-600 rounded hover:bg-green-100")
+                  [ css [cls Px_3, cls Py_1, cls Text_Sm, cls BgGreen_50, cls TextGreen600, cls Rounded, hover "bg-green-100"]
                   , HE.onClick \_ -> HandleStartPolling
                   ]
                   [ HH.text "Start" ]
@@ -280,7 +280,7 @@ renderControlSection theme label description buttons =
           [ css [thm theme TextPrimary] ]
           [ HH.text description ]
       , HH.div
-          [ HP.class_ (HH.ClassName "flex gap-2") ]
+          [ css [cls Flex, cls Gap_2] ]
           buttons
       ]
   ]
@@ -314,7 +314,7 @@ renderThemeSection editing currentTheme themeName selectedThemeId =
           ThemeSelector.renderThemeSelector selectedThemeId currentTheme (HandleFieldChange ThemeField)
         else
           HH.div
-            [ HP.class_ (HH.ClassName $ currentTheme.colors.textPrimary) ]
+            [ css [raw currentTheme.colors.textPrimary] ]
             [ HH.text themeName ]
       ]
   ]

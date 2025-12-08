@@ -9,6 +9,7 @@ import BroadcastChannel.Class (postSubscribe, subscribeTournamentData, subscribe
 import BroadcastChannel.Messages (TournamentDataResponse, AdminPanelUpdate)
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import BroadcastChannel.MonadEmitters (class MonadEmitters)
+import CSS.Class as C
 import Config.Themes (getTheme)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
@@ -16,10 +17,10 @@ import Domain.Types (DivisionScopedData)
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Halogen.HTML as HH
-import Halogen.HTML.Properties as HP
 import Stats.OverlayLogic (TournamentSubscription)
 import Stats.OverlayLogic as OverlayLogic
 import Types.Theme (Theme)
+import Utils.CSS (css, cls)
 
 -- | Component input with polymorphic extra data
 type Input extra =
@@ -126,14 +127,14 @@ handleAction = case _ of
 renderLoading :: forall w i. HH.HTML w i
 renderLoading =
   HH.div
-    [ HP.class_ (HH.ClassName "flex items-center justify-center h-screen") ]
+    [ css [cls C.Flex, cls C.ItemsCenter, cls C.JustifyCenter, cls C.HScreen] ]
     [ HH.text "Loading..." ]
 
 -- | Render error state
 renderError :: forall w i. String -> HH.HTML w i
 renderError err =
   HH.div
-    [ HP.class_ (HH.ClassName "flex items-center justify-center h-screen text-red-600") ]
+    [ css [cls C.Flex, cls C.ItemsCenter, cls C.JustifyCenter, cls C.HScreen, cls C.TextRed600] ]
     [ HH.text $ "Error: " <> err ]
 
 -- | Helper function to handle loading/error/success rendering pattern

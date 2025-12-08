@@ -3,12 +3,13 @@ module Component.LoginPage where
 
 import Prelude
 
+import CSS.Class as C
 import CSS.Class (CSSClass(..))
 import CSS.ThemeColor (ThemeColor(..))
 
 import API.Auth as AuthAPI
 import Config.Themes (getTheme)
-import Data.Either (Either(..))
+import Data.Either (Either(..), either)
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
@@ -67,10 +68,10 @@ render state =
     HH.div
       [ css [thm theme PageBackground, cls CenterContainer, cls P_6] ]
       [ HH.div
-          [ HP.class_ (HH.ClassName "max-w-md w-full") ]
+          [ css [cls MaxW_Md, cls C.W_Full] ]
           [ -- Title
             HH.div
-              [ HP.class_ (HH.ClassName "text-center mb-8") ]
+              [ css [cls C.TextCenter, cls C.Mb_8] ]
               [ HH.h1
                   [ css [cls Text_5xl, cls FontBlack, cls Mb_2, raw theme.titleExtraClasses, thm theme TitleGradient]
                   ]
@@ -88,12 +89,12 @@ render state =
                 case state.error of
                   Just err ->
                     HH.div
-                      [ HP.class_ (HH.ClassName "mb-6 p-4 bg-red-900/50 border border-red-400/50 rounded-lg text-red-200 text-sm") ]
+                      [ css [cls Mb_6, cls P_4, raw "bg-red-900/50", cls Border, raw "border-red-400/50", cls RoundedLg, cls TextRed200, cls Text_Sm] ]
                       [ HH.text err ]
                   Nothing -> HH.text ""
               , -- Username field
                 HH.div
-                  [ HP.class_ (HH.ClassName $ show Mb_6) ]
+                  [ css [cls Mb_6] ]
                   [ HH.label
                       [ css [cls FormLabel, thm theme TextPrimary]
                       , HP.for "username"
@@ -112,7 +113,7 @@ render state =
                   ]
               , -- Password field
                 HH.div
-                  [ HP.class_ (HH.ClassName $ show Mb_6) ]
+                  [ css [cls Mb_6] ]
                   [ HH.label
                       [ css [cls FormLabel, thm theme TextPrimary]
                       , HP.for "password"
@@ -132,10 +133,10 @@ render state =
               , -- Submit button
                 HH.button
                   [ HP.type_ HP.ButtonSubmit
-                  , HP.class_ (HH.ClassName $ "w-full py-3 px-4 rounded-lg font-bold text-lg transition-all " <>
+                  , css [cls W_Full, cls Py_3, cls Px_4, cls RoundedLg, cls FontBold, cls Text_Lg, cls TransitionAll, raw 
                       if state.loading
                         then "bg-gray-600 text-gray-400 cursor-not-allowed"
-                        else "bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 cursor-pointer")
+                        else "bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 cursor-pointer"]
                   , HP.disabled state.loading
                   ]
                   [ HH.text if state.loading then "Signing in..." else "Sign In" ]
@@ -164,9 +165,7 @@ handleAction = case _ of
       , password: state.password
       }
 
-    case result of
-      Right loginData -> handleAction $ LoginSuccess loginData
-      Left error -> handleAction $ LoginFailure error
+    handleAction $ either LoginFailure LoginSuccess result
 
   LoginSuccess { token, userId, username } ->
     H.raise { token, userId, username }

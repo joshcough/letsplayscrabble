@@ -3,7 +3,7 @@ module Component.Router where
 
 import Prelude
 
-import CSS.Class (CSSClass(..))
+import CSS.Class as C
 import Component.HomePage as HomePage
 import Component.LoginPage as LoginPage
 import Component.Navigation as Navigation
@@ -33,9 +33,9 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Halogen as H
 import Halogen.HTML as HH
-import Halogen.HTML.Properties as HP
 import Route (Route(..), routeCodec)
 import Routing.Duplex (parse, print)
+import Utils.CSS (css, cls)
 import Routing.Hash (getHash, setHash)
 import Type.Proxy (Proxy(..))
 
@@ -46,6 +46,7 @@ type State =
   , username :: Maybe String
   , userId :: Maybe Int
   , broadcastManager :: Maybe BroadcastManager.BroadcastManager
+  , emitterManager :: Maybe BroadcastManager.EmitterManager
   }
 
 -- | Router queries
@@ -154,7 +155,7 @@ withNavigation state content =
 -- | Router component
 component :: forall input output m. MonadAff m => MonadBroadcast m => MonadEmitters m => H.Component Query input output m
 component = H.mkComponent
-  { initialState: \_ -> { route: Nothing, isAuthenticated: false, username: Nothing, userId: Nothing, broadcastManager: Nothing }
+  { initialState: \_ -> { route: Nothing, isAuthenticated: false, username: Nothing, userId: Nothing, broadcastManager: Nothing, emitterManager: Nothing }
   , render
   , eval: H.mkEval $ H.defaultEval
       { handleAction = handleAction
@@ -169,7 +170,7 @@ render state =
   in case state.route of
     Nothing ->
       HH.div
-        [ HP.class_ (HH.ClassName $ show CenterContainer) ]
+        [ css [cls C.CenterContainer] ]
         [ HH.text "Loading..." ]
 
     Just Home ->
@@ -345,9 +346,9 @@ handleAction = case _ of
   Initialize -> do
     liftEffect $ log "[Router] Initializing..."
 
-    -- Create broadcast manager for overlay components
-    manager <- liftEffect BroadcastManager.create
-    liftEffect $ log "[Router] Created broadcast manager"
+    -- Create broadcast and emitter managers for overlay components
+    { broadcastManager, emitterManager } <- liftEffect BroadcastManager.create
+    liftEffect $ log "[Router] Created broadcast and emitter managers"
 
     -- Check if user is authenticated
     isAuth <- liftEffect Auth.isAuthenticated
@@ -358,7 +359,7 @@ handleAction = case _ of
     userId <- liftEffect Auth.getUserId
     liftEffect $ log $ "[Router] Username: " <> show username <> ", UserId: " <> show userId
 
-    H.modify_ _ { isAuthenticated = isAuth, username = username, userId = userId, broadcastManager = Just manager }
+    H.modify_ _ { isAuthenticated = isAuth, username = username, userId = userId, broadcastManager = Just broadcastManager, emitterManager = Just emitterManager }
 
     -- Get initial route from hash
     initialHash <- liftEffect getHash

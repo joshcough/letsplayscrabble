@@ -3,6 +3,7 @@ module Component.MiscOverlayTestingPage where
 
 import Prelude
 
+import CSS.Class as C
 import CSS.Class (CSSClass(..))
 import CSS.ThemeColor (ThemeColor(..))
 
@@ -17,7 +18,7 @@ import Halogen.HTML.Properties as HP
 import Route (Route(..), routeCodec)
 import Routing.Duplex (print)
 import Types.Theme (Theme)
-import Utils.CSS (cls, css, thm)
+import Utils.CSS (cls, css, hover, thm, raw)
 
 type State =
   { theme :: Theme
@@ -120,7 +121,7 @@ render state =
     HH.div
       [ css [thm theme PageBackground, cls MinHScreen] ]
       [ HH.div
-          [ HP.class_ (HH.ClassName $ show PageContainer) ]
+          [ css [cls PageContainer] ]
           [ -- Title
             HH.h1
               [ css [cls PageTitle, cls Mb_8, cls TextCenter, thm theme TextPrimary] ]
@@ -137,12 +138,12 @@ render state =
 renderGroup :: forall w. Theme -> Int -> OverlayGroup -> HH.HTML w Action
 renderGroup theme userId group =
   HH.div
-    [ HP.class_ (HH.ClassName $ show Mb_8) ]
+    [ css [cls Mb_8] ]
     [ HH.h2
-        [ css [cls PageTitle, cls Mb_4, cls BorderB, cls Pb_2, thm theme TextAccent] ]
+        [ css [cls PageTitle, cls C.Mb_4, cls C.BorderB, cls Pb_2, thm theme TextAccent] ]
         [ HH.text group.title ]
     , HH.div
-        [ HP.class_ (HH.ClassName $ show SpaceY_6) ]
+        [ css [cls SpaceY_6] ]
         (map (renderSource theme userId) group.sources)
     ]
 
@@ -154,25 +155,25 @@ renderSource theme userId source =
     iframeSrc = "#/overlay/misc?userId=" <> show userId <> "&source=" <> source.source
   in
     HH.div
-      [ css [cls P_4, cls RoundedLg, cls Shadow, cls Border, thm theme CardBackground, thm theme PrimaryBorder] ]
+      [ css [cls P_4, cls C.RoundedLg, cls Shadow, cls C.Border, thm theme CardBackground, thm theme PrimaryBorder] ]
       [ HH.h4
-          [ css [cls FontSemibold, cls Mb_2, thm theme TextPrimary] ]
+          [ css [cls C.FontSemibold, cls C.Mb_2, thm theme TextPrimary] ]
           [ HH.text source.description ]
       , HH.a
           [ HP.href url
           , HP.target "_blank"
-          , HP.class_ (HH.ClassName "text-blue-600 hover:text-blue-800 underline text-sm break-all block mb-3")
+          , css [cls C.TextBlue600, hover "text-blue-800", cls C.Underline, cls C.Text_Sm, cls C.BreakAll, cls C.Block, cls Mb_3]
           ]
           [ HH.text url ]
 
       -- Rendered content in iframe
       , HH.div
-          [ HP.class_ (HH.ClassName "mt-3") ]
+          [ css [cls Mt_3] ]
           [ HH.div
-              [ HP.class_ (HH.ClassName $ "p-2 bg-gray-50 border rounded flex items-center " <> getMinHeight source.height) ]
+              [ css [cls C.P_2, cls C.BgGray_50, cls C.Border, cls C.Rounded, cls C.Flex, cls C.ItemsCenter, raw (getMinHeight source.height)] ]
               [ HH.iframe
                   [ HP.src iframeSrc
-                  , HP.class_ (HH.ClassName $ "w-full border-0 " <> source.height)
+                  , css [cls C.W_Full, cls C.Border_0, raw source.height]
                   , HP.title $ "Stats overlay: " <> source.source
                   ]
               ]
@@ -191,12 +192,12 @@ renderNotes theme userId =
   let totalSources = sum (map (\g -> length g.sources) overlayGroups)
   in
     HH.div
-      [ css [cls Mt_12, cls P_4, cls RoundedLg, thm theme CardBackground] ]
+      [ css [cls Mt_12, cls P_4, cls C.RoundedLg, thm theme CardBackground] ]
       [ HH.h3
-          [ css [cls FontSemibold, cls Mb_2, thm theme TextPrimary] ]
+          [ css [cls C.FontSemibold, cls C.Mb_2, thm theme TextPrimary] ]
           [ HH.text "Testing Notes:" ]
       , HH.ul
-          [ css [cls Text_Sm, cls SpaceY_1, thm theme TextSecondary] ]
+          [ css [cls C.Text_Sm, cls SpaceY_1, thm theme TextSecondary] ]
           [ HH.li_ [ HH.text "• All links open in new tabs for easy testing" ]
           , HH.li_ [ HH.text "• Rendered content shows below each URL" ]
           , HH.li_ [ HH.text "• Make sure to set a current match in the admin interface first" ]

@@ -3,6 +3,7 @@ module Component.TournamentManagerPage where
 
 import Prelude
 
+import CSS.Class as C
 import CSS.Class (CSSClass(..))
 import CSS.ThemeColor (ThemeColor(..))
 
@@ -61,10 +62,10 @@ render state =
     HH.div
       [ css [cls MinHScreen, thm theme PageBackground] ]
       [ HH.div
-          [ HP.class_ (HH.ClassName $ show PageContainer) ]
+          [ css [cls PageContainer] ]
           [ -- Buttons
             HH.div
-              [ HP.class_ (HH.ClassName "mb-6 flex gap-4") ]
+              [ css [cls C.Mb_6, cls C.Flex, cls C.Gap_4] ]
               [ HH.button
                   [ css [cls Px_6, cls Py_2, thm theme CardBackground, thm theme TextPrimary, cls RoundedMd, thm theme HoverBackground, cls TransitionColors, thm theme ShadowColor, cls ShadowMd, cls Border_2, thm theme PrimaryBorder]
                   ]
@@ -89,7 +90,7 @@ render state =
                   else case state.error of
                     Just err ->
                       HH.div
-                        [ HP.class_ (HH.ClassName "text-red-600") ]
+                        [ css [cls C.TextRed600] ]
                         [ HH.text err ]
                     Nothing ->
                       if state.tournaments == []

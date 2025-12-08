@@ -15,8 +15,12 @@ import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
+import CSS.Class as C
+import CSS.ThemeColor as TC
 import Stats.HeadToHeadStats (H2HGameExt, H2HStats, PlayerRecord, getHeadToHeadGames, calculateH2HStats, sortGames, getPlaceOrSeedLabel, resolveAndFindPlayers)
+import Stats.HeadToHeadGameLogic (calculateGameResult, getTournamentLocation)
 import Types.Theme (Theme)
+import Utils.CSS (css, cls, thm, raw)
 import Utils.Date (toLocaleDateString)
 import Utils.Format (formatPlayerName, formatLocation, getOrdinalSuffix, abbreviateTournamentName)
 import Utils.PlayerImage (getPlayerImageUrl)
@@ -38,95 +42,136 @@ component = H.mkComponent
       }
   }
 
+-- | Data needed to render the head-to-head view
+type H2HViewData =
+  { theme :: Theme
+  , player1 :: Player
+  , player2 :: Player
+  , tournament :: TournamentSummary
+  , stats :: H2HStats
+  , recentGames :: Array H2HGameExt
+  }
+
+-- | Prepare all data needed for rendering head-to-head view
+prepareH2HViewData :: Theme -> Player -> Player -> TournamentSummary -> Division -> H2HViewData
+prepareH2HViewData theme p1 p2 tournament division =
+  let
+    h2hGames = getHeadToHeadGames p1 p2 division tournament
+    stats = calculateH2HStats p1 p2 h2hGames division
+    recentGames = take 5 (sortGames h2hGames)
+  in
+    { theme
+    , player1: p1
+    , player2: p2
+    , tournament
+    , stats
+    , recentGames
+    }
+
 render :: forall m. State -> H.ComponentHTML Action () m
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
-      s = state
-      { playerId1: playerId1Param, playerId2: playerId2Param } = s.extra
-      maybePlayers = resolveAndFindPlayers playerId1Param playerId2Param s.currentMatch tournamentData.division
+      { playerId1: playerId1Param, playerId2: playerId2Param } = state.extra
+      maybePlayers = resolveAndFindPlayers playerId1Param playerId2Param state.currentMatch tournamentData.division
     in
       case maybePlayers of
         Nothing -> BaseOverlay.renderError "Players not found in division"
-        Just { player1, player2 } -> renderHeadToHead s.theme player1 player2 tournamentData.tournament tournamentData.division
+        Just { player1, player2 } ->
+          let viewData = prepareH2HViewData state.theme player1 player2 tournamentData.tournament tournamentData.division
+          in renderHeadToHead viewData
 
-renderHeadToHead :: forall w i. Theme -> Player -> Player -> TournamentSummary -> Division -> HH.HTML w i
-renderHeadToHead theme p1 p2 tournament division =
-  let
-    -- Get head-to-head games
-    h2hGames = getHeadToHeadGames p1 p2 division tournament
+renderHeadToHead :: forall w i. H2HViewData -> HH.HTML w i
+renderHeadToHead { theme, player1, player2, tournament, stats, recentGames } =
+  HH.div
+    [ css [thm theme TC.PageBackground, cls C.MinHScreen, cls C.Flex, cls C.ItemsCenter, cls C.JustifyCenter, cls C.P_4] ]
+    [ HH.div
+        [ css [cls C.MaxW_7xl, cls C.W_Full] ]
+        [ -- Main Layout Grid
+          HH.div
+            [ css [cls C.Grid, raw "grid-cols-[2fr_1fr_2fr]", cls C.Gap_2, cls C.MaxW_6xl, cls C.Mx_Auto] ]
+            [ -- Player 1 Card
+              renderPlayerCard theme player1 tournament stats.player1Record stats.player1Position true
+            , -- Center Section
+              renderCenterSection theme stats
+            , -- Player 2 Card
+              renderPlayerCard theme player2 tournament stats.player2Record stats.player2Position false
+            ]
+        , -- Latest Games Table
+          renderGamesTable theme player1 player2 recentGames
+        ]
+    ]
 
-    -- Calculate stats
-    stats = calculateH2HStats p1 p2 h2hGames division
+-- | Data needed to render a player card
+type PlayerCardData =
+  { imageUrl :: String
+  , name :: String
+  , location :: Maybe String
+  , record :: PlayerRecord
+  , position :: Int
+  , placeSeedLabel :: String
+  }
 
-    -- Get recent games
-    recentGames = take 5 (sortGames h2hGames)
-  in
-    HH.div
-      [ HP.class_ (HH.ClassName $ theme.colors.pageBackground <> " min-h-screen flex items-center justify-center p-4") ]
-      [ HH.div
-          [ HP.class_ (HH.ClassName "max-w-7xl w-full") ]
-          [ -- Main Layout Grid
-            HH.div
-              [ HP.class_ (HH.ClassName "grid grid-cols-[2fr_1fr_2fr] gap-2 max-w-6xl mx-auto") ]
-              [ -- Player 1 Card
-                renderPlayerCard theme p1 tournament stats.player1Record stats.player1Position true
-              , -- Center Section
-                renderCenterSection theme stats
-              , -- Player 2 Card
-                renderPlayerCard theme p2 tournament stats.player2Record stats.player2Position false
-              ]
-          , -- Latest Games Table
-            renderGamesTable theme p1 p2 recentGames
-          ]
-      ]
-
--- Render player card
-renderPlayerCard :: forall w i. Theme -> Player -> TournamentSummary -> PlayerRecord -> Int -> Boolean -> HH.HTML w i
-renderPlayerCard theme player tournament record position isLeft =
+-- | Prepare data for rendering a player card
+preparePlayerCardData :: Player -> TournamentSummary -> PlayerRecord -> Int -> PlayerCardData
+preparePlayerCardData player tournament record position =
   let
     xtPhotoUrl = player.xtData >>= _.photourl
     imageUrl = getPlayerImageUrl tournament.dataUrl player.photo xtPhotoUrl
     location = formatLocation player.xtData
     placeSeedLabel = getPlaceOrSeedLabel record
   in
+    { imageUrl
+    , name: player.name
+    , location
+    , record
+    , position
+    , placeSeedLabel
+    }
+
+-- Render player card
+renderPlayerCard :: forall w i. Theme -> Player -> TournamentSummary -> PlayerRecord -> Int -> Boolean -> HH.HTML w i
+renderPlayerCard theme player tournament record position isLeft =
+  let
+    cardData = preparePlayerCardData player tournament record position
+  in
     HH.div
-      [ HP.class_ (HH.ClassName $ theme.colors.cardBackground <> " " <> theme.colors.primaryBorder <> " border-2 rounded-2xl p-4 shadow-2xl " <> theme.colors.shadowColor) ]
+      [ css [thm theme TC.CardBackground, thm theme TC.PrimaryBorder, cls C.Border_2, cls C.Rounded_2xl, cls C.P_4, cls C.Shadow_2xl, thm theme TC.ShadowColor] ]
       [ HH.div
-          [ HP.class_ (HH.ClassName "flex flex-col") ]
+          [ css [cls C.Flex, cls C.FlexCol] ]
           [ HH.div
-              [ HP.class_ (HH.ClassName $ "flex items-center gap-6 mb-4" <> if isLeft then "" else " flex-row-reverse") ]
+              [ css $ [cls C.Flex, cls C.ItemsCenter, cls C.Gap_6, cls C.Mb_4] <> (if isLeft then [] else [cls C.FlexRowReverse]) ]
               [ -- Photo
                 HH.img
-                  [ HP.src imageUrl
-                  , HP.alt player.name
-                  , HP.class_ (HH.ClassName "w-28 h-32 rounded-xl object-cover border-2 border-blue-400/50 shadow-lg")
+                  [ HP.src cardData.imageUrl
+                  , HP.alt cardData.name
+                  , css [cls C.W_28, cls C.H_32, cls C.RoundedXl, cls C.ObjectCover, cls C.Border_2, raw "border-blue-400/50", cls C.ShadowLg]
                   ]
               , -- Name and Location
                 HH.div
-                  [ HP.class_ (HH.ClassName $ if isLeft then "" else "text-right flex-1") ]
+                  [ css $ (if isLeft then [] else [cls C.TextRight, cls C.Flex_1]) ]
                   [ HH.h2
-                      [ HP.class_ (HH.ClassName $ theme.colors.textPrimary <> " text-3xl font-bold") ]
-                      [ HH.text (formatPlayerName player.name) ]
-                  , case location of
+                      [ css [thm theme TC.TextPrimary, cls C.Text_3xl, cls C.FontBold] ]
+                      [ HH.text (formatPlayerName cardData.name) ]
+                  , case cardData.location of
                       Just loc ->
                         HH.p
-                          [ HP.class_ (HH.ClassName $ theme.colors.textSecondary <> " text-sm") ]
+                          [ css [thm theme TC.TextSecondary, cls C.Text_Sm] ]
                           [ HH.text loc ]
                       Nothing -> HH.text ""
                   ]
               ]
           , -- Current Record
             HH.div
-              [ HP.class_ (HH.ClassName $ if isLeft then "" else "text-right") ]
+              [ css $ (if isLeft then [] else [cls C.TextRight]) ]
               [ HH.p
-                  [ HP.class_ (HH.ClassName $ theme.colors.textSecondary <> " text-base font-semibold uppercase tracking-wide mb-1") ]
+                  [ css [thm theme TC.TextSecondary, cls C.Text_Base, cls C.FontSemibold, cls C.Uppercase, cls C.TrackingWide, cls C.Mb_1] ]
                   [ HH.text "Current Record" ]
               , HH.p
-                  [ HP.class_ (HH.ClassName $ theme.colors.textPrimary <> " text-2xl font-bold") ]
-                  [ HH.text $ show record.wins <> "-" <> show record.losses <> " "
-                      <> (if record.spread >= 0 then "+" else "") <> show record.spread
-                      <> ", " <> show position <> getOrdinalSuffix position <> " " <> placeSeedLabel
+                  [ css [thm theme TC.TextPrimary, cls C.Text_2xl, cls C.FontBold] ]
+                  [ HH.text $ show cardData.record.wins <> "-" <> show cardData.record.losses <> " "
+                      <> (if cardData.record.spread >= 0 then "+" else "") <> show cardData.record.spread
+                      <> ", " <> show cardData.position <> getOrdinalSuffix cardData.position <> " " <> cardData.placeSeedLabel
                   ]
               ]
           ]
@@ -136,41 +181,41 @@ renderPlayerCard theme player tournament record position isLeft =
 renderCenterSection :: forall w i. Theme -> H2HStats -> HH.HTML w i
 renderCenterSection theme stats =
   HH.div
-    [ HP.class_ (HH.ClassName "flex flex-col items-center justify-center") ]
+    [ css [cls C.Flex, cls C.FlexCol, cls C.ItemsCenter, cls C.JustifyCenter] ]
     [ -- Title
       HH.div
-        [ HP.class_ (HH.ClassName "text-center mb-6") ]
+        [ css [cls C.TextCenter, cls C.Mb_6] ]
         [ HH.h1
-            [ HP.class_ (HH.ClassName $ theme.colors.textPrimary <> " text-3xl font-black opacity-90 tracking-wide text-center leading-tight") ]
+            [ css [thm theme TC.TextPrimary, cls C.Text_3xl, cls C.FontBlack, cls C.Opacity_90, cls C.TrackingWide, cls C.TextCenter, cls C.LeadingTight] ]
             [ HH.div_ [ HH.text "Career" ]
             , HH.div_ [ HH.text "Head-to-Head" ]
             ]
         ]
     , -- Score Display
       HH.div
-        [ HP.class_ (HH.ClassName "text-center") ]
+        [ css [cls C.TextCenter] ]
         [ HH.div
-            [ HP.class_ (HH.ClassName "flex items-center justify-center gap-3 mb-3") ]
+            [ css [cls C.Flex, cls C.ItemsCenter, cls C.JustifyCenter, cls C.Gap_3, cls C.Mb_3] ]
             [ HH.span
-                [ HP.class_ (HH.ClassName $ "text-5xl font-black drop-shadow-lg " <> theme.colors.textAccent) ]
+                [ css [cls C.Text_5xl, cls C.FontBlack, cls C.DropShadowLg, thm theme TC.TextAccent] ]
                 [ HH.text (show stats.player1Wins) ]
             , HH.div
-                [ HP.class_ (HH.ClassName "rounded-full w-16 h-16 flex items-center justify-center shadow-xl ring-2 bg-gradient-to-r from-blue-600 to-purple-600 ring-blue-400/50") ]
+                [ css [cls C.RoundedFull, cls C.W_16, cls C.H_16, cls C.Flex, cls C.ItemsCenter, cls C.JustifyCenter, cls C.ShadowXl, cls C.Ring_2, raw "bg-gradient-to-r from-blue-600 to-purple-600 ring-blue-400/50"] ]
                 [ HH.span
-                    [ HP.class_ (HH.ClassName "text-white font-black text-lg") ]
+                    [ css [cls C.TextWhite, cls C.FontBlack, cls C.Text_Lg] ]
                     [ HH.text "VS" ]
                 ]
             , HH.span
-                [ HP.class_ (HH.ClassName $ "text-5xl font-black drop-shadow-lg " <> theme.colors.textAccent) ]
+                [ css [cls C.Text_5xl, cls C.FontBlack, cls C.DropShadowLg, thm theme TC.TextAccent] ]
                 [ HH.text (show stats.player2Wins) ]
             ]
         , HH.div
-            [ HP.class_ (HH.ClassName "text-center") ]
+            [ css [cls C.TextCenter] ]
             [ HH.p
-                [ HP.class_ (HH.ClassName $ theme.colors.textSecondary <> " text-base font-semibold uppercase tracking-wide") ]
+                [ css [thm theme TC.TextSecondary, cls C.Text_Base, cls C.FontSemibold, cls C.Uppercase, cls C.TrackingWide] ]
                 [ HH.text "Average Score" ]
             , HH.p
-                [ HP.class_ (HH.ClassName $ theme.colors.textPrimary <> " text-2xl font-bold") ]
+                [ css [thm theme TC.TextPrimary, cls C.Text_2xl, cls C.FontBold] ]
                 [ HH.text $ show stats.player1AvgScore <> "-" <> show stats.player2AvgScore ]
             ]
         ]
@@ -180,26 +225,26 @@ renderCenterSection theme stats =
 renderGamesTable :: forall w i. Theme -> Player -> Player -> Array H2HGameExt -> HH.HTML w i
 renderGamesTable theme p1 p2 games =
   HH.div
-    [ HP.class_ (HH.ClassName "mt-8 max-w-6xl mx-auto") ]
+    [ css [cls C.Mt_8, cls C.MaxW_6xl, cls C.Mx_Auto] ]
     [ HH.div
-        [ HP.class_ (HH.ClassName "flex justify-center") ]
+        [ css [cls C.Flex, cls C.JustifyCenter] ]
         [ HH.div
-            [ HP.class_ (HH.ClassName "w-full")
+            [ css [cls C.W_Full]
             , HP.attr (HH.AttrName "style") "max-width: 56rem"
             ]
             [ HH.h3
-                [ HP.class_ (HH.ClassName $ theme.colors.textSecondary <> " text-base font-semibold uppercase tracking-wide mb-3 text-center") ]
+                [ css [thm theme TC.TextSecondary, cls C.Text_Base, cls C.FontSemibold, cls C.Uppercase, cls C.TrackingWide, cls C.Mb_3, cls C.TextCenter] ]
                 [ HH.text "Latest Games" ]
             , HH.div
-                [ HP.class_ (HH.ClassName $ theme.colors.cardBackground <> " rounded-xl p-4 border " <> theme.colors.primaryBorder <> " shadow-2xl " <> theme.colors.shadowColor) ]
+                [ css [thm theme TC.CardBackground, cls C.RoundedXl, cls C.P_4, cls C.Border, thm theme TC.PrimaryBorder, cls C.Shadow_2xl, thm theme TC.ShadowColor] ]
                 [ HH.table
-                    [ HP.class_ (HH.ClassName $ "w-full table-fixed " <> theme.colors.textPrimary) ]
+                    [ css [cls C.W_Full, cls C.TableFixed, thm theme TC.TextPrimary] ]
                     [ HH.colgroup_
-                        [ HH.col [ HP.class_ (HH.ClassName "w-[25%]") ]
-                        , HH.col [ HP.class_ (HH.ClassName "w-[10%]") ]
-                        , HH.col [ HP.class_ (HH.ClassName "w-[30%]") ]
-                        , HH.col [ HP.class_ (HH.ClassName "w-[10%]") ]
-                        , HH.col [ HP.class_ (HH.ClassName "w-[25%]") ]
+                        [ HH.col [ css [raw "w-[25%]"] ]
+                        , HH.col [ css [raw "w-[10%]"] ]
+                        , HH.col [ css [raw "w-[30%]"] ]
+                        , HH.col [ css [raw "w-[10%]"] ]
+                        , HH.col [ css [raw "w-[25%]"] ]
                         ]
                     , HH.tbody_
                         (map (renderGameRow theme p1 p2) games)
@@ -214,54 +259,31 @@ renderGameRow :: forall w i. Theme -> Player -> Player -> H2HGameExt -> HH.HTML 
 renderGameRow theme p1 _ game =
   let
     p1XtId = fromMaybe 0 (unwrap <$> p1.xtid)
-    p1Score = if game.game.player1.playerid == p1XtId
-              then game.game.player1.score
-              else game.game.player2.score
-    p2Score = if game.game.player1.playerid == p1XtId
-              then game.game.player2.score
-              else game.game.player1.score
-
-    isTie = p1Score == p2Score
-    p1Won = not isTie && p1Score > p2Score
-    p1Lost = not isTie && p1Score < p2Score
-
-    scores = show p1Score <> "-" <> show p2Score
-    winner = if isTie then "T" else if p1Won then "W" else "L"
-    loser = if isTie then "T" else if p1Won then "L" else "W"
-
-    winnerColor = if isTie then "text-black" else if p1Won then "text-red-600" else "text-blue-600"
-    loserColor = if isTie then "text-black" else if p1Lost then "text-red-600" else "text-blue-600"
-
-    locationRaw = case game.tournamentName of
-      Just tn -> tn
-      Nothing -> fromMaybe "Tournament" game.game.tourneyname
+    result = calculateGameResult p1XtId game
+    locationRaw = getTournamentLocation game
     location = abbreviateTournamentName locationRaw
   in
     HH.tr
-      [ HP.class_ (HH.ClassName $ "border-b " <> theme.colors.secondaryBorder <> " last:border-0 " <> theme.colors.hoverBackground <> " transition-colors") ]
+      [ css [cls C.BorderB, thm theme TC.SecondaryBorder, raw "last:border-0", thm theme TC.HoverBackground, cls C.TransitionColors] ]
       [ HH.td
-          [ HP.class_ (HH.ClassName $ "py-2 px-4 " <> theme.colors.textSecondary <> " text-lg font-bold text-left") ]
-          [ HH.text (formatGameDate game.game.date) ]
+          [ css [cls C.Py_2, cls C.Px_4, thm theme TC.TextSecondary, cls C.Text_Lg, cls C.FontBold, cls C.TextLeft] ]
+          [ HH.text (toLocaleDateString game.game.date) ]
       , HH.td
-          [ HP.class_ (HH.ClassName $ "py-2 px-2 text-center font-bold " <> winnerColor <> " text-lg") ]
-          [ HH.text winner ]
+          [ css [cls C.Py_2, cls C.Px_2, cls C.TextCenter, cls C.FontBold, raw result.p1Color, cls C.Text_Lg] ]
+          [ HH.text result.p1Result ]
       , HH.td
-          [ HP.class_ (HH.ClassName $ "py-2 px-2 text-center " <> theme.colors.textPrimary <> " font-mono font-bold text-xl") ]
-          [ HH.text scores ]
+          [ css [cls C.Py_2, cls C.Px_2, cls C.TextCenter, thm theme TC.TextPrimary, cls C.FontMono, cls C.FontBold, cls C.Text_Xl] ]
+          [ HH.text result.scores ]
       , HH.td
-          [ HP.class_ (HH.ClassName $ "py-2 px-2 text-center font-bold " <> loserColor <> " text-lg") ]
-          [ HH.text loser ]
+          [ css [cls C.Py_2, cls C.Px_2, cls C.TextCenter, cls C.FontBold, raw result.p2Color, cls C.Text_Lg] ]
+          [ HH.text result.p2Result ]
       , HH.td
-          [ HP.class_ (HH.ClassName $ "py-2 px-4 " <> theme.colors.textSecondary <> " text-lg font-bold text-right")
+          [ css [cls C.Py_2, cls C.Px_4, thm theme TC.TextSecondary, cls C.Text_Lg, cls C.FontBold, cls C.TextRight]
           , HP.title location
           ]
           [ HH.div
-              [ HP.class_ (HH.ClassName "overflow-hidden text-ellipsis whitespace-nowrap") ]
+              [ css [cls C.OverflowHidden, cls C.TextEllipsis, cls C.WhitespaceNowrap] ]
               [ HH.text (abbreviateTournamentName location) ]
           ]
       ]
-
--- | Format game date wrapper
-formatGameDate :: String -> String
-formatGameDate = toLocaleDateString
 

@@ -7,25 +7,97 @@ import Prelude
 import Component.Overlay.BaseOverlay as BaseOverlay
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import BroadcastChannel.MonadEmitters (class MonadEmitters)
-import Control.Alt ((<|>))
-import Data.Array (find, head, last)
+import Data.Array (find)
 import Data.Int (toNumber, round) as Int
-import Data.Maybe (Maybe(..), fromMaybe, maybe, isNothing)
+import Data.Maybe (Maybe(..), maybe, isNothing)
 import Data.Newtype (unwrap)
-import Data.Number (pow)
-import Data.String (split, joinWith, take, drop) as String
-import Data.String (Pattern(..))
-import Domain.Types (Player, CrossTablesPlayer, TournamentResult, TournamentSummary)
+import Domain.Types (Player, TournamentSummary, CrossTablesPlayer, TournamentResult)
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
+import CSS.Class as C
+import CSS.ThemeColor as TC
 import Types.Theme (Theme)
+import Utils.CSS (css, cls, thm, raw)
+import Utils.Format (formatPlayerName, formatLocation, getCurrentRating, getRanking, calculateWinPercentage, getRecentTournament, formatNumber, formatDate)
 import Utils.PlayerImage (getPlayerImageUrl)
+import Domain.Types (Game, PairingId(..))
 
 type State = BaseOverlay.State Int
 
 type Action = BaseOverlay.Action
+
+--------------------------------------------------------------------------------
+-- Data preparation functions
+--------------------------------------------------------------------------------
+
+-- | Resolve the actual player ID based on current match mode
+-- | If in current match mode and playerIdParam is 1 or 2, extract from current game
+-- | Otherwise use playerIdParam directly as the actual player ID
+resolvePlayerId :: forall r. Int -> Maybe { round :: Int, pairingId :: Int | r } -> Array Game -> Maybe Int
+resolvePlayerId playerIdParam maybeCurrentMatch games =
+  case maybeCurrentMatch of
+    Just currentMatch | playerIdParam == 1 || playerIdParam == 2 -> do
+      -- Find current game from the match
+      game <- find (\g -> maybe false (\(PairingId pid) -> pid == currentMatch.pairingId) g.pairingId && g.roundNumber == currentMatch.round) games
+      -- Get actual player ID based on playerIdParam (1 or 2)
+      pure $ unwrap $ if playerIdParam == 1 then game.player1Id else game.player2Id
+    _ ->
+      -- Specific player mode - use playerIdParam directly as actual player ID
+      Just playerIdParam
+
+-- | Profile data extracted from player and xtData
+type ProfileData =
+  { location :: Maybe String
+  , rating :: Maybe Int
+  , ranking :: Maybe Int
+  , winPercentage :: Maybe Number
+  , tournamentCount :: Maybe Int
+  , averageScore :: Maybe Int
+  , opponentAvgScore :: Maybe Int
+  , recentTournament :: Maybe TournamentResult
+  , wins :: Maybe Int
+  , losses :: Maybe Int
+  , ties :: Maybe Int
+  }
+
+-- | Prepare all profile data from player record
+prepareProfileData :: Player -> ProfileData
+prepareProfileData player =
+  { location: formatLocation player.xtData
+  , rating: getCurrentRating { initialRating: player.initialRating, ratingsHistory: player.ratingsHistory }
+  , ranking: getRanking player.xtData
+  , winPercentage: calculateWinPercentage player.xtData
+  , tournamentCount: maybe Nothing (_.tournamentCount) player.xtData
+  , averageScore: maybe Nothing (_.averageScore) player.xtData
+  , opponentAvgScore: maybe Nothing (_.opponentAverageScore) player.xtData
+  , recentTournament: getRecentTournament player.xtData
+  , wins: player.xtData >>= _.w
+  , losses: player.xtData >>= _.l
+  , ties: player.xtData >>= _.t
+  }
+
+-- | Player image data
+type PlayerImageData =
+  { imageUrl :: String
+  , altText :: String
+  }
+
+-- | Prepare player image data
+preparePlayerImageData :: Player -> TournamentSummary -> PlayerImageData
+preparePlayerImageData player tournament =
+  let
+    xtPhotoUrl = player.xtData >>= _.photourl
+    imageUrl = getPlayerImageUrl tournament.dataUrl player.photo xtPhotoUrl
+  in
+    { imageUrl
+    , altText: player.name
+    }
+
+--------------------------------------------------------------------------------
+-- Component
+--------------------------------------------------------------------------------
 
 component :: forall query output m. MonadAff m => MonadBroadcast m => MonadEmitters m => H.Component query (BaseOverlay.Input Int) output m
 component = H.mkComponent
@@ -42,70 +114,48 @@ render :: forall m. State -> H.ComponentHTML Action () m
 render state =
   BaseOverlay.renderWithData state \tournamentData ->
     let
-      s = state
-      playerIdParam = s.extra
-
-      -- Determine actual player ID based on mode:
-      -- If currentMatch exists and playerIdParam is 1 or 2, extract from current game
-      -- Otherwise use playerIdParam directly as the actual player ID
-      maybePlayer = case s.currentMatch of
-        Just currentMatch | playerIdParam == 1 || playerIdParam == 2 -> do
-          -- Find current game from the match
-          game <- find (\g -> maybe false (\pid -> unwrap pid == currentMatch.pairingId) g.pairingId && g.roundNumber == currentMatch.round) tournamentData.division.games
-          -- Get actual player ID based on playerIdParam (1 or 2)
-          let actualPlayerId = if playerIdParam == 1
-                then unwrap game.player1Id
-                else unwrap game.player2Id
-          -- Find player by actual ID
-          find (\p -> unwrap p.id == actualPlayerId) tournamentData.division.players
-        _ ->
-          -- Specific player mode - use playerIdParam directly as actual player ID
-          find (\p -> unwrap p.id == playerIdParam) tournamentData.division.players
+      playerIdParam = state.extra
+      maybeActualPlayerId = resolvePlayerId playerIdParam state.currentMatch tournamentData.division.games
+      maybePlayer = maybeActualPlayerId >>= \actualId ->
+        find (\p -> unwrap p.id == actualId) tournamentData.division.players
     in
       case maybePlayer of
         Nothing -> BaseOverlay.renderError $ "Player " <> show playerIdParam <> " not found in division"
-        Just player -> renderPlayerProfile s.theme player tournamentData.tournament
+        Just player -> renderPlayerProfile state.theme player tournamentData.tournament
 
 renderPlayerProfile :: forall w i. Theme -> Player -> TournamentSummary -> HH.HTML w i
 renderPlayerProfile theme player tournament =
   let
-    location = formatLocation player.xtData
-    rating = getCurrentRating player
-    ranking = getRanking player.xtData
-    winPercentage = calculateWinPercentage player.xtData
-    tournamentCount = maybe Nothing (_.tournamentCount) player.xtData
-    averageScore = maybe Nothing (_.averageScore) player.xtData
-    opponentAvgScore = maybe Nothing (_.opponentAverageScore) player.xtData
-    recentTournament = getRecentTournament player.xtData
+    profileData = prepareProfileData player
   in
     HH.div
-      [ HP.class_ (HH.ClassName $ theme.colors.pageBackground <> " min-h-screen flex items-center justify-center p-6") ]
+      [ css [thm theme TC.PageBackground, cls C.MinHScreen, cls C.Flex, cls C.ItemsCenter, cls C.JustifyCenter, cls C.P_6] ]
       [ HH.div
-          [ HP.class_ (HH.ClassName $ theme.colors.cardBackground <> " rounded-3xl p-8 border-2 " <> theme.colors.primaryBorder <> " shadow-2xl " <> theme.colors.shadowColor <> " min-w-[32rem]") ]
+          [ css [thm theme TC.CardBackground, cls C.Rounded_3xl, cls C.P_8, cls C.Border_2, thm theme TC.PrimaryBorder, cls C.Shadow_2xl, thm theme TC.ShadowColor, raw "min-w-[32rem]"] ]
           [ HH.div
-              [ HP.class_ (HH.ClassName "flex gap-8") ]
+              [ css [cls C.Flex, cls C.Gap_8] ]
               [ -- Photo Section
                 HH.div
-                  [ HP.class_ (HH.ClassName "flex-shrink-0") ]
+                  [ css [cls C.FlexShrink_0] ]
                   [ renderPlayerImage player tournament
-                  , case location of
+                  , case profileData.location of
                       Just loc ->
                         HH.div
-                          [ HP.class_ (HH.ClassName $ "text-xl font-bold " <> theme.colors.textAccent <> " mt-4 text-center") ]
+                          [ css [cls C.Text_Xl, cls C.FontBold, thm theme TC.TextAccent, cls C.Mt_4, cls C.TextCenter] ]
                           [ HH.text loc ]
                       Nothing -> HH.text ""
                   ]
               , -- Stats Section
                 HH.div
-                  [ HP.class_ (HH.ClassName "flex-grow") ]
+                  [ css [cls C.FlexGrow] ]
                   [ HH.h2
-                      [ HP.class_ (HH.ClassName $ "text-5xl font-black mb-3 " <> theme.colors.textPrimary) ]
+                      [ css [cls C.Text_5xl, cls C.FontBlack, cls C.Mb_3, thm theme TC.TextPrimary] ]
                       [ HH.text (formatPlayerName player.name) ]
                   , HH.div
-                      [ HP.class_ (HH.ClassName "grid grid-cols-2 gap-6") ]
-                      (renderStatsGrid theme rating ranking tournamentCount player.xtData averageScore opponentAvgScore winPercentage)
+                      [ css [cls C.Grid, cls C.GridCols_2, cls C.Gap_6] ]
+                      (renderStatsGrid theme profileData)
 
-                  , case recentTournament of
+                  , case profileData.recentTournament of
                       Just rt -> renderRecentTournament theme rt
                       Nothing -> HH.text ""
                   ]
@@ -116,48 +166,45 @@ renderPlayerProfile theme player tournament =
 renderPlayerImage :: forall w i. Player -> TournamentSummary -> HH.HTML w i
 renderPlayerImage player tournament =
   let
-    xtPhotoUrl = player.xtData >>= _.photourl
-    imageUrl = getPlayerImageUrl tournament.dataUrl player.photo xtPhotoUrl
+    imageData = preparePlayerImageData player tournament
   in
     HH.img
-      [ HP.src imageUrl
-      , HP.alt player.name
-      , HP.class_ (HH.ClassName "w-40 h-40 rounded-2xl object-cover border-2 border-blue-400/50 shadow-lg")
+      [ HP.src imageData.imageUrl
+      , HP.alt imageData.altText
+      , css [cls C.W_40, cls C.H_40, cls C.Rounded_2xl, cls C.ObjectCover, cls C.Border_2, raw "border-blue-400/50", cls C.ShadowLg]
       ]
 
-renderStatsGrid :: forall w i. Theme -> Maybe Int -> Maybe Int -> Maybe Int -> Maybe CrossTablesPlayer -> Maybe Int -> Maybe Int -> Maybe Number -> Array (HH.HTML w i)
-renderStatsGrid theme rating ranking tournamentCount xtData averageScore opponentAvgScore winPercentage =
+renderStatsGrid :: forall w i. Theme -> ProfileData -> Array (HH.HTML w i)
+renderStatsGrid theme profileData =
   let
-    ratingBox = case rating of
+    ratingBox = case profileData.rating of
       Just r -> [renderStatBox theme "Rating" (show r) false false]
       Nothing -> []
 
-    rankingBox = case ranking of
+    rankingBox = case profileData.ranking of
       Just r -> [renderStatBox theme "Ranking" (show r) false false]
       Nothing -> []
 
-    tournamentBox = case tournamentCount of
+    tournamentBox = case profileData.tournamentCount of
       Just tc -> [renderStatBox theme "Tournaments" (show tc) false false]
       Nothing -> []
 
-    recordBoxes = case xtData of
-      Just xt -> case xt.w, xt.l, xt.t of
-        Just w, Just l, Just t ->
-          [ renderStatBox theme "Career Record" (show w <> "-" <> show l <> "-" <> show t) true false
-          , case winPercentage of
-              Just wp -> renderStatBox theme "Career Win %" (formatNumber wp 1 <> "%") false false
-              Nothing -> HH.text ""
-          ]
-        _, _, _ -> []
-      Nothing -> []
+    recordBoxes = case profileData.wins, profileData.losses, profileData.ties of
+      Just w, Just l, Just t ->
+        [ renderStatBox theme "Career Record" (show w <> "-" <> show l <> "-" <> show t) true false
+        , case profileData.winPercentage of
+            Just wp -> renderStatBox theme "Career Win %" (formatNumber wp 1 <> "%") false false
+            Nothing -> HH.text ""
+        ]
+      _, _, _ -> []
 
-    avgScoreBox = case averageScore of
+    avgScoreBox = case profileData.averageScore of
       Just avg ->
-        let scoreText = case opponentAvgScore of
+        let scoreText = case profileData.opponentAvgScore of
               Just oppAvg -> show (Int.round (Int.toNumber avg)) <> "-" <> show (Int.round (Int.toNumber oppAvg))
               Nothing -> show (Int.round (Int.toNumber avg))
             -- col-span-2 if no ranking
-            shouldSpan = isNothing ranking
+            shouldSpan = isNothing profileData.ranking
         in [renderStatBox theme "Average Score" scoreText true shouldSpan]
       Nothing -> []
   in
@@ -166,12 +213,12 @@ renderStatsGrid theme rating ranking tournamentCount xtData averageScore opponen
 renderStatBox :: forall w i. Theme -> String -> String -> Boolean -> Boolean -> HH.HTML w i
 renderStatBox theme label value useMono colSpan2 =
   HH.div
-    [ HP.class_ (HH.ClassName $ theme.colors.cardBackground <> " rounded-xl p-3 border " <> theme.colors.secondaryBorder <> (if colSpan2 then " col-span-2" else "")) ]
+    [ css $ [thm theme TC.CardBackground, cls C.RoundedXl, cls C.P_3, cls C.Border, thm theme TC.SecondaryBorder] <> (if colSpan2 then [cls C.ColSpan_2] else []) ]
     [ HH.div
-        [ HP.class_ (HH.ClassName $ theme.colors.textAccent <> " text-base font-bold uppercase tracking-wider mb-1") ]
+        [ css [thm theme TC.TextAccent, cls C.Text_Base, cls C.FontBold, cls C.Uppercase, cls C.TrackingWider, cls C.Mb_1] ]
         [ HH.text label ]
     , HH.div
-        [ HP.class_ (HH.ClassName $ theme.colors.textPrimary <> " text-3xl font-black" <> (if useMono then " font-mono" else "")) ]
+        [ css $ [thm theme TC.TextPrimary, cls C.Text_3xl, cls C.FontBlack] <> (if useMono then [cls C.FontMono] else []) ]
         [ HH.text value ]
     ]
 
@@ -180,120 +227,33 @@ renderRecentTournament theme result =
   let isWin = result.place == 1
   in
     HH.div
-      [ HP.class_ (HH.ClassName $ "mt-5 p-4 " <> theme.colors.cardBackground <> " rounded-xl border " <> theme.colors.primaryBorder) ]
+      [ css [cls C.Mt_5, cls C.P_4, thm theme TC.CardBackground, cls C.RoundedXl, cls C.Border, thm theme TC.PrimaryBorder] ]
       [ HH.div
-          [ HP.class_ (HH.ClassName $ theme.colors.textAccent <> " text-xl font-bold mb-2") ]
+          [ css [thm theme TC.TextAccent, cls C.Text_Xl, cls C.FontBold, cls C.Mb_2] ]
           [ HH.text if isWin then "🏆 Recent Tournament Win" else "Recent Tournament" ]
       , HH.div
-          [ HP.class_ (HH.ClassName $ theme.colors.textPrimary <> " text-2xl font-bold mb-3") ]
+          [ css [thm theme TC.TextPrimary, cls C.Text_2xl, cls C.FontBold, cls C.Mb_3] ]
           [ HH.text result.name ]
       , HH.table_
           [ HH.tbody_
               [ HH.tr_
                   [ HH.td
-                      [ HP.class_ (HH.ClassName $ theme.colors.textAccent <> " text-xl font-semibold opacity-70 pr-3 align-top whitespace-nowrap") ]
+                      [ css [thm theme TC.TextAccent, cls C.Text_Xl, cls C.FontSemibold, cls C.Opacity_70, cls C.Pr_3, cls C.AlignTop, cls C.WhitespaceNowrap] ]
                       [ HH.text "Date:" ]
                   , HH.td
-                      [ HP.class_ (HH.ClassName $ theme.colors.textAccent <> " text-xl font-bold") ]
+                      [ css [thm theme TC.TextAccent, cls C.Text_Xl, cls C.FontBold] ]
                       [ HH.text (formatDate result.date) ]
                   ]
               , HH.tr_
                   [ HH.td
-                      [ HP.class_ (HH.ClassName $ theme.colors.textAccent <> " text-xl font-semibold opacity-70 pr-3 align-top whitespace-nowrap") ]
+                      [ css [thm theme TC.TextAccent, cls C.Text_Xl, cls C.FontSemibold, cls C.Opacity_70, cls C.Pr_3, cls C.AlignTop, cls C.WhitespaceNowrap] ]
                       [ HH.text "Record:" ]
                   , HH.td
-                      [ HP.class_ (HH.ClassName $ theme.colors.textPrimary <> " font-mono text-xl font-bold") ]
+                      [ css [thm theme TC.TextPrimary, cls C.FontMono, cls C.Text_Xl, cls C.FontBold] ]
                       [ HH.text (show result.wins <> "-" <> show result.losses) ]
                   ]
               ]
           ]
       ]
 
--- Helper Functions
-
-formatLocation :: Maybe CrossTablesPlayer -> Maybe String
-formatLocation xtData = do
-  data' <- xtData
-  city <- data'.city
-  pure $ case data'.state, data'.country of
-    Just state, _ -> city <> ", " <> state
-    Nothing, Just country | country /= "USA" -> city <> ", " <> country
-    _, _ -> city
-
-getCurrentRating :: Player -> Maybe Int
-getCurrentRating player =
-  case player.ratingsHistory of
-    [] -> Just player.initialRating
-    ratings -> last ratings <|> Just player.initialRating
-
-getRanking :: Maybe CrossTablesPlayer -> Maybe Int
-getRanking xtData = do
-  data' <- xtData
-  data'.twlranking <|> data'.cswranking
-
-calculateWinPercentage :: Maybe CrossTablesPlayer -> Maybe Number
-calculateWinPercentage xtData = do
-  data' <- xtData
-  wins <- data'.w
-  losses <- data'.l
-  ties <- data'.t
-  let totalGames = wins + losses + ties
-  if totalGames == 0
-    then pure 0.0
-    else do
-      let effectiveWins = Int.toNumber wins + (Int.toNumber ties * 0.5)
-          percentage = (effectiveWins / Int.toNumber totalGames) * 100.0
-      pure $ Int.toNumber (Int.round (percentage * 10.0)) / 10.0
-
-getRecentTournament :: Maybe CrossTablesPlayer -> Maybe TournamentResult
-getRecentTournament xtData = do
-  results <- xtData >>= _.results
-  -- Find recent win first, otherwise take first result
-  find (\r -> r.place == 1) results <|> head results
-
-formatPlayerName :: String -> String
-formatPlayerName name =
-  let parts = String.split (Pattern ", ") name
-  in case parts of
-      [last, first] -> first <> " " <> last
-      _ -> name
-
-getInitials :: String -> String
-getInitials name =
-  let formatted = formatPlayerName name
-      words = String.split (Pattern " ") formatted
-      initials = map (\w -> fromMaybe "" (head (String.split (Pattern "") w))) words
-  in String.joinWith "" initials
-
-formatNumber :: Number -> Int -> String
-formatNumber num decimals =
-  let factor = pow 10.0 (Int.toNumber decimals)
-      rounded = Int.toNumber (Int.round (num * factor)) / factor
-  in show rounded
-
-formatDate :: String -> String
-formatDate dateString =
-  case String.split (Pattern "-") dateString of
-    [year, month, day] ->
-      let
-        monthName = case month of
-          "01" -> "Jan"
-          "02" -> "Feb"
-          "03" -> "Mar"
-          "04" -> "Apr"
-          "05" -> "May"
-          "06" -> "Jun"
-          "07" -> "Jul"
-          "08" -> "Aug"
-          "09" -> "Sep"
-          "10" -> "Oct"
-          "11" -> "Nov"
-          "12" -> "Dec"
-          _ -> month
-        -- Remove leading zero from day
-        dayNum = case day of
-          d | String.take 1 d == "0" -> String.drop 1 d
-          d -> d
-      in monthName <> " " <> dayNum <> ", " <> year
-    _ -> dateString
 

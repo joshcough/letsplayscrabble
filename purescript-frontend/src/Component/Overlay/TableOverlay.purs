@@ -9,8 +9,6 @@ module Component.Overlay.TableOverlay
   , calculateRatingGainTableData
   , calculateScoringLeadersTableData
   , calculateStandingsTableData
-  , getRatingChangeColor
-  , getSpreadColor
   ) where
 
 import Prelude
@@ -20,7 +18,6 @@ import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import BroadcastChannel.MonadEmitters (class MonadEmitters)
 import Data.Maybe (Maybe(..))
 import Data.Number.Format (fixed, toStringWith)
-import Data.String (take) as String
 import Domain.Types (DivisionScopedData)
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
@@ -28,7 +25,8 @@ import Renderer.TableRenderer (TableData)
 import Renderer.TableRenderer as TableRenderer
 import Stats.TableHelpers (buildTableData)
 import Stats.TournamentStats (calculateHighScorePlayers, calculateRatingGainPlayers, calculateScoringLeadersPlayers, calculateStandingsPlayers)
-import Utils.FormatUtils (formatNumberWithSign)
+import Utils.Color (getRatingChangeColor, getSpreadColor)
+import Utils.Format (formatNumberWithSign)
 
 --------------------------------------------------------------------------------
 -- Component Factory
@@ -105,16 +103,8 @@ calculateRatingGainTableData =
       , formatNumberWithSign player.ratingDiff
       , show player.currentRating
       , show player.initialRating
-      ]
-    )
+      ])
     calculateRatingGainPlayers
-
-getRatingChangeColor :: String -> String
-getRatingChangeColor value =
-  case String.take 1 value of
-    "+" -> "text-red-600"
-    "-" -> "text-blue-600"
-    _ -> "text-gray-800"
 
 --------------------------------------------------------------------------------
 -- Scoring Leaders Component
@@ -162,13 +152,5 @@ calculateStandingsTableData =
       , player.name
       , show player.wins <> "-" <> show player.losses <> if player.ties > 0 then "-" <> show player.ties else ""
       , formatNumberWithSign player.spread
-      ]
-    )
+      ])
     calculateStandingsPlayers
-
-getSpreadColor :: String -> String
-getSpreadColor value =
-  case String.take 1 value of
-    "+" -> "text-red-600"
-    "-" -> "text-blue-600"
-    _ -> "text-gray-800"

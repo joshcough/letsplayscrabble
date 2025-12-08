@@ -3,6 +3,7 @@ module Component.OverlaysPage where
 
 import Prelude
 
+import CSS.Class as C
 import CSS.Class (CSSClass(..))
 import CSS.ThemeColor (ThemeColor(..))
 
@@ -19,7 +20,7 @@ import Route (Route(..), routeCodec)
 import Routing.Duplex (print)
 import Routing.Hash (setHash)
 import Types.Theme (Theme)
-import Utils.CSS (cls, css, raw, thm)
+import Utils.CSS (cls, css, hover, raw, thm)
 
 type State =
   { theme :: Theme
@@ -51,7 +52,7 @@ render state =
     HH.div
       [ css [thm theme PageBackground, cls MinHScreen] ]
       [ HH.div
-          [ HP.class_ (HH.ClassName $ show PageContainer) ]
+          [ css [cls PageContainer] ]
           [ -- Title
             HH.h1
               [ css [cls Text_4xl, cls FontBold, cls Mb_8, cls TextCenter, raw theme.titleExtraClasses, thm theme TitleGradient]
@@ -105,24 +106,24 @@ type SimpleOverlay =
 renderCategory :: forall w. Theme -> String -> Array Overlay -> HH.HTML w Action
 renderCategory theme categoryName overlays =
   HH.div
-    [ HP.class_ (HH.ClassName $ show Mb_8) ]
+    [ css [cls Mb_8] ]
     [ HH.h2
         [ css [cls PageTitle, cls Mb_4, thm theme TextAccent] ]
         [ HH.text categoryName ]
     , HH.div
-        [ HP.class_ (HH.ClassName "overlay-grid gap-4") ]
+        [ css [cls OverlayGrid, cls C.Gap_4] ]
         (map (renderOverlay theme) overlays)
     ]
 
 renderOverlay :: forall w. Theme -> Overlay -> HH.HTML w Action
 renderOverlay theme overlay =
   HH.div
-    [ css [cls P_4, cls RoundedXl, cls ShadowLg, cls Border, cls BackdropBlurXl, thm theme CardBackground, thm theme PrimaryBorder] ]
+    [ css [cls P_4, cls C.RoundedXl, cls ShadowLg, cls C.Border, cls BackdropBlurXl, thm theme CardBackground, thm theme PrimaryBorder] ]
     [ HH.h3
-        [ css [cls Text_Lg, cls FontSemibold, cls Mb_2, thm theme TextAccent] ]
+        [ css [cls C.Text_Lg, cls C.FontSemibold, cls C.Mb_2, thm theme TextAccent] ]
         [ HH.text overlay.title ]
     , HH.div
-        [ HP.class_ (HH.ClassName "flex gap-2") ]
+        [ css [cls C.Flex, cls C.Gap_2] ]
         (map (renderVariantButton theme) overlay.variants)
     ]
 
@@ -130,19 +131,19 @@ renderVariantButton :: forall w. Theme -> OverlayVariant -> HH.HTML w Action
 renderVariantButton theme variant =
   HH.button
     [ HE.onClick \_ -> NavigateToRoute variant.route
-    , css [cls Flex_1, cls TextCenter, cls Py_2, cls Px_3, cls RoundedLg, cls Text_Sm, cls FontMedium, cls TransitionAll, cls CursorPointer, thm theme CardBackground, thm theme PrimaryBorder, cls Border, thm theme HoverBackground]
+    , css [cls Flex_1, cls TextCenter, cls C.Py_2, cls C.Px_3, cls C.RoundedLg, cls C.Text_Sm, cls FontMedium, cls TransitionAll, cls CursorPointer, thm theme CardBackground, thm theme PrimaryBorder, cls C.Border, thm theme HoverBackground]
     ]
     [ HH.text variant.label ]
 
 renderPlayerStatsCategory :: forall w. Theme -> HH.HTML w Action
 renderPlayerStatsCategory theme =
   HH.div
-    [ HP.class_ (HH.ClassName $ show Mb_8) ]
+    [ css [cls Mb_8] ]
     [ HH.h2
         [ css [cls PageTitle, cls Mb_4, thm theme TextAccent] ]
         [ HH.text "Player Stats & Comparisons" ]
     , HH.div
-        [ HP.class_ (HH.ClassName "overlay-grid gap-4") ]
+        [ css [cls OverlayGrid, cls C.Gap_4] ]
         [ renderSimpleOverlay theme
             { title: "Cross-Tables Profile"
             , route: CrossTablesPlayerProfile { userId: 2, tournamentId: Nothing, divisionName: Nothing, playerId: 1 }
@@ -173,24 +174,24 @@ renderPlayerStatsCategory theme =
 renderSimpleOverlay :: forall w. Theme -> SimpleOverlay -> HH.HTML w Action
 renderSimpleOverlay theme overlay =
   HH.div
-    [ css [cls P_4, cls RoundedXl, cls ShadowLg, cls Border, cls BackdropBlurXl, thm theme CardBackground, thm theme PrimaryBorder] ]
+    [ css [cls P_4, cls C.RoundedXl, cls ShadowLg, cls C.Border, cls BackdropBlurXl, thm theme CardBackground, thm theme PrimaryBorder] ]
     [ HH.h3
-        [ css [cls Text_Lg, cls FontSemibold, cls Mb_2, thm theme TextAccent] ]
+        [ css [cls C.Text_Lg, cls C.FontSemibold, cls C.Mb_2, thm theme TextAccent] ]
         [ HH.text overlay.title
         , if overlay.requiresParams
             then HH.span
-                  [ css [cls Ml_2, cls Text_Xs, raw "bg-blue-500/30", cls Px_2, cls Py_1, cls RoundedFull, cls Border, raw "border-blue-400/30", thm theme TextPrimary] ]
+                  [ css [cls Ml_2, cls C.Text_Xs, raw "bg-blue-500/30", cls C.Px_2, cls C.Py_1, cls C.RoundedFull, cls C.Border, raw "border-blue-400/30", thm theme TextPrimary] ]
                   [ HH.text "Params" ]
             else HH.text ""
         ]
     , fromMaybe (HH.text "") (overlay.description <#> \desc ->
         HH.p
-          [ css [cls Text_Sm, cls Mb_3, thm theme TextPrimary] ]
+          [ css [cls C.Text_Sm, cls C.Mb_3, thm theme TextPrimary] ]
           [ HH.text desc ]
       )
     , HH.button
         [ HE.onClick \_ -> NavigateToRoute overlay.route
-        , css [cls Block, cls TextCenter, cls Py_2, cls Px_3, cls RoundedLg, cls Text_Sm, cls FontMedium, cls TransitionAll, cls CursorPointer, cls W_Full, thm theme CardBackground, thm theme PrimaryBorder, cls Border, thm theme HoverBackground]
+        , css [cls C.Block, cls TextCenter, cls C.Py_2, cls C.Px_3, cls C.RoundedLg, cls C.Text_Sm, cls FontMedium, cls TransitionAll, cls CursorPointer, cls W_Full, thm theme CardBackground, thm theme PrimaryBorder, cls C.Border, thm theme HoverBackground]
         ]
         [ HH.text "Open" ]
     ]
@@ -198,27 +199,27 @@ renderSimpleOverlay theme overlay =
 renderWorkerSection :: forall w. Theme -> HH.HTML w Action
 renderWorkerSection theme =
   HH.div
-    [ HP.class_ (HH.ClassName $ show Mb_8) ]
+    [ css [cls Mb_8] ]
     [ HH.h2
         [ css [cls PageTitle, cls Mb_4, thm theme TextAccent] ]
         [ HH.text "Other" ]
     , HH.div
-        [ HP.class_ (HH.ClassName "overlay-grid gap-4") ]
+        [ css [cls OverlayGrid, cls C.Gap_4] ]
         [ HH.div
-            [ HP.class_ (HH.ClassName "p-4 rounded-xl shadow-lg border backdrop-blur-xl bg-gradient-to-br from-orange-900/50 to-red-900/50 border-orange-400/50") ]
+            [ css [cls P_4, cls RoundedXl, cls ShadowLg, cls Border, cls BackdropBlurXl, raw "bg-gradient-to-br from-orange-900/50 to-red-900/50 border-orange-400/50"] ]
             [ HH.h3
-                [ HP.class_ (HH.ClassName "text-lg font-semibold mb-2 text-orange-300") ]
+                [ css [cls C.Text_Lg, cls C.FontSemibold, cls C.Mb_2, cls C.TextOrange300] ]
                 [ HH.text "Worker Page"
                 , HH.span
-                    [ HP.class_ (HH.ClassName "ml-2 text-xs bg-orange-500/30 text-orange-800 px-2 py-1 rounded-full border border-orange-400/30") ]
+                    [ css [cls Ml_2, cls Text_Xs, raw "bg-orange-500/30", cls TextOrange800, cls Px_2, cls Py_1, cls RoundedFull, cls Border, raw "border-orange-400/30"] ]
                     [ HH.text "Required" ]
                 ]
             , HH.p
-                [ HP.class_ (HH.ClassName "text-sm mb-3 text-orange-200") ]
+                [ css [cls C.Text_Sm, cls C.Mb_3, cls C.TextOrange200] ]
                 [ HH.text "Required for real-time updates" ]
             , HH.button
                 [ HE.onClick \_ -> NavigateToRoute Worker
-                , HP.class_ (HH.ClassName "block text-center py-2 px-3 rounded-lg text-sm font-medium transition-all bg-orange-700/30 border border-orange-400/50 text-orange-200 hover:bg-orange-700/50 cursor-pointer w-full")
+                , css [cls Block, cls TextCenter, cls Py_2, cls Px_3, cls RoundedLg, cls Text_Sm, cls FontMedium, cls TransitionAll, raw "bg-orange-700/30", cls Border, raw "border-orange-400/50", cls TextOrange200, hover "bg-orange-700/50", cls CursorPointer, cls W_Full]
                 ]
                 [ HH.text "Open" ]
             ]
@@ -229,12 +230,12 @@ renderInstructions :: forall w. Theme -> HH.HTML w Action
 renderInstructions theme =
   HH.div_
     [ HH.div
-        [ css [cls Mt_8, cls P_6, cls Border, cls Rounded_2xl, cls BackdropBlurXl, thm theme CardBackground, thm theme PrimaryBorder] ]
+        [ css [cls Mt_8, cls P_6, cls C.Border, cls C.Rounded_2xl, cls BackdropBlurXl, thm theme CardBackground, thm theme PrimaryBorder] ]
         [ HH.h3
-            [ css [cls FontSemibold, cls Mb_3, cls Text_Lg, thm theme TextAccent] ]
+            [ css [cls C.FontSemibold, cls C.Mb_3, cls C.Text_Lg, thm theme TextAccent] ]
             [ HH.text "⚠️ Important - Worker Browser Source Required:" ]
         , HH.ul
-            [ css [cls Text_Sm, cls SpaceY_2, thm theme TextPrimary] ]
+            [ css [cls C.Text_Sm, cls SpaceY_2, thm theme TextPrimary] ]
             [ HH.li_ [ HH.text "• Must add the Worker Page as a Browser Source in OBS for real-time updates to work" ]
             , HH.li_ [ HH.text "• The worker handles: WebSocket connections, tournament polling, and data broadcasting" ]
             , HH.li_ [ HH.text "• All overlay Browser Sources depend on the worker - without it, data won't update automatically" ]
@@ -243,12 +244,12 @@ renderInstructions theme =
             ]
         ]
     , HH.div
-        [ css [cls Mt_6, cls P_6, cls Border, cls Rounded_2xl, cls BackdropBlurXl, thm theme CardBackground, thm theme PrimaryBorder] ]
+        [ css [cls Mt_6, cls P_6, cls C.Border, cls C.Rounded_2xl, cls BackdropBlurXl, thm theme CardBackground, thm theme PrimaryBorder] ]
         [ HH.h3
-            [ css [cls FontSemibold, cls Mb_3, cls Text_Lg, thm theme TextAccent] ]
+            [ css [cls C.FontSemibold, cls C.Mb_3, cls C.Text_Lg, thm theme TextAccent] ]
             [ HH.text "Overlay Features:" ]
         , HH.ul
-            [ css [cls Text_Sm, cls SpaceY_2, thm theme TextPrimary] ]
+            [ css [cls C.Text_Sm, cls SpaceY_2, thm theme TextPrimary] ]
             [ HH.li_ [ HH.text "• Theme support with tournament-specific theming" ]
             , HH.li_ [ HH.text "• Real-time updates via WebSocket broadcasting" ]
             , HH.li_ [ HH.text "• Enhanced visual elements with improved color coding" ]
@@ -257,12 +258,12 @@ renderInstructions theme =
             ]
         ]
     , HH.div
-        [ css [cls Mt_6, cls P_6, cls Border, cls Rounded_2xl, cls BackdropBlurXl, thm theme CardBackground, thm theme PrimaryBorder] ]
+        [ css [cls Mt_6, cls P_6, cls C.Border, cls C.Rounded_2xl, cls BackdropBlurXl, thm theme CardBackground, thm theme PrimaryBorder] ]
         [ HH.h3
-            [ css [cls FontSemibold, cls Mb_3, cls Text_Lg, thm theme TextAccent] ]
+            [ css [cls C.FontSemibold, cls C.Mb_3, cls C.Text_Lg, thm theme TextAccent] ]
             [ HH.text "How it works:" ]
         , HH.ul
-            [ css [cls Text_Sm, cls SpaceY_2, thm theme TextPrimary] ]
+            [ css [cls C.Text_Sm, cls SpaceY_2, thm theme TextPrimary] ]
             [ HH.li_ [ HH.text "• Default: Uses currently selected match in admin interface" ]
             , HH.li_ [ HH.text "• With URL params: Most overlays support /tournamentId/divisionName for specific tournament data" ]
             , HH.li_ [ HH.text "• Example: /users/2/overlay/standings/123/A shows standings for tournament 123, division A" ]
@@ -272,12 +273,12 @@ renderInstructions theme =
             ]
         ]
     , HH.div
-        [ css [cls Mt_6, cls P_6, cls Border, cls Rounded_2xl, cls BackdropBlurXl, thm theme CardBackground, thm theme PrimaryBorder] ]
+        [ css [cls Mt_6, cls P_6, cls C.Border, cls C.Rounded_2xl, cls BackdropBlurXl, thm theme CardBackground, thm theme PrimaryBorder] ]
         [ HH.h3
-            [ css [cls FontSemibold, cls Mb_3, cls Text_Lg, thm theme TextAccent] ]
+            [ css [cls C.FontSemibold, cls C.Mb_3, cls C.Text_Lg, thm theme TextAccent] ]
             [ HH.text "For OBS Setup:" ]
         , HH.ul
-            [ css [cls Text_Sm, cls SpaceY_2, thm theme TextPrimary] ]
+            [ css [cls C.Text_Sm, cls SpaceY_2, thm theme TextPrimary] ]
             [ HH.li_ [ HH.text "• Step 1: Add Worker Page as a Browser Source (can be in any scene, even if not visible)" ]
             , HH.li_ [ HH.text "• Step 2: Add your overlay Browser Sources using the URLs below" ]
             , HH.li_ [ HH.text "• All Browser Sources are scoped to your user account (ID: 2)" ]

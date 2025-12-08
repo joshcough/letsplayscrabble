@@ -20,6 +20,7 @@ import Halogen as H
 import Stats.TableHelpers (renderPictureOverlayWithStats)
 import Stats.TournamentStats (calculateHighScorePlayers, calculateRatingGainPlayers, calculateScoringLeadersPlayers, calculateStandingsPlayers)
 import Types.Theme (Theme)
+import Utils.Color (getSignedNumberColor)
 import Utils.Format (formatNumberWithSign)
 
 --------------------------------------------------------------------------------
@@ -66,13 +67,12 @@ highScoresComponent :: forall query output m. MonadAff m => MonadBroadcast m => 
 highScoresComponent = component
   "High Scores"
   calculateHighScorePlayers
-  (\theme player ->
+  \theme player ->
     [ { value: show player.highScore
       , color: theme.colors.textPrimary
       , label: Nothing
       }
     ]
-  )
 
 --------------------------------------------------------------------------------
 -- Rating Gain Component
@@ -82,7 +82,7 @@ ratingGainComponent :: forall query output m. MonadAff m => MonadBroadcast m => 
 ratingGainComponent = component
   "Rating Gain"
   calculateRatingGainPlayers
-  (\theme player ->
+  \theme player ->
     [ { value: formatNumberWithSign player.ratingDiff
       , color: getSignedNumberColor theme player.ratingDiff
       , label: Nothing
@@ -92,7 +92,6 @@ ratingGainComponent = component
       , label: Just "New Rating"
       }
     ]
-  )
 
 --------------------------------------------------------------------------------
 -- Scoring Leaders Component
@@ -102,13 +101,12 @@ scoringLeadersComponent :: forall query output m. MonadAff m => MonadBroadcast m
 scoringLeadersComponent = component
   "Scoring Leaders"
   calculateScoringLeadersPlayers
-  (\theme player ->
+  \theme player ->
     [ { value: toStringWith (fixed 1) player.averageScore
       , color: theme.colors.textPrimary
       , label: Just "Avg Points For"
       }
     ]
-  )
 
 --------------------------------------------------------------------------------
 -- Standings Component
@@ -118,7 +116,7 @@ standingsComponent :: forall query output m. MonadAff m => MonadBroadcast m => M
 standingsComponent = component
   "Standings"
   calculateStandingsPlayers
-  (\theme player ->
+  \theme player ->
     [ { value: show player.wins <> "-" <> show player.losses <> if player.ties > 0 then "-" <> show player.ties else ""
       , color: theme.colors.textPrimary
       , label: Nothing
@@ -128,15 +126,3 @@ standingsComponent = component
       , label: Nothing
       }
     ]
-  )
-
---------------------------------------------------------------------------------
--- Helper Functions
---------------------------------------------------------------------------------
-
--- | Get color for signed numbers (positive = red, negative = blue)
-getSignedNumberColor :: Theme -> Int -> String
-getSignedNumberColor theme value
-  | value > 0 = "text-red-600"
-  | value < 0 = "text-blue-600"
-  | otherwise = theme.colors.textPrimary

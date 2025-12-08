@@ -9,7 +9,9 @@ import Data.Maybe (Maybe(..))
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
+import Utils.CSS (css, cls, raw)
 import Utils.Format (formatPlayerName)
+import CSS.Class (CSSClass(..))
 
 -- | Player card data
 type PlayerCard =
@@ -37,24 +39,23 @@ type PictureData =
 renderPictureOverlay :: forall w i. Theme -> PictureData -> HH.HTML w i
 renderPictureOverlay theme pictureData =
   HH.div
-    [ HP.class_ (HH.ClassName $ theme.colors.pageBackground <> " min-h-screen flex items-center justify-center p-6") ]
+    [ css [raw theme.colors.pageBackground, cls MinHScreen, cls Flex, cls ItemsCenter, cls JustifyCenter, cls P_6] ]
     [ HH.div
-        [ HP.class_ (HH.ClassName "max-w-7xl w-full") ]
+        [ css [cls MaxW_7xl, cls W_Full] ]
         [ -- Title section
           HH.div
-            [ HP.class_ (HH.ClassName "text-center mb-8") ]
+            [ css [cls TextCenter, cls Mb_8] ]
             [ HH.h1
-                [ HP.class_ (HH.ClassName $ "text-6xl font-black leading-tight mb-4 " <>
-                    theme.titleExtraClasses <> " " <> theme.colors.titleGradient)
+                [ css [cls Text_6xl, cls FontBlack, cls LeadingTight, cls Mb_4, raw theme.titleExtraClasses, raw theme.colors.titleGradient]
                 ]
                 [ HH.text pictureData.title ]
             , HH.div
-                [ HP.class_ (HH.ClassName $ "text-3xl font-bold " <> theme.colors.textSecondary) ]
+                [ css [cls Text_3xl, cls FontBold, raw theme.colors.textSecondary] ]
                 [ HH.text pictureData.subtitle ]
             ]
         , -- Players grid
           HH.div
-            [ HP.class_ (HH.ClassName "flex justify-center items-start gap-6 px-4") ]
+            [ css [cls Flex, cls JustifyCenter, cls ItemsStart, cls Gap_6, cls Px_4] ]
             (Array.mapWithIndex (renderPlayerCard theme) pictureData.players)
         ]
     ]
@@ -63,35 +64,35 @@ renderPictureOverlay theme pictureData =
 renderPlayerCard :: forall w i. Theme -> Int -> PlayerCard -> HH.HTML w i
 renderPlayerCard theme index player =
   HH.div
-    [ HP.class_ (HH.ClassName "flex flex-col items-center") ]
+    [ css [cls Flex, cls FlexCol, cls ItemsCenter] ]
     [ -- Rank badge
       HH.div
-        [ HP.class_ (HH.ClassName "relative mb-4") ]
+        [ css [cls Relative, cls Mb_4] ]
         [ HH.div
-            [ HP.class_ (HH.ClassName "absolute -top-2 -left-2 z-10 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-gray-300") ]
+            [ css [cls Absolute, cls NegTop_2, cls NegLeft_2, cls Z_10, cls W_10, cls H_10, cls BgWhite, cls RoundedFull, cls Flex, cls ItemsCenter, cls JustifyCenter, cls ShadowLg, cls Border_2, cls BorderGray_300] ]
             [ HH.span
-                [ HP.class_ (HH.ClassName $ theme.colors.textPrimary <> " font-black text-lg") ]
+                [ css [raw theme.colors.textPrimary, cls FontBlack, cls Text_Lg] ]
                 [ HH.text $ "#" <> show player.rank ]
             ]
         , -- Player image
           HH.div
-            [ HP.class_ (HH.ClassName $ "w-36 h-36 rounded-2xl overflow-hidden border-2 " <> theme.colors.primaryBorder <> " " <> theme.colors.cardBackground <> " shadow-xl") ]
+            [ css [cls W_36, cls H_36, cls Rounded_2xl, cls OverflowHidden, cls Border_2, raw theme.colors.primaryBorder, raw theme.colors.cardBackground, cls ShadowXl] ]
             [ HH.img
                 [ HP.src player.imageUrl
                 , HP.alt player.name
-                , HP.class_ (HH.ClassName "w-full h-full object-cover")
+                , css [cls W_Full, cls H_Full, cls ObjectCover]
                 ]
             ]
         ]
     , -- Player name
       HH.div
-        [ HP.class_ (HH.ClassName $ theme.colors.textPrimary <> " text-3xl font-black text-center mb-4 max-w-48 min-h-[4rem] flex items-center justify-center") ]
+        [ css [raw theme.colors.textPrimary, cls Text_3xl, cls FontBlack, cls TextCenter, cls Mb_4, cls MaxW_48, raw "min-h-[4rem]", cls Flex, cls ItemsCenter, cls JustifyCenter] ]
         [ HH.text $ formatPlayerName player.name ]
     , -- Player stats
       HH.div
-        [ HP.class_ (HH.ClassName $ theme.colors.cardBackground <> " rounded-xl px-6 py-4 border " <> theme.colors.secondaryBorder <> " min-h-[6rem] flex flex-col justify-center") ]
+        [ css [raw theme.colors.cardBackground, cls RoundedXl, cls Px_6, cls P_4, cls Border, raw theme.colors.secondaryBorder, raw "min-h-[6rem]", cls Flex, cls FlexCol, cls JustifyCenter] ]
         [ HH.div
-            [ HP.class_ (HH.ClassName "text-center") ]
+            [ css [cls TextCenter] ]
             (Array.mapWithIndex (renderStatRow theme) player.stats)
         ]
     ]
@@ -100,20 +101,20 @@ renderPlayerCard theme index player =
 renderStatRow :: forall w i. Theme -> Int -> StatRow -> HH.HTML w i
 renderStatRow theme index stat =
   HH.div
-    [ HP.class_ (HH.ClassName $ if index > 0 then "mt-2" else "") ]
+    [ css [if index > 0 then cls Mt_2 else cls Empty] ]
     [ case stat.label of
         Just label ->
           HH.div_
             [ HH.div
-                [ HP.class_ (HH.ClassName $ "text-" <> sizeClass index <> " font-" <> weightClass index <> " " <> stat.color <> " text-center") ]
+                [ css [raw $ "text-" <> sizeClass index <> " font-" <> weightClass index <> " " <> stat.color <> " text-center"] ]
                 [ HH.text stat.value ]
             , HH.div
-                [ HP.class_ (HH.ClassName $ theme.colors.textSecondary <> " text-lg font-bold text-center uppercase tracking-wider mt-1") ]
+                [ css [raw theme.colors.textSecondary, cls Text_Lg, cls FontBold, cls TextCenter, cls Uppercase, cls TrackingWider, cls Mt_1] ]
                 [ HH.text label ]
             ]
         Nothing ->
           HH.div
-            [ HP.class_ (HH.ClassName $ "text-" <> sizeClass index <> " font-" <> weightClass index <> " " <> stat.color <> " text-center") ]
+            [ css [raw $ "text-" <> sizeClass index <> " font-" <> weightClass index <> " " <> stat.color <> " text-center"] ]
             [ HH.text stat.value ]
     ]
   where

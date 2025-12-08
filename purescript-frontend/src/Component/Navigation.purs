@@ -78,7 +78,7 @@ getActiveClass :: Maybe Route -> Route -> CSSValue
 getActiveClass currentRoute route =
   case currentRoute of
     Just r | r == route -> cls NavLinkActive
-    _ -> raw ""
+    _ -> cls Empty
 
 -- | Check if admin section is active
 isAdminActive :: Maybe Route -> Boolean
@@ -96,12 +96,12 @@ render state =
       , HP.attr (HH.AttrName "style") "position: relative; z-index: 1000;"
       ]
       [ HH.div
-          [ HP.class_ (HH.ClassName "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8") ]
+          [ css [cls MaxW_7xl, cls Mx_Auto, cls Px_4, raw "sm:px-6 lg:px-8"] ]
           [ HH.div
-              [ HP.class_ (HH.ClassName "flex justify-between h-16") ]
+              [ css [cls Flex, cls JustifyBetween, cls H_16] ]
               [ -- Left side - All nav links
                 HH.div
-                  [ HP.class_ (HH.ClassName "flex space-x-2") ]
+                  [ css [cls Flex, cls Gap_2] ]
                   [ -- Home link
                     HH.button
                       [ css [cls NavLink, thm theme TextPrimary, thm theme HoverBackground, getActiveClass state.currentRoute Home]
@@ -122,7 +122,7 @@ render state =
                       [ HH.text "Overlays" ]
                   , -- Admin dropdown
                     HH.div
-                      [ HP.class_ (HH.ClassName "relative")
+                      [ css [cls Relative]
                       , HP.attr (HH.AttrName "style") "z-index: 1001;"
                       ]
                       [ HH.button
@@ -130,7 +130,7 @@ render state =
                               [ cls NavLink
                               , thm theme TextPrimary
                               , thm theme HoverBackground
-                              , if isAdminActive state.currentRoute then cls NavLinkActive else raw ""
+                              , if isAdminActive state.currentRoute then cls NavLinkActive else cls Empty
                               ]
                           , HE.onClick ToggleAdminDropdown
                           ]
@@ -156,13 +156,13 @@ render state =
                         if state.isAdminDropdownOpen
                           then
                             HH.div
-                              [ HP.class_ (HH.ClassName "nav-dropdown")
+                              [ css [raw "nav-dropdown"]
                               , HP.attr (HH.AttrName "style") "z-index: 9999;"
                               ]
                               [ HH.div
-                                  [ HP.class_ (HH.ClassName "py-1") ]
+                                  [ css [cls Py_1] ]
                                   [ HH.button
-                                      [ HP.class_ (HH.ClassName "nav-dropdown-item")
+                                      [ css [raw "nav-dropdown-item"]
                                       , HE.onClick \_ -> HandleCurrentMatchClick
                                       ]
                                       [ HH.text "Current Match" ]
@@ -173,9 +173,9 @@ render state =
                   ]
               , -- Right side - User dropdown
                 HH.div
-                  [ HP.class_ (HH.ClassName "flex items-center") ]
+                  [ css [cls Flex, cls ItemsCenter] ]
                   [ HH.div
-                      [ HP.class_ (HH.ClassName "relative") ]
+                      [ css [cls Relative] ]
                       [ HH.button
                           [ css [cls NavUserButton, thm theme TextPrimary, thm theme HoverBackground]
                           , HE.onClick ToggleDropdown
@@ -202,21 +202,21 @@ render state =
                         if state.isDropdownOpen
                           then
                             HH.div
-                              [ HP.class_ (HH.ClassName "nav-dropdown right-0 z-50") ]
+                              [ css [raw "nav-dropdown", cls Right_0, cls Z_50] ]
                               [ HH.div
-                                  [ HP.class_ (HH.ClassName "py-1") ]
+                                  [ css [cls Py_1] ]
                                   [ -- User ID
                                     HH.div
-                                      [ HP.class_ (HH.ClassName "px-4 py-2 text-xs text-gray-500 border-b") ]
+                                      [ css [cls Px_4, cls Py_2, cls Text_Xs, cls TextGray500, cls BorderB] ]
                                       [ HH.text $ "ID: " <> show state.userId ]
                                   , -- Settings link (TODO: implement)
                                     HH.button
-                                      [ HP.class_ (HH.ClassName "nav-dropdown-item")
+                                      [ css [raw "nav-dropdown-item"]
                                       ]
                                       [ HH.text "Settings" ]
                                   , -- Logout button
                                     HH.button
-                                      [ HP.class_ (HH.ClassName "nav-dropdown-item")
+                                      [ css [raw "nav-dropdown-item"]
                                       , HE.onClick \_ -> HandleLogout
                                       ]
                                       [ HH.text "Logout" ]

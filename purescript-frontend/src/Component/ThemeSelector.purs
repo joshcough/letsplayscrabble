@@ -8,8 +8,9 @@ import Data.Array as Array
 import Data.String (Pattern(..), Replacement(..), replaceAll)
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
+import Utils.CSS (css, cls, hover, raw)
+import CSS.Class (CSSClass(..))
 
 -- | Convert text color class to background color class for preview bars
 textToBg :: String -> String
@@ -24,13 +25,13 @@ renderThemeSelector :: forall w action. String -> Theme -> (String -> action) ->
 renderThemeSelector selectedThemeId currentTheme onSelect =
   HH.div_
     [ HH.label
-        [ HP.class_ (HH.ClassName $ "block " <> currentTheme.colors.textPrimary <> " font-medium mb-3") ]
+        [ css [cls Block, raw currentTheme.colors.textPrimary, cls FontMedium, cls Mb_3] ]
         [ HH.text "Tournament Theme" ]
     , HH.p
-        [ HP.class_ (HH.ClassName $ currentTheme.colors.textSecondary <> " text-sm mb-4") ]
+        [ css [raw currentTheme.colors.textSecondary, cls Text_Sm, cls Mb_4] ]
         [ HH.text "Choose the theme that will be used for this tournament's overlays" ]
     , HH.div
-        [ HP.class_ (HH.ClassName "grid grid-cols-1 md:grid-cols-2 gap-3") ]
+        [ css [cls Grid, cls GridCols_1, raw "md:grid-cols-2", cls Gap_3] ]
         (Array.mapWithIndex (\_ themeOption -> renderThemeCard selectedThemeId currentTheme onSelect themeOption) allThemes)
     ]
 
@@ -49,43 +50,43 @@ renderThemeCard selectedThemeId _currentTheme onSelect themeOption =
                   else "border-gray-300 border"
   in
     HH.div
-      [ HP.class_ (HH.ClassName $ "cursor-pointer p-3 rounded-lg " <> borderClass <> " hover:border-blue-400 transition-colors")
+      [ css [cls CursorPointer, cls P_3, cls RoundedLg, raw borderClass, hover "border-blue-400", cls TransitionColors]
       , HE.onClick \_ -> onSelect themeOption.id
       ]
       [ HH.div
-          [ HP.class_ (HH.ClassName "h-12 rounded border overflow-hidden relative") ]
+          [ css [cls H_12, cls Rounded, cls Border, cls OverflowHidden, cls Relative] ]
           [ HH.div
-              [ HP.class_ (HH.ClassName $ "h-full " <> themeOption.colors.pageBackground <> " relative") ]
+              [ css [cls H_Full, raw themeOption.colors.pageBackground, cls Relative] ]
               [ HH.div
-                  [ HP.class_ (HH.ClassName $ "absolute inset-1 " <> themeOption.colors.cardBackground <> " rounded border " <> themeOption.colors.primaryBorder) ]
+                  [ css [cls Absolute, cls Inset_1, raw themeOption.colors.cardBackground, cls Rounded, cls Border, raw themeOption.colors.primaryBorder] ]
                   [ HH.div
-                      [ HP.class_ (HH.ClassName $ "absolute top-0.5 left-0.5 right-0.5 h-1 " <> themeOption.colors.titleGradient <> " rounded-sm") ]
+                      [ css [cls Absolute, raw "top-0.5 left-0.5 right-0.5", cls H_1, raw themeOption.colors.titleGradient, cls RoundedSm] ]
                       []
                   , HH.div
-                      [ HP.class_ (HH.ClassName $ "absolute bottom-0.5 left-0.5 w-6 h-1 " <> textToBg themeOption.colors.positiveColor <> " rounded-sm") ]
+                      [ css [cls Absolute, raw "bottom-0.5 left-0.5", cls W_6, cls H_1, raw (textToBg themeOption.colors.positiveColor), cls RoundedSm] ]
                       []
                   , HH.div
-                      [ HP.class_ (HH.ClassName $ "absolute bottom-0.5 right-0.5 w-4 h-1 " <> textToBg themeOption.colors.negativeColor <> " rounded-sm") ]
+                      [ css [cls Absolute, raw "bottom-0.5 right-0.5", cls W_4, cls H_1, raw (textToBg themeOption.colors.negativeColor), cls RoundedSm] ]
                       []
                   ]
               ]
           -- Theme name centered over the preview
           , HH.div
-              [ HP.class_ (HH.ClassName "absolute inset-0 flex items-center justify-center") ]
+              [ css [cls Absolute, cls Inset_0, cls Flex, cls ItemsCenter, cls JustifyCenter] ]
               [ HH.div
-                  [ HP.class_ (HH.ClassName $ "font-medium text-sm " <> themeOption.colors.textPrimary) ]
+                  [ css [cls FontMedium, cls Text_Sm, raw themeOption.colors.textPrimary] ]
                   [ HH.text themeOption.name ]
               ]
           -- Radio button on the right
           , HH.div
-              [ HP.class_ (HH.ClassName "absolute right-2 top-1/2 -translate-y-1/2") ]
+              [ css [raw "absolute right-2 top-1/2 -translate-y-1/2"] ]
               [ if isSelected then
                   HH.div
-                    [ HP.class_ (HH.ClassName "w-3 h-3 bg-blue-600 rounded-full") ]
+                    [ css [cls W_3, cls H_3, cls TextBlue600, cls RoundedFull] ]
                     []
                 else
                   HH.div
-                    [ HP.class_ (HH.ClassName "w-3 h-3 border-2 border-gray-400 rounded-full") ]
+                    [ css [cls W_3, cls H_3, cls Border_2, cls BorderGray_400, cls RoundedFull] ]
                     []
               ]
           ]
