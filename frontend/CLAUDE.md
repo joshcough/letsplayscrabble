@@ -4,66 +4,55 @@
 
 - **This file**: Local development workflow
 - **[DEPLOYMENT.md](./DEPLOYMENT.md)**: Production deployment to Heroku
-- **[Makefile](./Makefile)**: Build commands (`make help`)
+- **[Root README](../README.md)**: Full project documentation
 
-## Quick Start
+## Quick Start (Recommended: Run from ROOT)
 
-### Initial Setup
+The easiest way to develop is from the **project root**:
+
 ```bash
-npm install
-```
-
-### Development Workflow
-
-1. **Build CSS** (do this once, or when you change themes):
-   ```bash
-   make build-css  # or npm run build:css
-   ```
-
-2. **Bundle PureScript** (do this after any .purs file changes):
-   ```bash
-   make bundle  # or npm run bundle
-   ```
-
-3. **Start the dev server**:
-   ```bash
-   make dev  # or npm run dev
-   ```
-
-4. **Open in browser**:
-   - Worker page: http://localhost:4000/worker.html
-   - Main app: http://localhost:4000/index.html
-
-### Full Rebuild
-```bash
-make build  # or npm run build (CSS + PureScript)
-```
-
-### Run Tests
-```bash
-make test  # or npm test
-```
-
-### Watch Mode (Advanced)
-
-If you want auto-rebuild on file changes, run these in separate terminals:
-
-**Terminal 1** - Watch PureScript:
-```bash
-npm run watch
-```
-
-**Terminal 2** - Watch CSS:
-```bash
-npm run watch:css
-```
-
-**Terminal 3** - Dev Server:
-```bash
+# From project root - runs BOTH frontend + backend with auto-watch
 npm run dev
+
+# Visit http://localhost:3001
+# Edit code → reload browser → see changes!
 ```
 
-Then manually re-run `npm run bundle` after the watch compiles your changes.
+## Frontend-Only Development
+
+If you only want to work on the frontend:
+
+```bash
+# From frontend/ directory
+make build     # Build once (CSS + PureScript + bundle)
+make dev       # Start dev server on http://localhost:4000
+
+# OR with auto-rebuild:
+make watch     # Auto-rebuilds on any .purs or .css change
+# (in another terminal) make dev
+```
+
+## Commands (from frontend/ directory)
+
+```bash
+make build   # Build everything (CSS + PureScript + bundle)
+make watch   # Watch files and auto-rebuild on changes
+make dev     # Start development server on port 4000
+make test    # Run unit tests
+make clean   # Remove build artifacts
+make help    # Show help
+```
+
+## Commands (from project root)
+
+```bash
+npm run dev              # Run both frontend + backend with auto-watch
+npm run dev:frontend     # Frontend only (auto-rebuild on changes)
+npm run dev:backend      # Backend only (auto-restart on changes)
+npm run build            # Build both
+npm run build:frontend   # Build frontend only
+npm run build:backend    # Build backend only
+```
 
 ## File Structure
 

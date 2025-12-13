@@ -5,6 +5,12 @@
     "node": "18.x"
   },
   "scripts": {
+    "dev:frontend": "cd frontend && npm run watch",
+    "dev:backend": "cd backend && npm run dev",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "build": "npm run build:frontend && npm run build:backend",
     "postinstall": "cd frontend && npm install && npm run build && cd ../backend && npm install",
     "start": "node backend/dist/backend/backend/src/server.js",
     "format": "prettier --write \"backend/**/*.{js,ts}\" \"frontend/**/*.js\" \"!old/**\"",
@@ -13,6 +19,7 @@
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "concurrently": "^8.2.2",
     "prettier": "^3.3.3"
   }
 }
