@@ -19,7 +19,7 @@ import Types.CurrentMatch (CurrentMatch)
 -- | Fetch current match for a user
 fetchCurrentMatch :: Int -> Aff (Either String (Maybe CurrentMatch))
 fetchCurrentMatch userId = do
-  let url = "http://localhost:3001/api/overlay/users/" <> show userId <> "/match/current"
+  let url = "/api/overlay/users/" <> show userId <> "/match/current"
 
   -- Use Affjax to fetch
   affjaxResult <- AW.get ResponseFormat.json url

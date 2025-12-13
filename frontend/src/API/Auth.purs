@@ -47,7 +47,7 @@ decodeLoginResponse json = do
 -- | Login with username and password
 login :: LoginRequest -> Aff (Either String { token :: String, userId :: Int, username :: String })
 login credentials = do
-  result <- AW.post ResponseFormat.json "http://localhost:3001/api/auth/login" (Just $ RequestBody.json $ encodeJson credentials)
+  result <- AW.post ResponseFormat.json "/api/auth/login" (Just $ RequestBody.json $ encodeJson credentials)
 
   case result of
     Left err -> pure $ Left $ "Network error: " <> printError err

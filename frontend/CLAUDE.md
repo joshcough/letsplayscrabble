@@ -14,7 +14,7 @@ The easiest way to develop is from the **project root**:
 # From project root - runs BOTH frontend + backend with auto-watch
 npm run dev
 
-# Visit http://localhost:3001
+# Visit http://localhost:3000
 # Edit code → reload browser → see changes!
 ```
 

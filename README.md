@@ -13,7 +13,7 @@ npm install
 # Run both frontend + backend with auto-watch
 npm run dev
 
-# Visit http://localhost:3001
+# Visit http://localhost:3000
 ```
 
 ## Development Commands

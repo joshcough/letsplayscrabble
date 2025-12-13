@@ -82,7 +82,7 @@ createTournament params = do
             ~> "theme" := params.theme
             ~> encodeJson {}
       result <- AW.request $ AW.defaultRequest
-        { url = "http://localhost:3001/api/private/tournaments"
+        { url = "/api/private/tournaments"
         , method = Left POST
         , headers = headers
         , content = Just $ RequestBody.json body
@@ -105,7 +105,7 @@ listTournaments = do
       -- Make request with Authorization header
       let headers = [ RequestHeader "Authorization" ("Bearer " <> token) ]
       result <- AW.request $ AW.defaultRequest
-        { url = "http://localhost:3001/api/private/tournaments/list"
+        { url = "/api/private/tournaments/list"
         , method = Left GET
         , headers = headers
         , responseFormat = ResponseFormat.json
@@ -130,7 +130,7 @@ decodeTournamentRowResponse json = do
 -- | Get tournament metadata (row) by ID
 getTournamentRow :: Int -> Int -> Aff (Either String TournamentSummary)
 getTournamentRow userId tournamentId = do
-  let url = "http://localhost:3001/api/public/users/" <> show userId <> "/tournaments/" <> show tournamentId <> "/row"
+  let url = "/api/public/users/" <> show userId <> "/tournaments/" <> show tournamentId <> "/row"
   result <- AW.request $ AW.defaultRequest
     { url = url
     , method = Left GET
@@ -151,7 +151,7 @@ updateTournament tournamentId metadata = do
       let headers = [ RequestHeader "Authorization" ("Bearer " <> token)
                     , RequestHeader "Content-Type" "application/json"
                     ]
-      let url = "http://localhost:3001/api/private/tournaments/" <> show tournamentId
+      let url = "/api/private/tournaments/" <> show tournamentId
       let body =
             "name" := metadata.name
             ~> "longFormName" := metadata.longFormName
@@ -214,7 +214,7 @@ enablePolling tournamentId days = do
       let headers = [ RequestHeader "Authorization" ("Bearer " <> token)
                     , RequestHeader "Content-Type" "application/json"
                     ]
-      let url = "http://localhost:3001/api/private/tournaments/" <> show tournamentId <> "/polling"
+      let url = "/api/private/tournaments/" <> show tournamentId <> "/polling"
       let body = "days" := days ~> encodeJson {}
       result <- AW.request $ AW.defaultRequest
         { url = url
@@ -257,7 +257,7 @@ stopPolling tournamentId = do
     Nothing -> pure $ Left "Not authenticated"
     Just token -> do
       let headers = [ RequestHeader "Authorization" ("Bearer " <> token) ]
-      let url = "http://localhost:3001/api/private/tournaments/" <> show tournamentId <> "/polling"
+      let url = "/api/private/tournaments/" <> show tournamentId <> "/polling"
       result <- AW.request $ AW.defaultRequest
         { url = url
         , method = Left DELETE
@@ -290,7 +290,7 @@ clearCache = do
     Nothing -> pure $ Left "Not authenticated"
     Just token -> do
       let headers = [ RequestHeader "Authorization" ("Bearer " <> token) ]
-      let url = "http://localhost:3001/api/private/cache/clear"
+      let url = "/api/private/cache/clear"
       result <- AW.request $ AW.defaultRequest
         { url = url
         , method = Left POST
@@ -323,7 +323,7 @@ refetchTournament tournamentId = do
     Nothing -> pure $ Left "Not authenticated"
     Just token -> do
       let headers = [ RequestHeader "Authorization" ("Bearer " <> token) ]
-      let url = "http://localhost:3001/api/private/tournaments/" <> show tournamentId <> "/refetch"
+      let url = "/api/private/tournaments/" <> show tournamentId <> "/refetch"
       result <- AW.request $ AW.defaultRequest
         { url = url
         , method = Left POST
@@ -364,7 +364,7 @@ fullRefetchTournament tournamentId = do
     Nothing -> pure $ Left "Not authenticated"
     Just token -> do
       let headers = [ RequestHeader "Authorization" ("Bearer " <> token) ]
-      let url = "http://localhost:3001/api/private/tournaments/" <> show tournamentId <> "/full-refetch"
+      let url = "/api/private/tournaments/" <> show tournamentId <> "/full-refetch"
       result <- AW.request $ AW.defaultRequest
         { url = url
         , method = Left POST

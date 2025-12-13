@@ -132,7 +132,7 @@ decodeCurrentMatch json = do
 -- | Get full hierarchical tournament data
 getTournament :: Int -> Int -> Aff (Either String Tournament)
 getTournament userId tournamentId = do
-  let url = "http://localhost:3001/api/public/users/" <> show userId <> "/tournaments/" <> show tournamentId
+  let url = "/api/public/users/" <> show userId <> "/tournaments/" <> show tournamentId
   result <- AW.request $ AW.defaultRequest
     { url = url
     , method = Left GET
@@ -154,7 +154,7 @@ getTournament userId tournamentId = do
 -- | Get current match
 getCurrentMatch :: Int -> Aff (Either String (Maybe CurrentMatch))
 getCurrentMatch userId = do
-  let url = "http://localhost:3001/api/overlay/users/" <> show userId <> "/match/current"
+  let url = "/api/overlay/users/" <> show userId <> "/match/current"
   result <- AW.request $ AW.defaultRequest
     { url = url
     , method = Left GET
@@ -185,7 +185,7 @@ setCurrentMatch request = do
       let headers = [ RequestHeader "Authorization" ("Bearer " <> token)
                     , RequestHeader "Content-Type" "application/json"
                     ]
-      let url = "http://localhost:3001/api/admin/match/current"
+      let url = "/api/admin/match/current"
       let TournamentId tid = request.tournamentId
       let DivisionId did = request.divisionId
       let PairingId pid = request.pairingId

@@ -10,16 +10,12 @@ import Data.String (Pattern(..), split)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Foreign.Object as Object
-import Web.HTML (window)
+import Utils.Window (getLocation)
 import Web.HTML.Location (search)
-import Web.HTML.Window (location)
 
 -- | Get the query string from the current URL
 getQueryString :: Effect String
-getQueryString = do
-  win <- window
-  loc <- location win
-  search loc
+getQueryString = getLocation >>= search
 
 -- | Parse query string into key-value pairs
 -- | e.g. "?userId=1&tournamentId=2" -> Object {"userId": "1", "tournamentId": "2"}

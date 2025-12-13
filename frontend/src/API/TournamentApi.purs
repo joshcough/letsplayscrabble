@@ -51,7 +51,7 @@ fetchTournamentData userId (TournamentId tournamentId) maybeDivisionName = do
     buildUrl :: Int -> Int -> Maybe String -> String
     buildUrl uid tid _ =
       -- Always fetch full tournament (no division parameter)
-      "http://localhost:3001/api/public/users/" <> show uid <>
+      "/api/public/users/" <> show uid <>
       "/tournaments/" <> show tid
 
     decodeApiResponse :: Json -> Either JsonDecodeError Tournament

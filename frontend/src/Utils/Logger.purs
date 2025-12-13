@@ -13,15 +13,14 @@ import Prelude
 import Data.String (Pattern(..), contains)
 import Effect (Effect)
 import Effect.Console as Console
-import Web.HTML (window)
+import Utils.Window (getLocation)
 import Web.HTML.Location as Location
-import Web.HTML.Window (location)
 
 -- | Check if logging is currently enabled by checking URL parameters
 -- | Checks both hash-based routing (#/path?logging=true) and regular query params
 isLoggingEnabled :: Effect Boolean
 isLoggingEnabled = do
-  loc <- window >>= location
+  loc <- getLocation
   hash <- Location.hash loc
   search <- Location.search loc
 

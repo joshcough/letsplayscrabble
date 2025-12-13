@@ -8,6 +8,7 @@ import Api.TournamentApi as TournamentApi
 import BroadcastChannel.Manager as BroadcastManager
 import Component.WorkerPageHelpers as Helpers
 import BroadcastChannel.Messages (SubscribeMessage, TournamentDataResponse)
+import Config.Api as Config
 import Control.Monad.Rec.Class (forever)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -120,8 +121,9 @@ handleAction = case _ of
       Ref.new workerState
 
     -- Initialize worker with API URL
+    origin <- liftEffect Config.getOrigin
     liftEffect do
-      WSM.initialize "http://localhost:3001" stateRef
+      WSM.initialize origin stateRef
 
     -- Store reference to worker state
     H.modify_ _ { workerState = Just stateRef }
