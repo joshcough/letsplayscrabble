@@ -16,7 +16,6 @@ import Prelude
 import Component.Overlay.BaseOverlay as BaseOverlay
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import BroadcastChannel.MonadEmitters (class MonadEmitters)
-import Data.Maybe (Maybe(..))
 import Data.Number.Format (fixed, toStringWith)
 import Domain.Types (DivisionScopedData)
 import Effect.Aff.Class (class MonadAff)

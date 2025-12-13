@@ -6,15 +6,13 @@ import Prelude
 import Component.Overlay.BaseOverlay as BaseOverlay
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import BroadcastChannel.MonadEmitters (class MonadEmitters)
-import Data.Array (filter, find, length, null, sortBy, take)
+import Data.Array (find, length, null)
 import Data.Int (round)
-import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
-import Data.String (joinWith) as String
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Domain.Types (PairingId(..), Game, PlayerId)
 import Effect.Aff.Class (class MonadAff)
 import Halogen as H
 import Halogen.HTML as HH
-import Halogen.HTML.Properties as HP
 import Stats.PlayerStats (RankedPlayerStats, SortType(..), calculateRankedStats)
 import Stats.MiscOverlayStats as MiscStats
 import Utils.CSS (css, cls, raw)

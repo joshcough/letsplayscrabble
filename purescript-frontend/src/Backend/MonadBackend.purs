@@ -7,8 +7,8 @@ import Prelude
 import API.Auth as AuthAPI
 import API.CurrentMatch as CurrentMatchAPI
 import API.Tournament as TournamentAPI
-import Control.Monad.Error.Class (class MonadError, class MonadThrow, throwError)
-import Data.Either (Either(..), either)
+import Control.Monad.Error.Class (class MonadError, throwError)
+import Data.Either (either)
 import Data.Maybe (Maybe)
 import Domain.Types (CreateCurrentMatch, CurrentMatch, Tournament, TournamentId(..), TournamentSummary, UserId(..))
 import Effect.Aff (Aff)

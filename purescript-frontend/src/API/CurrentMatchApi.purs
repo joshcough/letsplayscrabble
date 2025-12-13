@@ -8,7 +8,7 @@ import Affjax.Web as AW
 import Affjax.ResponseFormat as ResponseFormat
 import Affjax.StatusCode (StatusCode(..))
 import Data.Argonaut.Core (Json)
-import Data.Argonaut.Decode (class DecodeJson, JsonDecodeError, decodeJson, (.:), printJsonDecodeError)
+import Data.Argonaut.Decode (JsonDecodeError, decodeJson, (.:), printJsonDecodeError)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Effect.Aff (Aff)

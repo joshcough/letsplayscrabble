@@ -5,16 +5,15 @@ module BroadcastChannel.Manager where
 import Prelude
 
 import BroadcastChannel as BC
-import BroadcastChannel.Messages (BroadcastMessage(..), SubscribeMessage, TournamentDataResponse, TournamentDataRefresh, TournamentDataIncremental, TournamentDataError, GamesAddedMessage, AdminPanelUpdate, NotificationCancelMessage, decodeSubscribeMessage)
+import BroadcastChannel.Messages (SubscribeMessage, TournamentDataResponse, TournamentDataRefresh, TournamentDataIncremental, TournamentDataError, GamesAddedMessage, AdminPanelUpdate, NotificationCancelMessage, decodeSubscribeMessage)
 import Data.Argonaut.Core (Json, jsonEmptyObject)
-import Data.Argonaut.Decode (class DecodeJson, decodeJson, (.:), JsonDecodeError)
-import Data.Argonaut.Encode (class EncodeJson, encodeJson, (:=), (~>))
+import Data.Argonaut.Decode (decodeJson, (.:), JsonDecodeError)
+import Data.Argonaut.Encode ((:=), (~>))
 import Data.Either (Either(..))
-import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Utils.Logger (log)
-import Foreign (Foreign, unsafeToForeign, unsafeFromForeign)
+import Foreign (unsafeToForeign, unsafeFromForeign)
 import Halogen.Subscription as HS
 
 -- | Manager holds only the broadcast channel (for sending messages)

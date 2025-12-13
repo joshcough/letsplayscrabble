@@ -4,7 +4,7 @@ import Prelude
 
 import Component.Overlay.CrossTablesPlayerProfile (resolvePlayerId, findPlayerByParam, prepareProfileData, preparePlayerImageData)
 import Data.Maybe (Maybe(..))
-import Domain.Types (PlayerId(..), PairingId(..), XTId(..))
+import Domain.Types (PlayerId(..), XTId(..))
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual)
 import Test.Utils.TestHelpers (createPlayer, createCompletedGame, createTournamentSummary, createCrossTablesPlayer, createPlayerWithXtData)

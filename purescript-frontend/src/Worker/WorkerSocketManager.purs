@@ -4,15 +4,11 @@ module Worker.WorkerSocketManager where
 import Prelude
 
 import BroadcastChannel as BC
-import BroadcastChannel.Manager as BCM
 import Data.Argonaut.Core (Json, jsonEmptyObject)
-import Data.Argonaut.Decode (decodeJson, (.:))
 import Data.Argonaut.Encode ((:=), (~>))
-import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.Foldable (for_)
 import Effect (Effect)
-import Effect.Class (class MonadEffect, liftEffect)
 import Utils.Logger (log)
 import Effect.Ref as Ref
 import Foreign (Foreign, unsafeFromForeign, unsafeToForeign)
@@ -66,7 +62,7 @@ initialize apiUrl stateRef = do
     Ref.write (currentState { connectionStatus = "Connected", error = Nothing }) stateRef
     broadcastStatus stateRef
 
-  SIO.on socket "connect_error" \errorData -> do
+  SIO.on socket "connect_error" \_ -> do
     logInfo "Socket.IO connection error"
     currentState <- Ref.read stateRef
     Ref.write (currentState { connectionStatus = "Connection Error", error = Just "Failed to connect" }) stateRef

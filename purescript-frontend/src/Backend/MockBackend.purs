@@ -12,7 +12,7 @@ import Control.Monad.State.Trans (StateT)
 import Data.Array as Array
 import Data.Identity (Identity)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Domain.Types (CreateCurrentMatch, CurrentMatch, DivisionId(..), PairingId(..), Tournament, TournamentId(..), TournamentSummary, UserId(..))
+import Domain.Types (CurrentMatch, TournamentId(..), TournamentSummary, UserId(..))
 import Effect.Exception (Error, error)
 
 -- | Mock backend state for testing
