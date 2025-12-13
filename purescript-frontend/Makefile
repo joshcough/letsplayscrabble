@@ -1,4 +1,4 @@
-.PHONY: bundle build build-css watch watch-css dev test clean help
+.PHONY: bundle build build-css watch watch-css dev test clean deploy help
 
 # Default target
 .DEFAULT_GOAL := help
@@ -43,6 +43,10 @@ clean:
 	@echo "Cleaning build artifacts..."
 	@rm -rf output .spago public/bundle.js public/styles.css
 
+# Deploy to Heroku (builds, commits, and pushes)
+deploy:
+	@./deploy.sh
+
 # Show help
 help:
 	@echo "Available commands:"
@@ -54,4 +58,5 @@ help:
 	@echo "  make dev         - Start development server on port 4000"
 	@echo "  make test        - Run unit tests"
 	@echo "  make clean       - Remove build artifacts"
+	@echo "  make deploy      - Build, commit, and deploy to Heroku"
 	@echo "  make help        - Show this help message"
