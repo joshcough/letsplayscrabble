@@ -13,7 +13,7 @@ import Data.Maybe (Maybe(..))
 import Data.Foldable (for_)
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
-import Effect.Console (log)
+import Utils.Logger (log)
 import Effect.Ref as Ref
 import Foreign (Foreign, unsafeFromForeign, unsafeToForeign)
 import SocketIO as SIO

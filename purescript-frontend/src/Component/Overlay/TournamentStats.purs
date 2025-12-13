@@ -17,7 +17,7 @@ import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (class Newtype, over, unwrap)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
-import Effect.Console as Console
+import Utils.Logger (log)
 import Halogen as H
 import Halogen.HTML as HH
 import Stats.OverlayLogic as OverlayLogic
@@ -203,7 +203,7 @@ updateStateWithStats statsResult tournamentName title theme =
 -- | Update state when stats calculation fails
 updateStateWithError :: forall output m. MonadAff m => H.HalogenM State Action () output m Unit
 updateStateWithError = do
-  liftEffect $ Console.log "[TournamentStats] ERROR: Could not calculate stats"
+  liftEffect $ log "[TournamentStats] ERROR: Could not calculate stats"
   H.modify_ $ over State _ { error = Just "Could not calculate tournament stats", loading = false }
 
 --------------------------------------------------------------------------------

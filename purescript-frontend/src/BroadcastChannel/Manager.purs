@@ -13,7 +13,7 @@ import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
-import Effect.Console as Console
+import Utils.Logger (log)
 import Foreign (Foreign, unsafeToForeign, unsafeFromForeign)
 import Halogen.Subscription as HS
 
@@ -64,7 +64,7 @@ create = do
           , adminListener
           , notifListener
           }
-      Left _ -> Console.log "[BroadcastManager] Failed to decode message type"
+      Left _ -> log "[BroadcastManager] Failed to decode message type"
 
   pure
     { broadcastManager: { channel }
@@ -100,7 +100,7 @@ routeMessage msgType json listeners =
       case decodeSubscribeMessage json of
         Right msg -> do
           HS.notify listeners.subscribeListener msg
-        Left err -> Console.log $ "[BroadcastManager] Failed to decode SUBSCRIBE message: " <> show err
+        Left err -> log $ "[BroadcastManager] Failed to decode SUBSCRIBE message: " <> show err
 
     "TOURNAMENT_DATA_RESPONSE" -> do
       let result = do
@@ -109,7 +109,7 @@ routeMessage msgType json listeners =
       case result of
         Right msg -> do
           HS.notify listeners.responseListener msg
-        Left err -> Console.log $ "[BroadcastManager] Failed to decode TOURNAMENT_DATA_RESPONSE: " <> show err
+        Left err -> log $ "[BroadcastManager] Failed to decode TOURNAMENT_DATA_RESPONSE: " <> show err
 
     "TOURNAMENT_DATA_REFRESH" ->
       case decodeJson json of
@@ -138,7 +138,7 @@ routeMessage msgType json listeners =
       case result of
         Right msg -> do
           HS.notify listeners.adminListener msg
-        Left err -> Console.log $ "[BroadcastManager] Failed to decode ADMIN_PANEL_UPDATE: " <> show err
+        Left err -> log $ "[BroadcastManager] Failed to decode ADMIN_PANEL_UPDATE: " <> show err
 
     "NOTIFICATION_CANCEL" ->
       case decodeJson json of

@@ -19,7 +19,7 @@ import Data.Int (fromString) as Int
 import Data.Maybe (Maybe(..), fromMaybe)
 import Domain.Types (TournamentId(..), DivisionId(..), PlayerId(..), PairingId(..), TournamentSummary, Tournament, Game, UserId(..))
 import Effect.Class (class MonadEffect, liftEffect)
-import Effect.Class.Console (log)
+import Utils.Logger (log)
 import Effect.Unsafe (unsafePerformEffect)
 import Halogen as H
 import Halogen.HTML as HH

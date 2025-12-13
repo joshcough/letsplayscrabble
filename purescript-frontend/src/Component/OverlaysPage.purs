@@ -11,7 +11,7 @@ import Config.Themes (getTheme)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
+import Utils.Logger (log)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE

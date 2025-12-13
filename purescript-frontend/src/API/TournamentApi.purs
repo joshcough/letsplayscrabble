@@ -15,7 +15,7 @@ import Domain.Types (TournamentId(..), DivisionScopedData, Tournament)
 import API.CurrentMatch (decodeTournament)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Effect.Console as Console
+import Utils.Logger (log)
 
 -- | Fetch tournament data (full tournament with all divisions)
 -- | divisionName parameter is ignored - we always fetch the full tournament
@@ -36,13 +36,13 @@ fetchTournamentData userId (TournamentId tournamentId) maybeDivisionName = do
 
   case result of
     Left err -> do
-      liftEffect $ Console.log $ "[TournamentApi] HTTP error: " <> AX.printError err
+      liftEffect $ log $ "[TournamentApi] HTTP error: " <> AX.printError err
       pure $ Left $ "HTTP error: " <> AX.printError err
     Right response -> do
       -- Decode the API response envelope { success: true, data: ... }
       case decodeApiResponse response.body of
         Left err -> do
-          liftEffect $ Console.log $ "[TournamentApi] Decode error: " <> printJsonDecodeError err
+          liftEffect $ log $ "[TournamentApi] Decode error: " <> printJsonDecodeError err
           pure $ Left $ "Failed to decode response: " <> printJsonDecodeError err
         Right data_ -> do
           pure $ Right data_

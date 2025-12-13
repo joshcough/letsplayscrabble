@@ -15,7 +15,7 @@ import Data.Maybe (Maybe(..), maybe)
 import Data.Foldable (for_)
 import Domain.Types (TournamentId(..), TournamentSummary, UserId(..))
 import Effect.Class (class MonadEffect, liftEffect)
-import Effect.Class.Console (log)
+import Utils.Logger (log)
 import Effect.Unsafe (unsafePerformEffect)
 import Halogen as H
 import Halogen.HTML as HH

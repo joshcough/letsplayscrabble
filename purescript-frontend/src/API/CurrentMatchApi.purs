@@ -13,7 +13,7 @@ import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Effect.Console as Console
+import Utils.Logger (log)
 import Types.CurrentMatch (CurrentMatch)
 
 -- | Fetch current match for a user
@@ -27,7 +27,7 @@ fetchCurrentMatch userId = do
   case affjaxResult of
     Left err -> do
       let errMsg = printError err
-      liftEffect $ Console.log $ "[CurrentMatchApi] Network error: " <> errMsg
+      liftEffect $ log $ "[CurrentMatchApi] Network error: " <> errMsg
       pure $ Left $ "Network error: " <> errMsg
 
     Right response -> do
@@ -39,13 +39,13 @@ fetchCurrentMatch userId = do
           case decodeApiResponse response.body of
             Left err -> do
               let errMsg = printJsonDecodeError err
-              liftEffect $ Console.log $ "[CurrentMatchApi] Decode error: " <> errMsg
+              liftEffect $ log $ "[CurrentMatchApi] Decode error: " <> errMsg
               pure $ Left errMsg
             Right decoded -> do
               pure $ Right decoded
 
         _ -> do
-          liftEffect $ Console.log $ "[CurrentMatchApi] HTTP error: " <> show response.status
+          liftEffect $ log $ "[CurrentMatchApi] HTTP error: " <> show response.status
           pure $ Left $ "HTTP error: " <> show response.status
 
 -- | Decode API response with success/data/error structure

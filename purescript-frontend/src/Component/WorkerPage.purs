@@ -17,7 +17,7 @@ import Data.Map as Map
 import Effect.Aff as Aff
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
-import Effect.Console as Effect.Console
+import Utils.Logger (log)
 import Effect.Ref as Ref
 import Halogen as H
 import Halogen.HTML as HH
@@ -164,7 +164,7 @@ handleAction = case _ of
 
         case currentMatchResult of
           Left err -> do
-            liftEffect $ Effect.Console.log $ "[WorkerPage] Error fetching current match: " <> err
+            liftEffect $ log $ "[WorkerPage] Error fetching current match: " <> err
             pure unit
 
           Right Nothing ->
@@ -189,7 +189,7 @@ handleAction = case _ of
 
             case tournamentData of
               Left err -> do
-                liftEffect $ Effect.Console.log $ "[WorkerPage] Error fetching tournament data: " <> err
+                liftEffect $ log $ "[WorkerPage] Error fetching tournament data: " <> err
                 pure unit
 
               Right tournament -> do
@@ -224,7 +224,7 @@ handleAction = case _ of
                           , data: tournament
                           }
                     liftEffect $ BroadcastManager.postTournamentDataResponse mgr response
-                  Nothing -> liftEffect $ Effect.Console.log "[WorkerPage] ERROR: No broadcast manager"
+                  Nothing -> liftEffect $ log "[WorkerPage] ERROR: No broadcast manager"
 
       Just tournament -> do
         let tournamentId = tournament.tournamentId
@@ -243,7 +243,7 @@ handleAction = case _ of
 
         case tournamentData of
           Left err -> do
-            liftEffect $ Effect.Console.log $ "[WorkerPage] API fetch failed: " <> err
+            liftEffect $ log $ "[WorkerPage] API fetch failed: " <> err
             pure unit
 
           Right t -> do
@@ -266,4 +266,4 @@ handleAction = case _ of
               Just manager -> do
                 BroadcastManager.postTournamentDataResponse manager response
               Nothing -> do
-                liftEffect $ Effect.Console.log "[WorkerPage] ERROR: No broadcast manager available"
+                liftEffect $ log "[WorkerPage] ERROR: No broadcast manager available"

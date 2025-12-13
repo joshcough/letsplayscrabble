@@ -31,7 +31,7 @@ import Effect.Unsafe (unsafePerformEffect)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
-import Effect.Class.Console (log)
+import Utils.Logger (log)
 import Halogen as H
 import Halogen.HTML as HH
 import Route (Route(..), routeCodec)

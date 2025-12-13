@@ -19,8 +19,8 @@ import Data.Traversable (traverse)
 import Domain.Types (TournamentId(..), DivisionId(..), PlayerId(..), GameId(..), PairingId(..), XTId(..), TournamentSummary, Tournament, Division, Player, Game, HeadToHeadGame, CurrentMatch, CreateCurrentMatch)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Utils.Auth as Auth
+import Utils.Logger (log)
 
 -- | Decode a single tournament from JSON (handles camelCase domain model from backend)
 decodeTournament :: Json -> Either String TournamentSummary
