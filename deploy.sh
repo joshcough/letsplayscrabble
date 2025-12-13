@@ -1,44 +1,46 @@
 #!/bin/bash
 set -e  # Exit on any error
 
-echo "🚀 PureScript Frontend Deployment Script"
-echo "========================================="
+echo "🚀 Full Stack Deployment Script"
+echo "================================="
 echo ""
 
-# Check we're in the right directory
-if [ ! -f "spago.dhall" ]; then
-  echo "❌ Error: Must run from purescript-frontend directory"
+# Check we're in the right directory (root)
+if [ ! -f "package.json" ] || [ ! -d "frontend" ] || [ ! -d "backend" ]; then
+  echo "❌ Error: Must run from project root directory"
   exit 1
 fi
 
-# Build the app
-echo "📦 Building PureScript app..."
+# Build the frontend
+echo "📦 Building PureScript frontend..."
+cd frontend
 make build
+cd ..
 
 # Check if built files exist
-if [ ! -f "public/bundle.js" ]; then
+if [ ! -f "frontend/public/bundle.js" ]; then
   echo "❌ Error: bundle.js not generated"
   exit 1
 fi
 
-if [ ! -f "public/styles.css" ]; then
+if [ ! -f "frontend/public/styles.css" ]; then
   echo "❌ Error: styles.css not generated"
   exit 1
 fi
 
-echo "✅ Build complete"
+echo "✅ Frontend build complete"
 echo ""
 
 # Show bundle size
-BUNDLE_SIZE=$(du -h public/bundle.js | cut -f1)
-CSS_SIZE=$(du -h public/styles.css | cut -f1)
+BUNDLE_SIZE=$(du -h frontend/public/bundle.js | cut -f1)
+CSS_SIZE=$(du -h frontend/public/styles.css | cut -f1)
 echo "📊 Bundle size: $BUNDLE_SIZE"
 echo "📊 CSS size: $CSS_SIZE"
 echo ""
 
 # Add built files to git
-echo "📝 Staging built files..."
-git add public/bundle.js public/styles.css
+echo "📝 Staging built frontend files..."
+git add frontend/public/bundle.js frontend/public/styles.css
 
 # Check if there are changes to commit
 if git diff --cached --quiet; then
@@ -59,6 +61,8 @@ echo ""
 echo "Next steps:"
 echo "  1. Push to your branch: git push origin $(git branch --show-current)"
 echo "  2. Deploy to Heroku: git push heroku $(git branch --show-current):master"
+echo ""
+echo "Heroku will build both frontend and backend on deployment."
 echo ""
 echo "Or run this now:"
 echo "  git push heroku $(git branch --show-current):master"
