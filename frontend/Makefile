@@ -1,32 +1,17 @@
-.PHONY: bundle build build-css watch watch-css dev test clean help
+.PHONY: build watch dev test clean help
 
 # Default target
 .DEFAULT_GOAL := help
 
-# Bundle PureScript and JavaScript (most common command)
-bundle:
-	@echo "Building PureScript and bundling..."
-	@npm run bundle
-
-# Build everything (CSS + PureScript bundle)
+# Build everything (CSS + PureScript + bundle)
 build:
-	@echo "Building CSS and PureScript..."
+	@echo "Building everything..."
 	@npm run build
 
-# Build CSS only
-build-css:
-	@echo "Building CSS..."
-	@npm run build:css
-
-# Watch PureScript files for changes
+# Watch all files and rebuild on changes
 watch:
-	@echo "Watching PureScript files..."
+	@echo "Watching for changes (auto-rebuild on .purs or .css changes)..."
 	@npm run watch
-
-# Watch CSS files for changes
-watch-css:
-	@echo "Watching CSS files..."
-	@npm run watch:css
 
 # Start development server
 dev:
@@ -46,12 +31,14 @@ clean:
 # Show help
 help:
 	@echo "Available commands:"
-	@echo "  make bundle      - Build PureScript and bundle JavaScript (fastest for quick rebuilds)"
-	@echo "  make build       - Build CSS and PureScript bundle (full build)"
-	@echo "  make build-css   - Build CSS only"
-	@echo "  make watch       - Watch PureScript files for changes"
-	@echo "  make watch-css   - Watch CSS files for changes"
-	@echo "  make dev         - Start development server on port 4000"
-	@echo "  make test        - Run unit tests"
-	@echo "  make clean       - Remove build artifacts"
-	@echo "  make help        - Show this help message"
+	@echo "  make build   - Build everything (CSS + PureScript + bundle)"
+	@echo "  make watch   - Watch files and auto-rebuild on changes"
+	@echo "  make dev     - Start development server on port 4000"
+	@echo "  make test    - Run unit tests"
+	@echo "  make clean   - Remove build artifacts"
+	@echo "  make help    - Show this help message"
+	@echo ""
+	@echo "Typical workflow:"
+	@echo "  Terminal 1: make watch   (auto-rebuild on file changes)"
+	@echo "  Terminal 2: make dev     (dev server)"
+	@echo "  Then just edit code and reload browser!"
