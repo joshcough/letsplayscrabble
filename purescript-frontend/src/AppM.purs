@@ -2,12 +2,13 @@ module AppM where
 
 import Prelude
 
+import Backend.MonadBackend (class MonadBackend, clearCache, createTournament, enablePolling, fullRefetchTournament, getCurrentMatch, getTournament, getTournamentRow, listTournaments, login, refetchTournament, setCurrentMatch, stopPolling, updateTournament)
 import BroadcastChannel.Manager (BroadcastManager, EmitterManager)
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import BroadcastChannel.MonadEmitters (class MonadEmitters)
 import Control.Monad.Reader.Trans (class MonadAsk, ReaderT, asks, runReaderT)
 import Effect.Aff (Aff)
-import Effect.Aff.Class (class MonadAff)
+import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 
 type AppEnv =
@@ -31,6 +32,22 @@ instance monadBroadcastAppM :: MonadBroadcast AppM where
 
 instance monadEmittersAppM :: MonadEmitters AppM where
   getEmitterManager = asks _.emitterManager
+
+-- Delegate all MonadBackend operations to the underlying Aff instance
+instance monadBackendAppM :: MonadBackend AppM where
+  login = liftAff <<< login
+  createTournament = liftAff <<< createTournament
+  listTournaments = liftAff listTournaments
+  getTournamentRow userId = liftAff <<< getTournamentRow userId
+  updateTournament tid = liftAff <<< updateTournament tid
+  enablePolling tid = liftAff <<< enablePolling tid
+  stopPolling = liftAff <<< stopPolling
+  clearCache = liftAff clearCache
+  refetchTournament = liftAff <<< refetchTournament
+  fullRefetchTournament = liftAff <<< fullRefetchTournament
+  getCurrentMatch = liftAff <<< getCurrentMatch
+  getTournament uid = liftAff <<< getTournament uid
+  setCurrentMatch = liftAff <<< setCurrentMatch
 
 runAppM :: forall a. AppEnv -> AppM a -> Aff a
 runAppM env (AppM m) = runReaderT m env

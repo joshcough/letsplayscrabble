@@ -22,6 +22,7 @@ import Component.MiscOverlayTestingPage as MiscOverlayTestingPage
 import Component.Overlay.TournamentStats as TournamentStats
 import Component.WorkerPage as WorkerPage
 import Component.RouterHelpers as RouterHelpers
+import Backend.MonadBackend (class MonadBackend)
 import BroadcastChannel.Manager as BroadcastManager
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import BroadcastChannel.MonadEmitters (class MonadEmitters)
@@ -153,7 +154,7 @@ withNavigation state content =
     _, _ -> content
 
 -- | Router component
-component :: forall input output m. MonadAff m => MonadBroadcast m => MonadEmitters m => H.Component Query input output m
+component :: forall input output m. MonadBackend m => MonadBroadcast m => MonadEmitters m => H.Component Query input output m
 component = H.mkComponent
   { initialState: \_ -> { route: Nothing, isAuthenticated: false, username: Nothing, userId: Nothing, broadcastManager: Nothing, emitterManager: Nothing }
   , render
@@ -164,7 +165,7 @@ component = H.mkComponent
       }
   }
 
-render :: forall m. MonadAff m => MonadBroadcast m => MonadEmitters m => State -> H.ComponentHTML Action Slots m
+render :: forall m. MonadBackend m => MonadBroadcast m => MonadEmitters m => State -> H.ComponentHTML Action Slots m
 render state =
   let _ = unsafePerformEffect $ log $ "[Router] Rendering route: " <> show state.route
   in case state.route of

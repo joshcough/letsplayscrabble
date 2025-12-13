@@ -7,18 +7,17 @@ import CSS.Class as C
 import CSS.Class (CSSClass(..))
 import CSS.ThemeColor (ThemeColor(..))
 
-import API.Tournament as TournamentAPI
+import Backend.MonadBackend (class MonadBackend, listTournaments)
 import Config.Themes (getTheme)
-import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Domain.Types (TournamentId(..), TournamentSummary)
-import Effect.Aff.Class (class MonadAff)
+import Effect.Class (class MonadEffect)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
 import Utils.CSS (cls, css, thm)
+import Utils.Halogen (withLoading)
 
 type State =
   { tournaments :: Array TournamentSummary
@@ -37,7 +36,7 @@ data Output
   = NavigateToTournament Int
   | NavigateToAddTournament
 
-component :: forall query m. MonadAff m => H.Component query Unit Output m
+component :: forall query m. MonadBackend m => MonadEffect m => H.Component query Unit Output m
 component = H.mkComponent
   { initialState
   , render
@@ -121,19 +120,14 @@ renderTournament theme tournament =
   where
   unwrapTournamentId (TournamentId id) = id
 
-handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
+handleAction :: forall m. MonadBackend m => MonadEffect m => Action -> H.HalogenM State Action () Output m Unit
 handleAction = case _ of
   Initialize -> do
     handleAction LoadTournaments
 
-  LoadTournaments -> do
-    H.modify_ _ { loading = true, error = Nothing }
-    result <- H.liftAff TournamentAPI.listTournaments
-    case result of
-      Left err ->
-        H.modify_ _ { loading = false, error = Just err }
-      Right tournaments ->
-        H.modify_ _ { loading = false, tournaments = tournaments }
+  LoadTournaments ->
+    withLoading listTournaments \tournaments ->
+      H.modify_ _ { tournaments = tournaments }
 
   TournamentClick id -> do
     H.raise $ NavigateToTournament id

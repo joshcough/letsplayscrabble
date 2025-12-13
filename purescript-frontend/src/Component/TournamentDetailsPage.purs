@@ -6,17 +6,15 @@ import Prelude
 import CSS.Class (CSSClass(..))
 import CSS.ThemeColor (ThemeColor(..))
 
-import API.Tournament as TournamentAPI
+import Backend.MonadBackend (class MonadBackend, clearCache, enablePolling, fullRefetchTournament, getTournamentRow, refetchTournament, stopPolling, updateTournament)
 import Component.ThemeSelector as ThemeSelector
 import Config.Themes (getTheme)
-import Data.Either (Either(..))
 import Data.Int (fromString) as Int
 import Data.JSDate (parse, toDateString)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Foldable (for_)
-import Domain.Types (TournamentSummary)
-import Effect.Aff.Class (class MonadAff)
-import Effect.Class (liftEffect)
+import Domain.Types (TournamentId(..), TournamentSummary, UserId(..))
+import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Class.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
 import Halogen as H
@@ -26,6 +24,7 @@ import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
 import Utils.Auth as Auth
 import Utils.CSS (cls, css, hover, raw, thm)
+import Utils.Halogen (withLoading)
 
 type Input =
   { tournamentId :: Int
@@ -80,7 +79,7 @@ data Field
 data Output
   = NavigateBack
 
-component :: forall query m. MonadAff m => H.Component query Input Output m
+component :: forall query m. MonadBackend m => MonadEffect m => H.Component query Input Output m
 component = H.mkComponent
   { initialState
   , render
@@ -340,7 +339,7 @@ renderFieldOrInput editing theme label value editValue field =
       ]
   ]
 
-handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
+handleAction :: forall m. MonadBackend m => MonadEffect m => Action -> H.HalogenM State Action () Output m Unit
 handleAction = case _ of
   Initialize -> do
     -- Get userId from localStorage
@@ -348,77 +347,16 @@ handleAction = case _ of
     H.modify_ _ { userId = userId }
     handleAction LoadTournament
 
-  LoadTournament -> do
-    state <- H.get
-    case state.userId of
-      Nothing -> do
-        H.modify_ _ { loading = false, error = Just "Not authenticated" }
-      Just userId -> do
-        H.modify_ _ { loading = true, error = Nothing }
-        liftEffect $ log $ "[TournamentDetailsPage] Loading tournament " <> show state.tournamentId <> " for user " <> show userId
-        result <- H.liftAff $ TournamentAPI.getTournamentRow userId state.tournamentId
-        case result of
-          Left err -> do
-            liftEffect $ log $ "[TournamentDetailsPage] Error: " <> err
-            H.modify_ _ { loading = false, error = Just err }
-          Right tournament -> do
-            liftEffect $ log $ "[TournamentDetailsPage] Loaded tournament: " <> tournament.name
-            H.modify_ _ { loading = false, tournament = Just tournament }
+  LoadTournament ->
+    handleLoadTournament
 
   HandleBackClick -> H.raise NavigateBack
 
-  HandleEditClick -> do
-    -- Populate edit form with current tournament data
-    state <- H.get
-    case state.tournament of
-      Just t -> do
-        let editForm =
-              { name: t.name
-              , longFormName: t.longFormName
-              , city: t.city
-              , year: show t.year
-              , lexicon: t.lexicon
-              , theme: t.theme
-              , dataUrl: t.dataUrl
-              }
-        H.modify_ _ { editing = true, editForm = editForm }
-      Nothing -> pure unit
+  HandleEditClick ->
+    handleEditClick
 
-  HandleSaveClick -> do
-    state <- H.get
-    liftEffect $ log "[TournamentDetailsPage] Save clicked"
-
-    -- Parse year from string
-    case Int.fromString state.editForm.year of
-      Nothing -> do
-        liftEffect $ log "[TournamentDetailsPage] Invalid year value"
-        H.modify_ _ { error = Just "Year must be a valid number" }
-      Just yearInt -> do
-        let updateReq =
-              { name: state.editForm.name
-              , longFormName: state.editForm.longFormName
-              , city: state.editForm.city
-              , year: yearInt
-              , lexicon: state.editForm.lexicon
-              , theme: state.editForm.theme
-              , dataUrl: state.editForm.dataUrl
-              }
-
-        H.modify_ _ { loading = true, error = Nothing }
-        result <- H.liftAff $ TournamentAPI.updateTournament state.tournamentId updateReq
-
-        case result of
-          Left err -> do
-            liftEffect $ log $ "[TournamentDetailsPage] Save error: " <> err
-            H.modify_ _ { loading = false, error = Just err }
-          Right tournament -> do
-            liftEffect $ log $ "[TournamentDetailsPage] Tournament updated: " <> tournament.name
-            H.modify_ _
-              { loading = false
-              , editing = false
-              , tournament = Just tournament
-              , editForm = emptyEditForm
-              }
+  HandleSaveClick ->
+    handleSaveClick
 
   HandleCancelClick -> do
     H.modify_ _ { editing = false, editForm = emptyEditForm }
@@ -430,68 +368,104 @@ handleAction = case _ of
     for_ (Int.fromString value) \days ->
       H.modify_ _ { pollingDays = days }
 
-  HandleStartPolling -> do
-    liftEffect $ log "[TournamentDetailsPage] Start polling clicked"
-    state <- H.get
-    H.modify_ _ { loading = true, error = Nothing }
-    result <- H.liftAff $ TournamentAPI.enablePolling state.tournamentId state.pollingDays
-    case result of
-      Left err -> do
-        liftEffect $ log $ "[TournamentDetailsPage] Start polling error: " <> err
-        H.modify_ _ { loading = false, error = Just err }
-      Right _ -> do
-        liftEffect $ log "[TournamentDetailsPage] Polling started successfully"
-        -- Reload tournament to get updated pollUntil
-        handleAction LoadTournament
+  HandleStartPolling ->
+    handleStartPolling
 
-  HandleStopPolling -> do
-    liftEffect $ log "[TournamentDetailsPage] Stop polling clicked"
-    state <- H.get
-    H.modify_ _ { loading = true, error = Nothing }
-    result <- H.liftAff $ TournamentAPI.stopPolling state.tournamentId
-    case result of
-      Left err -> do
-        liftEffect $ log $ "[TournamentDetailsPage] Stop polling error: " <> err
-        H.modify_ _ { loading = false, error = Just err }
-      Right _ -> do
-        liftEffect $ log "[TournamentDetailsPage] Polling stopped successfully"
-        -- Reload tournament to get updated pollUntil
-        handleAction LoadTournament
+  HandleStopPolling ->
+    handleStopPolling
 
   HandleClearCache -> do
     liftEffect $ log "[TournamentDetailsPage] Clear cache clicked"
-    H.modify_ _ { loading = true, error = Nothing }
-    result <- H.liftAff TournamentAPI.clearCache
-    case result of
-      Left err -> do
-        liftEffect $ log $ "[TournamentDetailsPage] Clear cache error: " <> err
-        H.modify_ _ { loading = false, error = Just err }
-      Right _ -> do
-        liftEffect $ log "[TournamentDetailsPage] Cache cleared successfully"
-        H.modify_ _ { loading = false }
+    withLoading clearCache \_ ->
+      liftEffect $ log "[TournamentDetailsPage] Cache cleared successfully"
 
   HandleRefetch -> do
     liftEffect $ log "[TournamentDetailsPage] Refetch clicked"
     state <- H.get
-    H.modify_ _ { loading = true, error = Nothing }
-    result <- H.liftAff $ TournamentAPI.refetchTournament state.tournamentId
-    case result of
-      Left err -> do
-        liftEffect $ log $ "[TournamentDetailsPage] Refetch error: " <> err
-        H.modify_ _ { loading = false, error = Just err }
-      Right message -> do
-        liftEffect $ log $ "[TournamentDetailsPage] Refetch successful: " <> message
-        H.modify_ _ { loading = false }
+    withLoading (refetchTournament (TournamentId state.tournamentId)) \message ->
+      liftEffect $ log $ "[TournamentDetailsPage] Refetch successful: " <> message
 
   HandleFullRefetch -> do
     liftEffect $ log "[TournamentDetailsPage] Full refetch clicked"
     state <- H.get
-    H.modify_ _ { loading = true, error = Nothing }
-    result <- H.liftAff $ TournamentAPI.fullRefetchTournament state.tournamentId
-    case result of
-      Left err -> do
-        liftEffect $ log $ "[TournamentDetailsPage] Full refetch error: " <> err
-        H.modify_ _ { loading = false, error = Just err }
-      Right message -> do
-        liftEffect $ log $ "[TournamentDetailsPage] Full refetch successful: " <> message
-        H.modify_ _ { loading = false }
+    withLoading (fullRefetchTournament (TournamentId state.tournamentId)) \message ->
+      liftEffect $ log $ "[TournamentDetailsPage] Full refetch successful: " <> message
+
+-- | Populate edit form with current tournament data
+handleEditClick :: forall output m. H.HalogenM State Action () output m Unit
+handleEditClick = do
+  state <- H.get
+  for_ state.tournament \t -> do
+    let editForm =
+          { name: t.name
+          , longFormName: t.longFormName
+          , city: t.city
+          , year: show t.year
+          , lexicon: t.lexicon
+          , theme: t.theme
+          , dataUrl: t.dataUrl
+          }
+    H.modify_ _ { editing = true, editForm = editForm }
+
+-- | Save tournament edits
+handleSaveClick :: forall output m. MonadBackend m => MonadEffect m => H.HalogenM State Action () output m Unit
+handleSaveClick = do
+  state <- H.get
+  liftEffect $ log "[TournamentDetailsPage] Save clicked"
+
+  -- Parse year from string
+  case Int.fromString state.editForm.year of
+    Nothing -> do
+      liftEffect $ log "[TournamentDetailsPage] Invalid year value"
+      H.modify_ _ { error = Just "Year must be a valid number" }
+    Just yearInt -> do
+      let updateReq =
+            { name: state.editForm.name
+            , longFormName: state.editForm.longFormName
+            , city: state.editForm.city
+            , year: yearInt
+            , lexicon: state.editForm.lexicon
+            , theme: state.editForm.theme
+            , dataUrl: state.editForm.dataUrl
+            }
+
+      withLoading (updateTournament (TournamentId state.tournamentId) updateReq) \tournament -> do
+        liftEffect $ log $ "[TournamentDetailsPage] Tournament updated: " <> tournament.name
+        H.modify_ _
+          { editing = false
+          , tournament = Just tournament
+          , editForm = emptyEditForm
+          }
+
+-- | Load tournament with authentication check
+handleLoadTournament :: forall m. MonadBackend m => MonadEffect m => H.HalogenM State Action () Output m Unit
+handleLoadTournament = do
+  state <- H.get
+  maybe
+    (H.modify_ _ { loading = false, error = Just "Not authenticated" })
+    (\userId -> do
+      liftEffect $ log $ "[TournamentDetailsPage] Loading tournament " <> show state.tournamentId <> " for user " <> show userId
+      withLoading (getTournamentRow (UserId userId) (TournamentId state.tournamentId)) \tournament -> do
+        liftEffect $ log $ "[TournamentDetailsPage] Loaded tournament: " <> tournament.name
+        H.modify_ _ { tournament = Just tournament })
+    state.userId
+
+-- | Start polling and reload tournament
+handleStartPolling :: forall m. MonadBackend m => MonadEffect m => H.HalogenM State Action () Output m Unit
+handleStartPolling = do
+  liftEffect $ log "[TournamentDetailsPage] Start polling clicked"
+  state <- H.get
+  withLoading (enablePolling (TournamentId state.tournamentId) state.pollingDays) \_ -> do
+    liftEffect $ log "[TournamentDetailsPage] Polling started successfully"
+    -- Reload tournament to get updated pollUntil
+    handleAction LoadTournament
+
+-- | Stop polling and reload tournament
+handleStopPolling :: forall m. MonadBackend m => MonadEffect m => H.HalogenM State Action () Output m Unit
+handleStopPolling = do
+  liftEffect $ log "[TournamentDetailsPage] Stop polling clicked"
+  state <- H.get
+  withLoading (stopPolling (TournamentId state.tournamentId)) \_ -> do
+    liftEffect $ log "[TournamentDetailsPage] Polling stopped successfully"
+    -- Reload tournament to get updated pollUntil
+    handleAction LoadTournament

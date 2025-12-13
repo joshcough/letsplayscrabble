@@ -7,17 +7,18 @@ import CSS.Class as C
 import CSS.Class (CSSClass(..))
 import CSS.ThemeColor (ThemeColor(..))
 
-import API.Auth as AuthAPI
+import Backend.MonadBackend (class MonadBackend, login)
 import Config.Themes (getTheme)
-import Data.Either (Either(..), either)
 import Data.Maybe (Maybe(..))
-import Effect.Aff.Class (class MonadAff)
+import Domain.Types (UserId(..))
+import Effect.Class (class MonadEffect)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
 import Utils.CSS (cls, css, raw, thm)
+import Utils.Halogen (withLoading)
 import Web.Event.Event (Event, preventDefault)
 
 type State =
@@ -33,8 +34,6 @@ data Action
   | UpdateUsername String
   | UpdatePassword String
   | HandleSubmit Event
-  | LoginSuccess { token :: String, userId :: Int, username :: String }
-  | LoginFailure String
 
 type Output =
   { token :: String
@@ -42,7 +41,7 @@ type Output =
   , username :: String
   }
 
-component :: forall query input m. MonadAff m => H.Component query input Output m
+component :: forall query input m. MonadBackend m => MonadEffect m => H.Component query input Output m
 component = H.mkComponent
   { initialState
   , render
@@ -144,7 +143,7 @@ render state =
           ]
       ]
 
-handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
+handleAction :: forall m. MonadBackend m => MonadEffect m => Action -> H.HalogenM State Action () Output m Unit
 handleAction = case _ of
   Initialize -> pure unit
 
@@ -154,21 +153,15 @@ handleAction = case _ of
   UpdatePassword password ->
     H.modify_ _ { password = password, error = Nothing }
 
-  HandleSubmit event -> do
-    H.liftEffect $ preventDefault event
-    state <- H.get
-    H.modify_ _ { loading = true, error = Nothing }
+  HandleSubmit event ->
+    handleSubmit event
 
-    -- Make API call
-    result <- H.liftAff $ AuthAPI.login
-      { username: state.username
-      , password: state.password
-      }
+-- | Handle login form submission
+handleSubmit :: forall m. MonadBackend m => MonadEffect m => Event -> H.HalogenM State Action () Output m Unit
+handleSubmit event = do
+  H.liftEffect $ preventDefault event
+  state <- H.get
 
-    handleAction $ either LoginFailure LoginSuccess result
-
-  LoginSuccess { token, userId, username } ->
-    H.raise { token, userId, username }
-
-  LoginFailure error ->
-    H.modify_ _ { loading = false, error = Just error }
+  withLoading (login { username: state.username, password: state.password }) \res ->
+    let (UserId userId) = res.userId
+    in H.raise { token: res.token, userId, username: res.username }

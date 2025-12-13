@@ -7,18 +7,18 @@ import CSS.Class as C
 import CSS.Class (CSSClass(..))
 import CSS.ThemeColor (ThemeColor(..))
 
-import API.CurrentMatch as CurrentMatchAPI
-import API.Tournament as TournamentAPI
+import Backend.MonadBackend (class MonadBackend, getCurrentMatch, getTournament, listTournaments, setCurrentMatch)
 import Component.CurrentMatchPageHelpers as Helpers
 import Config.Themes (getTheme)
+import Control.Monad.Error.Class (try)
 import Data.Array (find, head, sortBy)
 import Data.Array as Array
-import Data.Either (Either(..))
+import Data.Either (hush)
+import Data.Foldable (for_)
 import Data.Int (fromString) as Int
 import Data.Maybe (Maybe(..), fromMaybe)
-import Domain.Types (TournamentId(..), DivisionId(..), PlayerId(..), PairingId(..), TournamentSummary, Tournament, Game)
-import Effect.Aff.Class (class MonadAff)
-import Effect.Class (liftEffect)
+import Domain.Types (TournamentId(..), DivisionId(..), PlayerId(..), PairingId(..), TournamentSummary, Tournament, Game, UserId(..))
+import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Class.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
 import Halogen as H
@@ -28,6 +28,7 @@ import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
 import Utils.CSS (classes, cls, css, hover, thm, raw)
 import Utils.Auth as Auth
+import Utils.Halogen (withLoading)
 
 type Input = Unit
 
@@ -58,7 +59,7 @@ data Action
 data Output
   = NavigateBack
 
-component :: forall query m. MonadAff m => H.Component query Input Output m
+component :: forall query m. MonadBackend m => MonadEffect m => H.Component query Input Output m
 component = H.mkComponent
   { initialState
   , render
@@ -272,109 +273,95 @@ getPlayerName state playerId =
     division <- find (\d -> let DivisionId did = d.id in did == divId) tournament.divisions
     Helpers.getPlayerName division.players playerId
 
-handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
+handleAction :: forall m. MonadBackend m => MonadEffect m => Action -> H.HalogenM State Action () Output m Unit
 handleAction = case _ of
   Initialize -> do
     userId <- liftEffect Auth.getUserId
     H.modify_ _ { userId = userId }
     handleAction LoadTournaments
 
-  LoadTournaments -> do
-    H.modify_ _ { loading = true, error = Nothing }
-    result <- H.liftAff TournamentAPI.listTournaments
-    case result of
-      Left err -> H.modify_ _ { error = Just err, loading = false }
-      Right tournaments -> do
-        H.modify_ _ { tournaments = tournaments, loading = false }
-        -- Load current match and auto-select
-        state <- H.get
-        case state.userId of
-          Nothing -> pure unit
-          Just uid -> do
-            matchResult <- H.liftAff $ CurrentMatchAPI.getCurrentMatch uid
-            case matchResult of
-              Left _ -> pure unit
-              Right Nothing -> pure unit
-              Right (Just match) -> do
-                let TournamentId tid = match.tournamentId
-                    DivisionId did = match.divisionId
-                    PairingId pid = match.pairingId
-                liftEffect $ log $ "[CurrentMatch] Loaded current match: tid=" <> show tid <> " did=" <> show did <> " round=" <> show match.round <> " pid=" <> show pid
-                -- Store the current match data in state before loading tournament
-                H.modify_ _
-                  { selectedTournamentId = show tid
-                  , selectedDivisionId = show did
-                  , selectedRound = show match.round
-                  , selectedPairingId = Just pid
-                  }
-                -- Now load the tournament data
-                handleAction $ SelectTournament (show tid)
+  LoadTournaments ->
+    withLoading listTournaments handleTournamentsLoaded
 
-  SelectTournament tidStr -> do
-    state <- H.get
-    -- Only clear selections if we don't already have them set (e.g., from loading current match)
-    let preserveSelections = state.selectedTournamentId == tidStr && state.selectedDivisionId /= ""
-    liftEffect $ log $ "[SelectTournament] tidStr=" <> tidStr <> " preserveSelections=" <> show preserveSelections <> " currentDivId=" <> state.selectedDivisionId
-    when (not preserveSelections) $
-      H.modify_ _ { selectedTournamentId = tidStr, selectedDivisionId = "", selectedRound = "", selectedPairingId = Nothing }
-    H.modify_ _ { selectedTournamentId = tidStr, loading = true }
-    case Int.fromString tidStr of
-      Nothing -> H.modify_ _ { loading = false }
-      Just tid -> do
-        currentState <- H.get
-        case currentState.userId of
-          Nothing -> H.modify_ _ { loading = false }
-          Just uid -> do
-            result <- H.liftAff $ CurrentMatchAPI.getTournament uid tid
-            case result of
-              Left err -> H.modify_ _ { error = Just err, loading = false }
-              Right tournament -> do
-                H.modify_ _ { selectedTournament = Just tournament, loading = false }
-                finalState <- H.get
-                liftEffect $ log $ "[SelectTournament] After loading tournament: selectedDivId=" <> finalState.selectedDivisionId <> " selectedRound=" <> finalState.selectedRound <> " selectedPairingId=" <> show finalState.selectedPairingId
-                -- Only auto-select if we don't have selections already
-                when (not preserveSelections) $ do
-                  case head tournament.divisions of
-                    Nothing -> pure unit
-                    Just division -> do
-                      let DivisionId did = division.id
-                      handleAction $ SelectDivision (show did)
+  SelectTournament tidStr ->
+    handleSelectTournament tidStr
 
   SelectDivision didStr -> do
     H.modify_ _ { selectedDivisionId = didStr, selectedRound = "", selectedPairingId = Nothing }
     state <- H.get
     let rounds = getRoundsForDivision state
-    case head rounds of
-      Nothing -> pure unit
-      Just r -> handleAction $ SelectRound (show r)
+    for_ (head rounds) \r -> handleAction $ SelectRound (show r)
 
   SelectRound roundStr -> do
     H.modify_ _ { selectedRound = roundStr, selectedPairingId = Nothing }
     state <- H.get
     let pairings = getPairingsForRound state
-    case head pairings of
-      Nothing -> pure unit
-      Just game -> do
-        let maybePid = game.pairingId
-        case maybePid of
-          Nothing -> pure unit
-          Just (PairingId pid) -> H.modify_ _ { selectedPairingId = Just pid }
+    for_ (head pairings) \game ->
+      for_ game.pairingId \(PairingId pid) ->
+        H.modify_ _ { selectedPairingId = Just pid }
 
-  SelectPairing pidStr -> do
-    case Int.fromString pidStr of
-      Nothing -> H.modify_ _ { selectedPairingId = Nothing }
-      Just pid -> H.modify_ _ { selectedPairingId = Just pid }
+  SelectPairing pidStr ->
+    H.modify_ _ { selectedPairingId = Int.fromString pidStr }
 
-  UpdateMatch -> do
-    state <- H.get
-    case state.userId, Int.fromString state.selectedTournamentId, Int.fromString state.selectedDivisionId, Int.fromString state.selectedRound, state.selectedPairingId of
-      Just uid, Just tid, Just did, Just round, Just pid -> do
-        H.modify_ _ { loading = true, error = Nothing, success = Nothing }
-        let request = { tournamentId: TournamentId tid, divisionId: DivisionId did, round, pairingId: PairingId pid }
-        result <- H.liftAff $ CurrentMatchAPI.setCurrentMatch request
-        case result of
-          Left err -> H.modify_ _ { error = Just err, loading = false }
-          Right match -> H.modify_ _ { success = Just "Match updated successfully!", loading = false }
-      _, _, _, _, _ -> H.modify_ _ { error = Just "Please select all fields" }
+  UpdateMatch ->
+    handleUpdateMatch
 
   HandleBackClick -> H.raise NavigateBack
+
+-- | Handle tournaments loaded - auto-select current match if available
+handleTournamentsLoaded :: forall m. MonadBackend m => MonadEffect m => Array TournamentSummary -> H.HalogenM State Action () Output m Unit
+handleTournamentsLoaded tournaments = do
+  H.modify_ _ { tournaments = tournaments }
+  -- Load current match and auto-select
+  state <- H.get
+  for_ state.userId \uid -> do
+    result <- H.lift $ try $ getCurrentMatch (UserId uid)
+    for_ (join $ hush result) \match -> do
+      let TournamentId tid = match.tournamentId
+          DivisionId did = match.divisionId
+          PairingId pid = match.pairingId
+      liftEffect $ log $ "[CurrentMatch] Loaded current match: tid=" <> show tid <> " did=" <> show did <> " round=" <> show match.round <> " pid=" <> show pid
+      -- Store the current match data in state before loading tournament
+      H.modify_ _
+        { selectedTournamentId = show tid
+        , selectedDivisionId = show did
+        , selectedRound = show match.round
+        , selectedPairingId = Just pid
+        }
+      -- Now load the tournament data
+      handleAction $ SelectTournament (show tid)
+
+-- | Handle tournament selection with auto-selection of first division
+handleSelectTournament :: forall m. MonadBackend m => MonadEffect m => String -> H.HalogenM State Action () Output m Unit
+handleSelectTournament tidStr = do
+  state <- H.get
+  -- Only clear selections if we don't already have them set (e.g., from loading current match)
+  let preserveSelections = state.selectedTournamentId == tidStr && state.selectedDivisionId /= ""
+  liftEffect $ log $ "[SelectTournament] tidStr=" <> tidStr <> " preserveSelections=" <> show preserveSelections <> " currentDivId=" <> state.selectedDivisionId
+  when (not preserveSelections) $
+    H.modify_ _ { selectedTournamentId = tidStr, selectedDivisionId = "", selectedRound = "", selectedPairingId = Nothing }
+  H.modify_ _ { selectedTournamentId = tidStr }
+  for_ (Int.fromString tidStr) \tid -> do
+    currentState <- H.get
+    for_ currentState.userId \uid ->
+      withLoading (getTournament (UserId uid) (TournamentId tid)) \tournament -> do
+        H.modify_ _ { selectedTournament = Just tournament }
+        finalState <- H.get
+        liftEffect $ log $ "[SelectTournament] After loading tournament: selectedDivId=" <> finalState.selectedDivisionId <> " selectedRound=" <> finalState.selectedRound <> " selectedPairingId=" <> show finalState.selectedPairingId
+        -- Only auto-select if we don't have selections already
+        when (not preserveSelections) $
+          for_ (head tournament.divisions) \division -> do
+            let DivisionId did = division.id
+            handleAction $ SelectDivision (show did)
+
+-- | Update current match selection
+handleUpdateMatch :: forall m. MonadBackend m => H.HalogenM State Action () Output m Unit
+handleUpdateMatch = do
+  state <- H.get
+  case state.userId, Int.fromString state.selectedTournamentId, Int.fromString state.selectedDivisionId, Int.fromString state.selectedRound, state.selectedPairingId of
+    Just _, Just tid, Just did, Just round, Just pid -> do
+      H.modify_ _ { success = Nothing }
+      let request = { tournamentId: TournamentId tid, divisionId: DivisionId did, round, pairingId: PairingId pid }
+      withLoading (setCurrentMatch request) \_ ->
+        H.modify_ _ { success = Just "Match updated successfully!" }
+    _, _, _, _, _ -> H.modify_ _ { error = Just "Please select all fields" }

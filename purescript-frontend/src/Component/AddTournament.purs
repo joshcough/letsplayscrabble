@@ -8,21 +8,19 @@ import CSS.Class as C
 import CSS.Class (CSSClass(..))
 import CSS.ThemeColor (ThemeColor(..))
 
-import API.Tournament as TournamentApi
+import Backend.MonadBackend (class MonadBackend, createTournament)
 import Component.ThemeSelector as ThemeSelector
 import Config.Themes (scrabbleTheme)
-import Data.Either (Either(..))
 import Data.Int as Int
 import Data.Maybe (Maybe(..), fromMaybe)
-import Effect.Aff.Class (class MonadAff)
-import Effect.Class (liftEffect)
-import Effect.Console as Console
+import Effect.Class (class MonadEffect, liftEffect)
 import Halogen as H
+import Utils.Halogen (withLoading)
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Types.Theme (Theme)
-import Utils.CSS (cls, css, thm, raw)
+import Utils.CSS (cls, css, thm)
 import Utils.Auth (isAuthenticated)
 import Web.Event.Event (Event, preventDefault)
 
@@ -58,7 +56,7 @@ data Action
 
 type Input = Unit
 
-component :: forall query output m. MonadAff m => H.Component query Input output m
+component :: forall query output m. MonadBackend m => MonadEffect m => H.Component query Input output m
 component = H.mkComponent
   { initialState: const initialState
   , render
@@ -85,7 +83,7 @@ initialState =
   , theme: scrabbleTheme
   }
 
-handleAction :: forall output m. MonadAff m => Action -> H.HalogenM State Action () output m Unit
+handleAction :: forall output m. MonadBackend m => MonadEffect m => Action -> H.HalogenM State Action () output m Unit
 handleAction = case _ of
   Initialize -> do
     authenticated <- liftEffect isAuthenticated
@@ -116,35 +114,19 @@ handleAction = case _ of
 
   Submit event -> do
     liftEffect $ preventDefault event
-    state <- H.get
+    handleSubmitTournament
 
-    H.modify_ _ { loading = true, error = Nothing, success = Nothing }
+-- | Handle tournament submission
+handleSubmitTournament :: forall output m. MonadBackend m => H.HalogenM State Action () output m Unit
+handleSubmitTournament = do
+  state <- H.get
+  H.modify_ _ { success = Nothing }
 
-    -- Convert ThemeName to String for API
-    let apiParams =
-          { name: state.formData.name
-          , city: state.formData.city
-          , year: state.formData.year
-          , lexicon: state.formData.lexicon
-          , longFormName: state.formData.longFormName
-          , dataUrl: state.formData.dataUrl
-          , theme: state.formData.theme
-          }
-
-    result <- H.liftAff $ TournamentApi.createTournament apiParams
-
-    case result of
-      Left err -> do
-        liftEffect $ Console.log $ "[AddTournament] Create failed: " <> err
-        H.modify_ _ { loading = false, error = Just err }
-
-      Right _ -> do
-        liftEffect $ Console.log $ "[AddTournament] Tournament created successfully"
-        H.modify_ _
-          { loading = false
-          , success = Just "Tournament created successfully!"
-          , formData = initialState.formData
-          }
+  withLoading (createTournament state.formData) \_ ->
+    H.modify_ _
+      { success = Just "Tournament created successfully!"
+      , formData = initialState.formData
+      }
 
 render :: forall m. State -> H.ComponentHTML Action () m
 render state =

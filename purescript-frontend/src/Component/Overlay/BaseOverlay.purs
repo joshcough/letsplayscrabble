@@ -5,7 +5,7 @@ module Component.Overlay.BaseOverlay where
 
 import Prelude
 
-import BroadcastChannel.Class (postSubscribe, subscribeTournamentData, subscribeAdminPanel, closeBroadcast)
+import BroadcastChannel.Class (postSubscribe, subscribeTournamentData, subscribeAdminPanel)
 import BroadcastChannel.Messages (TournamentDataResponse, AdminPanelUpdate)
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import BroadcastChannel.MonadEmitters (class MonadEmitters)
@@ -50,7 +50,6 @@ data Action
   = Initialize
   | HandleTournamentData TournamentDataResponse
   | HandleAdminPanelUpdate AdminPanelUpdate
-  | Finalize
 
 -- | Initialize the base overlay state
 initialState :: forall extra. Input extra -> State extra
@@ -121,7 +120,6 @@ handleAction = case _ of
   Initialize -> initialize
   HandleTournamentData response -> H.modify_ (handleTournamentDataUpdate response)
   HandleAdminPanelUpdate update -> H.modify_ (handleAdminPanelUpdateState update)
-  Finalize -> closeBroadcast
 
 -- | Render loading state
 renderLoading :: forall w i. HH.HTML w i
@@ -156,6 +154,5 @@ mkComponent renderFn = H.mkComponent
   , eval: H.mkEval $ H.defaultEval
       { handleAction = handleAction
       , initialize = Just Initialize
-      , finalize = Just Finalize
       }
   }
