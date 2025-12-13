@@ -5,29 +5,44 @@
 module Utils.Logger
   ( log
   , logShow
-  , loggingEnabled
+  , isLoggingEnabled
   ) where
 
 import Prelude
 
+import Data.String (Pattern(..), contains)
 import Effect (Effect)
+import Effect.Console as Console
+import Web.HTML (window)
+import Web.HTML.Location as Location
+import Web.HTML.Window (location)
 
--- | Check if logging is currently enabled
--- | Logs are only enabled when URL contains ?logging=true parameter
-foreign import loggingEnabled :: Boolean
+-- | Check if logging is currently enabled by checking URL parameters
+-- | Checks both hash-based routing (#/path?logging=true) and regular query params
+isLoggingEnabled :: Effect Boolean
+isLoggingEnabled = do
+  loc <- window >>= location
+  hash <- Location.hash loc
+  search <- Location.search loc
+
+  -- Check if either the hash or search contains ?logging=true or &logging=true
+  pure $ checkQueryString hash || checkQueryString search
+  where
+    checkQueryString :: String -> Boolean
+    checkQueryString str =
+      contains (Pattern "?logging=true") str ||
+      contains (Pattern "&logging=true") str
 
 -- | Log a message (only if logging is enabled)
 -- | Usage: liftEffect $ log "My message"
-foreign import logImpl :: String -> Effect Unit
+log :: String -> Effect Unit
+log message = do
+  enabled <- isLoggingEnabled
+  when enabled $ Console.log message
 
 -- | Log a message with a showable value (only if logging is enabled)
 -- | Usage: liftEffect $ logShow "Label" someValue
-foreign import logShowImpl :: forall a. String -> a -> Effect Unit
-
--- | Log a message (only if logging is enabled)
-log :: String -> Effect Unit
-log = logImpl
-
--- | Log a message with a showable value (only if logging is enabled)
-logShow :: forall a. String -> a -> Effect Unit
-logShow = logShowImpl
+logShow :: forall a. Show a => String -> a -> Effect Unit
+logShow label value = do
+  enabled <- isLoggingEnabled
+  when enabled $ Console.log $ label <> " " <> show value
