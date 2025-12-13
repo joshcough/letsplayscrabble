@@ -2,6 +2,169 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
 body.transparent-overlay {
   background: transparent !important;
+}
+
+@layer components {
+  /* Navigation Components */
+  .nav-link {
+    @apply inline-flex items-center px-4 py-2 mt-3 mb-3 font-medium rounded transition-colors duration-200;
+  }
+
+  .nav-link-active {
+    @apply bg-yellow-800/20;
+  }
+
+  .nav-user-button {
+    @apply inline-flex items-center px-4 py-2 font-medium rounded transition-colors duration-200;
+  }
+
+  .nav-dropdown {
+    @apply absolute mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5;
+  }
+
+  .nav-dropdown-item {
+    @apply block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200;
+  }
+
+  /* Page Layouts */
+  .page-container {
+    @apply max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8;
+  }
+
+  .page-header {
+    @apply text-center mb-12;
+  }
+
+  .page-title {
+    @apply text-2xl font-bold;
+  }
+
+  .page-subtitle {
+    @apply mt-2;
+  }
+
+  /* Card Components */
+  .card-container {
+    @apply relative h-[200px] flex cursor-pointer w-full text-left;
+  }
+
+  .card-overlay {
+    @apply absolute inset-0 opacity-10 transition-opacity;
+  }
+
+  .card-content {
+    @apply relative p-8 rounded border-2 shadow-lg transform transition-transform flex-1 flex flex-col;
+  }
+
+  .card-title {
+    @apply text-xl font-bold mb-3;
+  }
+
+  /* Form Components */
+  .form-container {
+    @apply space-y-6;
+  }
+
+  .form-group {
+    @apply space-y-2;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium;
+  }
+
+  .form-input {
+    @apply w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 transition-colors;
+  }
+
+  .form-button {
+    @apply w-full px-4 py-2 rounded font-medium transition-colors;
+  }
+
+  /* Grid Layouts */
+  .card-grid {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto;
+  }
+
+  .overlay-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8;
+  }
+
+  /* Tournament Components */
+  .tournament-card {
+    @apply rounded border-2 p-6 transition-all duration-200 cursor-pointer;
+  }
+
+  .tournament-header {
+    @apply flex justify-between items-start mb-4;
+  }
+
+  .tournament-title {
+    @apply text-xl font-bold;
+  }
+
+  .tournament-info {
+    @apply space-y-2;
+  }
+
+  .tournament-info-row {
+    @apply flex items-center gap-2;
+  }
+
+  /* Button Variants */
+  .btn-primary {
+    @apply px-4 py-2 rounded font-medium transition-colors;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 rounded border-2 font-medium transition-colors;
+  }
+
+  /* Utility Classes */
+  .center-container {
+    @apply min-h-screen flex items-center justify-center;
+  }
+
+  .loading-container {
+    @apply min-h-screen flex items-center justify-center;
+  }
+
+  .error-message {
+    @apply text-center mt-4;
+  }
+
+  /* Logo & Images */
+  .logo-container {
+    @apply flex justify-center mb-12;
+  }
+
+  .logo-link {
+    @apply transform hover:scale-105 transition-transform;
+  }
+
+  .logo-image {
+    @apply h-24 object-contain;
+  }
+
+  /* Footer */
+  .page-footer {
+    @apply text-center mt-12 text-sm;
+  }
+
+  /* Dropdown Icons */
+  .dropdown-arrow {
+    @apply ml-2 h-4 w-4 transition-transform;
+  }
+
+  .dropdown-arrow-open {
+    @apply rotate-180;
+  }
 }

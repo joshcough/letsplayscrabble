@@ -189,12 +189,12 @@ app.use(
 // Get the project root once
 const projectRoot = getProjectRoot();
 
-// Serve static files from the React frontend app
-app.use(express.static(path.join(projectRoot, "frontend/build")));
+// Serve static files from the PureScript frontend app
+app.use(express.static(path.join(projectRoot, "frontend/public")));
 
 // Anything that doesn't match the above, send back index.html
 app.get("*", (_req: Request, res: Response) => {
-  res.sendFile(path.join(projectRoot, "frontend/build/index.html"));
+  res.sendFile(path.join(projectRoot, "frontend/public/index.html"));
 });
 
 // start the polling service
