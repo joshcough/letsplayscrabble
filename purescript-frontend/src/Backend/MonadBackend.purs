@@ -7,17 +7,18 @@ import Prelude
 import API.Auth as AuthAPI
 import API.CurrentMatch as CurrentMatchAPI
 import API.Tournament as TournamentAPI
-import Data.Either (Either)
+import Control.Monad.Error.Class (class MonadError, class MonadThrow, throwError)
+import Data.Either (Either(..), either)
 import Data.Maybe (Maybe)
-import Domain.Types (CreateCurrentMatch, CurrentMatch, Tournament, TournamentSummary)
+import Domain.Types (CreateCurrentMatch, CurrentMatch, Tournament, TournamentId(..), TournamentSummary, UserId(..))
 import Effect.Aff (Aff)
-import Effect.Aff.Class (class MonadAff)
-import Effect.Class (class MonadEffect)
+import Effect.Exception (Error, error)
 
 -- | Typeclass for backend operations
-class (MonadAff m, MonadEffect m) <= MonadBackend m where
+-- | Uses MonadError for error handling instead of returning Either
+class MonadError Error m <= MonadBackend m where
   -- Auth operations
-  login :: { username :: String, password :: String } -> m (Either String { token :: String, userId :: Int, username :: String })
+  login :: { username :: String, password :: String } -> m { token :: String, userId :: UserId, username :: String }
 
   -- Tournament operations
   createTournament ::
@@ -28,14 +29,14 @@ class (MonadAff m, MonadEffect m) <= MonadBackend m where
     , longFormName :: String
     , dataUrl :: String
     , theme :: String
-    } -> m (Either String TournamentSummary)
+    } -> m TournamentSummary
 
-  listTournaments :: m (Either String (Array TournamentSummary))
+  listTournaments :: m (Array TournamentSummary)
 
-  getTournamentRow :: Int -> Int -> m (Either String TournamentSummary)
+  getTournamentRow :: UserId -> TournamentId -> m TournamentSummary
 
   updateTournament ::
-    Int ->
+    TournamentId ->
     { name :: String
     , longFormName :: String
     , city :: String
@@ -43,49 +44,63 @@ class (MonadAff m, MonadEffect m) <= MonadBackend m where
     , lexicon :: String
     , theme :: String
     , dataUrl :: String
-    } -> m (Either String TournamentSummary)
+    } -> m TournamentSummary
 
-  enablePolling :: Int -> Int -> m (Either String String)
+  enablePolling :: TournamentId -> Int -> m String
 
-  stopPolling :: Int -> m (Either String Unit)
+  stopPolling :: TournamentId -> m Unit
 
-  clearCache :: m (Either String Unit)
+  clearCache :: m Unit
 
-  refetchTournament :: Int -> m (Either String String)
+  refetchTournament :: TournamentId -> m String
 
-  fullRefetchTournament :: Int -> m (Either String String)
+  fullRefetchTournament :: TournamentId -> m String
 
   -- CurrentMatch operations
-  getCurrentMatch :: Int -> m (Either String (Maybe CurrentMatch))
+  getCurrentMatch :: UserId -> m (Maybe CurrentMatch)
 
-  getTournament :: Int -> Int -> m (Either String Tournament)
+  getTournament :: UserId -> TournamentId -> m Tournament
 
-  setCurrentMatch :: CreateCurrentMatch -> m (Either String CurrentMatch)
+  setCurrentMatch :: CreateCurrentMatch -> m CurrentMatch
 
 -- | Real Aff instance - uses real HTTP calls via Affjax
+-- | Converts Either results to MonadError
 instance MonadBackend Aff where
-  login credentials = AuthAPI.login credentials
+  login credentials =
+    AuthAPI.login credentials >>= either (throwError <<< error) \res -> pure (res { userId = UserId res.userId })
 
-  createTournament params = TournamentAPI.createTournament params
+  createTournament params =
+    TournamentAPI.createTournament params >>= either (throwError <<< error) pure
 
-  listTournaments = TournamentAPI.listTournaments
+  listTournaments =
+    TournamentAPI.listTournaments >>= either (throwError <<< error) pure
 
-  getTournamentRow userId tournamentId = TournamentAPI.getTournamentRow userId tournamentId
+  getTournamentRow (UserId userId) (TournamentId tournamentId) =
+    TournamentAPI.getTournamentRow userId tournamentId >>= either (throwError <<< error) pure
 
-  updateTournament tournamentId params = TournamentAPI.updateTournament tournamentId params
+  updateTournament (TournamentId tournamentId) params =
+    TournamentAPI.updateTournament tournamentId params >>= either (throwError <<< error) pure
 
-  enablePolling tournamentId days = TournamentAPI.enablePolling tournamentId days
+  enablePolling (TournamentId tournamentId) days =
+    TournamentAPI.enablePolling tournamentId days >>= either (throwError <<< error) pure
 
-  stopPolling tournamentId = TournamentAPI.stopPolling tournamentId
+  stopPolling (TournamentId tournamentId) =
+    TournamentAPI.stopPolling tournamentId >>= either (throwError <<< error) pure
 
-  clearCache = TournamentAPI.clearCache
+  clearCache =
+    TournamentAPI.clearCache >>= either (throwError <<< error) pure
 
-  refetchTournament tournamentId = TournamentAPI.refetchTournament tournamentId
+  refetchTournament (TournamentId tournamentId) =
+    TournamentAPI.refetchTournament tournamentId >>= either (throwError <<< error) pure
 
-  fullRefetchTournament tournamentId = TournamentAPI.fullRefetchTournament tournamentId
+  fullRefetchTournament (TournamentId tournamentId) =
+    TournamentAPI.fullRefetchTournament tournamentId >>= either (throwError <<< error) pure
 
-  getCurrentMatch userId = CurrentMatchAPI.getCurrentMatch userId
+  getCurrentMatch (UserId userId) =
+    CurrentMatchAPI.getCurrentMatch userId >>= either (throwError <<< error) pure
 
-  getTournament userId tournamentId = CurrentMatchAPI.getTournament userId tournamentId
+  getTournament (UserId userId) (TournamentId tournamentId) =
+    CurrentMatchAPI.getTournament userId tournamentId >>= either (throwError <<< error) pure
 
-  setCurrentMatch request = CurrentMatchAPI.setCurrentMatch request
+  setCurrentMatch request =
+    CurrentMatchAPI.setCurrentMatch request >>= either (throwError <<< error) pure

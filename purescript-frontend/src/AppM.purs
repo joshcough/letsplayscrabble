@@ -6,10 +6,12 @@ import Backend.MonadBackend (class MonadBackend, clearCache, createTournament, e
 import BroadcastChannel.Manager (BroadcastManager, EmitterManager)
 import BroadcastChannel.MonadBroadcast (class MonadBroadcast)
 import BroadcastChannel.MonadEmitters (class MonadEmitters)
+import Control.Monad.Error.Class (class MonadError, class MonadThrow)
 import Control.Monad.Reader.Trans (class MonadAsk, ReaderT, asks, runReaderT)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
+import Effect.Exception (Error)
 
 type AppEnv =
   { broadcastManager :: BroadcastManager
@@ -26,6 +28,8 @@ derive newtype instance monadAppM :: Monad AppM
 derive newtype instance monadEffectAppM :: MonadEffect AppM
 derive newtype instance monadAffAppM :: MonadAff AppM
 derive newtype instance monadAskAppM :: MonadAsk AppEnv AppM
+derive newtype instance monadThrowAppM :: MonadThrow Error AppM
+derive newtype instance monadErrorAppM :: MonadError Error AppM
 
 instance monadBroadcastAppM :: MonadBroadcast AppM where
   getBroadcastManager = asks _.broadcastManager

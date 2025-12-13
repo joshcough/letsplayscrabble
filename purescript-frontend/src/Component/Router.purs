@@ -30,7 +30,7 @@ import Data.Either (Either(..))
 import Effect.Unsafe (unsafePerformEffect)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class (liftEffect)
+import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Class.Console (log)
 import Halogen as H
 import Halogen.HTML as HH
@@ -154,7 +154,7 @@ withNavigation state content =
     _, _ -> content
 
 -- | Router component
-component :: forall input output m. MonadBackend m => MonadBroadcast m => MonadEmitters m => H.Component Query input output m
+component :: forall input output m. MonadBackend m => MonadBroadcast m => MonadEmitters m => MonadAff m => MonadEffect m => H.Component Query input output m
 component = H.mkComponent
   { initialState: \_ -> { route: Nothing, isAuthenticated: false, username: Nothing, userId: Nothing, broadcastManager: Nothing, emitterManager: Nothing }
   , render
@@ -165,7 +165,7 @@ component = H.mkComponent
       }
   }
 
-render :: forall m. MonadBackend m => MonadBroadcast m => MonadEmitters m => State -> H.ComponentHTML Action Slots m
+render :: forall m. MonadBackend m => MonadBroadcast m => MonadEmitters m => MonadAff m => MonadEffect m => State -> H.ComponentHTML Action Slots m
 render state =
   let _ = unsafePerformEffect $ log $ "[Router] Rendering route: " <> show state.route
   in case state.route of
@@ -342,7 +342,7 @@ render state =
     Just Worker ->
       HH.slot_ _worker unit WorkerPage.component unit
 
-handleAction :: forall output m. MonadAff m => Action -> H.HalogenM State Action Slots output m Unit
+handleAction :: forall output m. MonadAff m => MonadEffect m => Action -> H.HalogenM State Action Slots output m Unit
 handleAction = case _ of
   Initialize -> do
     liftEffect $ log "[Router] Initializing..."
@@ -459,7 +459,7 @@ handleAction = case _ of
         liftEffect $ setHash (print routeCodec route)
         H.modify_ _ { route = Just route }
 
-handleQuery :: forall output m a. MonadAff m => Query a -> H.HalogenM State Action Slots output m (Maybe a)
+handleQuery :: forall output m a. MonadAff m => MonadEffect m => Query a -> H.HalogenM State Action Slots output m (Maybe a)
 handleQuery = case _ of
   Navigate route next -> do
     liftEffect $ log $ "[Router] Query Navigate to: " <> show route

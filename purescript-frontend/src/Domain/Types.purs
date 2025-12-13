@@ -10,6 +10,7 @@ import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 
 -- | Newtypes for type safety
+newtype UserId = UserId Int
 newtype TournamentId = TournamentId Int
 newtype DivisionId = DivisionId Int
 newtype PlayerId = PlayerId Int
@@ -17,6 +18,7 @@ newtype GameId = GameId Int
 newtype PairingId = PairingId Int
 newtype XTId = XTId Int
 
+derive instance newtypeUserId :: Newtype UserId _
 derive instance newtypeTournamentId :: Newtype TournamentId _
 derive instance newtypeDivisionId :: Newtype DivisionId _
 derive instance newtypePlayerId :: Newtype PlayerId _
@@ -24,6 +26,7 @@ derive instance newtypeGameId :: Newtype GameId _
 derive instance newtypePairingId :: Newtype PairingId _
 derive instance newtypeXTId :: Newtype XTId _
 
+derive newtype instance eqUserId :: Eq UserId
 derive newtype instance eqTournamentId :: Eq TournamentId
 derive newtype instance eqDivisionId :: Eq DivisionId
 derive newtype instance eqPlayerId :: Eq PlayerId
@@ -31,6 +34,7 @@ derive newtype instance eqGameId :: Eq GameId
 derive newtype instance eqPairingId :: Eq PairingId
 derive newtype instance eqXTId :: Eq XTId
 
+derive newtype instance ordUserId :: Ord UserId
 derive newtype instance ordTournamentId :: Ord TournamentId
 derive newtype instance ordDivisionId :: Ord DivisionId
 derive newtype instance ordPlayerId :: Ord PlayerId
@@ -38,6 +42,8 @@ derive newtype instance ordGameId :: Ord GameId
 derive newtype instance ordPairingId :: Ord PairingId
 derive newtype instance ordXTId :: Ord XTId
 
+derive newtype instance encodeJsonUserId :: EncodeJson UserId
+derive newtype instance decodeJsonUserId :: DecodeJson UserId
 derive newtype instance encodeJsonTournamentId :: EncodeJson TournamentId
 derive newtype instance decodeJsonTournamentId :: DecodeJson TournamentId
 derive newtype instance encodeJsonDivisionId :: EncodeJson DivisionId
@@ -51,6 +57,7 @@ derive newtype instance decodeJsonPairingId :: DecodeJson PairingId
 derive newtype instance encodeJsonXTId :: EncodeJson XTId
 derive newtype instance decodeJsonXTId :: DecodeJson XTId
 
+derive newtype instance showUserId :: Show UserId
 derive newtype instance showTournamentId :: Show TournamentId
 derive newtype instance showDivisionId :: Show DivisionId
 derive newtype instance showPlayerId :: Show PlayerId
